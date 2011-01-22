@@ -12,4 +12,5 @@ Known issues:
 - vineyard, duke, and gardens are not implemented
 - not tested in > 2 players (but should work)
 - doesn't always realize a new game has started (reload page to fix)
+- code is a horrible hack :P
 - probably lots of other stuff :)

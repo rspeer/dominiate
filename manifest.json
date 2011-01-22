@@ -1,0 +1,9 @@
+{
+   "content_scripts": [ {
+      "js": [ "dominion.js" ],
+      "matches": [ "http://dominion.isotropic.org/play" ]
+   } ],
+   "description": "Dominion Point Counter",
+   "name": "Dominion Point Counter",
+   "version": "1"
+}
