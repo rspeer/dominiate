@@ -1,4 +1,4 @@
-// TODO(drheld): Count duchies / dukes / islands.
+// TODO(drheld): Count duchies / dukes / islands here.
 var special_counts = new Object();
 
 var scores = new Object();
@@ -8,9 +8,14 @@ var deck_spot;
 var points_spot;
 var started = false;
 var last_player = "";
-var last_reveal_points = 0;
+var last_reveal_card = "";
 
-function pointsForCard(card) {
+function DebugString() {
+  return "[Scores: " + JSON.stringify(scores) + "] " +
+         "[Cards: " + JSON.stringify(decks) + "]";
+}
+
+function PointsForCard(card) {
   if (card == undefined) {
     alert("Undefined card for points...");
     return;
@@ -29,6 +34,20 @@ function pointsForCard(card) {
   return 0;
 }
 
+function GainCard(player, card, count) {
+  if (player == null) return;
+
+  if (typeof decks[player] == "undefined") {
+    decks[player] = 10;
+  }
+  if (typeof scores[player] == "undefined") {
+    scores[player] = 3;
+  }
+
+  scores[player] = scores[player] + PointsForCard(card) * count;
+  decks[player] = decks[player] + count;
+}
+
 function findTrailingPlayer(text) {
   var arr = text.match(/ ([A-Za-z0-9]+)\./);
   if (arr.length == 2) {
@@ -37,25 +56,7 @@ function findTrailingPlayer(text) {
   return null;
 }
 
-function changeScore(player, delta) {
-  if (player == null) return;
-
-  if (typeof scores[player] == "undefined") {
-    scores[player] = 3;
-  }
-  scores[player] = scores[player] + delta;
-}
-
-function changeDeck(player, delta) {
-  if (player == null) return;
-
-  if (typeof decks[player] == "undefined") {
-    decks[player] = 10;
-  }
-  decks[player] = decks[player] + delta;
-}
-
-function maybeHandleTurnChange(text) {
+function MaybeHandleTurnChange(text) {
   if (text.indexOf("---") != -1) {
     // This must be a turn start.
     if (text.match(/Your turn/) != null) {
@@ -73,25 +74,25 @@ function maybeHandleTurnChange(text) {
   return false;
 }
 
-function maybeReturnToSupply(text) {
+function MaybeReturnToSupply(text) {
   if (text.indexOf("returning it to the supply") != -1) {
-    changeScore(last_player, -last_reveal_points);
+    GainCard(last_player, last_reveal_card, -1);
     return true;
   } else {
     var arr = text.match("([0-9]*) copies to the supply");
     if (arr != null && arr.length == 2) {
-      changeScore(last_player, last_reveal_points * -arr[1]);
+      GainCard(last_player, last_reveal_card, -arr[1]);
       return true;
     }
   }
   return false;
 }
 
-function maybeHandleSwindler(elems, text) {
+function MaybeHandleSwindler(elems, text) {
   if (text.indexOf("replacing your") != -1) {
     if (elems.length == 2) {
-      changeScore("You", -pointsForCard(elems[0].innerText));
-      changeScore("You", pointsForCard(elems[1].innerText));
+      changeScore("You", -PointsForCard(elems[0].innerText));
+      changeScore("You", PointsForCard(elems[1].innerText));
     } else {
       alert("Replacing your has " + elems.length + " elements.");
     }
@@ -101,8 +102,8 @@ function maybeHandleSwindler(elems, text) {
     if (elems.length == 2) {
       var arr = text.match("You replace ([^']*)'");
       if (arr != null && arr.length == 2) {
-        changeScore(arr[1], -pointsForCard(elems[0].innerText));
-        changeScore(arr[1], pointsForCard(elems[1].innerText));
+        changeScore(arr[1], -PointsForCard(elems[0].innerText));
+        changeScore(arr[1], PointsForCard(elems[1].innerText));
       } else {
         alert("Could not split: " + text);
       }
@@ -117,12 +118,12 @@ function maybeHandleSwindler(elems, text) {
 function handleLogEntry(node) {
   elems = node.getElementsByTagName("span");
   if (elems.length == 0) {
-    if (maybeHandleTurnChange(node.innerText)) return;
-    if (maybeReturnToSupply(node.innerText)) return;
+    if (MaybeHandleTurnChange(node.innerText)) return;
+    if (MaybeReturnToSupply(node.innerText)) return;
     return;
   }
 
-  if (maybeHandleSwindler(elems, node.innerText)) return;
+  if (MaybeHandleSwindler(elems, node.innerText)) return;
 
   // Remove leading stuff from the text.
   var text = node.innerText.split(" ");
@@ -137,15 +138,13 @@ function handleLogEntry(node) {
     for (elem in elems) {
       if (elems[elem].innerText != undefined) {
         var card = elems[elem].innerText;
-        var card_points = pointsForCard(card);
         var count = 1;
         var re = new RegExp("([0-9]+) " + card);
         var arr = (node.innerText.match(re));
         if (arr != null && arr.length == 2) {
           count = arr[1];
         }
-        changeScore(last_player, -card_points * count);
-        changeDeck(last_player, -1 * count);
+        GainCard(last_player, card, -count);
       }
     }
     return;
@@ -155,11 +154,10 @@ function handleLogEntry(node) {
   if (elems.length > 1) return;
 
   // It's a single card action.
-  var card_points = pointsForCard(elems[0].innerText);
+  var card = elems[0].innerText;
 
   if (text[0].indexOf("gaining") == 0) {
-    changeScore(last_player, card_points);
-    changeDeck(last_player, 1);
+    GainCard(last_player, card, 1);
     return;
   }
 
@@ -167,28 +165,21 @@ function handleLogEntry(node) {
   var action = text[1];
   var delta = 0;
   if (action.indexOf("buy") == 0 || action.indexOf("gain") == 0) {
-    changeScore(player, card_points);
-    changeDeck(player, 1);
-  } else if (action.indexOf("trash") == 0) {
-    changeScore(player, -card_points);
-    changeDeck(player, -1);
+    GainCard(player, card, 1);
   } else if (action.indexOf("pass") == 0) {
-    changeScore(player, -card_points);
-    changeDeck(player, -1);
+    GainCard(player, card, -1);
     var other_player = findTrailingPlayer(node.innerText);
-    changeScore(other_player, card_points);
-    changeDeck(other_player, 1);
+    GainCard(other_player, card, 1);
   } else if (action.indexOf("receive") == 0) {
-    changeScore(player, card_points);
+    GainCard(player, card, 1);
     var other_player = findTrailingPlayer(node.innerText);
-    changeScore(other_player, -card_points);
-    changeDeck(other_player, -1);
+    GainCard(other_player, card, -1);
   } else if (action.indexOf("reveal") == 0) {
-    last_reveal_points = card_points;
+    last_reveal_card = card;
   }
 }
 
-function updateScores() {
+function UpdateScores() {
   if (points_spot == undefined) return;
   var print_scores = "Points: "
   for (var score in scores) {
@@ -197,7 +188,7 @@ function updateScores() {
   points_spot.innerHTML = print_scores;
 }
 
-function updateDeck() {
+function UpdateDeck() {
   if (deck_spot == undefined) return;
   var print_deck = "Cards: "
   for (var deck in decks) {
@@ -212,8 +203,8 @@ function initialize() {
   scores = new Object();
   decks = new Object();
 
-  updateScores();
-  updateDeck();
+  UpdateScores();
+  UpdateDeck();
 }
 
 function handle(doc) {
@@ -234,8 +225,8 @@ function handle(doc) {
   }
 
   if (started) {
-    updateScores();
-    updateDeck();
+    UpdateScores();
+    UpdateDeck();
   }
 }
 
