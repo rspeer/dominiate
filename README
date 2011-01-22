@@ -1,0 +1,15 @@
+Chrome extension to keep track of information during a game of dominion on
+dominion.isotropic.org.
+
+The extension keeps track of:
+- # of cards each player has
+- # of points each player has
+
+These are displayed in the bottom beside the chat box.
+
+Known issues:
+- possession is not supported
+- vineyard, duke, and gardens are not implemented
+- not tested in > 2 players (but should work)
+- doesn't always realize a new game has started (reload page to fix)
+- probably lots of other stuff :)
