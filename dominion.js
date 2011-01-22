@@ -10,12 +10,12 @@ var started = false;
 var last_player = "";
 var last_reveal_card = "";
 
-function DebugString() {
+function debugString() {
   return "[Scores: " + JSON.stringify(scores) + "] " +
          "[Cards: " + JSON.stringify(decks) + "]";
 }
 
-function PointsForCard(card) {
+function pointsForCard(card) {
   if (card == undefined) {
     alert("Undefined card for points...");
     return;
@@ -34,8 +34,9 @@ function PointsForCard(card) {
   return 0;
 }
 
-function GainCard(player, card, count) {
+function gainCard(player, card, count) {
   if (player == null) return;
+  count = parseInt(count);
 
   if (typeof decks[player] == "undefined") {
     decks[player] = 10;
@@ -44,7 +45,7 @@ function GainCard(player, card, count) {
     scores[player] = 3;
   }
 
-  scores[player] = scores[player] + PointsForCard(card) * count;
+  scores[player] = scores[player] + pointsForCard(card) * count;
   decks[player] = decks[player] + count;
 }
 
@@ -56,7 +57,7 @@ function findTrailingPlayer(text) {
   return null;
 }
 
-function MaybeHandleTurnChange(text) {
+function maybeHandleTurnChange(text) {
   if (text.indexOf("---") != -1) {
     // This must be a turn start.
     if (text.match(/Your turn/) != null) {
@@ -74,25 +75,25 @@ function MaybeHandleTurnChange(text) {
   return false;
 }
 
-function MaybeReturnToSupply(text) {
+function maybeReturnToSupply(text) {
   if (text.indexOf("returning it to the supply") != -1) {
-    GainCard(last_player, last_reveal_card, -1);
+    gainCard(last_player, last_reveal_card, -1);
     return true;
   } else {
     var arr = text.match("([0-9]*) copies to the supply");
     if (arr != null && arr.length == 2) {
-      GainCard(last_player, last_reveal_card, -arr[1]);
+      gainCard(last_player, last_reveal_card, -arr[1]);
       return true;
     }
   }
   return false;
 }
 
-function MaybeHandleSwindler(elems, text) {
+function maybeHandleSwindler(elems, text) {
   if (text.indexOf("replacing your") != -1) {
     if (elems.length == 2) {
-      changeScore("You", -PointsForCard(elems[0].innerText));
-      changeScore("You", PointsForCard(elems[1].innerText));
+      changeScore("You", -pointsForCard(elems[0].innerText));
+      changeScore("You", pointsForCard(elems[1].innerText));
     } else {
       alert("Replacing your has " + elems.length + " elements.");
     }
@@ -102,8 +103,8 @@ function MaybeHandleSwindler(elems, text) {
     if (elems.length == 2) {
       var arr = text.match("You replace ([^']*)'");
       if (arr != null && arr.length == 2) {
-        changeScore(arr[1], -PointsForCard(elems[0].innerText));
-        changeScore(arr[1], PointsForCard(elems[1].innerText));
+        changeScore(arr[1], -pointsForCard(elems[0].innerText));
+        changeScore(arr[1], pointsForCard(elems[1].innerText));
       } else {
         alert("Could not split: " + text);
       }
@@ -115,15 +116,25 @@ function MaybeHandleSwindler(elems, text) {
   return false;
 }
 
+function getCardCount(card, text) {
+  var count = 1;
+  var re = new RegExp("([0-9]+) " + card);
+  var arr = (text.match(re));
+  if (arr != null && arr.length == 2) {
+    count = arr[1];
+  }
+  return count;
+}
+
 function handleLogEntry(node) {
   elems = node.getElementsByTagName("span");
   if (elems.length == 0) {
-    if (MaybeHandleTurnChange(node.innerText)) return;
-    if (MaybeReturnToSupply(node.innerText)) return;
+    if (maybeHandleTurnChange(node.innerText)) return;
+    if (maybeReturnToSupply(node.innerText)) return;
     return;
   }
 
-  if (MaybeHandleSwindler(elems, node.innerText)) return;
+  if (maybeHandleSwindler(elems, node.innerText)) return;
 
   // Remove leading stuff from the text.
   var text = node.innerText.split(" ");
@@ -138,13 +149,8 @@ function handleLogEntry(node) {
     for (elem in elems) {
       if (elems[elem].innerText != undefined) {
         var card = elems[elem].innerText;
-        var count = 1;
-        var re = new RegExp("([0-9]+) " + card);
-        var arr = (node.innerText.match(re));
-        if (arr != null && arr.length == 2) {
-          count = arr[1];
-        }
-        GainCard(last_player, card, -count);
+        var count = getCardCount(card, node.innerText);
+        gainCard(last_player, card, -count);
       }
     }
     return;
@@ -157,7 +163,8 @@ function handleLogEntry(node) {
   var card = elems[0].innerText;
 
   if (text[0].indexOf("gaining") == 0) {
-    GainCard(last_player, card, 1);
+    var count = getCardCount(card, node.innerText);
+    gainCard(last_player, card, count);
     return;
   }
 
@@ -165,21 +172,22 @@ function handleLogEntry(node) {
   var action = text[1];
   var delta = 0;
   if (action.indexOf("buy") == 0 || action.indexOf("gain") == 0) {
-    GainCard(player, card, 1);
+    var count = getCardCount(card, node.innerText);
+    gainCard(player, card, count);
   } else if (action.indexOf("pass") == 0) {
-    GainCard(player, card, -1);
+    gainCard(player, card, -1);
     var other_player = findTrailingPlayer(node.innerText);
-    GainCard(other_player, card, 1);
+    gainCard(other_player, card, 1);
   } else if (action.indexOf("receive") == 0) {
-    GainCard(player, card, 1);
+    gainCard(player, card, 1);
     var other_player = findTrailingPlayer(node.innerText);
-    GainCard(other_player, card, -1);
+    gainCard(other_player, card, -1);
   } else if (action.indexOf("reveal") == 0) {
     last_reveal_card = card;
   }
 }
 
-function UpdateScores() {
+function updateScores() {
   if (points_spot == undefined) return;
   var print_scores = "Points: "
   for (var score in scores) {
@@ -188,7 +196,7 @@ function UpdateScores() {
   points_spot.innerHTML = print_scores;
 }
 
-function UpdateDeck() {
+function updateDeck() {
   if (deck_spot == undefined) return;
   var print_deck = "Cards: "
   for (var deck in decks) {
@@ -203,8 +211,8 @@ function initialize() {
   scores = new Object();
   decks = new Object();
 
-  UpdateScores();
-  UpdateDeck();
+  updateScores();
+  updateDeck();
 }
 
 function handle(doc) {
@@ -225,8 +233,8 @@ function handle(doc) {
   }
 
   if (started) {
-    UpdateScores();
-    UpdateDeck();
+    updateScores();
+    updateDeck();
   }
 }
 
