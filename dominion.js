@@ -1,4 +1,4 @@
-// TODO(drheld): Count duchies / dukes / islands here.
+// TODO(drheld): Count duchies / dukes / etc here.
 var special_counts = new Object();
 
 var scores = new Object();
@@ -34,6 +34,14 @@ function pointsForCard(card) {
   return 0;
 }
 
+function changeScore(player, points) {
+  if (typeof scores[player] == "undefined") {
+    scores[player] = 3;
+  }
+  points = parseInt(points);
+  scores[player] = scores[player] + points;
+}
+
 function gainCard(player, card, count) {
   if (player == null) return;
   count = parseInt(count);
@@ -41,11 +49,8 @@ function gainCard(player, card, count) {
   if (typeof decks[player] == "undefined") {
     decks[player] = 10;
   }
-  if (typeof scores[player] == "undefined") {
-    scores[player] = 3;
-  }
 
-  scores[player] = scores[player] + pointsForCard(card) * count;
+  changeScore(player, pointsForCard(card) * count);
   decks[player] = decks[player] + count;
 }
 
@@ -92,8 +97,8 @@ function maybeReturnToSupply(text) {
 function maybeHandleSwindler(elems, text) {
   if (text.indexOf("replacing your") != -1) {
     if (elems.length == 2) {
-      changeScore("You", -pointsForCard(elems[0].innerText));
-      changeScore("You", pointsForCard(elems[1].innerText));
+      gainCard("You", elems[0].innerText, -1);
+      gainCard("You", elems[1].innerText, 1);
     } else {
       alert("Replacing your has " + elems.length + " elements.");
     }
@@ -103,8 +108,8 @@ function maybeHandleSwindler(elems, text) {
     if (elems.length == 2) {
       var arr = text.match("You replace ([^']*)'");
       if (arr != null && arr.length == 2) {
-        changeScore(arr[1], -pointsForCard(elems[0].innerText));
-        changeScore(arr[1], pointsForCard(elems[1].innerText));
+        gainCard(arr[1], elems[0].innerText, -1);
+        gainCard(arr[1], elems[1].innerText, 1);
       } else {
         alert("Could not split: " + text);
       }
@@ -116,10 +121,33 @@ function maybeHandleSwindler(elems, text) {
   return false;
 }
 
-function maybeHandleSeaHag(elems, text) {
+function maybeHandleSeaHag(elems, text_arr) {
   if (elems.length == 2 && pointsForCard(elems[1].innerText) == -1) {
-    gainCard(text[0], elems[1].innerText, 1);
+    gainCard(text_arr[0], elems[1].innerText, 1);
     return true;
+  }
+}
+
+function maybeHandleTrashing(elems, text, text_arr) {
+  if (text_arr[0] == "trashing" ||  text_arr[1] == "trash") {
+    for (elem in elems) {
+      if (elems[elem].innerText != undefined) {
+        var card = elems[elem].innerText;
+        var count = getCardCount(card, text);
+        gainCard(last_player, card, -count);
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+function maybeHandleVp(text) {
+  var re = new RegExp("[+]([0-9]+) ▼");
+  var arr = (text.match(re));
+  if (arr != null && arr.length == 2) {
+    alert("arr[1] is " + arr[1]);
+    changeScore(last_player, arr[1]);
   }
 }
 
@@ -134,6 +162,9 @@ function getCardCount(card, text) {
 }
 
 function handleLogEntry(node) {
+  // Gaining VP could happen in combination with other stuff.
+  maybeHandleVp(node.innerText);
+
   elems = node.getElementsByTagName("span");
   if (elems.length == 0) {
     if (maybeHandleTurnChange(node.innerText)) return;
@@ -152,6 +183,7 @@ function handleLogEntry(node) {
 
   if (maybeHandleSwindler(elems, node.innerText)) return;
   if (maybeHandleSeaHag(elems, text)) return;
+  if (maybeHandleTrashing(elems, node.innerText, text)) return;
 
   if (text[0] == "trashing" ||  text[1] == "trash") {
     for (elem in elems) {
