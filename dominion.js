@@ -146,7 +146,6 @@ function maybeHandleVp(text) {
   var re = new RegExp("[+]([0-9]+) ▼");
   var arr = (text.match(re));
   if (arr != null && arr.length == 2) {
-    alert("arr[1] is " + arr[1]);
     changeScore(last_player, arr[1]);
   }
 }
