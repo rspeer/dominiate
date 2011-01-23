@@ -76,7 +76,7 @@ function maybeHandleTurnChange(text) {
 }
 
 function maybeReturnToSupply(text) {
-  if (text.indexOf("returning it to the supply") != -1) {
+  if (text.indexOf("it to the supply") != -1) {
     gainCard(last_player, last_reveal_card, -1);
     return true;
   } else {
