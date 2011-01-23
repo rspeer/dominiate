@@ -18,7 +18,7 @@ function debugString() {
 function pointsForCard(card) {
   if (card == undefined) {
     alert("Undefined card for points...");
-    return;
+    return 0;
   }
   if (card.indexOf("Colony") == 0) return 10;
   if (card.indexOf("Province") == 0) return 6;
@@ -116,6 +116,13 @@ function maybeHandleSwindler(elems, text) {
   return false;
 }
 
+function maybeHandleSeaHag(elems, text) {
+  if (elems.length == 2 && pointsForCard(elems[1].innerText) == -1) {
+    gainCard(text[0], elems[1].innerText, 1);
+    return true;
+  }
+}
+
 function getCardCount(card, text) {
   var count = 1;
   var re = new RegExp("([0-9]+) " + card);
@@ -134,8 +141,6 @@ function handleLogEntry(node) {
     return;
   }
 
-  if (maybeHandleSwindler(elems, node.innerText)) return;
-
   // Remove leading stuff from the text.
   var text = node.innerText.split(" ");
   var i = 0;
@@ -144,6 +149,9 @@ function handleLogEntry(node) {
   }
   if (i == text.length) return;
   text = text.slice(i);
+
+  if (maybeHandleSwindler(elems, node.innerText)) return;
+  if (maybeHandleSeaHag(elems, text)) return;
 
   if (text[0] == "trashing" ||  text[1] == "trash") {
     for (elem in elems) {
