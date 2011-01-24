@@ -121,22 +121,9 @@ function maybeHandleSwindler(elems, text) {
   return false;
 }
 
-function maybeHandleSeaHag(elems, text_arr) {
-  if (elems.length == 2 && pointsForCard(elems[1].innerText) == -1) {
-    gainCard(text_arr[0], elems[1].innerText, 1);
-    return true;
-  }
-}
-
-function maybeHandleTrashing(elems, text, text_arr) {
-  if (text_arr[0] == "trashing" ||  text_arr[1] == "trash") {
-    for (elem in elems) {
-      if (elems[elem].innerText != undefined) {
-        var card = elems[elem].innerText;
-        var count = getCardCount(card, text);
-        gainCard(last_player, card, -count);
-      }
-    }
+function maybeHandleSeaHag(text_arr, text) {
+  if (text.indexOf("a Curse on top of") != -1) {
+    gainCard(text_arr[0], "Curse", 1);
     return true;
   }
   return false;
@@ -160,6 +147,16 @@ function getCardCount(card, text) {
   return count;
 }
 
+function handleGainOrTrash(elems, text, multiplier) {
+  for (elem in elems) {
+    if (elems[elem].innerText != undefined) {
+      var card = elems[elem].innerText;
+      var count = getCardCount(card, text);
+      gainCard(last_player, card, multiplier * count);
+    }
+  }
+}
+
 function handleLogEntry(node) {
   // Gaining VP could happen in combination with other stuff.
   maybeHandleVp(node.innerText);
@@ -181,17 +178,14 @@ function handleLogEntry(node) {
   text = text.slice(i);
 
   if (maybeHandleSwindler(elems, node.innerText)) return;
-  if (maybeHandleSeaHag(elems, text)) return;
-  if (maybeHandleTrashing(elems, node.innerText, text)) return;
+  if (maybeHandleSeaHag(text, node.innerText)) return;
 
   if (text[0] == "trashing" ||  text[1] == "trash") {
-    for (elem in elems) {
-      if (elems[elem].innerText != undefined) {
-        var card = elems[elem].innerText;
-        var count = getCardCount(card, node.innerText);
-        gainCard(last_player, card, -count);
-      }
-    }
+    handleGainOrTrash(elems, node.innerText, -1);
+    return;
+  }
+  if (text[0].indexOf("gain") == 0 || text[1].indexOf("gain") == 0) {
+    handleGainOrTrash(elems, node.innerText, 1);
     return;
   }
 
@@ -200,12 +194,6 @@ function handleLogEntry(node) {
 
   // It's a single card action.
   var card = elems[0].innerText;
-
-  if (text[0].indexOf("gaining") == 0) {
-    var count = getCardCount(card, node.innerText);
-    gainCard(last_player, card, count);
-    return;
-  }
 
   var player = text[0];
   var action = text[1];
