@@ -147,12 +147,12 @@ function getCardCount(card, text) {
   return count;
 }
 
-function handleGainOrTrash(elems, text, multiplier) {
+function handleGainOrTrash(player, elems, text, multiplier) {
   for (elem in elems) {
     if (elems[elem].innerText != undefined) {
       var card = elems[elem].innerText;
       var count = getCardCount(card, text);
-      gainCard(last_player, card, multiplier * count);
+      gainCard(player, card, multiplier * count);
     }
   }
 }
@@ -180,13 +180,17 @@ function handleLogEntry(node) {
   if (maybeHandleSwindler(elems, node.innerText)) return;
   if (maybeHandleSeaHag(text, node.innerText)) return;
 
-  if (text[0] == "trashing" ||  text[1] == "trash") {
-    handleGainOrTrash(elems, node.innerText, -1);
-    return;
+  if (text[0] == "trashing") {
+    return handleGainOrTrash(last_player, elems, node.innerText, -1);
   }
-  if (text[0].indexOf("gain") == 0 || text[1].indexOf("gain") == 0) {
-    handleGainOrTrash(elems, node.innerText, 1);
-    return;
+  if (text[1].indexOf("trash") == 0) {
+    return handleGainOrTrash(text[0], elems, node.innerText, -1);
+  }
+  if (text[0] == "gaining") {
+    return handleGainOrTrash(last_player, elems, node.innerText, 1);
+  }
+  if (text[1].indexOf("gain") == 0) {
+    return handleGainOrTrash(text[0], elems, node.innerText, 1);
   }
 
   // Expect one element from here on out.
@@ -198,7 +202,7 @@ function handleLogEntry(node) {
   var player = text[0];
   var action = text[1];
   var delta = 0;
-  if (action.indexOf("buy") == 0 || action.indexOf("gain") == 0) {
+  if (action.indexOf("buy") == 0) {
     var count = getCardCount(card, node.innerText);
     gainCard(player, card, count);
   } else if (action.indexOf("pass") == 0) {
