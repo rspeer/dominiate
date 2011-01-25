@@ -280,10 +280,13 @@ function initialize(doc) {
   for (var i = 1; i < arr.length; ++i) {
     if (arr[i] == undefined) continue;
     if (arr[i] == "you") arr[i] = "You";
-    alert("Player is: " + arr[i]);
     if (arr[i].indexOf(" ") != -1) {
-      player_rewrites[arr[i]] = arr[i].replace(/ /g, "_");
+      var rewritten = arr[i].replace(/ /g, "_");
+      player_rewrites[arr[i]] = rewritten;
+      arr[i] = rewritten;
     }
+    // Initialize the player.
+    getPlayer(arr[i]);
   }
 }
 
