@@ -1,12 +1,22 @@
 // TODO(drheld): Count duchies / dukes / etc here.
 var special_counts = new Object();
 
+// For players who have spaces in their names, a map from name to name
+// rewritten to have underscores instead. Pretty ugly, but it works.
+var player_rewrites = new Object();
+
+// Map from player name to score for that player (not counting special cards).
 var scores = new Object();
+
+// Map from player name to number of cards in that player's deck.
 var decks = new Object();
 
+// Places to print number of cards and points.
 var deck_spot;
 var points_spot;
+
 var started = false;
+
 var last_player = "";
 var last_reveal_card = "";
 
@@ -131,7 +141,7 @@ function maybeHandleSeaHag(text_arr, text) {
 
 function maybeHandleVp(text) {
   var re = new RegExp("[+]([0-9]+) ▼");
-  var arr = (text.match(re));
+  var arr = text.match(re);
   if (arr != null && arr.length == 2) {
     changeScore(last_player, arr[1]);
   }
@@ -140,7 +150,7 @@ function maybeHandleVp(text) {
 function getCardCount(card, text) {
   var count = 1;
   var re = new RegExp("([0-9]+) " + card);
-  var arr = (text.match(re));
+  var arr = text.match(re);
   if (arr != null && arr.length == 2) {
     count = arr[1];
   }
@@ -236,28 +246,50 @@ function updateDeck() {
   deck_spot.innerHTML = print_deck;
 }
 
-function initialize() {
+function initialize(doc) {
   started = true;
   special_counts = new Object();
   scores = new Object();
   decks = new Object();
+  player_rewrites = new Object();
 
   updateScores();
   updateDeck();
+
+  // Hack: collect player names with spaces in them. We'll rewrite them to
+  // underscores and then all the text parsing works as normal.
+  var re = new RegExp("Turn order is (.*) and then you.");
+  var arr = doc.innerText.match(re);
+  if (arr != null) {
+    if (arr.length == 2 && arr[1].indexOf(" ") != -1) {
+      player_rewrites[arr[1]] = arr[1].replace(/ /g, "_");
+    }
+  } else {
+    // TODO(drheld): Handle multiplayer starts.
+  }
+}
+
+function maybeRewriteName(doc) {
+  if (doc.innerHTML != undefined && doc.innerHTML != null) {
+    for (player in player_rewrites) {
+      doc.innerHTML = doc.innerHTML.replace(player, player_rewrites[player]);
+    }
+  }
 }
 
 function handle(doc) {
   if (doc.constructor == HTMLDivElement &&
       doc.innerText.indexOf("Say") == 0) {
-    initialize();
     deck_spot = doc.children[5];
     points_spot = doc.children[6];
   }
 
   if (doc.constructor == HTMLElement && doc.parentNode.id == "log" &&
       doc.innerText.indexOf("Turn order") != -1) {
-    initialize();
+    initialize(doc);
   }
+
+  maybeRewriteName(doc);
 
   if (started && doc.constructor == HTMLElement && doc.parentNode.id == "log") {
     handleLogEntry(doc);
