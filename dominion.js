@@ -271,14 +271,19 @@ function initialize(doc) {
 
   // Hack: collect player names with spaces in them. We'll rewrite them to
   // underscores and then all the text parsing works as normal.
-  var re = new RegExp("Turn order is (.*) and then you.");
+  var p = "(?:([^,]+),? )";
+  var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+p+"and then (.+).");
   var arr = doc.innerText.match(re);
-  if (arr != null) {
-    if (arr.length == 2 && arr[1].indexOf(" ") != -1) {
-      player_rewrites[arr[1]] = arr[1].replace(/ /g, "_");
+  if (arr == null) {
+    alert("Couldn't parse: " + doc.innerText);
+  }
+  for (var i = 1; i < arr.length; ++i) {
+    if (arr[i] == undefined) continue;
+    if (arr[i] == "you") arr[i] = "You";
+    alert("Player is: " + arr[i]);
+    if (arr[i].indexOf(" ") != -1) {
+      player_rewrites[arr[i]] = arr[i].replace(/ /g, "_");
     }
-  } else {
-    // TODO(drheld): Handle multiplayer starts.
   }
 }
 
