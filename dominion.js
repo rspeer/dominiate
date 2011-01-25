@@ -1,15 +1,9 @@
-// TODO(drheld): Count duchies / dukes / etc here.
-var special_counts = new Object();
-
 // For players who have spaces in their names, a map from name to name
 // rewritten to have underscores instead. Pretty ugly, but it works.
 var player_rewrites = new Object();
 
-// Map from player name to score for that player (not counting special cards).
-var scores = new Object();
-
-// Map from player name to number of cards in that player's deck.
-var decks = new Object();
+// Map from player name to Player object.
+var players = new Object();
 
 // Places to print number of cards and points.
 var deck_spot;
@@ -17,7 +11,7 @@ var points_spot;
 
 var started = false;
 
-var last_player = "";
+var last_player = null;
 var last_reveal_card = "";
 
 function debugString() {
@@ -44,30 +38,42 @@ function pointsForCard(card) {
   return 0;
 }
 
-function changeScore(player, points) {
-  if (typeof scores[player] == "undefined") {
-    scores[player] = 3;
+function Player() {
+  this.score = 3;
+  this.deck_size = 10;
+
+  // Map from special card (such as gardens) to count.
+  this.special_cards = new Object();
+
+  this.getScore = function() {
+    return this.score;
   }
-  points = parseInt(points);
-  scores[player] = scores[player] + points;
+  this.getDeckSize = function() {
+    return this.deck_size;
+  }
+
+  this.changeScore = function(points) {
+    this.score = this.score + parseInt(points);
+  }
+
+  this.gainCard = function(card, count) {
+    count = parseInt(count);
+    this.deck_size = this.deck_size + count;
+    this.changeScore(pointsForCard(card) * count);
+  }
 }
 
-function gainCard(player, card, count) {
-  if (player == null) return;
-  count = parseInt(count);
-
-  if (typeof decks[player] == "undefined") {
-    decks[player] = 10;
+function getPlayer(name) {
+  if (typeof players[name] == "undefined") {
+    players[name] = new Player();
   }
-
-  changeScore(player, pointsForCard(card) * count);
-  decks[player] = decks[player] + count;
+  return players[name];
 }
 
 function findTrailingPlayer(text) {
   var arr = text.match(/ ([A-Za-z0-9]+)\./);
   if (arr.length == 2) {
-    return arr[1];
+    return getPlayer(arr[1]);
   }
   return null;
 }
@@ -76,11 +82,11 @@ function maybeHandleTurnChange(text) {
   if (text.indexOf("---") != -1) {
     // This must be a turn start.
     if (text.match(/Your turn/) != null) {
-      last_player = "You";
+      last_player = getPlayer("You");
     } else {
       var arr = text.match(/--- (.+)'s turn ---/);
       if (arr != null && arr.length == 2) {
-        last_player = arr[1];
+        last_player = getPlayer(arr[1]);
       } else {
         alert("Couldn't handle turn change: " + text);
       }
@@ -92,12 +98,12 @@ function maybeHandleTurnChange(text) {
 
 function maybeReturnToSupply(text) {
   if (text.indexOf("it to the supply") != -1) {
-    gainCard(last_player, last_reveal_card, -1);
+    last_player.gainCard(last_reveal_card, -1);
     return true;
   } else {
     var arr = text.match("([0-9]*) copies to the supply");
     if (arr != null && arr.length == 2) {
-      gainCard(last_player, last_reveal_card, -arr[1]);
+      last_player.gainCard(last_reveal_card, -arr[1]);
       return true;
     }
   }
@@ -105,26 +111,25 @@ function maybeReturnToSupply(text) {
 }
 
 function maybeHandleSwindler(elems, text) {
+  var player = null;
   if (text.indexOf("replacing your") != -1) {
-    if (elems.length == 2) {
-      gainCard("You", elems[0].innerText, -1);
-      gainCard("You", elems[1].innerText, 1);
-    } else {
-      alert("Replacing your has " + elems.length + " elements.");
-    }
-    return true;
+    player = getPlayer("You");
   }
   if (text.indexOf("You replace") != -1) {
-    if (elems.length == 2) {
-      var arr = text.match("You replace ([^']*)'");
-      if (arr != null && arr.length == 2) {
-        gainCard(arr[1], elems[0].innerText, -1);
-        gainCard(arr[1], elems[1].innerText, 1);
-      } else {
-        alert("Could not split: " + text);
-      }
+    var arr = text.match("You replace ([^']*)'");
+    if (arr != null && arr.length == 2) {
+      player = getPlayer(arr[1]);
     } else {
-      alert("Replacing your has " + elems.length + " elements.");
+      alert("Could not split: " + text);
+    }
+  }
+
+  if (player != null) {
+    if (elems.length == 2) {
+      player.gainCard(elems[0].innerText, -1);
+      player.gainCard(elems[1].innerText, 1);
+    } else {
+      alert("Replacing your has " + elems.length + " elements: " + text);
     }
     return true;
   }
@@ -133,7 +138,7 @@ function maybeHandleSwindler(elems, text) {
 
 function maybeHandleSeaHag(text_arr, text) {
   if (text.indexOf("a Curse on top of") != -1) {
-    gainCard(text_arr[0], "Curse", 1);
+    getPlayer(text_arr[0]).gainCard("Curse", 1);
     return true;
   }
   return false;
@@ -143,7 +148,7 @@ function maybeHandleVp(text) {
   var re = new RegExp("[+]([0-9]+) ▼");
   var arr = text.match(re);
   if (arr != null && arr.length == 2) {
-    changeScore(last_player, arr[1]);
+    last_player.changeScore(arr[1]);
   }
 }
 
@@ -162,7 +167,7 @@ function handleGainOrTrash(player, elems, text, multiplier) {
     if (elems[elem].innerText != undefined) {
       var card = elems[elem].innerText;
       var count = getCardCount(card, text);
-      gainCard(player, card, multiplier * count);
+      player.gainCard(card, multiplier * count);
     }
   }
 }
@@ -194,13 +199,13 @@ function handleLogEntry(node) {
     return handleGainOrTrash(last_player, elems, node.innerText, -1);
   }
   if (text[1].indexOf("trash") == 0) {
-    return handleGainOrTrash(text[0], elems, node.innerText, -1);
+    return handleGainOrTrash(getPlayer(text[0]), elems, node.innerText, -1);
   }
   if (text[0] == "gaining") {
     return handleGainOrTrash(last_player, elems, node.innerText, 1);
   }
   if (text[1].indexOf("gain") == 0) {
-    return handleGainOrTrash(text[0], elems, node.innerText, 1);
+    return handleGainOrTrash(getPlayer(text[0]), elems, node.innerText, 1);
   }
 
   // Expect one element from here on out.
@@ -209,20 +214,28 @@ function handleLogEntry(node) {
   // It's a single card action.
   var card = elems[0].innerText;
 
-  var player = text[0];
+  var player = getPlayer(text[0]);
   var action = text[1];
   var delta = 0;
   if (action.indexOf("buy") == 0) {
     var count = getCardCount(card, node.innerText);
-    gainCard(player, card, count);
+    player.gainCard(card, count);
   } else if (action.indexOf("pass") == 0) {
-    gainCard(player, card, -1);
+    player.gainCard(card, -1);
     var other_player = findTrailingPlayer(node.innerText);
-    gainCard(other_player, card, 1);
+    if (other_player == null) {
+      alert("Could not find trailing player from: " + node.innerText);
+    } else {
+      other_player.gainCard(card, 1);
+    }
   } else if (action.indexOf("receive") == 0) {
-    gainCard(player, card, 1);
+    player.gainCard(card, 1);
     var other_player = findTrailingPlayer(node.innerText);
-    gainCard(other_player, card, -1);
+    if (other_player == null) {
+      alert("Could not find trailing player from: " + node.innerText);
+    } else {
+      other_player.gainCard(card, -1);
+    }
   } else if (action.indexOf("reveal") == 0) {
     last_reveal_card = card;
   }
@@ -230,20 +243,20 @@ function handleLogEntry(node) {
 
 function updateScores() {
   if (points_spot == undefined) return;
-  var print_scores = "Points: "
-  for (var score in scores) {
-    print_scores = print_scores + " " + score + "=" + scores[score];
+  var to_print = "Points: "
+  for (var player in players) {
+    to_print = to_print + " " + player + "=" + players[player].getScore();
   }
-  points_spot.innerHTML = print_scores;
+  points_spot.innerHTML = to_print;
 }
 
 function updateDeck() {
   if (deck_spot == undefined) return;
-  var print_deck = "Cards: "
-  for (var deck in decks) {
-    print_deck = print_deck + " " + deck + "=" + decks[deck];
+  var to_print = "Cards: "
+  for (var player in players) {
+    to_print = to_print + " " + player + "=" + players[player].getDeckSize();
   }
-  deck_spot.innerHTML = print_deck;
+  deck_spot.innerHTML = to_print;
 }
 
 function initialize(doc) {
