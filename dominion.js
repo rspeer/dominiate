@@ -271,8 +271,9 @@ function initialize(doc) {
 
   // Hack: collect player names with spaces in them. We'll rewrite them to
   // underscores and then all the text parsing works as normal.
-  var p = "(?:([^,]+),? )";
-  var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+p+"and then (.+).");
+  var p = "(?:([^,]+), )";    // an optional player
+  var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
+  var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
   var arr = doc.innerText.match(re);
   if (arr == null) {
     alert("Couldn't parse: " + doc.innerText);
