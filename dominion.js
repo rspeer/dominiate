@@ -65,7 +65,7 @@ function Player() {
 
 function getPlayer(name) {
   if (typeof players[name] == "undefined") {
-    players[name] = new Player();
+    return null;
   }
   return players[name];
 }
@@ -286,7 +286,7 @@ function initialize(doc) {
       arr[i] = rewritten;
     }
     // Initialize the player.
-    getPlayer(arr[i]);
+    players[arr[i]] = new Player();
   }
 }
 
