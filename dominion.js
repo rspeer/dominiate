@@ -311,9 +311,8 @@ function handle(doc) {
     initialize(doc);
   }
 
-  maybeRewriteName(doc);
-
   if (started && doc.constructor == HTMLElement && doc.parentNode.id == "log") {
+    maybeRewriteName(doc);
     handleLogEntry(doc);
   }
 
