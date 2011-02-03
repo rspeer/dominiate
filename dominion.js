@@ -264,6 +264,7 @@ function initialize(doc) {
   special_counts = new Object();
   scores = new Object();
   decks = new Object();
+  players = new Object();
   player_rewrites = new Object();
 
   updateScores();
