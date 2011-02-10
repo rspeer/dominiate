@@ -42,11 +42,19 @@ function Player() {
   this.score = 3;
   this.deck_size = 10;
 
-  // Map from special card (such as gardens) to count.
-  this.special_cards = new Object();
+  // Map from special counts (such as number of gardens) to count.
+  // TODO(drheld): Should we just track all cards?
+  this.special_counts = new Object();
 
   this.getScore = function() {
-    return this.score;
+    var score = this.score;
+    if (typeof this.special_counts["Gardens"] != "undefined") {
+      var garden_points = Math.floor(this.deck_size / 10);
+      var garden_score = garden_points * this.special_counts["Gardens"];
+      var total_score = score + garden_score;
+      score = score + "+" + garden_score + "g=" + total_score;
+    }
+    return score;
   }
   this.getDeckSize = function() {
     return this.deck_size;
@@ -56,10 +64,24 @@ function Player() {
     this.score = this.score + parseInt(points);
   }
 
+  this.changeSpecialCount = function(name, delta) {
+    if (typeof this.special_counts[name] == "undefined") {
+      this.special_counts[name] = 0;
+    }
+    this.special_counts[name] = this.special_counts[name] + delta;
+  }
+
+  this.maybeAddSpecialCards = function(card, count) {
+    if (card.indexOf("Gardens") == 0) {
+      this.changeSpecialCount("Gardens", count);
+    }
+  }
+
   this.gainCard = function(card, count) {
     count = parseInt(count);
     this.deck_size = this.deck_size + count;
     this.changeScore(pointsForCard(card) * count);
+    this.maybeAddSpecialCards(card, count);
   }
 }
 
@@ -261,7 +283,6 @@ function updateDeck() {
 
 function initialize(doc) {
   started = true;
-  special_counts = new Object();
   scores = new Object();
   decks = new Object();
   players = new Object();

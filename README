@@ -9,8 +9,7 @@ These are displayed in the bottom beside the chat box.
 
 Known issues:
 - possession is not supported
-- vineyard, duke, and gardens are not implemented
-- doesn't always realize a new game has started (reload page to fix)
+- vineyard, and duke are not yet implemented
 - code is a horrible hack :P
 - probably lots of other stuff :)
 
