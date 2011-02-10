@@ -15,8 +15,7 @@ var last_player = null;
 var last_reveal_card = "";
 
 function debugString() {
-  return "[Scores: " + JSON.stringify(scores) + "] " +
-         "[Cards: " + JSON.stringify(decks) + "]";
+  return JSON.stringify(players);
 }
 
 function pointsForCard(card) {
@@ -283,8 +282,6 @@ function updateDeck() {
 
 function initialize(doc) {
   started = true;
-  scores = new Object();
-  decks = new Object();
   players = new Object();
   player_rewrites = new Object();
 
