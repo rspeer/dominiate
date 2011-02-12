@@ -46,14 +46,27 @@ function Player() {
   this.special_counts = new Object();
 
   this.getScore = function() {
-    var score = this.score;
+    var score_str = this.score;
+    var total_score = this.score;
     if (typeof this.special_counts["Gardens"] != "undefined") {
+      var gardens = this.special_counts["Gardens"];
       var garden_points = Math.floor(this.deck_size / 10);
-      var garden_score = garden_points * this.special_counts["Gardens"];
-      var total_score = score + garden_score;
-      score = score + "+" + garden_score + "g=" + total_score;
+      score_str = score_str + "+" + gardens + "g@" + garden_points;
+      total_score = total_score + gardens * garden_points;
     }
-    return score;
+    if (typeof this.special_counts["Duke"] != "undefined") {
+      var dukes = this.special_counts["Duke"];
+      var duke_points = 0;
+      if (typeof this.special_counts["Duchy"] != "undefined") {
+        duke_points = this.special_counts["Duchy"];
+      }
+      score_str = score_str + "+" + dukes + "d@" + duke_points;
+      total_score = total_score + dukes * duke_points;
+    }
+    if (total_score != this.score) {
+      score_str = score_str + "=" + total_score;
+    }
+    return score_str;
   }
   this.getDeckSize = function() {
     return this.deck_size;
@@ -73,6 +86,12 @@ function Player() {
   this.maybeAddSpecialCards = function(card, count) {
     if (card.indexOf("Gardens") == 0) {
       this.changeSpecialCount("Gardens", count);
+    }
+    if (card.indexOf("Duke") == 0) {
+      this.changeSpecialCount("Duke", count);
+    }
+    if (card.indexOf("Duchy") == 0 || card.indexOf("Duchies") == 0) {
+      this.changeSpecialCount("Duchy", count);
     }
   }
 
