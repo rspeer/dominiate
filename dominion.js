@@ -14,8 +14,8 @@ var started = false;
 var last_player = null;
 var last_reveal_card = "";
 
-function debugString() {
-  return JSON.stringify(players);
+function debugString(thing) {
+  return JSON.stringify(thing);
 }
 
 function pointsForCard(card) {
@@ -150,6 +150,22 @@ function maybeReturnToSupply(text) {
   return false;
 }
 
+function maybeHandleTradingPost(elems, text) {
+  if (text.indexOf(", gaining a Silver in hand") == -1) {
+    return false;
+  }
+  if (elems.length != 2 && elems.length != 3) {
+    alert("Error on trading post: " + text);
+    return true;
+  }
+  var elem = 0;
+  last_player.gainCard(elems[0].innerText, -1);
+  if (elems.length == 3) elem++;
+  last_player.gainCard(elems[elem++].innerText, -1);
+  last_player.gainCard(elems[elem].innerText, 1);
+  return true;
+}
+
 function maybeHandleSwindler(elems, text) {
   var player = null;
   if (text.indexOf("replacing your") != -1) {
@@ -232,6 +248,7 @@ function handleLogEntry(node) {
   if (i == text.length) return;
   text = text.slice(i);
 
+  if (maybeHandleTradingPost(elems, node.innerText)) return;
   if (maybeHandleSwindler(elems, node.innerText)) return;
   if (maybeHandleSeaHag(text, node.innerText)) return;
 
