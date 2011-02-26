@@ -12,27 +12,27 @@ var points_spot;
 var started = false;
 
 var last_player = null;
-var last_reveal_card = "";
+var last_reveal_card = null;
 
 function debugString(thing) {
   return JSON.stringify(thing);
 }
 
-function pointsForCard(card) {
-  if (card == undefined) {
+function pointsForCard(card_name) {
+  if (card_name == undefined) {
     alert("Undefined card for points...");
     return 0;
   }
-  if (card.indexOf("Colony") == 0) return 10;
-  if (card.indexOf("Province") == 0) return 6;
-  if (card.indexOf("Duchy") == 0) return 3;
-  if (card.indexOf("Estate") == 0) return 1;
-  if (card.indexOf("Curse") == 0) return -1;
+  if (card_name.indexOf("Colony") == 0) return 10;
+  if (card_name.indexOf("Province") == 0) return 6;
+  if (card_name.indexOf("Duchy") == 0) return 3;
+  if (card_name.indexOf("Estate") == 0) return 1;
+  if (card_name.indexOf("Curse") == 0) return -1;
 
-  if (card.indexOf("Island") == 0) return 2;
-  if (card.indexOf("Nobles") == 0) return 2;
-  if (card.indexOf("Harem") == 0) return 2;
-  if (card.indexOf("Great Hall") == 0) return 1;
+  if (card_name.indexOf("Island") == 0) return 2;
+  if (card_name.indexOf("Nobles") == 0) return 2;
+  if (card_name.indexOf("Harem") == 0) return 2;
+  if (card_name.indexOf("Great Hall") == 0) return 1;
 
   return 0;
 }
@@ -43,17 +43,19 @@ function Player() {
 
   // Map from special counts (such as number of gardens) to count.
   // TODO(drheld): Should we just track all cards?
-  this.special_counts = new Object();
+  this.special_counts = { "Treasure" : 7, "Victory" : 3 }
 
   this.getScore = function() {
     var score_str = this.score;
     var total_score = this.score;
+
     if (typeof this.special_counts["Gardens"] != "undefined") {
       var gardens = this.special_counts["Gardens"];
       var garden_points = Math.floor(this.deck_size / 10);
       score_str = score_str + "+" + gardens + "g@" + garden_points;
       total_score = total_score + gardens * garden_points;
     }
+
     if (typeof this.special_counts["Duke"] != "undefined") {
       var dukes = this.special_counts["Duke"];
       var duke_points = 0;
@@ -63,13 +65,38 @@ function Player() {
       score_str = score_str + "+" + dukes + "d@" + duke_points;
       total_score = total_score + dukes * duke_points;
     }
+
+    if (typeof this.special_counts["Vineyard"] != "undefined") {
+      var vineyards = this.special_counts["Vineyard"];
+      var vineyard_points = 0;
+      if (typeof this.special_counts["Actions"] != "undefined") {
+        vineyard_points = Math.floor(this.special_counts["Actions"] / 3);
+      }
+      score_str = score_str + "+" + vineyards + "v@" + vineyard_points;
+      total_score = total_score + vineyards * vineyard_points;
+    }
+
     if (total_score != this.score) {
       score_str = score_str + "=" + total_score;
     }
     return score_str;
   }
-  this.getDeckSize = function() {
-    return this.deck_size;
+
+  this.getDeckString = function() {
+    var str = this.deck_size + "(";
+    if (typeof this.special_counts["Actions"] != "undefined") {
+      str += this.special_counts["Actions"] + "a,"
+    }
+    if (typeof this.special_counts["Curse"] != "undefined") {
+      str += this.special_counts["Curse"] + "c,"
+    }
+    if (typeof this.special_counts["Victory"] != "undefined") {
+      str += this.special_counts["Victory"] + "v,"
+    }
+    if (typeof this.special_counts["Treasure"] != "undefined") {
+      str += this.special_counts["Treasure"] + "t,"
+    }
+    return str.slice(0, -1) + ")";
   }
 
   this.changeScore = function(points) {
@@ -83,23 +110,43 @@ function Player() {
     this.special_counts[name] = this.special_counts[name] + delta;
   }
 
-  this.maybeAddSpecialCards = function(card, count) {
-    if (card.indexOf("Gardens") == 0) {
+  this.recordSpecialCards = function(card, count) {
+    var name = card.innerHTML;
+    if (name.indexOf("Gardens") == 0) {
       this.changeSpecialCount("Gardens", count);
     }
-    if (card.indexOf("Duke") == 0) {
+    if (name.indexOf("Duke") == 0) {
       this.changeSpecialCount("Duke", count);
     }
-    if (card.indexOf("Duchy") == 0 || card.indexOf("Duchies") == 0) {
+    if (name.indexOf("Duchy") == 0 || name.indexOf("Duchies") == 0) {
       this.changeSpecialCount("Duchy", count);
+    }
+    if (name.indexOf("Vineyard") == 0) {
+      this.changeSpecialCount("Vineyard", count);
+    }
+
+    var types = card.className.split("-").slice(1);
+    for (type_i in types) {
+      var type = types[type_i];
+      if (type == "none" || type == "duration" || type == "action") {
+        this.changeSpecialCount("Actions", count);
+      } else if (type == "curse") {
+        this.changeSpecialCount("Curse", count);
+      } else if (type == "victory") {
+        this.changeSpecialCount("Victory", count);
+      } else if (type == "treasure") {
+        this.changeSpecialCount("Treasure", count);
+      } else {
+        alert("Unknown card class: " + card.className + " for " + card.innerText);
+      }
     }
   }
 
   this.gainCard = function(card, count) {
     count = parseInt(count);
     this.deck_size = this.deck_size + count;
-    this.changeScore(pointsForCard(card) * count);
-    this.maybeAddSpecialCards(card, count);
+    this.changeScore(pointsForCard(card.innerText) * count);
+    this.recordSpecialCards(card, count);
   }
 }
 
@@ -159,10 +206,10 @@ function maybeHandleTradingPost(elems, text) {
     return true;
   }
   var elem = 0;
-  last_player.gainCard(elems[0].innerText, -1);
+  last_player.gainCard(elems[0], -1);
   if (elems.length == 3) elem++;
-  last_player.gainCard(elems[elem++].innerText, -1);
-  last_player.gainCard(elems[elem].innerText, 1);
+  last_player.gainCard(elems[elem++], -1);
+  last_player.gainCard(elems[elem], 1);
   return true;
 }
 
@@ -182,8 +229,8 @@ function maybeHandleSwindler(elems, text) {
 
   if (player != null) {
     if (elems.length == 2) {
-      player.gainCard(elems[0].innerText, -1);
-      player.gainCard(elems[1].innerText, 1);
+      player.gainCard(elems[0], -1);
+      player.gainCard(elems[1], 1);
     } else {
       alert("Replacing your has " + elems.length + " elements: " + text);
     }
@@ -192,9 +239,13 @@ function maybeHandleSwindler(elems, text) {
   return false;
 }
 
-function maybeHandleSeaHag(text_arr, text) {
+function maybeHandleSeaHag(elems, text_arr, text) {
   if (text.indexOf("a Curse on top of") != -1) {
-    getPlayer(text_arr[0]).gainCard("Curse", 1);
+    if (elems.length != 2 || elems[1].innerHTML != "Curse") {
+      alert("Weird sea hag: " + text);
+      return false;
+    }
+    getPlayer(text_arr[0]).gainCard(elems[1], 1);
     return true;
   }
   return false;
@@ -223,7 +274,7 @@ function handleGainOrTrash(player, elems, text, multiplier) {
     if (elems[elem].innerText != undefined) {
       var card = elems[elem].innerText;
       var count = getCardCount(card, text);
-      player.gainCard(card, multiplier * count);
+      player.gainCard(elems[elem], multiplier * count);
     }
   }
 }
@@ -250,7 +301,7 @@ function handleLogEntry(node) {
 
   if (maybeHandleTradingPost(elems, node.innerText)) return;
   if (maybeHandleSwindler(elems, node.innerText)) return;
-  if (maybeHandleSeaHag(text, node.innerText)) return;
+  if (maybeHandleSeaHag(elems, text, node.innerText)) return;
 
   if (text[0] == "trashing") {
     return handleGainOrTrash(last_player, elems, node.innerText, -1);
@@ -269,13 +320,14 @@ function handleLogEntry(node) {
   if (elems.length > 1) return;
 
   // It's a single card action.
-  var card = elems[0].innerText;
+  var card = elems[0];
+  var card_text = elems[0].innerText;
 
   var player = getPlayer(text[0]);
   var action = text[1];
   var delta = 0;
   if (action.indexOf("buy") == 0) {
-    var count = getCardCount(card, node.innerText);
+    var count = getCardCount(card_text, node.innerText);
     player.gainCard(card, count);
   } else if (action.indexOf("pass") == 0) {
     player.gainCard(card, -1);
@@ -311,7 +363,7 @@ function updateDeck() {
   if (deck_spot == undefined) return;
   var to_print = "Cards: "
   for (var player in players) {
-    to_print = to_print + " " + player + "=" + players[player].getDeckSize();
+    to_print = to_print + " " + player + "=" + players[player].getDeckString();
   }
   deck_spot.innerHTML = to_print;
 }

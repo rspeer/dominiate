@@ -4,12 +4,12 @@ dominion.isotropic.org.
 The extension keeps track of:
 - # of cards each player has
 - # of points each player has
+- # of each type of card each player has
 
 These are displayed in the bottom beside the chat box.
 
 Known issues:
 - possession is not supported
-- vineyard is not yet implemented
 - code is a horrible hack :P
 - probably lots of other stuff :)
 
