@@ -37,7 +37,8 @@ function pointsForCard(card_name) {
   return 0;
 }
 
-function Player() {
+function Player(name) {
+  this.name = name;
   this.score = 3;
   this.deck_size = 10;
 
@@ -128,7 +129,8 @@ function Player() {
     var types = card.className.split("-").slice(1);
     for (type_i in types) {
       var type = types[type_i];
-      if (type == "none" || type == "duration" || type == "action") {
+      if (type == "none" || type == "duration" ||
+          type == "action" || type == "reaction") {
         this.changeSpecialCount("Actions", count);
       } else if (type == "curse") {
         this.changeSpecialCount("Curse", count);
@@ -239,6 +241,29 @@ function maybeHandleSwindler(elems, text) {
   return false;
 }
 
+function maybeHandlePirateShip(elems, text_arr, text) {
+  // Swallow gaining pirate ship tokens.
+  // It looks like gaining a pirate ship otherwise.
+  if (text.indexOf("a Pirate Ship token") != -1) return true;
+
+  if (text_arr.length < 4) return false;
+  if (getPlayer(text_arr[0]) == null) return false;
+  if (text_arr[1].indexOf("trash") != 0) return false;
+
+  var player = null;
+  if (text_arr[2] == "your") {
+    player = getPlayer("You");
+  } else {
+    player = getPlayer(text_arr[2].slice(0, -2));
+  }
+
+  if (player != null) {
+    player.gainCard(elems[0], -1);
+    return true;
+  }
+  return false;
+}
+
 function maybeHandleSeaHag(elems, text_arr, text) {
   if (text.indexOf("a Curse on top of") != -1) {
     if (elems.length != 2 || elems[1].innerHTML != "Curse") {
@@ -301,6 +326,7 @@ function handleLogEntry(node) {
 
   if (maybeHandleTradingPost(elems, node.innerText)) return;
   if (maybeHandleSwindler(elems, node.innerText)) return;
+  if (maybeHandlePirateShip(elems, text, node.innerText)) return;
   if (maybeHandleSeaHag(elems, text, node.innerText)) return;
 
   if (text[0] == "trashing") {
@@ -394,7 +420,7 @@ function initialize(doc) {
       arr[i] = rewritten;
     }
     // Initialize the player.
-    players[arr[i]] = new Player();
+    players[arr[i]] = new Player(arr[i]);
   }
 }
 
