@@ -14,6 +14,10 @@ var started = false;
 var last_player = null;
 var last_reveal_card = null;
 
+// Watchtower support. Ugg.
+var last_gain_player = null;
+var watch_tower_depth = -1;
+
 function debugString(thing) {
   return JSON.stringify(thing);
 }
@@ -145,6 +149,7 @@ function Player(name) {
   }
 
   this.gainCard = function(card, count) {
+    last_gain_player = this;
     count = parseInt(count);
     this.deck_size = this.deck_size + count;
     this.changeScore(pointsForCard(card.innerText) * count);
@@ -180,6 +185,21 @@ function maybeHandleTurnChange(text) {
         alert("Couldn't handle turn change: " + text);
       }
     }
+    return true;
+  }
+  return false;
+}
+
+function maybeHandleWatchTower(text, text_arr) {
+  var depth = 0;
+  for (var t in text_arr) {
+    if (text_arr[t] == "...") ++depth;
+  }
+  if (depth != watch_tower_depth) watch_tower_depth = -1; 
+
+  if (text.indexOf("revealing a Watchtower") != -1 ||
+      text.indexOf("You reveal a Watchtower") != -1) {
+    watch_tower_depth = depth;
     return true;
   }
   return false;
@@ -315,8 +335,11 @@ function handleLogEntry(node) {
     return;
   }
 
-  // Remove leading stuff from the text.
   var text = node.innerText.split(" ");
+
+  if (maybeHandleWatchTower(node.innerText, text)) return;
+
+  // Remove leading stuff from the text.
   var i = 0;
   for (i = 0; i < text.length; i++) {
     if (text[i].match(/[A-Za-z0-9]/) != null) break;
@@ -330,7 +353,9 @@ function handleLogEntry(node) {
   if (maybeHandleSeaHag(elems, text, node.innerText)) return;
 
   if (text[0] == "trashing") {
-    return handleGainOrTrash(last_player, elems, node.innerText, -1);
+    var player = last_player;
+    if (watch_tower_depth >= 0) player = last_gain_player;
+    return handleGainOrTrash(player, elems, node.innerText, -1);
   }
   if (text[1].indexOf("trash") == 0) {
     return handleGainOrTrash(getPlayer(text[0]), elems, node.innerText, -1);
