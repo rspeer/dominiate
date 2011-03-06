@@ -10,6 +10,7 @@ var deck_spot;
 var points_spot;
 
 var started = false;
+var show_action_count = false;
 
 var last_player = null;
 var last_reveal_card = null;
@@ -88,20 +89,11 @@ function Player(name) {
   }
 
   this.getDeckString = function() {
-    var str = this.deck_size + "(";
-    if (typeof this.special_counts["Actions"] != "undefined") {
-      str += this.special_counts["Actions"] + "a,"
+    var str = this.deck_size;
+    if (show_action_count && this.special_counts["Actions"]) {
+      str += "(" + this.special_counts["Actions"] + "a)";
     }
-    if (typeof this.special_counts["Curse"] != "undefined") {
-      str += this.special_counts["Curse"] + "c,"
-    }
-    if (typeof this.special_counts["Victory"] != "undefined") {
-      str += this.special_counts["Victory"] + "v,"
-    }
-    if (typeof this.special_counts["Treasure"] != "undefined") {
-      str += this.special_counts["Treasure"] + "t,"
-    }
-    return str.slice(0, -1) + ")";
+    return str;
   }
 
   this.changeScore = function(points) {
@@ -421,6 +413,7 @@ function updateDeck() {
 
 function initialize(doc) {
   started = true;
+  show_action_count = false;
   players = new Object();
   player_rewrites = new Object();
 
@@ -462,6 +455,13 @@ function handle(doc) {
       doc.innerText.indexOf("Say") == 0) {
     deck_spot = doc.children[5];
     points_spot = doc.children[6];
+  }
+
+  if (doc.parentNode.id == "supply") {
+    elems = doc.getElementsByTagName("span");
+    for (var elem in elems) {
+      if (elems[elem].innerText == "Vineyard") show_action_count = true;
+    }
   }
 
   if (doc.constructor == HTMLElement && doc.parentNode.id == "log" &&
