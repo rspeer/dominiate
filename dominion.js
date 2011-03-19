@@ -170,7 +170,7 @@ function maybeHandleTurnChange(text) {
     if (text.match(/Your turn/) != null) {
       last_player = getPlayer("You");
     } else {
-      var arr = text.match(/--- (.+)'s .* turn ---/);
+      var arr = text.match(/--- (.+)'s .*turn ---/);
       if (arr != null && arr.length == 2) {
         last_player = getPlayer(arr[1]);
       } else {
