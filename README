@@ -8,7 +8,6 @@ The extension keeps track of:
 These are displayed in the bottom beside the chat box.
 
 Known issues:
-- saboteur doesn't work properly (will fix soon)
 - possession is not supported
 - code is a horrible hack :P
 - probably lots of other stuff :)
