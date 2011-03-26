@@ -13,6 +13,7 @@ var started = false;
 var show_action_count = false;
 
 var last_player = null;
+var last_reveal_player = null;
 var last_reveal_card = null;
 
 // Text writing support.
@@ -303,6 +304,12 @@ function maybeHandleSeaHag(elems, text_arr, text) {
   return false;
 }
 
+function maybeHandleSaboteur(elems, text_arr, text) {
+  if (elems.length == 1 && text.indexOf("is trashed.") != -1) {
+    last_reveal_player.gainCard(elems[0], -1);
+  }
+}
+
 function maybeHandleVp(text) {
   var re = new RegExp("[+]([0-9]+) ▼");
   var arr = text.match(re);
@@ -358,6 +365,7 @@ function handleLogEntry(node) {
   if (maybeHandleSwindler(elems, node.innerText)) return;
   if (maybeHandlePirateShip(elems, text, node.innerText)) return;
   if (maybeHandleSeaHag(elems, text, node.innerText)) return;
+  if (maybeHandleSaboteur(elems, text, node.innerText)) return;
 
   if (text[0] == "trashing") {
     var player = last_player;
@@ -372,6 +380,11 @@ function handleLogEntry(node) {
   }
   if (text[1].indexOf("gain") == 0) {
     return handleGainOrTrash(getPlayer(text[0]), elems, node.innerText, 1);
+  }
+
+  // Mark down if a player reveals cards.
+  if (text[1].indexOf("reveal") == 0) {
+    last_reveal_player = getPlayer(text[0]);
   }
 
   // Expect one element from here on out.
