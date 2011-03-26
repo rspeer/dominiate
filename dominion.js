@@ -15,12 +15,27 @@ var show_action_count = false;
 var last_player = null;
 var last_reveal_card = null;
 
+// Text writing support.
+var input_box = null;
+var say_button = null;
+
 // Watchtower support. Ugg.
 var last_gain_player = null;
 var watch_tower_depth = -1;
 
 function debugString(thing) {
   return JSON.stringify(thing);
+}
+
+function writeText(text) {
+  if (!input_box || !say_button) {
+    alert("Can't write text -- button or input box us unknown.");
+    return;
+  }
+  var old_input_box_value = input_box.value;
+  input_box.value = text;
+  say_button.click();
+  input_box.value = old_input_box_value;
 }
 
 function pointsForCard(card_name) {
@@ -412,6 +427,16 @@ function updateDeck() {
 }
 
 function initialize(doc) {
+  // Get the fields we need for being able to write text.
+  input_box = document.getElementById("entry");
+  var blist = document.getElementsByTagName('button');
+  for (var button in blist) {
+    if (blist[button].innerText == "Say") {
+      say_button = blist[button];
+      break;
+    }
+  }
+
   started = true;
   show_action_count = false;
   players = new Object();
