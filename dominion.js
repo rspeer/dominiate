@@ -305,8 +305,17 @@ function maybeHandleSeaHag(elems, text_arr, text) {
 }
 
 function maybeHandleSaboteur(elems, text_arr, text) {
-  if (elems.length == 1 && text.indexOf("is trashed.") != -1) {
-    last_reveal_player.gainCard(elems[0], -1);
+  if (elems.length == 1) {
+    if (text.indexOf("is trashed.") != -1) {
+      last_reveal_player.gainCard(elems[0], -1);
+      return true;
+    }
+    if (text.indexOf("and trash it.") != -1 ||
+        text.indexOf("and trashes it.") != -1) {
+      getPlayer(text_arr[0]).gainCard(elems[0], -1);
+      return true;
+    }
+    return false;
   }
 }
 
