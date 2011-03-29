@@ -8,9 +8,7 @@ The extension keeps track of:
 These are displayed in the bottom beside the chat box.
 
 Known issues:
-- possession is not supported
-- code is a horrible hack :P
-- probably lots of other stuff :)
+- Masquerade and Ambassador do not work properly with Possession.
 
 Future direction:
 Once this has stabilized to have fewer known issues, I'd like to turn it into

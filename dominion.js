@@ -11,6 +11,7 @@ var points_spot;
 
 var started = false;
 var show_action_count = false;
+var possessed_turn = false;
 
 var last_player = null;
 var last_reveal_player = null;
@@ -157,6 +158,9 @@ function Player(name) {
   }
 
   this.gainCard = function(card, count) {
+    // You can't gain or trash cards while possessed.
+    if (possessed_turn && this == last_player) return;
+
     last_gain_player = this;
     count = parseInt(count);
     this.deck_size = this.deck_size + count;
@@ -186,13 +190,16 @@ function maybeHandleTurnChange(text) {
     if (text.match(/Your turn/) != null) {
       last_player = getPlayer("You");
     } else {
-      var arr = text.match(/--- (.+)'s .*turn ---/);
+      var arr = text.match(/--- (.+)'s .*turn (?:\([^)]*\) )?---/);
       if (arr != null && arr.length == 2) {
         last_player = getPlayer(arr[1]);
       } else {
         alert("Couldn't handle turn change: " + text);
       }
     }
+
+    possessed_turn = text.match(/\(possessed by .+\)/) != null;
+
     return true;
   }
   return false;
@@ -348,12 +355,16 @@ function handleGainOrTrash(player, elems, text, multiplier) {
 }
 
 function handleLogEntry(node) {
+  if (maybeHandleTurnChange(node.innerText)) return;
+
+  // Duplicate stuff here. It's printed normally too.
+  if (node.className == "possessed") return;
+
   // Gaining VP could happen in combination with other stuff.
   maybeHandleVp(node.innerText);
 
   elems = node.getElementsByTagName("span");
   if (elems.length == 0) {
-    if (maybeHandleTurnChange(node.innerText)) return;
     if (maybeReturnToSupply(node.innerText)) return;
     return;
   }
@@ -461,6 +472,7 @@ function initialize(doc) {
 
   started = true;
   show_action_count = false;
+  possessed_turn = false;
   players = new Object();
   player_rewrites = new Object();
 
