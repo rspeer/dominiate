@@ -21,6 +21,9 @@ var last_reveal_card = null;
 var input_box = null;
 var say_button = null;
 
+// Last time a status message was printed.
+var last_status_print = 0;
+
 // Watchtower support. Ugg.
 var last_gain_player = null;
 var watch_tower_depth = -1;
@@ -441,22 +444,30 @@ function handleLogEntry(node) {
   }
 }
 
+function getScores() {
+  var scores = "Points: ";
+  for (var player in players) {
+    scores = scores + " " + player + "=" + players[player].getScore();
+  }
+  return scores;
+}
+
 function updateScores() {
   if (points_spot == undefined) return;
-  var to_print = "Points: "
+  points_spot.innerHTML = getScores();
+}
+
+function getDecks() {
+  var decks = "Cards: ";
   for (var player in players) {
-    to_print = to_print + " " + player + "=" + players[player].getScore();
+    decks = decks + " " + player + "=" + players[player].getDeckString();
   }
-  points_spot.innerHTML = to_print;
+  return decks;
 }
 
 function updateDeck() {
   if (deck_spot == undefined) return;
-  var to_print = "Cards: "
-  for (var player in players) {
-    to_print = to_print + " " + player + "=" + players[player].getDeckString();
-  }
-  deck_spot.innerHTML = to_print;
+  deck_spot.innerHTML = getDecks();
 }
 
 function initialize(doc) {
@@ -509,6 +520,25 @@ function maybeRewriteName(doc) {
   }
 }
 
+function maybeShowStatus(request_time) {
+  if (last_status_print < request_time) {
+    last_status_print = new Date().getTime();
+    var to_show = ">> " + getDecks() + " | " + getScores();
+    writeText(to_show.replace(/You=/g, "Me="));
+  }
+}
+
+function handleChatText(text) {
+  if (text == " !status") {
+    var time = new Date().getTime();
+    var command = "maybeShowStatus(" + time + ")";
+    setTimeout(command, 200 + Math.floor(Math.random() * 1000));
+  }
+  if (text.indexOf(" >> ") == 0) {
+    last_status_print = new Date().getTime();
+  }
+}
+
 function handle(doc) {
   if (doc.constructor == HTMLDivElement &&
       doc.innerText.indexOf("Say") == 0) {
@@ -531,6 +561,10 @@ function handle(doc) {
   if (started && doc.constructor == HTMLElement && doc.parentNode.id == "log") {
     maybeRewriteName(doc);
     handleLogEntry(doc);
+  }
+
+  if (doc.parentNode.id == "chat") {
+    handleChatText(doc.childNodes[2].nodeValue);
   }
 
   if (started) {
