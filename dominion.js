@@ -190,9 +190,7 @@ function findTrailingPlayer(text) {
 function maybeHandleTurnChange(text) {
   if (text.indexOf("---") != -1) {
     // This must be a turn start.
-    if (text.match(/Your turn/) != null) {
-      last_player = getPlayer("You");
-    } else if (text.match(/Your extra turn \(from Outpost\)/) != null) {
+    if (text.match(/--- Your (?:extra )?turn/) != null) {
       last_player = getPlayer("You");
     } else {
       var arr = text.match(/--- (.+)'s .*turn (?:\([^)]*\) )?---/);
