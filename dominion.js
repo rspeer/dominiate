@@ -192,6 +192,8 @@ function maybeHandleTurnChange(text) {
     // This must be a turn start.
     if (text.match(/Your turn/) != null) {
       last_player = getPlayer("You");
+    } else if (text.match(/Your extra turn \(from Outpost\)/) != null) {
+      last_player = getPlayer("You");
     } else {
       var arr = text.match(/--- (.+)'s .*turn (?:\([^)]*\) )?---/);
       if (arr != null && arr.length == 2) {
