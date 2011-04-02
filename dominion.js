@@ -276,7 +276,8 @@ function maybeHandleSwindler(elems, text) {
 
   if (player) {
     if (elems.length == 2) {
-      player.gainCard(elems[0], -1);
+      // Note: no need to subtract out the swindled card. That was already
+      // handled by maybeHandleOffensiveTrash.
       player.gainCard(elems[1], 1);
     } else {
       handleError("Replacing your has " + elems.length + " elements: " + text);
@@ -321,7 +322,8 @@ function maybeHandleSeaHag(elems, text_arr, text) {
   return false;
 }
 
-function maybeHandleSaboteur(elems, text_arr, text) {
+// This can be triggered by Saboteur and Swindler.
+function maybeHandleOffensiveTrash(elems, text_arr, text) {
   if (elems.length == 1) {
     if (text.indexOf("is trashed.") != -1) {
       last_reveal_player.gainCard(elems[0], -1);
@@ -395,7 +397,7 @@ function handleLogEntry(node) {
   if (maybeHandleSwindler(elems, node.innerText)) return;
   if (maybeHandlePirateShip(elems, text, node.innerText)) return;
   if (maybeHandleSeaHag(elems, text, node.innerText)) return;
-  if (maybeHandleSaboteur(elems, text, node.innerText)) return;
+  if (maybeHandleOffensiveTrash(elems, text, node.innerText)) return;
 
   if (text[0] == "trashing") {
     var player = last_player;
