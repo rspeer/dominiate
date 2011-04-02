@@ -10,6 +10,7 @@ var deck_spot;
 var points_spot;
 
 var started = false;
+var had_error = false;
 var show_action_count = false;
 var possessed_turn = false;
 
@@ -32,9 +33,17 @@ function debugString(thing) {
   return JSON.stringify(thing);
 }
 
+function handleError(text) {
+  console.log(text);
+  if (!had_error) {
+    had_error = true;
+    alert("Point counter error. Results may no longer be accurate: " + text);
+  }
+}
+
 function writeText(text) {
   if (!input_box || !say_button) {
-    alert("Can't write text -- button or input box us unknown.");
+    handleError("Can't write text -- button or input box us unknown.");
     return;
   }
   var old_input_box_value = input_box.value;
@@ -45,7 +54,7 @@ function writeText(text) {
 
 function pointsForCard(card_name) {
   if (card_name == undefined) {
-    alert("Undefined card for points...");
+    handleError("Undefined card for points...");
     return 0;
   }
   if (card_name.indexOf("Colony") == 0) return 10;
@@ -75,27 +84,27 @@ function Player(name) {
     var score_str = this.score;
     var total_score = this.score;
 
-    if (typeof this.special_counts["Gardens"] != "undefined") {
+    if (this.special_counts["Gardens"] != undefined) {
       var gardens = this.special_counts["Gardens"];
       var garden_points = Math.floor(this.deck_size / 10);
       score_str = score_str + "+" + gardens + "g@" + garden_points;
       total_score = total_score + gardens * garden_points;
     }
 
-    if (typeof this.special_counts["Duke"] != "undefined") {
+    if (this.special_counts["Duke"] != undefined) {
       var dukes = this.special_counts["Duke"];
       var duke_points = 0;
-      if (typeof this.special_counts["Duchy"] != "undefined") {
+      if (this.special_counts["Duchy"] != undefined) {
         duke_points = this.special_counts["Duchy"];
       }
       score_str = score_str + "+" + dukes + "d@" + duke_points;
       total_score = total_score + dukes * duke_points;
     }
 
-    if (typeof this.special_counts["Vineyard"] != "undefined") {
+    if (this.special_counts["Vineyard"] != undefined) {
       var vineyards = this.special_counts["Vineyard"];
       var vineyard_points = 0;
-      if (typeof this.special_counts["Actions"] != "undefined") {
+      if (this.special_counts["Actions"] != undefined) {
         vineyard_points = Math.floor(this.special_counts["Actions"] / 3);
       }
       score_str = score_str + "+" + vineyards + "v@" + vineyard_points;
@@ -121,7 +130,7 @@ function Player(name) {
   }
 
   this.changeSpecialCount = function(name, delta) {
-    if (typeof this.special_counts[name] == "undefined") {
+    if (this.special_counts[name] == undefined) {
       this.special_counts[name] = 0;
     }
     this.special_counts[name] = this.special_counts[name] + delta;
@@ -155,7 +164,7 @@ function Player(name) {
       } else if (type == "treasure") {
         this.changeSpecialCount("Treasure", count);
       } else {
-        alert("Unknown card class: " + card.className + " for " + card.innerText);
+        handleError("Unknown card class: " + card.className + " for " + card.innerText);
       }
     }
   }
@@ -173,9 +182,7 @@ function Player(name) {
 }
 
 function getPlayer(name) {
-  if (typeof players[name] == "undefined") {
-    return null;
-  }
+  if (players[name] == undefined) return null;
   return players[name];
 }
 
@@ -190,18 +197,18 @@ function findTrailingPlayer(text) {
 function maybeHandleTurnChange(text) {
   if (text.indexOf("---") != -1) {
     // This must be a turn start.
-    if (text.match(/--- Your (?:extra )?turn/) != null) {
+    if (text.match(/--- Your (?:extra )?turn/)) {
       last_player = getPlayer("You");
     } else {
       var arr = text.match(/--- (.+)'s .*turn (?:\([^)]*\) )?---/);
-      if (arr != null && arr.length == 2) {
+      if (arr && arr.length == 2) {
         last_player = getPlayer(arr[1]);
       } else {
-        alert("Couldn't handle turn change: " + text);
+        handleError("Couldn't handle turn change: " + text);
       }
     }
 
-    possessed_turn = text.match(/\(possessed by .+\)/) != null;
+    possessed_turn = text.match(/\(possessed by .+\)/);
 
     return true;
   }
@@ -229,7 +236,7 @@ function maybeReturnToSupply(text) {
     return true;
   } else {
     var arr = text.match("([0-9]*) copies to the supply");
-    if (arr != null && arr.length == 2) {
+    if (arr && arr.length == 2) {
       last_player.gainCard(last_reveal_card, -arr[1]);
       return true;
     }
@@ -242,7 +249,7 @@ function maybeHandleTradingPost(elems, text) {
     return false;
   }
   if (elems.length != 2 && elems.length != 3) {
-    alert("Error on trading post: " + text);
+    handleError("Error on trading post: " + text);
     return true;
   }
   var elem = 0;
@@ -260,19 +267,19 @@ function maybeHandleSwindler(elems, text) {
   }
   if (text.indexOf("You replace") != -1) {
     var arr = text.match("You replace ([^']*)'");
-    if (arr != null && arr.length == 2) {
+    if (arr && arr.length == 2) {
       player = getPlayer(arr[1]);
     } else {
-      alert("Could not split: " + text);
+      handleError("Could not split: " + text);
     }
   }
 
-  if (player != null) {
+  if (player) {
     if (elems.length == 2) {
       player.gainCard(elems[0], -1);
       player.gainCard(elems[1], 1);
     } else {
-      alert("Replacing your has " + elems.length + " elements: " + text);
+      handleError("Replacing your has " + elems.length + " elements: " + text);
     }
     return true;
   }
@@ -285,7 +292,7 @@ function maybeHandlePirateShip(elems, text_arr, text) {
   if (text.indexOf("a Pirate Ship token") != -1) return true;
 
   if (text_arr.length < 4) return false;
-  if (getPlayer(text_arr[0]) == null) return false;
+  if (!getPlayer(text_arr[0])) return false;
   if (text_arr[1].indexOf("trash") != 0) return false;
 
   var player = null;
@@ -305,7 +312,7 @@ function maybeHandlePirateShip(elems, text_arr, text) {
 function maybeHandleSeaHag(elems, text_arr, text) {
   if (text.indexOf("a Curse on top of") != -1) {
     if (elems.length != 2 || elems[1].innerHTML != "Curse") {
-      alert("Weird sea hag: " + text);
+      handleError("Weird sea hag: " + text);
       return false;
     }
     getPlayer(text_arr[0]).gainCard(elems[1], 1);
@@ -332,7 +339,7 @@ function maybeHandleSaboteur(elems, text_arr, text) {
 function maybeHandleVp(text) {
   var re = new RegExp("[+]([0-9]+) ▼");
   var arr = text.match(re);
-  if (arr != null && arr.length == 2) {
+  if (arr && arr.length == 2) {
     last_player.changeScore(arr[1]);
   }
 }
@@ -341,7 +348,7 @@ function getCardCount(card, text) {
   var count = 1;
   var re = new RegExp("([0-9]+) " + card);
   var arr = text.match(re);
-  if (arr != null && arr.length == 2) {
+  if (arr && arr.length == 2) {
     count = arr[1];
   }
   return count;
@@ -379,7 +386,7 @@ function handleLogEntry(node) {
   // Remove leading stuff from the text.
   var i = 0;
   for (i = 0; i < text.length; i++) {
-    if (text[i].match(/[A-Za-z0-9]/) != null) break;
+    if (text[i].match(/[A-Za-z0-9]/)) break;
   }
   if (i == text.length) return;
   text = text.slice(i);
@@ -427,7 +434,7 @@ function handleLogEntry(node) {
     player.gainCard(card, -1);
     var other_player = findTrailingPlayer(node.innerText);
     if (other_player == null) {
-      alert("Could not find trailing player from: " + node.innerText);
+      handleError("Could not find trailing player from: " + node.innerText);
     } else {
       other_player.gainCard(card, 1);
     }
@@ -435,7 +442,7 @@ function handleLogEntry(node) {
     player.gainCard(card, 1);
     var other_player = findTrailingPlayer(node.innerText);
     if (other_player == null) {
-      alert("Could not find trailing player from: " + node.innerText);
+      handleError("Could not find trailing player from: " + node.innerText);
     } else {
       other_player.gainCard(card, -1);
     }
@@ -482,6 +489,7 @@ function initialize(doc) {
   }
 
   started = true;
+  had_error = false;
   show_action_count = false;
   possessed_turn = false;
   players = new Object();
@@ -497,7 +505,7 @@ function initialize(doc) {
   var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
   var arr = doc.innerText.match(re);
   if (arr == null) {
-    alert("Couldn't parse: " + doc.innerText);
+    handleError("Couldn't parse: " + doc.innerText);
   }
   for (var i = 1; i < arr.length; ++i) {
     if (arr[i] == undefined) continue;
@@ -529,6 +537,7 @@ function maybeShowStatus(request_time) {
 }
 
 function handleChatText(text) {
+  if (!text) return;
   if (text == " !status") {
     var time = new Date().getTime();
     var command = "maybeShowStatus(" + time + ")";
