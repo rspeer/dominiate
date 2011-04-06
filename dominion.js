@@ -10,6 +10,8 @@ var deck_spot;
 var points_spot;
 
 var started = false;
+var introduced = false;
+var disabled = false;
 var had_error = false;
 var show_action_count = false;
 var possessed_turn = false;
@@ -17,10 +19,6 @@ var possessed_turn = false;
 var last_player = null;
 var last_reveal_player = null;
 var last_reveal_card = null;
-
-// Text writing support.
-var input_box = null;
-var say_button = null;
 
 // Last time a status message was printed.
 var last_status_print = 0;
@@ -42,8 +40,19 @@ function handleError(text) {
 }
 
 function writeText(text) {
-  if (!input_box || !say_button) {
-    handleError("Can't write text -- button or input box us unknown.");
+  // Get the fields we need for being able to write text.
+  var input_box = document.getElementById("entry");
+  var blist = document.getElementsByTagName('button');
+  var say_button = null;
+  for (var button in blist) {
+    if (blist[button].innerText == "Say") {
+      say_button = blist[button];
+      break;
+    }
+  }
+
+  if (input_box == null || input_box == undefined || !say_button) {
+    handleError("Can't write text -- button or input box is unknown.");
     return;
   }
   var old_input_box_value = input_box.value;
@@ -480,25 +489,24 @@ function updateDeck() {
 }
 
 function initialize(doc) {
-  // Get the fields we need for being able to write text.
-  input_box = document.getElementById("entry");
-  var blist = document.getElementsByTagName('button');
-  for (var button in blist) {
-    if (blist[button].innerText == "Say") {
-      say_button = blist[button];
-      break;
-    }
-  }
-
   started = true;
+  introduced = false;
+  disabled = false;
   had_error = false;
   show_action_count = false;
   possessed_turn = false;
   players = new Object();
   player_rewrites = new Object();
 
-  updateScores();
-  updateDeck();
+  if (localStorage["game_announce"] != "f") {
+    var wait_time = 200 * Math.floor(Math.random() * 15 + 1);
+    setTimeout("maybeIntroducePlugin()", wait_time);
+  }
+
+  if (localStorage["always_display"] != "f") {
+    updateScores();
+    updateDeck();
+  }
 
   // Hack: collect player names with spaces in them. We'll rewrite them to
   // underscores and then all the text parsing works as normal.
@@ -530,6 +538,17 @@ function maybeRewriteName(doc) {
   }
 }
 
+function maybeIntroducePlugin() {
+  if (!introduced) {
+    writeText("★ Game scored by Dominion Point Counter ★");
+    writeText("http://goo.gl/iDihS");
+    writeText("Type !status to see the current score.");
+    if (localStorage["allow_disable"] == "t") {
+      writeText("Type !disable to disable the point counter.");
+    }
+  }
+}
+
 function maybeShowStatus(request_time) {
   if (last_status_print < request_time) {
     last_status_print = new Date().getTime();
@@ -540,14 +559,30 @@ function maybeShowStatus(request_time) {
 
 function handleChatText(text) {
   if (!text) return;
+  if (disabled) return;
   if (text == " !status") {
     var time = new Date().getTime();
     var command = "maybeShowStatus(" + time + ")";
-    setTimeout(command, 200 + Math.floor(Math.random() * 1000));
+    var wait_time = 200 * Math.floor(Math.random() * 10 + 1);
+    setTimeout(command, wait_time);
   }
+  if (localStorage["allow_disable"] == "t" && text == " !disable") {
+    disabled = true;
+    deck_spot.innerHTML = "exit";
+    points_spot.innerHTML = "faq";
+    writeText(">> Point counter disabled.");
+  }
+
   if (text.indexOf(" >> ") == 0) {
     last_status_print = new Date().getTime();
   }
+  if (text.indexOf(" ★ ") == 0) {
+    introduced = true;
+  }
+}
+
+function setStatus() {
+  writeText("/me I Count Points - goo.gl/iDihS");
 }
 
 function handle(doc) {
@@ -569,7 +604,7 @@ function handle(doc) {
     initialize(doc);
   }
 
-  if (started && doc.constructor == HTMLElement && doc.parentNode.id == "log") {
+  if (doc.constructor == HTMLElement && doc.parentNode.id == "log") {
     maybeRewriteName(doc);
     handleLogEntry(doc);
 
@@ -581,13 +616,20 @@ function handle(doc) {
     }
   }
 
+  // Handle setting the chat message if needed.
+  if (localStorage["status_announce"] == "t" && doc.parentNode.id == "lobby") {
+    setTimeout("setStatus()", 500);
+  }
+
   if (doc.parentNode.id == "chat") {
     handleChatText(doc.childNodes[2].nodeValue);
   }
 
-  if (started) {
-    updateScores();
-    updateDeck();
+  if (started && localStorage["always_display"] != "f") {
+    if (!disabled) {
+      updateScores();
+      updateDeck();
+    }
   }
 }
 

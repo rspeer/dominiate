@@ -1,8 +1,14 @@
 {
-   "content_scripts": [ {
-      "js": [ "dominion.js" ],
-      "matches": [ "http://dominion.isotropic.org/play" ]
-   } ],
+   "content_scripts": [
+     {
+       "js": [ "dominion.js" ],
+       "matches": [ "http://dominion.isotropic.org/play" ]
+     },
+     {
+       "js": [ "options.js" ],
+       "matches": [ "http://dominion.isotropic.org/" ]
+     }
+   ],
    "description": "Dominion Point Counter",
    "name": "Dominion Point Counter",
    "version": "1.7"

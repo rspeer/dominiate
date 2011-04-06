@@ -5,16 +5,17 @@ The extension keeps track of:
 - # of cards each player has
 - # of points each player has
 
-These are displayed in the bottom beside the chat box.
+It can optionally show this beside the chat box (instead of the exit / faq
+buttons) and always answers !status commands to print the scores to all
+players.
+
+Optionally, the extension can print something in the lobby so people know you
+are using it. It can also be set to allow opponents to disable the extension if
+they don't like point counting.
 
 Known issues:
 - Masquerade and Ambassador do not work properly with Possession.
 
-Future direction:
-Once this has stabilized to have fewer known issues, I'd like to turn it into
-something like an IRC bot. It can announce itself and the command to query for
-status at the beginning of the game. Then both players can take advantage of
-it. Thanks rrenaud for the idea.
 
 If you'd like to contribute back you can work from source here.
 If you'd just like to use the extension, you can install it automatically:
