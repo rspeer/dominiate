@@ -40,15 +40,15 @@ element.id = "pointCounterOptions";
 
 element.innerHTML =
   "	<h1>Dominion Point Counter Options</h1>" +
-  generateOption("Allow users to disable point counter with !disable?",
+  generateOption("Allow opponents to disable point counter with !disable?",
                  "allow_disable",
                  "Allow disabling.",
                  "Do not allow disabling.") +
-  generateOption("Announce you use point counter in lobby status message?",
+  generateOption("Change lobby status message to announce you use point counter?",
                  "status_announce",
                  "Post in status message.",
                  "Do not post in status message.") + 
-  generateOption("Always display counts / points",
+  generateOption("Always display counts / points?",
                  "always_display",
                  "Replace exit/faq with scores.",
                  "Only display in chat box from !status command.");
