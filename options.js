@@ -12,7 +12,6 @@ function loadOptions() {
   setupOption("f", "allow_disable");
   setupOption("f", "status_announce");
   setupOption("t", "always_display");
-  setupOption("t", "game_announce");
 }
 
 function generateOptionButton(name, value, desc) {
@@ -52,11 +51,7 @@ element.innerHTML =
   generateOption("Always display counts / points",
                  "always_display",
                  "Replace exit/faq with scores.",
-                 "Only display in chat box from !status command.") + 
-  generateOption("Display a message showing commands at game start.",
-                 "game_announce",
-                 "Announce at game start.",
-                 "No, I want to use this extension to cheat.");
+                 "Only display in chat box from !status command.");
 
 document.body.appendChild(element);
 loadOptions();

@@ -498,10 +498,8 @@ function initialize(doc) {
   players = new Object();
   player_rewrites = new Object();
 
-  if (localStorage["game_announce"] != "f") {
-    var wait_time = 200 * Math.floor(Math.random() * 15 + 1);
-    setTimeout("maybeIntroducePlugin()", wait_time);
-  }
+  var wait_time = 200 * Math.floor(Math.random() * 15 + 1);
+  setTimeout("maybeIntroducePlugin()", wait_time);
 
   if (localStorage["always_display"] != "f") {
     updateScores();
