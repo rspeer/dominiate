@@ -572,6 +572,13 @@ function handle(doc) {
   if (started && doc.constructor == HTMLElement && doc.parentNode.id == "log") {
     maybeRewriteName(doc);
     handleLogEntry(doc);
+
+    // Reset exit / faq at end of game.
+    if (doc.className == "em" && doc.innerText.indexOf("wins!") != -1) {
+      started = false;
+      deck_spot.innerHTML = "exit";
+      points_spot.innerHTML = "faq";
+    }
   }
 
   if (doc.parentNode.id == "chat") {
