@@ -7,6 +7,10 @@
      {
        "js": [ "options.js" ],
        "matches": [ "http://dominion.isotropic.org/" ]
+     },
+     {
+       "js": [ "login.js" ],
+       "matches": [ "http://dominion.isotropic.org/*loggedin*" ]
      }
    ],
    "description": "Dominion Point Counter",

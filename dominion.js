@@ -551,7 +551,9 @@ function maybeShowStatus(request_time) {
   if (last_status_print < request_time) {
     last_status_print = new Date().getTime();
     var to_show = ">> " + getDecks() + " | " + getScores();
-    writeText(to_show.replace(/You=/g, "Me="));
+    var my_name = localStorage["name"];
+    if (my_name == undefined || my_name == null) my_name = "Me";
+    writeText(to_show.replace(/You=/g, my_name + "="));
   }
 }
 
