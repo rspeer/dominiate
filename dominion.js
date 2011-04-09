@@ -11,6 +11,7 @@ var points_spot;
 
 var started = false;
 var introduced = false;
+var i_introduced = false;
 var disabled = false;
 var had_error = false;
 var show_action_count = false;
@@ -491,6 +492,7 @@ function updateDeck() {
 function initialize(doc) {
   started = true;
   introduced = false;
+  i_introduced = false;
   disabled = false;
   had_error = false;
   show_action_count = false;
@@ -557,13 +559,15 @@ function maybeShowStatus(request_time) {
   }
 }
 
-function handleChatText(text) {
+function handleChatText(speaker, text) {
   if (!text) return;
   if (disabled) return;
   if (text == " !status") {
     var time = new Date().getTime();
     var command = "maybeShowStatus(" + time + ")";
     var wait_time = 200 * Math.floor(Math.random() * 10 + 1);
+    // If we introduced the extension, we get first dibs on answering.
+    if (i_introduced) wait_time = 100;
     setTimeout(command, wait_time);
   }
   if (localStorage["allow_disable"] == "t" && text == " !disable") {
@@ -578,6 +582,9 @@ function handleChatText(text) {
   }
   if (text.indexOf(" ★ ") == 0) {
     introduced = true;
+    if (speaker == localStorage["name"]) {
+      i_introduced = true;
+    }
   }
 }
 
@@ -622,7 +629,8 @@ function handle(doc) {
   }
 
   if (doc.parentNode.id == "chat") {
-    handleChatText(doc.childNodes[2].nodeValue);
+    handleChatText(doc.childNodes[1].innerText.slice(0, -1),
+                   doc.childNodes[2].nodeValue);
   }
 
   if (started && localStorage["always_display"] != "f") {
