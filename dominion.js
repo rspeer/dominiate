@@ -40,17 +40,20 @@ function handleError(text) {
   }
 }
 
+function getSayButton() {
+  var blist = document.getElementsByTagName('button');
+  for (var button in blist) {
+    if (blist[button].innerText == "Say") {
+      return blist[button];
+    }
+  }
+  return null;
+}
+
 function writeText(text) {
   // Get the fields we need for being able to write text.
   var input_box = document.getElementById("entry");
-  var blist = document.getElementsByTagName('button');
-  var say_button = null;
-  for (var button in blist) {
-    if (blist[button].innerText == "Say") {
-      say_button = blist[button];
-      break;
-    }
-  }
+  var say_button = getSayButton();
 
   if (input_box == null || input_box == undefined || !say_button) {
     handleError("Can't write text -- button or input box is unknown.");
@@ -598,10 +601,6 @@ function handleChatText(speaker, text) {
   }
 }
 
-function setStatus() {
-  writeText("/me I Count Points - goo.gl/iDihS");
-}
-
 function handle(doc) {
   if (doc.constructor == HTMLDivElement &&
       doc.innerText.indexOf("Say") == 0) {
@@ -633,11 +632,6 @@ function handle(doc) {
     }
   }
 
-  // Handle setting the chat message if needed.
-  if (localStorage["status_announce"] == "t" && doc.parentNode.id == "lobby") {
-    setTimeout("setStatus()", 500);
-  }
-
   if (doc.parentNode.id == "chat") {
     handleChatText(doc.childNodes[1].innerText.slice(0, -1),
                    doc.childNodes[2].nodeValue);
@@ -651,6 +645,31 @@ function handle(doc) {
   }
 }
 
+// Chat status handling.
+function setupLobbyStatusHandling() {
+  console.log("Starting");
+  console.log(document.getElementById("lobby"));
+  if (localStorage["status_announce"] == "t" &&
+      document.getElementById("lobby")) {
+    console.log("really doing it");
+    var status_message = "/me ";
+    if (localStorage["status_msg"] != undefined) {
+      console.log("adding");
+      status_message = status_message + localStorage["status"] + " - ";
+    }
+    writeText(status_message + "I Count Points (goo.gl/iDihS)");
+
+    getSayButton().addEventListener('click', function() {
+      console.log("Clicked");
+      var input_box = document.getElementById("entry");
+      if (input_box.value.indexOf("/me") ==0) {
+        localStorage.status_msg = input_box.value;
+        input_box.value = index_box.value + " - I Count Points (goo.gl/iDihS)";
+      }
+    })
+  }
+}
+setTimeout("setupLobbyStatusHandling()", 500);
 
 document.body.addEventListener('DOMNodeInserted', function(ev) {
   handle(ev.target);
