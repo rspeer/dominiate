@@ -510,13 +510,14 @@ function initialize(doc) {
   players = new Object();
   player_rewrites = new Object();
 
-  var wait_time = 200 * Math.floor(Math.random() * 15 + 1);
-  setTimeout("maybeIntroducePlugin()", wait_time);
-
   if (localStorage["always_display"] != "f") {
     updateScores();
     updateDeck();
   }
+
+  // Figure out what turn we are. We'll use that to figure out how long to wait
+  // before announcing the extension.
+  var self_index = -1;
 
   // Hack: collect player names with spaces in them. We'll rewrite them to
   // underscores and then all the text parsing works as normal.
@@ -529,7 +530,10 @@ function initialize(doc) {
   }
   for (var i = 1; i < arr.length; ++i) {
     if (arr[i] == undefined) continue;
-    if (arr[i] == "you") arr[i] = "You";
+    if (arr[i] == "you") {
+      self_index = i;
+      arr[i] = "You";
+    }
     if (arr[i].indexOf(" ") != -1) {
       var rewritten = arr[i].replace(/ /g, "_");
       player_rewrites[arr[i]] = rewritten;
@@ -538,6 +542,12 @@ function initialize(doc) {
     // Initialize the player.
     players[arr[i]] = new Player(arr[i]);
   }
+
+  var wait_time = 200 * Math.floor(Math.random() * 10 + 5);
+  if (self_index != -1) {
+    wait_time = 200 * self_index;
+  }
+  setTimeout("maybeIntroducePlugin()", wait_time);
 }
 
 function maybeRewriteName(doc) {
@@ -590,7 +600,7 @@ function handleChatText(speaker, text) {
   if (text.indexOf(" >> ") == 0) {
     last_status_print = new Date().getTime();
   }
-  if (text.indexOf(" ★ ") == 0) {
+  if (!introduced && text.indexOf(" ★ ") == 0) {
     introduced = true;
     if (speaker == localStorage["name"]) {
       i_introduced = true;
