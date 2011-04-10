@@ -10,7 +10,6 @@ function setupOption(default_value, name) {
 
 function loadOptions() {
   setupOption("f", "allow_disable");
-  setupOption("f", "status_announce");
   setupOption("t", "always_display");
 }
 
@@ -44,10 +43,6 @@ element.innerHTML =
                  "allow_disable",
                  "Allow disabling.",
                  "Do not allow disabling.") +
-  generateOption("Change lobby status message to announce you use point counter?",
-                 "status_announce",
-                 "Post in status message.",
-                 "Do not post in status message.") + 
   generateOption("Always display counts / points?",
                  "always_display",
                  "Replace exit/faq with scores.",

@@ -598,10 +598,6 @@ function handleChatText(speaker, text) {
   }
 }
 
-function setStatus() {
-  writeText("/me I Count Points - goo.gl/iDihS");
-}
-
 function handle(doc) {
   if (doc.constructor == HTMLDivElement &&
       doc.innerText.indexOf("Say") == 0) {
@@ -631,11 +627,6 @@ function handle(doc) {
       deck_spot.innerHTML = "exit";
       points_spot.innerHTML = "faq";
     }
-  }
-
-  // Handle setting the chat message if needed.
-  if (localStorage["status_announce"] == "t" && doc.parentNode.id == "lobby") {
-    setTimeout("setStatus()", 500);
   }
 
   if (doc.parentNode.id == "chat") {
