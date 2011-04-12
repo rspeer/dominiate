@@ -519,8 +519,8 @@ function initialize(doc) {
   // before announcing the extension.
   var self_index = -1;
 
-  // Hack: collect player names with spaces in them. We'll rewrite them to
-  // underscores and then all the text parsing works as normal.
+  // Hack: collect player names with spaces and apostrophes in them. We'll
+  // rewrite them and then all the text parsing works as normal.
   var p = "(?:([^,]+), )";    // an optional player
   var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
   var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
@@ -534,8 +534,8 @@ function initialize(doc) {
       self_index = i;
       arr[i] = "You";
     }
-    if (arr[i].indexOf(" ") != -1) {
-      var rewritten = arr[i].replace(/ /g, "_");
+    if (arr[i].indexOf(" ") != -1 || arr[i].indexOf("'") != -1) {
+      var rewritten = arr[i].replace(/ /g, "_").replace(/'/g, "’");
       player_rewrites[arr[i]] = rewritten;
       arr[i] = rewritten;
     }
