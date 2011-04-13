@@ -230,7 +230,7 @@ function maybeHandleWatchTower(text, text_arr) {
   for (var t in text_arr) {
     if (text_arr[t] == "...") ++depth;
   }
-  if (depth != watch_tower_depth) watch_tower_depth = -1; 
+  if (depth != watch_tower_depth) watch_tower_depth = -1;
 
   if (text.indexOf("revealing a Watchtower") != -1 ||
       text.indexOf("You reveal a Watchtower") != -1) {
@@ -407,7 +407,7 @@ function handleLogEntry(node) {
   // Remove leading stuff from the text.
   var i = 0;
   for (i = 0; i < text.length; i++) {
-    if (text[i].match(/[A-Za-z0-9]/)) break;
+    if (!text[i].match(/^[. ]*$/)) break;
   }
   if (i == text.length) return;
   text = text.slice(i);
