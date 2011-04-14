@@ -630,12 +630,31 @@ function handle(doc) {
   if (doc.constructor == HTMLElement && doc.parentNode.id == "log") {
     maybeRewriteName(doc);
     handleLogEntry(doc);
+  }
 
-    // Reset exit / faq at end of game.
-    if (doc.className == "em" && doc.innerText.indexOf("wins!") != -1) {
-      started = false;
-      deck_spot.innerHTML = "exit";
-      points_spot.innerHTML = "faq";
+  if (doc.constructor == HTMLDivElement && doc.parentNode.id == "choices") {
+    for (var node in doc.childNodes) {
+      if (doc.childNodes[node].innerText == "game log") {
+        // Reset exit / faq at end of game.
+        started = false;
+        deck_spot.innerHTML = "exit";
+        points_spot.innerHTML = "faq";
+
+        // Collect information about the game.
+        var href = doc.childNodes[node].href;
+        var game_id_str = href.substring(href.lastIndexOf("/") + 1);
+        var name = localStorage["name"];
+        if (name == undefined || name == null) name = "Unknown";
+
+        // Post the game information to app-engine for later use for tests, etc.
+        chrome.extension.sendRequest({
+            type: "log",
+            game_id: game_id_str,
+            reporter: name,
+            log: document.body.innerHTML,
+            settings: debugString(localStorage) });
+        break;
+      }
     }
   }
 
