@@ -608,6 +608,53 @@ function handleChatText(speaker, text) {
   }
 }
 
+function handleGameEnd(doc) {
+  for (var node in doc.childNodes) {
+    if (doc.childNodes[node].innerText == "game log") {
+      // Reset exit / faq at end of game.
+      started = false;
+      deck_spot.innerHTML = "exit";
+      points_spot.innerHTML = "faq";
+
+      // Collect information about the game.
+      var href = doc.childNodes[node].href;
+      var game_id_str = href.substring(href.lastIndexOf("/") + 1);
+      var name = localStorage["name"];
+      if (name == undefined || name == null) name = "Unknown";
+
+      // Double check the scores so we can log if there was a bug.
+      var has_correct_score = true;
+      var win_log = document.getElementsByClassName("em");
+      if (win_log && win_log.length == 1) {
+        var summary = win_log[0].previousSibling.innerText;
+        for (player in players) {
+          var player_name = players[player].name;
+          if (player_name == "You") player_name = name;
+          var re = new RegExp(player_name + " has ([0-9]+) points");
+          var arr = summary.match(re);
+          if (arr && arr.length == 2) {
+            var score = ("" + players[player].getScore()).replace(/^.*=/, "");
+            if (arr[1] != score) {
+              has_correct_score = false;
+              break;
+            }
+          }
+        }
+      }
+
+      // Post the game information to app-engine for later use for tests, etc.
+      chrome.extension.sendRequest({
+          type: "log",
+          game_id: game_id_str,
+          reporter: name,
+          correct_score: has_correct_score,
+          log: document.body.innerHTML,
+          settings: debugString(localStorage) });
+      break;
+    }
+  }
+}
+
 function handle(doc) {
   if (doc.constructor == HTMLDivElement &&
       doc.innerText.indexOf("Say") == 0) {
@@ -633,29 +680,7 @@ function handle(doc) {
   }
 
   if (doc.constructor == HTMLDivElement && doc.parentNode.id == "choices") {
-    for (var node in doc.childNodes) {
-      if (doc.childNodes[node].innerText == "game log") {
-        // Reset exit / faq at end of game.
-        started = false;
-        deck_spot.innerHTML = "exit";
-        points_spot.innerHTML = "faq";
-
-        // Collect information about the game.
-        var href = doc.childNodes[node].href;
-        var game_id_str = href.substring(href.lastIndexOf("/") + 1);
-        var name = localStorage["name"];
-        if (name == undefined || name == null) name = "Unknown";
-
-        // Post the game information to app-engine for later use for tests, etc.
-        chrome.extension.sendRequest({
-            type: "log",
-            game_id: game_id_str,
-            reporter: name,
-            log: document.body.innerHTML,
-            settings: debugString(localStorage) });
-        break;
-      }
-    }
+    handleGameEnd(doc);
   }
 
   if (doc.parentNode.id == "chat") {
