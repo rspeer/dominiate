@@ -518,6 +518,7 @@ function initialize(doc) {
   // Figure out what turn we are. We'll use that to figure out how long to wait
   // before announcing the extension.
   var self_index = -1;
+  var player_number = 0;
 
   // Hack: collect player names with spaces and apostrophes in them. We'll
   // rewrite them and then all the text parsing works as normal.
@@ -530,8 +531,10 @@ function initialize(doc) {
   }
   for (var i = 1; i < arr.length; ++i) {
     if (arr[i] == undefined) continue;
+
+    player_number++;
     if (arr[i] == "you") {
-      self_index = i;
+      self_index = player_number;
       arr[i] = "You";
     }
     if (arr[i].indexOf(" ") != -1 || arr[i].indexOf("'") != -1) {
@@ -545,8 +548,10 @@ function initialize(doc) {
 
   var wait_time = 200 * Math.floor(Math.random() * 10 + 5);
   if (self_index != -1) {
-    wait_time = 200 * self_index;
+    wait_time = 300 * self_index;
   }
+  console.log("Waiting " + wait_time + " to introduce " +
+              "(index is: " + self_index + ").");
   setTimeout("maybeIntroducePlugin()", wait_time);
 }
 
