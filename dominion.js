@@ -579,7 +579,7 @@ function maybeIntroducePlugin() {
     writeText("★ Game scored by Dominion Point Counter ★");
     writeText("http://goo.gl/iDihS");
     writeText("Type !status to see the current score.");
-    if (localStorage["allow_disable"] == "t") {
+    if (localStorage["allow_disable"] != "f") {
       writeText("Type !disable to disable the point counter.");
     }
   }
