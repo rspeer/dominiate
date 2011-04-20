@@ -13,7 +13,11 @@
        "matches": [ "http://dominion.isotropic.org/*loggedin*" ]
      }
    ],
+   "permissions": [
+     "http://dominion-point-counter.appspot.com/"
+   ],
    "description": "Dominion Point Counter",
    "name": "Dominion Point Counter",
-   "version": "2.0"
+   "background_page": "background.html",
+   "version": "2.1"
 }

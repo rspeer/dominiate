@@ -4,13 +4,12 @@ function setupOption(default_value, name) {
     enable = default_value;
   }
 
-	var name_to_select = document.getElementById(name + "_" + enable);
+  var name_to_select = document.getElementById(name + "_" + enable);
   name_to_select.checked = true
 }
 
 function loadOptions() {
-  setupOption("f", "allow_disable");
-  setupOption("f", "status_announce");
+  setupOption("t", "allow_disable");
   setupOption("t", "always_display");
 }
 
@@ -23,10 +22,11 @@ function generateOptionButton(name, value, desc) {
     "</label><br>";
 }
 
-function generateOption(option_desc, name, yes_desc, no_desc) {
+function generateOption(option_desc, extra_desc, name, yes_desc, no_desc) {
   return "<h3>" + option_desc + "</h3>" +
-    generateOptionButton(name, "t", yes_desc) +
-    generateOptionButton(name, "f", no_desc);
+         extra_desc + (extra_desc == "" ? "" : "<br><br>") +
+         generateOptionButton(name, "t", yes_desc) +
+         generateOptionButton(name, "f", no_desc);
 }
 
 var js_element = document.createElement("script");
@@ -39,16 +39,14 @@ var element = document.createElement("div");
 element.id = "pointCounterOptions";
 
 element.innerHTML =
-  "	<h1>Dominion Point Counter Options</h1>" +
+  "<h1>Dominion Point Counter Options</h1>" +
   generateOption("Allow opponents to disable point counter with !disable?",
+                 "If you don't allow disabling, your status message in the lobby will mention the point counter.",
                  "allow_disable",
                  "Allow disabling.",
-                 "Do not allow disabling.") +
-  generateOption("Change lobby status message to announce you use point counter?",
-                 "status_announce",
-                 "Post in status message.",
-                 "Do not post in status message.") + 
+                 "Do not allow disabling. Show a status message instead.") +
   generateOption("Always display counts / points?",
+                 "",
                  "always_display",
                  "Replace exit/faq with scores.",
                  "Only display in chat box from !status command.");

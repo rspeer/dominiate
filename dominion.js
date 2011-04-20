@@ -16,6 +16,7 @@ var disabled = false;
 var had_error = false;
 var show_action_count = false;
 var possessed_turn = false;
+var turn_number = 0;
 
 var last_player = null;
 var last_reveal_player = null;
@@ -73,6 +74,7 @@ function pointsForCard(card_name) {
   if (card_name.indexOf("Colony") == 0) return 10;
   if (card_name.indexOf("Province") == 0) return 6;
   if (card_name.indexOf("Duchy") == 0) return 3;
+  if (card_name.indexOf("Duchies") == 0) return 3;
   if (card_name.indexOf("Estate") == 0) return 1;
   if (card_name.indexOf("Curse") == 0) return -1;
 
@@ -207,8 +209,12 @@ function findTrailingPlayer(text) {
   return null;
 }
 
-function maybeHandleTurnChange(text) {
-  if (text.indexOf("---") != -1) {
+function maybeHandleTurnChange(node) {
+  var text = node.innerText;
+  var turn_change_index = text.indexOf("---");
+  if (turn_change_index != -1) {
+    if (turn_change_index == 0) ++turn_number;
+
     // This must be a turn start.
     if (text.match(/--- Your (?:extra )?turn/)) {
       last_player = getPlayer("You");
@@ -223,6 +229,9 @@ function maybeHandleTurnChange(text) {
 
     possessed_turn = text.match(/\(possessed by .+\)/);
 
+    node.innerHTML =
+      node.innerHTML.replace(" ---<br>", " " + turn_number + " ---<br>");
+
     return true;
   }
   return false;
@@ -233,7 +242,7 @@ function maybeHandleWatchTower(text, text_arr) {
   for (var t in text_arr) {
     if (text_arr[t] == "...") ++depth;
   }
-  if (depth != watch_tower_depth) watch_tower_depth = -1; 
+  if (depth != watch_tower_depth) watch_tower_depth = -1;
 
   if (text.indexOf("revealing a Watchtower") != -1 ||
       text.indexOf("You reveal a Watchtower") != -1) {
@@ -389,7 +398,7 @@ function handleGainOrTrash(player, elems, text, multiplier) {
 }
 
 function handleLogEntry(node) {
-  if (maybeHandleTurnChange(node.innerText)) return;
+  if (maybeHandleTurnChange(node)) return;
 
   // Duplicate stuff here. It's printed normally too.
   if (node.className == "possessed") return;
@@ -410,7 +419,7 @@ function handleLogEntry(node) {
   // Remove leading stuff from the text.
   var i = 0;
   for (i = 0; i < text.length; i++) {
-    if (text[i].match(/[A-Za-z0-9]/)) break;
+    if (!text[i].match(/^[. ]*$/)) break;
   }
   if (i == text.length) return;
   text = text.slice(i);
@@ -510,19 +519,23 @@ function initialize(doc) {
   had_error = false;
   show_action_count = false;
   possessed_turn = false;
+  turn_number = 0;
+
   players = new Object();
   player_rewrites = new Object();
-
-  var wait_time = 200 * Math.floor(Math.random() * 15 + 1);
-  setTimeout("maybeIntroducePlugin()", wait_time);
 
   if (localStorage["always_display"] != "f") {
     updateScores();
     updateDeck();
   }
 
-  // Hack: collect player names with spaces in them. We'll rewrite them to
-  // underscores and then all the text parsing works as normal.
+  // Figure out what turn we are. We'll use that to figure out how long to wait
+  // before announcing the extension.
+  var self_index = -1;
+  var player_number = 0;
+
+  // Hack: collect player names with spaces and apostrophes in them. We'll
+  // rewrite them and then all the text parsing works as normal.
   var p = "(?:([^,]+), )";    // an optional player
   var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
   var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
@@ -532,15 +545,28 @@ function initialize(doc) {
   }
   for (var i = 1; i < arr.length; ++i) {
     if (arr[i] == undefined) continue;
-    if (arr[i] == "you") arr[i] = "You";
-    if (arr[i].indexOf(" ") != -1) {
-      var rewritten = arr[i].replace(/ /g, "_");
+
+    player_number++;
+    if (arr[i] == "you") {
+      self_index = player_number;
+      arr[i] = "You";
+    }
+    if (arr[i].indexOf(" ") != -1 || arr[i].indexOf("'") != -1) {
+      var rewritten = arr[i].replace(/ /g, "_").replace(/'/g, "’");
       player_rewrites[arr[i]] = rewritten;
       arr[i] = rewritten;
     }
     // Initialize the player.
     players[arr[i]] = new Player(arr[i]);
   }
+
+  var wait_time = 200 * Math.floor(Math.random() * 10 + 5);
+  if (self_index != -1) {
+    wait_time = 300 * self_index;
+  }
+  console.log("Waiting " + wait_time + " to introduce " +
+              "(index is: " + self_index + ").");
+  setTimeout("maybeIntroducePlugin()", wait_time);
 }
 
 function maybeRewriteName(doc) {
@@ -556,7 +582,7 @@ function maybeIntroducePlugin() {
     writeText("★ Game scored by Dominion Point Counter ★");
     writeText("http://goo.gl/iDihS");
     writeText("Type !status to see the current score.");
-    if (localStorage["allow_disable"] == "t") {
+    if (localStorage["allow_disable"] != "f") {
       writeText("Type !disable to disable the point counter.");
     }
   }
@@ -593,10 +619,57 @@ function handleChatText(speaker, text) {
   if (text.indexOf(" >> ") == 0) {
     last_status_print = new Date().getTime();
   }
-  if (text.indexOf(" ★ ") == 0) {
+  if (!introduced && text.indexOf(" ★ ") == 0) {
     introduced = true;
     if (speaker == localStorage["name"]) {
       i_introduced = true;
+    }
+  }
+}
+
+function handleGameEnd(doc) {
+  for (var node in doc.childNodes) {
+    if (doc.childNodes[node].innerText == "game log") {
+      // Reset exit / faq at end of game.
+      started = false;
+      deck_spot.innerHTML = "exit";
+      points_spot.innerHTML = "faq";
+
+      // Collect information about the game.
+      var href = doc.childNodes[node].href;
+      var game_id_str = href.substring(href.lastIndexOf("/") + 1);
+      var name = localStorage["name"];
+      if (name == undefined || name == null) name = "Unknown";
+
+      // Double check the scores so we can log if there was a bug.
+      var has_correct_score = true;
+      var win_log = document.getElementsByClassName("em");
+      if (win_log && win_log.length == 1) {
+        var summary = win_log[0].previousSibling.innerText;
+        for (player in players) {
+          var player_name = players[player].name;
+          if (player_name == "You") player_name = name;
+          var re = new RegExp(player_name + " has ([0-9]+) points");
+          var arr = summary.match(re);
+          if (arr && arr.length == 2) {
+            var score = ("" + players[player].getScore()).replace(/^.*=/, "");
+            if (arr[1] != score) {
+              has_correct_score = false;
+              break;
+            }
+          }
+        }
+      }
+
+      // Post the game information to app-engine for later use for tests, etc.
+      chrome.extension.sendRequest({
+          type: "log",
+          game_id: game_id_str,
+          reporter: name,
+          correct_score: has_correct_score,
+          log: document.body.innerHTML,
+          settings: debugString(localStorage) });
+      break;
     }
   }
 }
@@ -623,13 +696,10 @@ function handle(doc) {
   if (doc.constructor == HTMLElement && doc.parentNode.id == "log") {
     maybeRewriteName(doc);
     handleLogEntry(doc);
+  }
 
-    // Reset exit / faq at end of game.
-    if (doc.className == "em" && doc.innerText.indexOf("wins!") != -1) {
-      started = false;
-      deck_spot.innerHTML = "exit";
-      points_spot.innerHTML = "faq";
-    }
+  if (doc.constructor == HTMLDivElement && doc.parentNode.id == "choices") {
+    handleGameEnd(doc);
   }
 
   if (doc.parentNode.id == "chat") {
