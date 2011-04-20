@@ -71,6 +71,7 @@ function pointsForCard(card_name) {
   if (card_name.indexOf("Colony") == 0) return 10;
   if (card_name.indexOf("Province") == 0) return 6;
   if (card_name.indexOf("Duchy") == 0) return 3;
+  if (card_name.indexOf("Duchies") == 0) return 3;
   if (card_name.indexOf("Estate") == 0) return 1;
   if (card_name.indexOf("Curse") == 0) return -1;
 
