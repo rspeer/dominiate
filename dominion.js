@@ -16,6 +16,7 @@ var disabled = false;
 var had_error = false;
 var show_action_count = false;
 var possessed_turn = false;
+var turn_number = 0;
 
 var last_player = null;
 var last_reveal_player = null;
@@ -204,8 +205,12 @@ function findTrailingPlayer(text) {
   return null;
 }
 
-function maybeHandleTurnChange(text) {
-  if (text.indexOf("---") != -1) {
+function maybeHandleTurnChange(node) {
+  var text = node.innerText;
+  var turn_change_index = text.indexOf("---");
+  if (turn_change_index != -1) {
+    if (turn_change_index == 0) ++turn_number;
+
     // This must be a turn start.
     if (text.match(/--- Your (?:extra )?turn/)) {
       last_player = getPlayer("You");
@@ -219,6 +224,9 @@ function maybeHandleTurnChange(text) {
     }
 
     possessed_turn = text.match(/\(possessed by .+\)/);
+
+    node.innerHTML =
+      node.innerHTML.replace(" ---<br>", " " + turn_number + " ---<br>");
 
     return true;
   }
@@ -386,7 +394,7 @@ function handleGainOrTrash(player, elems, text, multiplier) {
 }
 
 function handleLogEntry(node) {
-  if (maybeHandleTurnChange(node.innerText)) return;
+  if (maybeHandleTurnChange(node)) return;
 
   // Duplicate stuff here. It's printed normally too.
   if (node.className == "possessed") return;
@@ -507,6 +515,8 @@ function initialize(doc) {
   had_error = false;
   show_action_count = false;
   possessed_turn = false;
+  turn_number = 0;
+
   players = new Object();
   player_rewrites = new Object();
 
