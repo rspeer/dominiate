@@ -5,7 +5,7 @@
        "matches": [ "http://dominion.isotropic.org/play" ]
      },
      {
-       "js": [ "options.js" ],
+       "js": [ "jquery.js", "options.js" ],
        "matches": [ "http://dominion.isotropic.org/" ]
      },
      {

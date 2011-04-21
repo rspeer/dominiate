@@ -10,6 +10,7 @@ function setupOption(default_value, name) {
 
 function loadOptions() {
   setupOption("t", "allow_disable");
+  setupOption("f", "status_announce");
   setupOption("t", "always_display");
 }
 
@@ -23,8 +24,10 @@ function generateOptionButton(name, value, desc) {
 }
 
 function generateOption(option_desc, extra_desc, name, yes_desc, no_desc) {
-  return "<h3>" + option_desc + "</h3>" +
-         extra_desc + (extra_desc == "" ? "" : "<br><br>") +
+  if (extra_desc != "") {
+    extra_desc += '<div style="line-height:6px;">&nbsp;</div>';
+  }
+  return "<h3>" + option_desc + "</h3>" + extra_desc +
          generateOptionButton(name, "t", yes_desc) +
          generateOptionButton(name, "f", no_desc);
 }
@@ -41,10 +44,16 @@ element.id = "pointCounterOptions";
 element.innerHTML =
   "<h1>Dominion Point Counter Options</h1>" +
   generateOption("Allow opponents to disable point counter with !disable?",
-                 "If you don't allow disabling, your status message in the lobby will mention the point counter.",
+                 "",
                  "allow_disable",
                  "Allow disabling.",
-                 "Do not allow disabling. Show a status message instead.") +
+                 "Do not allow disabling.") +
+  generateOption("Change lobby status to announce you use point counter?" +
+                   " <sup><font color='red'>new</font></sup>",
+                 "Mandatory if disabling is not allowed.",
+                 "status_announce",
+                 "Post in status message.",
+                 "Do not post in status message.") +
   generateOption("Always display counts / points?",
                  "",
                  "always_display",
@@ -53,3 +62,14 @@ element.innerHTML =
 
 document.body.appendChild(element);
 loadOptions();
+
+$('#allow_disable_t').click(function() {
+  $('#status_announce_t').attr('disabled', false);
+  $('#status_announce_f').attr('disabled', false);
+})
+
+$('#allow_disable_f').click(function() {
+  localStorage["status_announce"] = "t";
+  $('#status_announce_t').attr('checked', true);
+  $('#status_announce_t').attr('disabled', true);
+})
