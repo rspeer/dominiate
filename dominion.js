@@ -715,27 +715,52 @@ function handle(doc) {
   }
 }
 
+
+//
 // Chat status handling.
+//
+
+function buildStatusMessage() {
+  var status_message = "/me Auto▼Count";
+  if (localStorage["status_msg"] != undefined &&
+      localStorage["status_msg"] != "") {
+    status_message = status_message + " - " + localStorage["status_msg"];
+  }
+  return status_message;
+}
+
 function setupLobbyStatusHandling() {
-  console.log("Starting");
-  console.log(document.getElementById("lobby"));
   if (localStorage["status_announce"] == "t" &&
       document.getElementById("lobby")) {
-    console.log("really doing it");
-    var status_message = "/me ";
-    if (localStorage["status_msg"] != undefined) {
-      console.log("adding");
-      status_message = status_message + localStorage["status"] + " - ";
-    }
-    writeText(status_message + "I Count Points (goo.gl/iDihS)");
+    // Set the original status message.
+    writeText(buildStatusMessage());
+
+    // Handle updating status message as needed.
+    $('#entry').css('display', 'none');
+    $('#entry').after('<input id="fake_entry" class="entry" style="width: 350px;">');
+    $('#fake_entry').keyup(function(event) {
+      var value = $('#fake_entry').val();
+      var re = new RegExp("^/me(?: (.*))?$");
+      var arr = value.match(re);
+      if (arr && arr.length == 2) {
+        // This is a status message update.
+        if (arr[1] != undefined) {
+          localStorage["status_msg"] = arr[1];
+        } else {
+          localStorage.removeItem("status_msg");
+        }
+        value = buildStatusMessage();
+      }
+      $('#entry').val(value);
+
+      if (event.which == 13) {
+        getSayButton().click();
+        $('#fake_entry').val("");
+      }
+    });
 
     getSayButton().addEventListener('click', function() {
-      console.log("Clicked");
-      var input_box = document.getElementById("entry");
-      if (input_box.value.indexOf("/me") ==0) {
-        localStorage.status_msg = input_box.value;
-        input_box.value = index_box.value + " - I Count Points (goo.gl/iDihS)";
-      }
+      $('#fake_entry').val("");
     })
   }
 }
