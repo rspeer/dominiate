@@ -202,7 +202,11 @@ function getPlayer(name) {
 }
 
 function findTrailingPlayer(text) {
-  var arr = text.match(/ ([A-Za-z0-9]+)\./);
+  var arr = text.match(/ ([^\s.]+)\.[\s]*$/);
+  if (arr == null) {
+    handleError("Couldn't find trailing player: '" + text + "'");
+    return null;
+  }
   if (arr.length == 2) {
     return getPlayer(arr[1]);
   }
