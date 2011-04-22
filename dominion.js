@@ -4,6 +4,8 @@ var player_rewrites = new Object();
 
 // Map from player name to Player object.
 var players = new Object();
+// Regular expression that is an OR of players other than "You".
+var player_re = "";
 
 // Places to print number of cards and points.
 var deck_spot;
@@ -28,6 +30,11 @@ var last_status_print = 0;
 // Watchtower support. Ugg.
 var last_gain_player = null;
 var watch_tower_depth = -1;
+
+// Quotes a string so it matches literally in a regex.
+RegExp.quote = function(str) {
+  return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
+};
 
 function debugString(thing) {
   return JSON.stringify(thing);
@@ -300,13 +307,10 @@ function maybeHandleSwindler(elems, text) {
   if (text.indexOf("replacing your") != -1) {
     player = getPlayer("You");
   }
-  if (text.indexOf("You replace") != -1) {
-    var arr = text.match("You replace ([^']*)'");
-    if (arr && arr.length == 2) {
-      player = getPlayer(arr[1]);
-    } else {
-      handleError("Could not split: " + text);
-    }
+  var arr = text.match(new RegExp("You replace " + player_re + "'s"));
+  if (!arr) arr = text.match(new RegExp("replacing " + player_re + "'s"));
+  if (arr && arr.length == 2) {
+    player = getPlayer(arr[1]);
   }
 
   if (player) {
@@ -315,7 +319,7 @@ function maybeHandleSwindler(elems, text) {
       // handled by maybeHandleOffensiveTrash.
       player.gainCard(elems[1], 1);
     } else {
-      handleError("Replacing your has " + elems.length + " elements: " + text);
+      handleError("Replacement has " + elems.length + " elements: " + text);
     }
     return true;
   }
@@ -527,6 +531,7 @@ function initialize(doc) {
 
   players = new Object();
   player_rewrites = new Object();
+  player_re = "";
 
   if (localStorage["always_display"] != "f") {
     updateScores();
@@ -547,6 +552,7 @@ function initialize(doc) {
   if (arr == null) {
     handleError("Couldn't parse: " + doc.innerText);
   }
+  var other_player_names = [];
   for (var i = 1; i < arr.length; ++i) {
     if (arr[i] == undefined) continue;
 
@@ -562,7 +568,12 @@ function initialize(doc) {
     }
     // Initialize the player.
     players[arr[i]] = new Player(arr[i]);
+
+    if (arr[i] != "You") {
+      other_player_names.push(RegExp.quote(arr[i]));
+    }
   }
+  player_re = '(' + other_player_names.join('|') + ')';
 
   var wait_time = 200 * Math.floor(Math.random() * 10 + 5);
   if (self_index != -1) {
