@@ -15,6 +15,7 @@ they don't like point counting.
 
 Known issues:
 - Masquerade and Ambassador do not work properly with Possession.
+- Masquerade with more than 2 players leads to unknown information.
 
 
 If you'd like to contribute back you can work from source here.

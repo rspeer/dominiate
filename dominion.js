@@ -6,6 +6,8 @@ var player_rewrites = new Object();
 var players = new Object();
 // Regular expression that is an OR of players other than "You".
 var player_re = "";
+// Count of the number of players in the game.
+var player_count = 0;
 
 // Places to print number of cards and points.
 var deck_spot;
@@ -19,6 +21,7 @@ var had_error = false;
 var show_action_count = false;
 var possessed_turn = false;
 var turn_number = 0;
+var announced_error = false;
 
 var last_player = null;
 var last_reveal_player = null;
@@ -71,6 +74,14 @@ function writeText(text) {
   input_box.value = text;
   say_button.click();
   input_box.value = old_input_box_value;
+}
+
+function maybeAnnounceFailure(text) {
+  if (!announced_error) {
+    console.log("Logging error: " + text);
+    announced_error = true;
+    writeText(text);
+  }
 }
 
 function pointsForCard(card_name) {
@@ -473,6 +484,11 @@ function handleLogEntry(node) {
     var count = getCardCount(card_text, node.innerText);
     player.gainCard(card, count);
   } else if (action.indexOf("pass") == 0) {
+    if (player_count != 2) {
+      console.log(players.length);
+      maybeAnnounceFailure(">> Warning: Masquerade with more than 2 players " +
+                           "causes inaccurate score counting.");
+    }
     player.gainCard(card, -1);
     var other_player = findTrailingPlayer(node.innerText);
     if (other_player == null) {
@@ -528,10 +544,12 @@ function initialize(doc) {
   show_action_count = false;
   possessed_turn = false;
   turn_number = 0;
+  announced_error = false;
 
   players = new Object();
   player_rewrites = new Object();
   player_re = "";
+  player_count = 0;
 
   if (localStorage["always_display"] != "f") {
     updateScores();
@@ -541,7 +559,6 @@ function initialize(doc) {
   // Figure out what turn we are. We'll use that to figure out how long to wait
   // before announcing the extension.
   var self_index = -1;
-  var player_number = 0;
 
   // Hack: collect player names with spaces and apostrophes in them. We'll
   // rewrite them and then all the text parsing works as normal.
@@ -556,9 +573,9 @@ function initialize(doc) {
   for (var i = 1; i < arr.length; ++i) {
     if (arr[i] == undefined) continue;
 
-    player_number++;
+    player_count++;
     if (arr[i] == "you") {
-      self_index = player_number;
+      self_index = player_count;
       arr[i] = "You";
     }
     if (arr[i].indexOf(" ") != -1 || arr[i].indexOf("'") != -1) {
@@ -659,7 +676,7 @@ function handleGameEnd(doc) {
       // Double check the scores so we can log if there was a bug.
       var has_correct_score = true;
       var win_log = document.getElementsByClassName("em");
-      if (win_log && win_log.length == 1) {
+      if (!announced_error && win_log && win_log.length == 1) {
         var summary = win_log[0].previousSibling.innerText;
         for (player in players) {
           var player_name = players[player].name;
