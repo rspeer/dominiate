@@ -5,6 +5,10 @@
        "matches": [ "http://dominion.isotropic.org/play" ]
      },
      {
+       "js": [ "jquery.js", "dominion.js", "debugger.js" ],
+       "matches": [ "http://*.dominion-point-counter.appspot.com/debug" ]
+     },
+     {
        "js": [ "jquery.js", "options.js" ],
        "matches": [ "http://dominion.isotropic.org/" ]
      },
@@ -14,6 +18,7 @@
      }
    ],
    "permissions": [
+     "http://dominion.isotropic.org/",
      "http://dominion-point-counter.appspot.com/"
    ],
    "description": "Dominion Point Counter",
