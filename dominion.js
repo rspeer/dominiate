@@ -660,6 +660,9 @@ function handleChatText(speaker, text) {
 }
 
 function handleGameEnd(doc) {
+  // Don't log solo games.
+  if (player_count < 2) return;
+
   for (var node in doc.childNodes) {
     if (doc.childNodes[node].innerText == "game log") {
       // Reset exit / faq at end of game.
