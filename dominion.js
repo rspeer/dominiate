@@ -766,7 +766,7 @@ function buildStatusMessage() {
 
 function setupLobbyStatusHandling() {
   if (localStorage["status_announce"] == "t" &&
-      document.getElementById("lobby")) {
+      $('#lobby').length != 0 && $('#lobby').css('display') != "none") {
     // Set the original status message.
     writeText(buildStatusMessage());
 
