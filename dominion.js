@@ -656,7 +656,7 @@ function handleChatText(speaker, text) {
     if (i_introduced) wait_time = 100;
     setTimeout(command, wait_time);
   }
-  if (localStorage["allow_disable"] == "t" && text == " !disable") {
+  if (localStorage["allow_disable"] != "f" && text == " !disable") {
     disabled = true;
     deck_spot.innerHTML = "exit";
     points_spot.innerHTML = "faq";
