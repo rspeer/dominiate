@@ -19,6 +19,7 @@ var i_introduced = false;
 var disabled = false;
 var had_error = false;
 var show_action_count = false;
+var show_unique_count = false;
 var possessed_turn = false;
 var turn_number = 0;
 var announced_error = false;
@@ -38,6 +39,11 @@ var watch_tower_depth = -1;
 RegExp.quote = function(str) {
   return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
 };
+
+var plural_map = {};
+for (var card_info in card_list) {
+    plural_map[card_list[card_info]['Plural']] = card_list[card_info]['Singular'];
+}
 
 function debugString(thing) {
   return JSON.stringify(thing);
@@ -111,7 +117,8 @@ function Player(name) {
 
   // Map from special counts (such as number of gardens) to count.
   // TODO(drheld): Should we just track all cards?
-  this.special_counts = { "Treasure" : 7, "Victory" : 3 }
+  this.special_counts = { "Treasure" : 7, "Victory" : 3, "Uniques" : 2 };
+  this.card_counts = { "Copper" : 7, "Estate" : 3 };
 
   this.getScore = function() {
     var score_str = this.score;
@@ -143,6 +150,16 @@ function Player(name) {
       score_str = score_str + "+" + vineyards + "v@" + vineyard_points;
       total_score = total_score + vineyards * vineyard_points;
     }
+    
+   if (this.special_counts["Fairgrounds"] != undefined) {
+      var fairgrounds = this.special_counts["Fairgrounds"];
+      var fairgrounds_points = 0;
+      if (this.special_counts["Uniques"] != undefined) {
+        fairgrounds_points = Math.floor(this.special_counts["Uniques"] / 5) * 2;
+      }
+      score_str = score_str + "+" + fairgrounds + "f@" + fairgrounds_points;
+      total_score = total_score + fairgrounds * fairgrounds_points;
+    }
 
     if (total_score != this.score) {
       score_str = score_str + "=" + total_score;
@@ -152,8 +169,27 @@ function Player(name) {
 
   this.getDeckString = function() {
     var str = this.deck_size;
-    if (show_action_count && this.special_counts["Actions"]) {
-      str += "(" + this.special_counts["Actions"] + "a)";
+    var need_action_string = (show_action_count && this.special_counts["Actions"]);
+    var need_unique_string = (show_unique_count && this.special_counts["Uniques"]);
+    if  (need_action_string || need_unique_string) {
+      str += "(";
+
+      var special_types = [];
+      if (need_unique_string) {
+        special_types.push(this.special_counts["Uniques"] + "u");
+      }
+      
+      if (need_action_string) {
+        special_types.push(this.special_counts["Actions"] + "a");
+      }
+
+      if (special_types.length == 1) {
+        str += special_types[0];
+      } else {
+        str += special_types.join(", ");
+      }
+
+      str += ")";
     }
     return str;
   }
@@ -167,6 +203,25 @@ function Player(name) {
       this.special_counts[name] = 0;
     }
     this.special_counts[name] = this.special_counts[name] + delta;
+  }
+    
+  this.recordUniqueCards = function(name, count) {
+    
+    if (this.card_counts[name] == undefined || this.card_counts[name] == 0) {
+      this.card_counts[name] = count;
+      this.special_counts["Uniques"] += 1;
+    } else {
+        this.card_counts[name] += count;
+    }
+    
+    if (this.card_counts[name] <= 0) {
+      if (this.card_counts[name] < 0) {
+        handleError("Card count for " + name + " is negative (" + this.card_counts[name] + ")");
+      }
+      delete this.card_counts[name];
+      this.special_counts["Uniques"] -= 1;
+    }
+        
   }
 
   this.recordSpecialCards = function(card, count) {
@@ -183,8 +238,13 @@ function Player(name) {
     if (name.indexOf("Vineyard") == 0) {
       this.changeSpecialCount("Vineyard", count);
     }
-
+    
+    if (name.indexOf("Fairgrounds") == 0) {
+      this.changeSpecialCount("Fairgrounds", count);
+    }
+    
     var types = card.className.split("-").slice(1);
+    
     for (type_i in types) {
       var type = types[type_i];
       if (type == "none" || type == "duration" ||
@@ -214,8 +274,21 @@ function Player(name) {
     last_gain_player = this;
     count = parseInt(count);
     this.deck_size = this.deck_size + count;
-    this.changeScore(pointsForCard(card.innerText) * count);
+
+    var singular_card_name = getSingularCardName(card.innerText);
+    this.changeScore(pointsForCard(singular_card_name) * count);
     this.recordSpecialCards(card, count);
+    this.recordUniqueCards(singular_card_name, count);
+  }
+}
+
+function getSingularCardName(name) {
+  if (plural_map[name] == undefined) {
+    //assume it's singular already
+    return name;
+  } else {
+    //return the singular value for the given pluralized card name
+    return plural_map[name]
   }
 }
 
@@ -557,6 +630,7 @@ function initialize(doc) {
   disabled = false;
   had_error = false;
   show_action_count = false;
+  show_unique_count = false;
   possessed_turn = false;
   turn_number = 0;
   announced_error = false;
@@ -735,6 +809,10 @@ function handle(doc) {
     elems = doc.getElementsByTagName("span");
     for (var elem in elems) {
       if (elems[elem].innerText == "Vineyard") show_action_count = true;
+    }
+
+    for (var elem in elems) {
+      if (elems[elem].innerText == "Fairgrounds") show_unique_count = true;
     }
   }
 
