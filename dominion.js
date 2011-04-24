@@ -40,9 +40,13 @@ RegExp.quote = function(str) {
   return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
 };
 
+// Keep a map from plural to singular for cards that need it.
 var plural_map = {};
-for (var card_info in card_list) {
-    plural_map[card_list[card_info]['Plural']] = card_list[card_info]['Singular'];
+for (var i = 0; i < card_list.length; ++i) {
+  var card = card_list[i];
+  if (card['Plural'] != card['Singular']) {
+    plural_map[card['Plural']] = card['Singular'];
+  }
 }
 
 function debugString(thing) {
@@ -116,7 +120,6 @@ function Player(name) {
   this.deck_size = 10;
 
   // Map from special counts (such as number of gardens) to count.
-  // TODO(drheld): Should we just track all cards?
   this.special_counts = { "Treasure" : 7, "Victory" : 3, "Uniques" : 2 };
   this.card_counts = { "Copper" : 7, "Estate" : 3 };
 
@@ -150,8 +153,8 @@ function Player(name) {
       score_str = score_str + "+" + vineyards + "v@" + vineyard_points;
       total_score = total_score + vineyards * vineyard_points;
     }
-    
-   if (this.special_counts["Fairgrounds"] != undefined) {
+
+    if (this.special_counts["Fairgrounds"] != undefined) {
       var fairgrounds = this.special_counts["Fairgrounds"];
       var fairgrounds_points = 0;
       if (this.special_counts["Uniques"] != undefined) {
@@ -172,24 +175,14 @@ function Player(name) {
     var need_action_string = (show_action_count && this.special_counts["Actions"]);
     var need_unique_string = (show_unique_count && this.special_counts["Uniques"]);
     if  (need_action_string || need_unique_string) {
-      str += "(";
-
       var special_types = [];
       if (need_unique_string) {
         special_types.push(this.special_counts["Uniques"] + "u");
       }
-      
       if (need_action_string) {
         special_types.push(this.special_counts["Actions"] + "a");
       }
-
-      if (special_types.length == 1) {
-        str += special_types[0];
-      } else {
-        str += special_types.join(", ");
-      }
-
-      str += ")";
+      str += '(' + special_types.join(", ") + ')';
     }
     return str;
   }
@@ -204,16 +197,15 @@ function Player(name) {
     }
     this.special_counts[name] = this.special_counts[name] + delta;
   }
-    
-  this.recordUniqueCards = function(name, count) {
-    
+
+  this.recordCards = function(name, count) {
     if (this.card_counts[name] == undefined || this.card_counts[name] == 0) {
       this.card_counts[name] = count;
       this.special_counts["Uniques"] += 1;
     } else {
-        this.card_counts[name] += count;
+      this.card_counts[name] += count;
     }
-    
+
     if (this.card_counts[name] <= 0) {
       if (this.card_counts[name] < 0) {
         handleError("Card count for " + name + " is negative (" + this.card_counts[name] + ")");
@@ -221,7 +213,6 @@ function Player(name) {
       delete this.card_counts[name];
       this.special_counts["Uniques"] -= 1;
     }
-        
   }
 
   this.recordSpecialCards = function(card, count) {
@@ -238,13 +229,11 @@ function Player(name) {
     if (name.indexOf("Vineyard") == 0) {
       this.changeSpecialCount("Vineyard", count);
     }
-    
     if (name.indexOf("Fairgrounds") == 0) {
       this.changeSpecialCount("Fairgrounds", count);
     }
-    
+
     var types = card.className.split("-").slice(1);
-    
     for (type_i in types) {
       var type = types[type_i];
       if (type == "none" || type == "duration" ||
@@ -278,18 +267,13 @@ function Player(name) {
     var singular_card_name = getSingularCardName(card.innerText);
     this.changeScore(pointsForCard(singular_card_name) * count);
     this.recordSpecialCards(card, count);
-    this.recordUniqueCards(singular_card_name, count);
+    this.recordCards(singular_card_name, count);
   }
 }
 
 function getSingularCardName(name) {
-  if (plural_map[name] == undefined) {
-    //assume it's singular already
-    return name;
-  } else {
-    //return the singular value for the given pluralized card name
-    return plural_map[name]
-  }
+  if (plural_map[name] == undefined) return name;
+  return plural_map[name];
 }
 
 function getPlayer(name) {
@@ -810,7 +794,6 @@ function handle(doc) {
     for (var elem in elems) {
       if (elems[elem].innerText == "Vineyard") show_action_count = true;
     }
-
     for (var elem in elems) {
       if (elems[elem].innerText == "Fairgrounds") show_unique_count = true;
     }

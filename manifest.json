@@ -5,7 +5,7 @@
        "matches": [ "http://dominion.isotropic.org/play" ]
      },
      {
-       "js": [ "jquery.js", "dominion.js", "debugger.js" ],
+       "js": [ "jquery.js", "card_list.js", "dominion.js", "debugger.js" ],
        "matches": [ "http://*.dominion-point-counter.appspot.com/debug" ]
      },
      {
