@@ -384,6 +384,12 @@ function maybeHandleOffensiveTrash(elems, text_arr, text) {
       getPlayer(text_arr[0]).gainCard(elems[0], -1);
       return true;
     }
+
+    var arr = text.match(new RegExp("trash(?:es)? one of " + player_re + "'s"));
+    if (arr && arr.length == 2) {
+      getPlayer(arr[1]).gainCard(elems[0], -1);
+      return true;
+    }
     return false;
   }
 }
