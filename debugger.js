@@ -13,17 +13,35 @@ function stateStrings() {
 $('#results').append('<div id="detailed_results"></div>');
 $('#detailed_results').css('display', 'none');
 
+var old_debug_setting = localStorage["debug"];
+localStorage["debug"] = "t";
+
 var game = $('#log')[0];
 var detailed_results = [];
+var last_gain_size = 0;
 for (var i = 0; i < game.childNodes.length; ++i) {
   handle(game.childNodes[i]);
   if (game.childNodes[i].constructor == HTMLElement &&
       game.childNodes[i].innerText.match(/---.*---/)) {
+    // State leading up to this turn.
     detailed_results.push(stateStrings());
-    detailed_results.push('<i>' + game.childNodes[i].innerText + '</i><br>');
+    var gain_size = $('div.gain_debug').length;
+    while (last_gain_size < gain_size) {
+      detailed_results.push(
+          $('div.gain_debug').eq(last_gain_size++).html() + '<br>');
+    }
+
+    // Show this turn's information.
+    detailed_results.push('<br><i>' + game.childNodes[i].innerText + '</i><br>');
   }
 }
 $('#detailed_results').append(detailed_results.join('') + '<br><br>');
+
+if (old_debug_setting == undefined) {
+  localStorage.removeItem("debug");
+} else {
+  localStorage["debug"] = old_debug_setting;
+}
 
 $('#results').append(stateStrings());
 console.log(players);

@@ -203,6 +203,11 @@ function Player(name) {
   }
 
   this.gainCard = function(card, count) {
+    if (localStorage["debug"] == "t") {
+      $('#log').children().eq(-1).before(
+          '<div class="gain_debug">*** ' + name + " gains " +
+          count + " " + card.innerText + "</div>");
+    }
     // You can't gain or trash cards while possessed.
     if (possessed_turn && this == last_player) return;
 
@@ -251,8 +256,12 @@ function maybeHandleTurnChange(node) {
 
     possessed_turn = text.match(/\(possessed by .+\)/);
 
+    var print = turn_number;
+    if (localStorage["debug"] == "t") {
+      print += " (" + getDecks() + " | " + getScores() + ")";
+    }
     node.innerHTML =
-      node.innerHTML.replace(" ---<br>", " " + turn_number + " ---<br>");
+      node.innerHTML.replace(" ---<br>", " " + print + " ---<br>");
 
     return true;
   }
