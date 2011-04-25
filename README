@@ -16,6 +16,8 @@ they don't like point counting.
 Known issues:
 - Masquerade and Ambassador do not work properly with Possession.
 - Masquerade with more than 2 players leads to unknown information.
+- Pirate Ship does not count properly if you trash opponent's treasures and get
+  to choose which one.
 
 
 If you'd like to contribute back you can work from source here.

@@ -5,7 +5,8 @@ function stateStrings() {
     state += '<b>' + player.name + "</b>: " +
         player.getScore() + " points [deck size is " +
         player.getDeckString() + "] - " +
-        JSON.stringify(player.special_counts) + "<br>";
+        JSON.stringify(player.special_counts) + "<br>" +
+        JSON.stringify(player.card_counts) + "<br>";
   }
   return state;
 }
