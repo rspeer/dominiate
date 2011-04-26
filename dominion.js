@@ -460,6 +460,14 @@ function maybeHandleOffensiveTrash(elems, text_arr, text) {
   }
 }
 
+function maybeHandleTournament(elems, text_arr, text) {
+  if (elems.length == 2 && text.match(/and gains? a .+ on (the|your) deck/)) {
+    getPlayer(text_arr[0]).gainCard(elems[1], 1);
+    return true;
+  }
+  return false;
+}
+
 function maybeHandleVp(text) {
   var re = new RegExp("[+]([0-9]+) ▼");
   var arr = text.match(re);
@@ -521,6 +529,7 @@ function handleLogEntry(node) {
   if (maybeHandlePirateShip(elems, text, node.innerText)) return;
   if (maybeHandleSeaHag(elems, text, node.innerText)) return;
   if (maybeHandleOffensiveTrash(elems, text, node.innerText)) return;
+  if (maybeHandleTournament(elems, text, node.innerText)) return;
 
   if (text[0] == "trashing") {
     var player = last_player;
