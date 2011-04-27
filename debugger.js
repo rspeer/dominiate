@@ -21,16 +21,21 @@ var game = $('#log')[0];
 var detailed_results = [];
 var last_gain_size = 0;
 for (var i = 0; i < game.childNodes.length; ++i) {
+  var node = game.childNodes[i];
+  var turn_change = node.constructor == HTMLElement &&
+                    node.innerText.match(/---.*---/);
+  if (turn_change) {
+    node.innerHTML = node.innerHTML.replace(/[0-9]+ ---/, '---');
+  }
   handle(game.childNodes[i]);
-  if (game.childNodes[i].constructor == HTMLElement &&
-      game.childNodes[i].innerText.match(/---.*---/)) {
+  if (turn_change) {
     // State leading up to this turn.
-    detailed_results.push(stateStrings());
     var gain_size = $('div.gain_debug').length;
     while (last_gain_size < gain_size) {
       detailed_results.push(
           $('div.gain_debug').eq(last_gain_size++).html() + '<br>');
     }
+    detailed_results.push(stateStrings());
 
     // Show this turn's information.
     detailed_results.push('<br><i>' + game.childNodes[i].innerText + '</i><br>');
