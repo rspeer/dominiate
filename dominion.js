@@ -325,7 +325,7 @@ function maybeHandleTurnChange(node) {
   return false;
 }
 
-function maybeHandleWatchTower(text, text_arr) {
+function maybeHandleWatchTower(elems, text, text_arr) {
   var depth = 0;
   for (var t in text_arr) {
     if (text_arr[t] == "...") ++depth;
@@ -335,6 +335,7 @@ function maybeHandleWatchTower(text, text_arr) {
   if (text.indexOf("revealing a Watchtower") != -1 ||
       text.indexOf("You reveal a Watchtower") != -1) {
     watch_tower_depth = depth;
+    if (elems.length == 1) last_reveal_card = elems[0];
     return true;
   }
   return false;
@@ -513,7 +514,7 @@ function handleLogEntry(node) {
 
   var text = node.innerText.split(" ");
 
-  if (maybeHandleWatchTower(node.innerText, text)) return;
+  if (maybeHandleWatchTower(elems, node.innerText, text)) return;
 
   // Remove leading stuff from the text.
   var i = 0;
