@@ -1,4 +1,14 @@
+function getVersion() {
+  var version = 'Unknown';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', chrome.extension.getURL('manifest.json'), false);
+  xhr.send(null);
+  var manifest = JSON.parse(xhr.responseText);
+  return manifest.version;
+}
+
 function handleLogRequest(request) {
+  request['version'] = getVersion();
   $.post("http://dominion-point-counter.appspot.com/log_game", request);
 }
 
