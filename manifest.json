@@ -6,7 +6,7 @@
      },
      {
        "js": [ "jquery.js", "card_list.js", "dominion.js", "debugger.js" ],
-       "matches": [ "http://*.dominion-point-counter.appspot.com/debug" ]
+       "matches": [ "http://*.dominion-point-counter.appspot.com/debug*" ]
      },
      {
        "js": [ "jquery.js", "options.js" ],

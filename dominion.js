@@ -743,9 +743,6 @@ function handleChatText(speaker, text) {
 }
 
 function handleGameEnd(doc) {
-  // Don't log solo games.
-  if (player_count < 2) return;
-
   for (var node in doc.childNodes) {
     if (doc.childNodes[node].innerText == "game log") {
       // Reset exit / faq at end of game.
@@ -793,46 +790,53 @@ function handleGameEnd(doc) {
 }
 
 function handle(doc) {
-  if (doc.constructor == HTMLDivElement &&
-      doc.innerText.indexOf("Say") == 0) {
-    deck_spot = doc.children[5];
-    points_spot = doc.children[6];
-  }
-
-  if (doc.parentNode.id == "supply") {
-    elems = doc.getElementsByTagName("span");
-    for (var elem in elems) {
-      if (elems[elem].innerText == "Vineyard") show_action_count = true;
+  try {
+    if (doc.constructor == HTMLElement && doc.parentNode.id == "log" &&
+        doc.innerText.indexOf("Turn order") != -1) {
+      initialize(doc);
     }
-    for (var elem in elems) {
-      if (elems[elem].innerText == "Fairgrounds") show_unique_count = true;
+
+    if (!started) return;
+
+    if (doc.constructor == HTMLDivElement &&
+        doc.innerText.indexOf("Say") == 0) {
+      deck_spot = doc.children[5];
+      points_spot = doc.children[6];
+    }
+
+    if (doc.parentNode.id == "supply") {
+      elems = doc.getElementsByTagName("span");
+      for (var elem in elems) {
+        if (elems[elem].innerText == "Vineyard") show_action_count = true;
+      }
+      for (var elem in elems) {
+        if (elems[elem].innerText == "Fairgrounds") show_unique_count = true;
+      }
+    }
+
+    if (doc.constructor == HTMLElement && doc.parentNode.id == "log") {
+      maybeRewriteName(doc);
+      handleLogEntry(doc);
+    }
+
+    if (doc.constructor == HTMLDivElement && doc.parentNode.id == "choices") {
+      handleGameEnd(doc);
+    }
+
+    if (doc.parentNode.id == "chat") {
+      handleChatText(doc.childNodes[1].innerText.slice(0, -1),
+                     doc.childNodes[2].nodeValue);
+    }
+
+    if (localStorage["always_display"] != "f") {
+      if (!disabled) {
+        updateScores();
+        updateDeck();
+      }
     }
   }
-
-  if (doc.constructor == HTMLElement && doc.parentNode.id == "log" &&
-      doc.innerText.indexOf("Turn order") != -1) {
-    initialize(doc);
-  }
-
-  if (doc.constructor == HTMLElement && doc.parentNode.id == "log") {
-    maybeRewriteName(doc);
-    handleLogEntry(doc);
-  }
-
-  if (doc.constructor == HTMLDivElement && doc.parentNode.id == "choices") {
-    handleGameEnd(doc);
-  }
-
-  if (doc.parentNode.id == "chat") {
-    handleChatText(doc.childNodes[1].innerText.slice(0, -1),
-                   doc.childNodes[2].nodeValue);
-  }
-
-  if (started && localStorage["always_display"] != "f") {
-    if (!disabled) {
-      updateScores();
-      updateDeck();
-    }
+  catch (err) {
+    handleError("Javascript exception: " + debugString(err));
   }
 }
 
