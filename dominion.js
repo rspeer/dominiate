@@ -567,7 +567,6 @@ function handleLogEntry(node) {
     player.gainCard(card, count);
   } else if (action.indexOf("pass") == 0) {
     if (player_count != 2) {
-      console.log(players.length);
       maybeAnnounceFailure(">> Warning: Masquerade with more than 2 players " +
                            "causes inaccurate score counting.");
     }
@@ -758,6 +757,7 @@ function handleGameEnd(doc) {
 
       // Double check the scores so we can log if there was a bug.
       var has_correct_score = true;
+      var optional_player_json = "";
       var win_log = document.getElementsByClassName("em");
       if (!announced_error && win_log && win_log.length == 1) {
         var summary = win_log[0].previousSibling.innerText;
@@ -768,8 +768,9 @@ function handleGameEnd(doc) {
           var arr = summary.match(re);
           if (arr && arr.length == 2) {
             var score = ("" + players[player].getScore()).replace(/^.*=/, "");
-            if (arr[1] != score) {
+            if (has_correct_score && arr[1] != score) {
               has_correct_score = false;
+              optional_player_json = debugString(players);
               break;
             }
           }
@@ -782,6 +783,7 @@ function handleGameEnd(doc) {
           game_id: game_id_str,
           reporter: name,
           correct_score: has_correct_score,
+          player_json: optional_player_json,
           log: document.body.innerHTML,
           settings: debugString(localStorage) });
       break;
@@ -791,18 +793,18 @@ function handleGameEnd(doc) {
 
 function handle(doc) {
   try {
+    if (doc.constructor == HTMLDivElement &&
+        doc.innerText.indexOf("Say") == 0) {
+      deck_spot = doc.children[5];
+      points_spot = doc.children[6];
+    }
+
     if (doc.constructor == HTMLElement && doc.parentNode.id == "log" &&
         doc.innerText.indexOf("Turn order") != -1) {
       initialize(doc);
     }
 
     if (!started) return;
-
-    if (doc.constructor == HTMLDivElement &&
-        doc.innerText.indexOf("Say") == 0) {
-      deck_spot = doc.children[5];
-      points_spot = doc.children[6];
-    }
 
     if (doc.parentNode.id == "supply") {
       elems = doc.getElementsByTagName("span");
@@ -821,6 +823,7 @@ function handle(doc) {
 
     if (doc.constructor == HTMLDivElement && doc.parentNode.id == "choices") {
       handleGameEnd(doc);
+      if (!started) return;
     }
 
     if (doc.parentNode.id == "chat") {
