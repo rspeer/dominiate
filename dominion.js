@@ -566,6 +566,9 @@ function handleLogEntry(node) {
     var count = getCardCount(card_text, node.innerText);
     player.gainCard(card, count);
   } else if (action.indexOf("pass") == 0) {
+    possessed_turn_backup = possessed_turn;
+    possessed_turn = false;
+    if (possessed_turn && this == last_player) return;
     if (player_count != 2) {
       maybeAnnounceFailure(">> Warning: Masquerade with more than 2 players " +
                            "causes inaccurate score counting.");
@@ -577,7 +580,10 @@ function handleLogEntry(node) {
     } else {
       other_player.gainCard(card, 1);
     }
+    possessed_turn = possessed_turn_backup;
   } else if (action.indexOf("receive") == 0) {
+    possessed_turn_backup = possessed_turn;
+    possessed_turn = false;
     player.gainCard(card, 1);
     var other_player = findTrailingPlayer(node.innerText);
     if (other_player == null) {
@@ -585,6 +591,7 @@ function handleLogEntry(node) {
     } else {
       other_player.gainCard(card, -1);
     }
+    possessed_turn = possessed_turn_backup;
   } else if (action.indexOf("reveal") == 0) {
     last_reveal_card = card;
   }
