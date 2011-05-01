@@ -748,6 +748,22 @@ function handleChatText(speaker, text) {
   }
 }
 
+function addSetting(setting, output) {
+  if (localStorage[setting] != undefined) {
+    output[setting] = localStorage[setting];
+  }
+}
+function settingsString() {
+  var settings = new Object();
+  addSetting("debug", settings);
+  addSetting("always_display", settings);
+  addSetting("allow_disable", settings);
+  addSetting("name", settings);
+  addSetting("status_announce", settings);
+  addSetting("status_msg", settings);
+  return JSON.stringify(settings);
+}
+
 function handleGameEnd(doc) {
   for (var node in doc.childNodes) {
     if (doc.childNodes[node].innerText == "game log") {
@@ -792,7 +808,7 @@ function handleGameEnd(doc) {
           correct_score: has_correct_score,
           player_json: optional_player_json,
           log: document.body.innerHTML,
-          settings: debugString(localStorage) });
+          settings: settingsString() });
       break;
     }
   }
