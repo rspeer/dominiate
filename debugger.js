@@ -65,5 +65,26 @@ var url = $('#game_link').attr('href')
 chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
   var data = response.data;
   var arr = data.match(/----------------------([\s\S]*[\S])[\s]*----------------------/);
-  $('#results').append('<pre>' + arr[1] +'</pre>');
+  $('#results').append("<pre id='actual_score'>" + arr[1] +'</pre>');
+  var results = $('#actual_score').text();
+
+  var error_found = false;
+  var reporter_name = $('#header').text().match(/Reporter: (.*)/)[1];
+  for (var player in players) {
+    var score = ("" + players[player].getScore()).replace(/^.*=/, "");
+    var player_name = players[player].name;
+    if (player_name == "You") player_name = reporter_name;
+    var re = new RegExp(player_name + ": ([0-9]+) points", "m");
+    var arr = results.match(re);
+    if (!arr || arr.length != 2 || arr[1] != score) {
+      error_found = true;
+      $('#header').append("<div id='correct_now'>Still Wrong!</div>");
+      $('#correct_now').css("color", "red");
+      break;
+    }
+  }
+  if (!error_found) {
+    $('#header').append("<div id='correct_now'>OK Now!</div>");
+    $('#correct_now').css("color", "green");
+  }
 })
