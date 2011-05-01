@@ -429,11 +429,11 @@ function maybeHandlePirateShip(elems, text_arr, text) {
 
 function maybeHandleSeaHag(elems, text_arr, text) {
   if (text.indexOf("a Curse on top of") != -1) {
-    if (elems.length != 2 || elems[1].innerHTML != "Curse") {
+    if (elems < 1 || elems[elems.length - 1].innerHTML != "Curse") {
       handleError("Weird sea hag: " + text);
       return false;
     }
-    getPlayer(text_arr[0]).gainCard(elems[1], 1);
+    getPlayer(text_arr[0]).gainCard(elems[elems.length - 1], 1);
     return true;
   }
   return false;
