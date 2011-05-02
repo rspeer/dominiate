@@ -31,9 +31,11 @@ var last_reveal_card = null;
 // Last time a status message was printed.
 var last_status_print = 0;
 
-// Watchtower support. Ugg.
+// The last player who gained a card.
 var last_gain_player = null;
-var watch_tower_depth = -1;
+
+// Track scoping of actions in play such as Watchtower.
+var scopes = [];
 
 // Quotes a string so it matches literally in a regex.
 RegExp.quote = function(str) {
@@ -325,33 +327,45 @@ function maybeHandleTurnChange(node) {
   return false;
 }
 
-function maybeHandleWatchTower(elems, text, text_arr) {
-  var depth = 0;
+function handleScoping(text_arr, text) {
+  var depth = 1;
   for (var t in text_arr) {
     if (text_arr[t] == "...") ++depth;
   }
-  if (depth != watch_tower_depth) watch_tower_depth = -1;
-
+  var scope = '';
+  while (depth <= scopes.length) {
+    scope = scopes.pop();
+  }
   if (text.indexOf("revealing a Watchtower") != -1 ||
       text.indexOf("You reveal a Watchtower") != -1) {
-    watch_tower_depth = depth;
-    if (elems.length == 1) last_reveal_card = elems[0];
-    return true;
+    scope = 'Watchtower';
+  } else {
+    var re = new RegExp("You|" + player_re + "plays? an? ([^.]*).");
+    var arr = text.match(re);
+    if (arr && arr.length == 2) {
+      scope = arr[1];
+    }
   }
-  return false;
+  scopes.push(scope);
 }
 
 function maybeReturnToSupply(text) {
+  possessed_turn_backup = possessed_turn;
+  possessed_turn = false;
+
+  var ret = false;
   if (text.indexOf("it to the supply") != -1) {
     last_player.gainCard(last_reveal_card, -1);
-    return true;
+    ret = true;
   } else {
     var arr = text.match("([0-9]*) copies to the supply");
     if (arr && arr.length == 2) {
       last_player.gainCard(last_reveal_card, -arr[1]);
-      return true;
+      ret = true;
     }
   }
+
+  possessed_turn = possessed_turn_backup;
   return false;
 }
 
@@ -503,6 +517,11 @@ function handleLogEntry(node) {
   // Duplicate stuff here. It's printed normally too.
   if (node.className == "possessed") return;
 
+  var text = node.innerText.split(" ");
+
+  // Keep track of what sort of scope we're in for things like watchtower.
+  handleScoping(text, node.innerText);
+
   // Gaining VP could happen in combination with other stuff.
   maybeHandleVp(node.innerText);
 
@@ -511,10 +530,6 @@ function handleLogEntry(node) {
     if (maybeReturnToSupply(node.innerText)) return;
     return;
   }
-
-  var text = node.innerText.split(" ");
-
-  if (maybeHandleWatchTower(elems, node.innerText, text)) return;
 
   // Remove leading stuff from the text.
   var i = 0;
@@ -534,7 +549,9 @@ function handleLogEntry(node) {
 
   if (text[0] == "trashing") {
     var player = last_player;
-    if (watch_tower_depth >= 0) player = last_gain_player;
+    if (scopes[scopes.length - 1] == "Watchtower") {
+      player = last_gain_player;
+    }
     return handleGainOrTrash(player, elems, node.innerText, -1);
   }
   if (text[1].indexOf("trash") == 0) {
@@ -634,6 +651,9 @@ function initialize(doc) {
   possessed_turn = false;
   turn_number = 0;
   announced_error = false;
+
+  last_gain_player = null;
+  scopes = [];
 
   players = new Object();
   player_rewrites = new Object();
