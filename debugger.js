@@ -68,6 +68,15 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
   $('#results').append("<pre id='actual_score'>" + arr[1] +'</pre>');
   var results = $('#actual_score').text();
 
+  // Ugg. Results have rewritten player names so we don't actually see it.
+  // We need to rewrite again here.
+  while (results.match(/#[0-9]+ [^:]+ [^:]+:/)) {
+    results = results.replace(/(#[0-9]+) ([^:]+) ([^:]+):/, '$1 $2_$3:')
+  }
+  while (results.match(/#[0-9]+ [^:]*'[^:]*:/)) {
+    results = results.replace(/(#[0-9]+) ([^:]*)'([^:]*):/, '$1 $2’$3:')
+  }
+
   var error_found = false;
   var reporter_name = $('#header').text().match(/Reporter: (.*)/)[1];
   for (var player in players) {
@@ -77,8 +86,12 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
     var re = new RegExp(player_name + ": ([0-9]+) points", "m");
     var arr = results.match(re);
     if (!arr || arr.length != 2 || arr[1] != score) {
+      var error = "Wrong score for " + player_name;
+      if (!arr || arr.length != 2) {
+        error = "Couldn't find score for " + player_name;
+      }
       error_found = true;
-      $('#header').append("<div id='correct_now'>Still Wrong!</div>");
+      $('#header').append("<div id='correct_now'>Error: " + error + ".</div>");
       $('#correct_now').css("color", "red");
       break;
     }
