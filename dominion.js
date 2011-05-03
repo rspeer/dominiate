@@ -273,6 +273,19 @@ function Player(name) {
   }
 }
 
+function stateStrings() {
+  var state = '';
+  for (var player in players) {
+    player = players[player];
+    state += '<b>' + player.name + "</b>: " +
+        player.getScore() + " points [deck size is " +
+        player.getDeckString() + "] - " +
+        JSON.stringify(player.special_counts) + "<br>" +
+        JSON.stringify(player.card_counts) + "<br>";
+  }
+  return state;
+}
+
 function getSingularCardName(name) {
   if (plural_map[name] == undefined) return name;
   return plural_map[name];
@@ -801,6 +814,7 @@ function handleGameEnd(doc) {
       // Double check the scores so we can log if there was a bug.
       var has_correct_score = true;
       var optional_player_json = "";
+      var optional_state_strings = "";
       var win_log = document.getElementsByClassName("em");
       if (!announced_error && win_log && win_log.length == 1) {
         var summary = win_log[0].previousSibling.innerText;
@@ -810,10 +824,11 @@ function handleGameEnd(doc) {
           var re = new RegExp(player_name + " has ([0-9]+) points");
           var arr = summary.match(re);
           if (arr && arr.length == 2) {
-            var score = ("" + players[player].getScore()).replace(/^.*=/, "");
+            var score = ("" + players[player].getScore()).replace(/^([0-9]+)\+.*/, "$1");
             if (has_correct_score && arr[1] != score) {
               has_correct_score = false;
               optional_player_json = debugString(players);
+              optional_state_strings = stateStrings();
               break;
             }
           }
@@ -827,6 +842,7 @@ function handleGameEnd(doc) {
           reporter: name,
           correct_score: has_correct_score,
           player_json: optional_player_json,
+          state_strings: optional_state_strings,
           log: document.body.innerHTML,
           settings: settingsString() });
       break;

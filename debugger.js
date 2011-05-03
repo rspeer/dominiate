@@ -1,16 +1,3 @@
-function stateStrings() {
-  var state = '';
-  for (var player in players) {
-    player = players[player];
-    state += '<b>' + player.name + "</b>: " +
-        player.getScore() + " points [deck size is " +
-        player.getDeckString() + "] - " +
-        JSON.stringify(player.special_counts) + "<br>" +
-        JSON.stringify(player.card_counts) + "<br>";
-  }
-  return state;
-}
-
 $('#results').append('<div id="detailed_results"></div>');
 $('#detailed_results').css('display', 'none');
 
@@ -80,13 +67,13 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
   var error_found = false;
   var reporter_name = $('#header').text().match(/Reporter: (.*)/)[1];
   for (var player in players) {
-    var score = ("" + players[player].getScore()).replace(/^.*=/, "");
+    var score = ("" + players[player].getScore()).replace(/^([0-9]+)\+.*/, "$1");
     var player_name = players[player].name;
     if (player_name == "You") player_name = reporter_name;
     var re = new RegExp(player_name + ": ([0-9]+) points", "m");
     var arr = results.match(re);
     if (!arr || arr.length != 2 || arr[1] != score) {
-      var error = "Wrong score for " + player_name;
+      var error = "Wrong score for " + player_name + " (expected " + score + ")";
       if (!arr || arr.length != 2) {
         error = "Couldn't find score for " + player_name;
       }
