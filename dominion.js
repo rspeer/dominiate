@@ -824,7 +824,10 @@ function handleGameEnd(doc) {
           var re = new RegExp(player_name + " has ([0-9]+) points");
           var arr = summary.match(re);
           if (arr && arr.length == 2) {
-            var score = ("" + players[player].getScore()).replace(/^([0-9]+)\+.*/, "$1");
+            var score = ("" + players[player].getScore()).replace(/^.*=/, "");
+            if (score.indexOf("+") != -1) {
+              score = ("" + players[player].getScore()).replace(/^([0-9]+)\+.*/, "$1");
+            }
             if (has_correct_score && arr[1] != score) {
               has_correct_score = false;
               optional_player_json = debugString(players);

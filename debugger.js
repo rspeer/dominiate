@@ -67,7 +67,10 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
   var error_found = false;
   var reporter_name = $('#header').text().match(/Reporter: (.*)/)[1];
   for (var player in players) {
-    var score = ("" + players[player].getScore()).replace(/^([0-9]+)\+.*/, "$1");
+    var score = ("" + players[player].getScore()).replace(/^.*=/, "");
+    if (score.indexOf("+") != -1) {
+      score = ("" + players[player].getScore()).replace(/^([0-9]+)\+.*/, "$1");
+    }
     var player_name = players[player].name;
     if (player_name == "You") player_name = reporter_name;
     var re = new RegExp(player_name + ": ([0-9]+) points", "m");
