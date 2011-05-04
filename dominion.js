@@ -435,22 +435,6 @@ function maybeHandlePirateShip(elems, text_arr, text) {
   // Swallow gaining pirate ship tokens.
   // It looks like gaining a pirate ship otherwise.
   if (text.indexOf("a Pirate Ship token") != -1) return true;
-
-  if (text_arr.length < 4) return false;
-  if (!getPlayer(text_arr[0])) return false;
-  if (text_arr[1].indexOf("trash") != 0) return false;
-
-  var player = null;
-  if (text_arr[2] == "your") {
-    player = getPlayer("You");
-  } else {
-    player = getPlayer(text_arr[2].slice(0, -2));
-  }
-
-  if (player != null) {
-    player.gainCard(elems[0], -1);
-    return true;
-  }
   return false;
 }
 
@@ -466,7 +450,7 @@ function maybeHandleSeaHag(elems, text_arr, text) {
   return false;
 }
 
-// This can be triggered by Saboteur and Swindler.
+// This can be triggered by Saboteur, Swindler, and Pirate Ship.
 function maybeHandleOffensiveTrash(elems, text_arr, text) {
   if (elems.length == 1) {
     if (text.indexOf("is trashed.") != -1) {
@@ -479,7 +463,12 @@ function maybeHandleOffensiveTrash(elems, text_arr, text) {
       return true;
     }
 
-    var arr = text.match(new RegExp("trash(?:es)? one of " + player_re + "'s"));
+    if (text.match(/trashes (?:one of )?your/)) {
+      last_reveal_player.gainCard(elems[0], -1);
+      return true;
+    }
+
+    var arr = text.match(new RegExp("trash(?:es)? (?:one of )?" + player_re + "'s"));
     if (arr && arr.length == 2) {
       getPlayer(arr[1]).gainCard(elems[0], -1);
       return true;
