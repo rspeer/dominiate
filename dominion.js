@@ -382,6 +382,14 @@ function maybeReturnToSupply(text) {
   return false;
 }
 
+function maybeHandleExplorer(elems, text) {
+  if (text.match(/gain(ing)? a (Silver|Gold) in (your )?hand/)) {
+    last_player.gainCard(elems[elems.length - 1], 1);
+    return true;
+  }
+  return false;
+}
+
 function maybeHandleMint(elems, text) {
   if (elems.length != 1) return false;
   if (text.match("and gain(ing)? another one.")) {
@@ -542,6 +550,7 @@ function handleLogEntry(node) {
   text = text.slice(i);
 
   if (maybeHandleMint(elems, node.innerText)) return;
+  if (maybeHandleExplorer(elems, node.innerText)) return;
   if (maybeHandleTradingPost(elems, node.innerText)) return;
   if (maybeHandleSwindler(elems, node.innerText)) return;
   if (maybeHandlePirateShip(elems, text, node.innerText)) return;
