@@ -811,7 +811,6 @@ function handleGameEnd(doc) {
 
       // Double check the scores so we can log if there was a bug.
       var has_correct_score = true;
-      var optional_player_json = "";
       var optional_state_strings = "";
       var win_log = document.getElementsByClassName("em");
       if (!announced_error && win_log && win_log.length == 1) {
@@ -828,7 +827,6 @@ function handleGameEnd(doc) {
             }
             if (has_correct_score && arr[1] != score) {
               has_correct_score = false;
-              optional_player_json = debugString(players);
               optional_state_strings = stateStrings();
               break;
             }
@@ -842,7 +840,6 @@ function handleGameEnd(doc) {
           game_id: game_id_str,
           reporter: name,
           correct_score: has_correct_score,
-          player_json: optional_player_json,
           state_strings: optional_state_strings,
           log: document.body.innerHTML,
           settings: settingsString() });
