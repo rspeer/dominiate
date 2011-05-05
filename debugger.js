@@ -72,7 +72,9 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
       score = ("" + players[player].getScore()).replace(/^([0-9]+)\+.*/, "$1");
     }
     var player_name = players[player].name;
-    if (player_name == "You") player_name = reporter_name;
+    if (player_name == "You") {
+      player_name = reporter_name.replace(" ", "_").replace("'", "’");
+    }
     var re = new RegExp(player_name + ": ([0-9]+) points", "m");
     var arr = results.match(re);
     if (!arr || arr.length != 2 || arr[1] != score) {

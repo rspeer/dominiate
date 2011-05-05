@@ -817,7 +817,9 @@ function handleGameEnd(doc) {
         var summary = win_log[0].previousSibling.innerText;
         for (player in players) {
           var player_name = players[player].name;
-          if (player_name == "You") player_name = name;
+          if (player_name == "You") {
+            player_name = name.replace(" ", "_").replace("'", "’");
+          }
           var re = new RegExp(player_name + " has ([0-9]+) points");
           var arr = summary.match(re);
           if (arr && arr.length == 2) {
