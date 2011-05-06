@@ -57,11 +57,10 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
 
   // Ugg. Results have rewritten player names so we don't actually see it.
   // We need to rewrite again here.
-  while (results.match(/#[0-9]+ [^:]+ [^:]+:/)) {
-    results = results.replace(/(#[0-9]+) ([^:]+) ([^:]+):/, '$1 $2_$3:')
-  }
-  while (results.match(/#[0-9]+ [^:]*'[^:]*:/)) {
-    results = results.replace(/(#[0-9]+) ([^:]*)'([^:]*):/, '$1 $2’$3:')
+  var names = $('#actual_score').children('b');
+  for (var i = 0; i < names.length; ++i) {
+    var name = names[i].innerText.slice(names[i].innerText.indexOf(" ") + 1);
+    results = results.replace(name, rewriteName(name));
   }
 
   var error_found = false;
@@ -73,7 +72,7 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
     }
     var player_name = players[player].name;
     if (player_name == "You") {
-      player_name = reporter_name.replace(" ", "_").replace("'", "’");
+      player_name = rewriteName(reporter_name);
     }
     var re = new RegExp(player_name + ": ([0-9]+) points", "m");
     var arr = results.match(re);

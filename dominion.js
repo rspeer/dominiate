@@ -55,6 +55,10 @@ function debugString(thing) {
   return JSON.stringify(thing);
 }
 
+function rewriteName(name) {
+  return name.replace(/ /g, "_").replace(/'/g, "’").replace(/\./g, "");
+}
+
 function handleError(text) {
   console.log(text);
   if (!had_error) {
@@ -698,8 +702,8 @@ function initialize(doc) {
       self_index = player_count;
       arr[i] = "You";
     }
-    if (arr[i].indexOf(" ") != -1 || arr[i].indexOf("'") != -1) {
-      var rewritten = arr[i].replace(/ /g, "_").replace(/'/g, "’");
+    var rewritten = rewriteName(arr[i]);
+    if (rewritten != arr[i]) {
       player_rewrites[arr[i]] = rewritten;
       arr[i] = rewritten;
     }
@@ -818,7 +822,7 @@ function handleGameEnd(doc) {
         for (player in players) {
           var player_name = players[player].name;
           if (player_name == "You") {
-            player_name = name.replace(" ", "_").replace("'", "’");
+            player_name = rewriteName(name);
           }
           var re = new RegExp(player_name + " has ([0-9]+) points");
           var arr = summary.match(re);
