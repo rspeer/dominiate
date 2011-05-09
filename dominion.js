@@ -554,8 +554,8 @@ function handleLogEntry(node) {
   text = text.slice(i);
 
   if (maybeHandleMint(elems, node.innerText)) return;
-  if (maybeHandleExplorer(elems, node.innerText)) return;
   if (maybeHandleTradingPost(elems, node.innerText)) return;
+  if (maybeHandleExplorer(elems, node.innerText)) return;
   if (maybeHandleSwindler(elems, node.innerText)) return;
   if (maybeHandlePirateShip(elems, text, node.innerText)) return;
   if (maybeHandleSeaHag(elems, text, node.innerText)) return;
