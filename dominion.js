@@ -37,6 +37,9 @@ var last_gain_player = null;
 // Track scoping of actions in play such as Watchtower.
 var scopes = [];
 
+// The version of the extension currently loaded.
+var extension_version = 'Unknown';
+
 // Quotes a string so it matches literally in a regex.
 RegExp.quote = function(str) {
   return str.replace(/([.?*+^$[\]\\(){}-])/g, "\\$1");
@@ -848,6 +851,7 @@ function handleGameEnd(doc) {
           correct_score: has_correct_score,
           state_strings: optional_state_strings,
           log: document.body.innerHTML,
+          version: extension_version,
           settings: settingsString() });
       break;
     }
@@ -959,4 +963,8 @@ setTimeout("setupLobbyStatusHandling()", 500);
 
 document.body.addEventListener('DOMNodeInserted', function(ev) {
   handle(ev.target);
+});
+
+chrome.extension.sendRequest({ type: "version" }, function(response) {
+  extension_version = response;
 });

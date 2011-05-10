@@ -8,7 +8,6 @@ function getVersion() {
 }
 
 function handleLogRequest(request) {
-  request['version'] = getVersion();
   $.post("http://dominion-point-counter.appspot.com/log_game", request);
 }
 
@@ -26,6 +25,8 @@ function(request, sender, sendResponse) {
 
   if (type == "log") {
     handleLogRequest(request);
+  } else if (type == "version") {
+    sendResponse(getVersion());
   } else if (type == "fetch") {
     handleFetchRequest(request, sendResponse);
   } else {
