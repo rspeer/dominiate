@@ -24,6 +24,9 @@ var possessed_turn = false;
 var turn_number = 0;
 var announced_error = false;
 
+// Enabled by debugger when analyzing game logs.
+var debug_mode = false;
+
 var last_player = null;
 var last_reveal_player = null;
 var last_reveal_card = null;
@@ -261,7 +264,7 @@ function Player(name) {
   }
 
   this.gainCard = function(card, count) {
-    if (localStorage["debug"] == "t") {
+    if (debug_mode) {
       $('#log').children().eq(-1).before(
           '<div class="gain_debug">*** ' + name + " gains " +
           count + " " + card.innerText + "</div>");
@@ -336,7 +339,7 @@ function maybeHandleTurnChange(node) {
     possessed_turn = text.match(/\(possessed by .+\)/);
 
     var print = turn_number;
-    if (localStorage["debug"] == "t") {
+    if (debug_mode) {
       print += " (" + getDecks() + " | " + getScores() + ")";
     }
     node.innerHTML =

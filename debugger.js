@@ -1,12 +1,11 @@
 $('#results').append('<div id="detailed_results"></div>');
 $('#detailed_results').css('display', 'none');
 
-var old_debug_setting = localStorage["debug"];
-localStorage["debug"] = "t";
+debug_mode = true;
 
 var game = $('#log')[0];
 var detailed_results = [];
-var last_gain_size = 0;
+var debug_gain_messages = [];
 for (var i = 0; i < game.childNodes.length; ++i) {
   var node = game.childNodes[i];
   var turn_change = node.constructor == HTMLElement &&
@@ -16,25 +15,23 @@ for (var i = 0; i < game.childNodes.length; ++i) {
   }
   handle(game.childNodes[i]);
   if (turn_change) {
-    // State leading up to this turn.
-    var gain_size = $('div.gain_debug').length;
-    while (last_gain_size < gain_size) {
-      detailed_results.push(
-          $('div.gain_debug').eq(last_gain_size++).html() + '<br>');
-    }
+    detailed_results.push(debug_gain_messages);
+    debug_gain_messages = '';
     detailed_results.push(stateStrings());
 
     // Show this turn's information.
     detailed_results.push('<br><i>' + game.childNodes[i].innerText + '</i><br>');
+  } else {
+    var gains = $('div.gain_debug');
+    for (var j = 0; j < gains.length; ++j) {
+      gains[j].className = 'gain_details';
+      game.insertBefore(gains[j], game.childNodes[i].nextSibling);
+      i++;
+      debug_gain_messages += gains[j].innerHTML + '<br>';
+    }
   }
 }
 $('#detailed_results').append(detailed_results.join('') + '<br><br>');
-
-if (old_debug_setting == undefined) {
-  localStorage.removeItem("debug");
-} else {
-  localStorage["debug"] = old_debug_setting;
-}
 
 $('#results').append(stateStrings());
 console.log(players);
