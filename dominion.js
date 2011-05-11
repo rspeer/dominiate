@@ -607,7 +607,7 @@ function handleLogEntry(node) {
     possessed_turn_backup = possessed_turn;
     possessed_turn = false;
     if (possessed_turn && this == last_player) return;
-    if (player_count != 2) {
+    if (player_count != 2 && !disabled) {
       maybeAnnounceFailure(">> Warning: Masquerade with more than 2 players " +
                            "causes inaccurate score counting.");
     }
