@@ -71,7 +71,7 @@ chrome.extension.sendRequest({ type: "fetch", url: url }, function(response) {
     if (player_name == "You") {
       player_name = rewriteName(reporter_name);
     }
-    var re = new RegExp(player_name + ": ([0-9]+) points", "m");
+    var re = new RegExp(RegExp.quote(player_name) + ": ([0-9]+) points", "m");
     var arr = results.match(re);
     if (!arr || arr.length != 2 || arr[1] != score) {
       var error = "Wrong score for " + player_name + " (expected " + score + ")";

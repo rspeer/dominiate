@@ -830,7 +830,7 @@ function handleGameEnd(doc) {
           if (player_name == "You") {
             player_name = rewriteName(name);
           }
-          var re = new RegExp(player_name + " has ([0-9]+) points");
+          var re = new RegExp(RegExp.quote(player_name) + " has ([0-9]+) points");
           var arr = summary.match(re);
           if (arr && arr.length == 2) {
             var score = ("" + players[player].getScore()).replace(/^.*=/, "");
