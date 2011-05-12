@@ -99,11 +99,11 @@ function writeText(text) {
 }
 
 function maybeAnnounceFailure(text) {
-  if (!announced_error) {
+  if (!disabled && !announced_error) {
     console.log("Logging error: " + text);
-    announced_error = true;
     writeText(text);
   }
+  announced_error = true;
 }
 
 function pointsForCard(card_name) {
@@ -607,7 +607,7 @@ function handleLogEntry(node) {
     possessed_turn_backup = possessed_turn;
     possessed_turn = false;
     if (possessed_turn && this == last_player) return;
-    if (player_count != 2 && !disabled) {
+    if (player_count != 2) {
       maybeAnnounceFailure(">> Warning: Masquerade with more than 2 players " +
                            "causes inaccurate score counting.");
     }
@@ -909,6 +909,10 @@ function handle(doc) {
     }
   }
   catch (err) {
+    var error = '';
+    if (doc.innerText != undefined) {
+      error += "On '" + doc.innerText + "': ";
+    }
     handleError("Javascript exception: " + debugString(err));
   }
 }
