@@ -48,8 +48,7 @@ element.innerHTML =
                  "allow_disable",
                  "Allow disabling.",
                  "Do not allow disabling.") +
-  generateOption("Change lobby status to announce you use point counter?" +
-                   " <sup><font color='red'>new</font></sup>",
+  generateOption("Change lobby status to announce you use point counter?",
                  "Mandatory if disabling is not allowed.",
                  "status_announce",
                  "Post in status message.",
