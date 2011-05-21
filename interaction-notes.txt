@@ -1,0 +1,40 @@
+Graphics:
+- Buyable cards are div.supplycard.buy (check "cardname" attribute)
+- Playable cards are a.imcard.play
+  - check "cardname" on div inside
+- Choices in the choice row are a.choice 
+  - inside div.ch_26 or something
+  - whose first element is a span saying what to do
+  - Choices made of checkboxes:
+    - span.choiceitem > input.checkbox
+    - end with the button in the choice row
+  - Too many choices
+    - span.morechoice exists
+    - they end up in div.supplycard.buy instead
+  - reorder choice
+    - do nothing, click done
+- handling ?!
+  - span.confirm
+    - inside div.cardname inside a.imcard.play
+    - span.imprice.confirm inside div.imbasic inside div.supplycard.buy
+    - span.imprice.confirm inside div.vertical inside div.supplycard.buy
+  - button.confirm
+- end of game
+  - announced in span.em
+  - "return" is in the choice row
+
+
+Text:
+- Buyable cards are a.buy (check "cardname" attribute)
+- Playable cards are a.card.play
+- Choices in the choice row are a.choice 
+  - inside div.ch_26 or something
+  - whose first element is a span saying what to do
+  - Choices made of checkboxes:
+    - span.choiceitem > input.checkbox
+    - end with the button in the choice row
+  - Too many choices
+    - span.morechoice exists
+    - they end up in a.buy instead
+- handling ?!
+  - span.confirm inside a.buy or a.play, or button.confirm directly
