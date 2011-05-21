@@ -1,23 +1,18 @@
-Chrome extension to keep track of information during a game of dominion on
-dominion.isotropic.org.
+Golem
+=====
+What do you get when you merge together
 
-The extension keeps track of:
-- # of cards each player has
-- # of points each player has
+- drheld's Dominion extension for Chrome
+- councilroom.com and its 750,000 analyzed games
+- and the awesome machine learning in Vowpal Wabbit?
 
-It can optionally show this beside the chat box (instead of the exit / faq
-buttons) and always answers !status commands to print the scores to all
-players.
+You get a Dominion bot. 
 
-Optionally, the extension can print something in the lobby so people know you
-are using it. It can also be set to allow opponents to disable the extension if
-they don't like point counting.
+The name
+--------
+When you take a robot and make it Dominion-themed, you get a Golem.
 
-Known issues:
-- Masquerade with more than 2 players leads to unknown information.
-
-
-If you'd like to contribute back you can work from source here.
-If you'd just like to use the extension, you can install it automatically:
-
-https://chrome.google.com/extensions/detail/oilbmfdendkfeipedcpnpifkclfckalk
+So what does it do?
+-------------------
+At the moment, it writes files full of statistics on which cards are good to
+buy. Not that exciting yet. It'll get there.
