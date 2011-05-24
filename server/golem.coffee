@@ -5,9 +5,9 @@ util = require("util")
 COUNT = 0
 COST = 1
 buyChoices = (supply, coins, mincost, buys) ->
-  choices = []
+  choices = [[]]
   if buys == 0
-    []
+    [[]]
   else
     for card in supply
       if supply[card][COUNT] > 0
@@ -18,6 +18,7 @@ buyChoices = (supply, coins, mincost, buys) ->
             choices.push([card].concat(choice))
           supply[card][COUNT] += 1
   choices
+exports.buyChoices = buyChoices
 
 gainHandler = (request, responder, query) ->
   mydeck = JSON.parse(query.mydeck)   # mapping from card -> count

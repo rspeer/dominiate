@@ -7,5 +7,6 @@ SUPPLY = {
 }
 
 exports['buy one card for 6'] = (test) ->
-  test.equal buyChoices(SUPPLY, 6, 0, 1) [[], ["Duchy"], ["Estate"]]
+  test.equal golem.buyChoices(SUPPLY, 6, 0, 1), [[], ["Duchy"], ["Estate"]]
+  test.done()
 
