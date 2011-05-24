@@ -1,3 +1,5 @@
+# The main file that answers requests for Golem to figure out what to play.
+
 exec = require("child_process").exec
 card_list = require("../card_list").card_list
 util = require("util")
@@ -9,7 +11,7 @@ buyChoices = (supply, coins, mincost, buys) ->
   if buys == 0
     [[]]
   else
-    for card in supply
+    for card of supply
       if supply[card][COUNT] > 0
         cost = supply[card][COST]
         if cost <= coins and cost >= mincost
@@ -20,21 +22,10 @@ buyChoices = (supply, coins, mincost, buys) ->
   choices
 exports.buyChoices = buyChoices
 
-gainHandler = (request, responder, query) ->
-  mydeck = JSON.parse(query.mydeck)   # mapping from card -> count
-  oppdeck = JSON.parse(query.oppdeck) # mapping from card -> count
-  supply = JSON.parse(query.supply)   # mapping from card -> [count, cost]
-  
-  # supply should only include cards that the game allows buying or gaining
-  # now.
+deckVP = (deck) ->
+  undefined
 
-  coins = parseInt(query.coins)
-  buys = parseInt(query.buys)
-  choices = buyChoices(supply, coins, 0, buys)
-
-  # Determine the set of available cards / sets of cards.
-  #   (Get this from tableau / cost.)
-  #
+chooseGain = (mydeck, oppdeck, supply, coins, buys) ->
   # For each possibility:
   #   Add those cards to the current hand.
   #   Update VP, card count, etc. accordingly.
@@ -42,8 +33,21 @@ gainHandler = (request, responder, query) ->
   #   Convert to a VW string.
   #
   # Run the file through VW. Sort the results. Do the best thing.
+  choices = buyChoices(supply, coins, 0, buys)
+  newdeck = util.clone(mydeck)
+
+gainHandler = (request, responder, query) ->
+  mydeck = JSON.parse(query.mydeck)   # mapping from card -> count
+  oppdeck = JSON.parse(query.oppdeck) # mapping from card -> count
+  supply = JSON.parse(query.supply)   # mapping from card -> [count, cost]
+  # supply should only include cards that the game allows buying or gaining
+  # now.
+
+  coins = parseInt(query.coins)
+  buys = parseInt(query.buys)
+  chooseGain(mydeck, oppdeck, supply, coins, buys)
 exports.gain = gainHandler
 
 trashHandler = (request, responder, query) ->
-  responder.fail("Not implemented")
+  responder.fail "Not implemented"
 exports.trash = trashHandler
