@@ -1,2 +1,4 @@
 *.pyc
 *.swp
+server/golem.js
+server/golem-test.js
