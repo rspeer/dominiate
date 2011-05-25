@@ -1,8 +1,15 @@
-# The main file that answers requests for Golem to figure out what to play.
+###
+The main file that answers requests for Golem to figure out what to play.
+
+This code is written in Node CoffeeScript. If you're looking at "golem.js",
+you're seeing machine-generated code. The real, understandable code is in
+"golem.coffee".
+###
+
 assert = require("assert")
 exec = require("child_process").exec
-card_info = require("../card_info").card_info
-util = require("util")
+card_info = require("./card_info").card_info
+util = require("./util")
 
 COUNT = 0
 COST = 1
@@ -20,16 +27,17 @@ buyChoices = (supply, coins, mincost, buys) ->
             choices.push([card].concat(choice))
           supply[card][COUNT] += 1
   choices
-exports.buyChoices = buyChoices
 
 getDeckFeatures = (deck) ->
   features = {
-    unique: 0
-    actions: 0
     n: 0
+    nUnique: 0
+    nActions: 0
     knownvp: 0
     cardvp: 0
     chips: 0
+    deck: {}
+    unique: {}
   }
   for card, count of deck
     # Decks that come straight from Isotropic will have a 'vp' entry, holding
@@ -39,17 +47,29 @@ getDeckFeatures = (deck) ->
     if card is 'vp'
       features.knownvp = count
     else
-      if not features[card]
-        features[card] = count
-        features.unique += 1
+      features.deck[card] = count
+      features.unique[card] = 1
+      features.nUnique += 1
       if card_info[card].isAction
-        features.actions += count
+        features.nActions += count
       features.n += count
   
   for card, count of deck
     if card isnt 'vp'
       if card_info[card].isVictory or card is 'Curse'
-        cardvp = card_info[card].vp # FIXME for variable cards
+        cardvp = 0
+        switch card
+          when 'Gardens'
+            cardvp = Math.floor(features.n / 10)
+          when 'Fairgrounds'
+            cardvp = Math.floor(features.nUnique / 5) * 2
+          when 'Duke'
+            cardvp = features.deck['Duchy']
+          when 'Vineyard'
+            cardvp = Math.floor(features.nActions / 3)
+          else
+            cardvp = card_info[card].vp
+        # console.log(count+"x "+card+" is worth "+(cardvp*count))
         features.cardvp += cardvp * count
   features.chips = features.knownvp - features.cardvp
   features
@@ -68,7 +88,21 @@ addToDeckFeatures = (deck, feats, newcards) ->
   assert.ok(newfeats.chips >= 0)
   newfeats
 
-chooseGain = (mydeck, oppdeck, supply, coins, buys) ->
+chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
+  # Decide what to gain or buy.
+  # Arguments:
+  #   - mydeck: an object mapping card names to counts for my cards.
+  #   - oppdeck: an object mapping card names to counts for my opponent's
+  #     cards.
+  #     - Note: Both 'mydeck' and 'oppdeck' should contain a fake card called
+  #       'vp' with the counted number of victory points.
+  #   - supply: maps card names to [number in supply, current cost].
+  #   - coins: maximum number of coins to spend.
+  #   - buys: maximum number of cards to gain.
+  #   - turnNum: what turn number it is.
+  #   - responder: an object that we will call .succeed or .fail on with
+  #     the result.
+  #
   # For each possibility:
   #   Add those cards to the current hand.
   #   Update VP, card count, etc. accordingly.
@@ -79,9 +113,12 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys) ->
   choices = buyChoices(supply, coins, 0, buys)
   myfeatures = getDeckFeatures(mydeck)
   oppfeatures = getDeckFeatures(oppdeck)
-  for choice in choices
-    newfeats = addToDeckFeatures(mydeck, myfeatures, choice)
-  # not done yet
+  
+  vwInput = [
+    featureString(addToDeckFeatures(mydeck, myfeatures, choice), oppfeatures)\
+    for choice in choices
+  ].join('\n')
+  maximizeVowpalPrediction("model#{turnNum}.vw", vwInput, responder)
 
 gainHandler = (request, responder, query) ->
   mydeck = JSON.parse(query.mydeck)   # mapping from card -> count
@@ -92,9 +129,13 @@ gainHandler = (request, responder, query) ->
 
   coins = parseInt(query.coins)
   buys = parseInt(query.buys)
-  chooseGain(mydeck, oppdeck, supply, coins, buys)
-exports.gain = gainHandler
+  turnNum = parseInt(query.turnNum)
+  chooseGain(mydeck, oppdeck, supply, coins, buys, turnNum, responder)
 
 trashHandler = (request, responder, query) ->
   responder.fail "Not implemented"
-exports.trash = trashHandler
+
+exports.buyChoices = buyChoices
+exports.getDeckFeatures = getDeckFeatures
+exports.gain = exports.gainHandler = gainHandler
+exports.trash = exports.trashHandler = trashHandler

@@ -1,4 +1,5 @@
 golem = require("./golem")
+card_info = require("./card_info").card_info
 tests = exports
 
 SUPPLY = {
@@ -43,4 +44,32 @@ tests['buy out the estates'] = (test) ->
     ["Estate"]
     ["Estate", "Estate"]
   ]
+  test.done()
+
+DECK = {
+  'Copper': 7
+  'Estate': 3       # 3 VP     
+  'Silver': 2
+  'Gardens': 1      # 1 VP
+  'Fairgrounds': 1  # 2 VP
+  'Smithy': 2
+  'vp': 8           # contains 2 chips
+}
+
+tests['card info makes sense'] = (test) ->
+  test.equal card_info['Copper'].isAction, false
+  test.done()
+
+tests['deck features'] = (test) ->
+  features = golem.getDeckFeatures(DECK)
+  test.equal features.n, 16
+  test.equal features.nUnique, 6
+  test.equal features.nActions, 2
+  test.equal features.knownvp, 8
+  test.equal features.cardvp, 6
+  test.equal features.chips, 2
+  test.equal features.deck['Copper'], 7
+  test.equal features.unique['Copper'], 1
+  test.equal features.deck['vp'], undefined
+  test.equal features.unique['vp'], undefined
   test.done()

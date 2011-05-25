@@ -1,5 +1,5 @@
 var card_list = require("../card_list").card_list;
-var card_map = {};
+var card_info = {};
 
 function parseValue(value) {
   var parsed = parseInt(value);
@@ -7,21 +7,22 @@ function parseValue(value) {
   else return parsed;
 }
 
-for (var card_info in card_list) {
+for (var i=0; i<card_list.length; i++) {
+  card_data = card_list[i];
   info = {};
-  info.isAction = parseValue(card_info.Action);
-  info.isVictory = parseValue(card_info.Victory);
-  info.isTreasure = (card_info.Treasure === "1");
-  info.isAttack = parseValue(card_info.Attack);
-  info.isReaction = (card_info.Reaction === "1");
-  info.coins = parseValue(card_info.Coins);
-  info.duration = parseValue(card_info.Duration);
-  info.actions = parseValue(card_info.Actions);
-  info.vp = parseValue(card_info.VP);
-  info.cost = parseValue(card_info.Cost);
-  info.buys = parseValue(card_info.Buys);
-  info.cards = parseValue(card_info.Cards);
-  info.trash = parseValue(card_info.Trash);
-  card_map[card_info["Singular"]] = info;
+  info.isAction = (card_data.Action === "1");
+  info.isVictory = (card_data.Victory === "1");
+  info.isTreasure = (card_data.Treasure === "1");
+  info.isAttack = (card_data.Attack === "1");
+  info.isReaction = (card_data.Reaction === "1");
+  info.coins = parseValue(card_data.Coins);
+  info.duration = parseValue(card_data.Duration);
+  info.actions = parseValue(card_data.Actions);
+  info.vp = parseValue(card_data.VP);
+  info.cost = parseValue(card_data.Cost);
+  info.buys = parseValue(card_data.Buys);
+  info.cards = parseValue(card_data.Cards);
+  info.trash = parseValue(card_data.Trash);
+  card_info[card_data["Singular"]] = info;
 }
-exports.card_map = card_map;
+exports.card_info = card_info;
