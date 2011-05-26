@@ -9,6 +9,11 @@ SUPPLY = {
   "Curse": [3,0]
 }
 
+tests['buy no cards'] = (test) ->
+  choices = golem.buyChoices(SUPPLY, 10, 0, 0)
+  test.deepEqual choices, [[]]
+  test.done()
+
 tests['buy one card for 6'] = (test) ->
   choices = golem.buyChoices(SUPPLY, 6, 0, 1)
   choices.sort()

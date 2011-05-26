@@ -7,7 +7,6 @@ you're seeing machine-generated code. The real, understandable code is in
 ###
 
 assert = require("assert")
-exec = require("child_process").exec
 card_info = require("./card_info").card_info
 util = require("./util")
 
@@ -115,10 +114,13 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
   oppfeatures = getDeckFeatures(oppdeck)
   
   vwInput = [
-    featureString(addToDeckFeatures(mydeck, myfeatures, choice), oppfeatures)\
-    for choice in choices
+    vowpal.featureString(
+      '+'.join(choice),
+      addToDeckFeatures(mydeck, myfeatures, choice),
+      oppfeatures
+    ) for choice in choices
   ].join('\n')
-  maximizeVowpalPrediction("model#{turnNum}.vw", vwInput, responder)
+  vowpal.maximizePrediction("model"+turnNum+".vw", vwInput, responder)
 
 gainHandler = (request, responder, query) ->
   mydeck = JSON.parse(query.mydeck)   # mapping from card -> count
