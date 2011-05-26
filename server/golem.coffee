@@ -87,6 +87,24 @@ addToDeckFeatures = (deck, feats, newcards) ->
   assert.ok(newfeats.chips >= 0)
   newfeats
 
+normalizeDeck = (feats) ->
+  # Takes a deckFeatures object and squishes together the card counts and
+  # a bunch of features into one object. The card counts will be normalized
+  # into cards per hand, and other quantities also reduced, to prepare for
+  # prediction by Vowpal.
+  nHands = Math.max(feats.n, 5) / 5
+  normalized = {actions: 0}
+  for card, count of feats.deck
+    normalized[card] = count / nHands
+    if card_info[card].isAction
+      # This was a bug in our training! Unfortunately, we should test the
+      # same way. We counted unique actions / 5 instead of total actions.
+      normalized.actions += 0.2
+  normalized.unique = feats.unique / 5
+  normalized.n = feats.n / 10
+  normalized.vp = feats.vp / 10
+  normalized
+
 chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
   # Decide what to gain or buy.
   # Arguments:
@@ -113,14 +131,22 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
   myfeatures = getDeckFeatures(mydeck)
   oppfeatures = getDeckFeatures(oppdeck)
   
-  vwInput = [
-    vowpal.featureString(
-      '+'.join(choice),
-      addToDeckFeatures(mydeck, myfeatures, choice),
-      oppfeatures
-    ) for choice in choices
-  ].join('\n')
-  vowpal.maximizePrediction("model"+turnNum+".vw", vwInput, responder)
+  vwLines = for choice in choices
+    newfeats = addToDeckFeatures(mydeck, myfeatures, choice)
+    vwStruct = {
+      cards: normalizeDeck(newfeats)
+      opponent: normalizeDeck(oppfeatures)
+      unique: newfeats.unique
+      vsunique: oppfeatures.unique
+    }
+    name = choice.join('+')
+    vowpal.featureString(name, vwStruct)
+  
+  vowpal.maximizePrediction(
+    "model"+turnNum+".vw",
+    vwLines.join('\n'),
+    responder
+  )
 
 gainHandler = (request, responder, query) ->
   mydeck = JSON.parse(query.mydeck)   # mapping from card -> count
