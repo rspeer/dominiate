@@ -93,7 +93,7 @@ def should_learn(game):
             game.player_decks[0].win_points != 1.0)
 
 def games_to_vowpal(games):
-    out = [open('static/output/vowpal/turn%02d.txt' % turn, 'w')
+    out = [open('output/turn%02d.txt' % turn, 'w')
            for turn in xrange(3, 25)]
     counter = 0
     for gamedata in games:
@@ -142,7 +142,7 @@ def data_to_vowpal(mydeck, oppdeck, win, tag=''):
     return result
 
 def write_test_file():
-    outfile = open('static/output/vowpal/test2cards.txt', 'w')
+    outfile = open('output/test2cards.txt', 'w')
     oppdict = {'Copper': 7, 'Estate': 3}
     for card1 in CARDS:
         for card2 in CARDS:
@@ -157,7 +157,7 @@ def write_test_file():
     outfile.close()
 
 def write_single_test():
-    outfile = open('static/output/vowpal/test1card.txt', 'w')
+    outfile = open('output/test1card.txt', 'w')
     oppdict = {'Copper': 7, 'Estate': 3}
     for card1 in CARDS:
         testdict = defaultdict(float)
