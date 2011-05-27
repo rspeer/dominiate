@@ -22,8 +22,8 @@ maximizePrediction = (modelName, vwInput, responder) ->
   received = []
   proc.stdout.on 'data', (data) ->
     received.push(data)
-  proc.stderr.on 'data', (data) ->
-    console.log('stderr: '+data)
+  #proc.stderr.on 'data', (data) ->
+  #  console.log('stderr: '+data)
   proc.on 'exit', (code) ->
     if code
       responder.fail {
@@ -36,7 +36,6 @@ maximizePrediction = (modelName, vwInput, responder) ->
       choices = []
       for line in lines
         if line
-          console.log(line)
           [scoreStr, name] = line.split(' ')
           name = JSON.parse(name.replace(/_/g, ' '))
           score = parseFloat(scoreStr)
