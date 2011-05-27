@@ -14,9 +14,7 @@ COUNT = 0
 COST = 1
 buyChoices = (supply, coins, mincost, buys) ->
   choices = [[]]
-  if buys == 0
-    [[]]
-  else
+  if buys != 0
     for card of supply
       if supply[card][COUNT] > 0
         cost = supply[card][COST]
