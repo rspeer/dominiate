@@ -30,7 +30,7 @@ getDeckFeatures = (deck) ->
     n: 0
     nUnique: 0
     nActions: 0
-    knownvp: 0
+    vp: null
     cardvp: 0
     chips: 0
     deck: {}
@@ -42,11 +42,13 @@ getDeckFeatures = (deck) ->
     # out how many of them came from chips -- instead of cards -- and make
     # that into a feature.
     if card is 'vp'
-      features.knownvp = count
+      features.vp = count
     else
       features.deck[card] = count
       features.unique[card] = 1
       features.nUnique += 1
+      if not card_info[card]?
+        console.log("no such card: #{card}")
       if card_info[card].isAction
         features.nActions += count
       features.n += count
@@ -68,7 +70,9 @@ getDeckFeatures = (deck) ->
             cardvp = card_info[card].vp
         # console.log(count+"x "+card+" is worth "+(cardvp*count))
         features.cardvp += cardvp * count
-  features.chips = features.knownvp - features.cardvp
+  if features.vp is null
+    features.vp = features.cardvp
+  features.chips = features.vp - features.cardvp
   features
 
 addToDeckFeatures = (deck, feats, newcards) ->
@@ -163,5 +167,6 @@ trashHandler = (request, responder, query) ->
 
 exports.buyChoices = buyChoices
 exports.getDeckFeatures = getDeckFeatures
+exports.normalizeDeck = normalizeDeck
 exports.gain = exports.gainHandler = gainHandler
 exports.trash = exports.trashHandler = trashHandler

@@ -4,11 +4,11 @@ util = require("./util")
 dict2vw = (dict) ->
   # Take a JavaScript key->value object, which I still call a "dict", and
   # express it as a string in the format VW expects.
-  colonSeparated = ["#{key.replace(/ /g, '_')}:#{value}" for key, value of dict]
+  colonSeparated = ["#{key.replace(/[ ]/g, '_')}:#{value}" for key, value of dict]
   colonSeparated.join(' ')
 
 featureString = (name, categories) ->
-  namefix = name.replace(/ /g, '_')
+  namefix = name.replace(/[ ]/g, '_')
   catStrings = [category+' '+dict2vw(value) for category, value of categories]
   allCatString = catStrings.join('| ')
   return "0 1 #{namefix}|#{allCatString}"
@@ -27,7 +27,7 @@ maximizePrediction = (modelName, vwInput, responder) ->
       choices = []
       for line in lines
         console.log(line)
-        scoreStr, name = line.split(' ')
+        [scoreStr, name] = line.split(' ')
         score = parseFloat(scoreStr)
         choices.push [name, score]
       
