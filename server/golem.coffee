@@ -32,7 +32,7 @@ getDeckFeatures = (deck) ->
     nActions: 0
     vp: null
     cardvp: 0
-    chips: 0
+    chips: null
     deck: {}
     unique: {}
   }
@@ -72,7 +72,8 @@ getDeckFeatures = (deck) ->
         features.cardvp += cardvp * count
   if features.vp is null
     features.vp = features.cardvp
-  features.chips = features.vp - features.cardvp
+  if features.chips is null
+    features.chips = features.vp - features.cardvp
   features
 
 addToDeckFeatures = (deck, feats, newcards) ->
