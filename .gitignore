@@ -3,3 +3,4 @@
 server/golem.js
 server/golem-test.js
 server/vowpal.js
+golemclient.js
