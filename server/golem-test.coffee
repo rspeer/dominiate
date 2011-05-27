@@ -115,7 +115,7 @@ tests['overly simplified feature string'] = (test) ->
     'Test features',
     {me: DECK, you: STARTDECK}
   )
-  test.equal featString, "0 1 Test_features|me Copper:7 Estate:3 Silver:2 Gardens:1 Fairgrounds:1 Smithy:2 vp:8 |you Copper:7 Estate:3 vp:3"
+  test.equal featString, '0 1 "Test_features"|me Copper:7 Estate:3 Silver:2 Gardens:1 Fairgrounds:1 Smithy:2 vp:8 |you Copper:7 Estate:3 vp:3'
   test.done()
 
 failure = (obj) -> test.ok(false)
@@ -123,7 +123,7 @@ tests['buy a Mountebank early'] = (test) ->
   test.expect(1)
   golem.chooseGain DECK, STARTDECK, SUPPLY2, 8, 1, 3, {
     succeed: (obj) ->
-      test.equal obj.best, '["Mountebank"]'
+      test.deepEqual obj.best, ["Mountebank"]
       test.done()
     fail: failure
   }
@@ -131,7 +131,15 @@ tests['buy a Mountebank early'] = (test) ->
 tests['buy a Province later'] = (test) ->
   golem.chooseGain DECK, DECK, SUPPLY2, 8, 1, 15, {
     succeed: (obj) ->
-      test.equal obj.best, '["Province"]'
+      test.deepEqual obj.best, ["Province"]
+      test.done()
+    fail: failure
+  }
+
+tests['two provinces are better than one'] = (test) ->
+  golem.chooseGain DECK, DECK, SUPPLY2, 16, 2, 15, {
+    succeed: (obj) ->
+      test.deepEqual obj.best, ["Province","Province"]
       test.done()
     fail: failure
   }

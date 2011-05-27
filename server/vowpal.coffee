@@ -10,7 +10,7 @@ dict2vw = (dict) ->
   return colonSeparated.join().replace(/,/g, ' ')
 
 featureString = (name, categories) ->
-  namefix = name.replace(/[ ]/g, '_')
+  namefix = JSON.stringify(name).replace(/[ ]/g, '_')
   catStrings = [category+' '+dict2vw(value) for category, value of categories]
   allCatString = catStrings.join().replace(/,/g, ' |')
   return "0 1 #{namefix}|#{allCatString}"
@@ -21,7 +21,6 @@ maximizePrediction = (modelName, vwInput, responder) ->
   proc.stdout.setEncoding('utf8')
   received = []
   proc.stdout.on 'data', (data) ->
-    #console.log('stdout: '+data)
     received.push(data)
   proc.stderr.on 'data', (data) ->
     console.log('stderr: '+data)
@@ -39,7 +38,7 @@ maximizePrediction = (modelName, vwInput, responder) ->
         if line
           console.log(line)
           [scoreStr, name] = line.split(' ')
-          name = name.replace(/_/g, ' ')
+          name = JSON.parse(name.replace(/_/g, ' '))
           score = parseFloat(scoreStr)
           choices.push [name, score]
       

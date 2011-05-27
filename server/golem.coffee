@@ -153,8 +153,7 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
       unique: newfeats.unique
       vsunique: oppfeatures.unique
     }
-    name = JSON.stringify(choice)
-    vowpal.featureString(name, vwStruct)
+    vowpal.featureString(choice, vwStruct)
   
   vowpal.maximizePrediction(
     makeModelName(turnNum+1),
