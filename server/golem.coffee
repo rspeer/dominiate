@@ -9,6 +9,7 @@ you're seeing machine-generated code. The real, understandable code is in
 assert = require("assert")
 card_info = require("./card_info").card_info
 util = require("./util")
+vowpal = require("./vowpal")
 
 COUNT = 0
 COST = 1
@@ -36,7 +37,7 @@ getDeckFeatures = (deck) ->
     deck: {}
     unique: {}
   }
-  for card, count of deck
+  for own card, count of deck
     # Decks that come straight from Isotropic will have a 'vp' entry, holding
     # the number of actual victory points the player has. We need to figure
     # out how many of them came from chips -- instead of cards -- and make
@@ -49,11 +50,12 @@ getDeckFeatures = (deck) ->
       features.nUnique += 1
       if not card_info[card]?
         console.log("no such card: #{card}")
+        console.log("Object.prototype is: #{JSON.stringify(Object.prototype)}")
       if card_info[card].isAction
         features.nActions += count
       features.n += count
   
-  for card, count of deck
+  for own card, count of deck
     if card isnt 'vp'
       if card_info[card].isVictory or card is 'Curse'
         cardvp = 0
@@ -81,7 +83,10 @@ addToDeckFeatures = (deck, feats, newcards) ->
   # plus a list of new cards. Returns the new deckFeatures object.
   newdeck = util.clone(deck)
   for card in newcards
-    newdeck[card] += 1
+    if newdeck[card]?
+      newdeck[card] += 1
+    else
+      newdeck[card] = 1
   newfeats = getDeckFeatures(newdeck)
   
   # Take the known number of chips and use it to fix up the VP count.
@@ -103,10 +108,16 @@ normalizeDeck = (feats) ->
       # This was a bug in our training! Unfortunately, we should test the
       # same way. We counted unique actions / 5 instead of total actions.
       normalized.actions += 0.2
-  normalized.unique = feats.unique / 5
+  normalized.unique = feats.nUnique / 5
   normalized.n = feats.n / 10
   normalized.vp = feats.vp / 10
   normalized
+
+makeModelName = (num) ->
+  if num < 3 then "model03.vw"
+  else if num < 10 then "model0#{num}.vw"
+  else if num > 13 then "model13.vw"  # fix when later models work
+  else "model#{num}.vw"
 
 chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
   # Decide what to gain or buy.
@@ -142,11 +153,11 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
       unique: newfeats.unique
       vsunique: oppfeatures.unique
     }
-    name = choice.join('+')
+    name = JSON.stringify(choice)
     vowpal.featureString(name, vwStruct)
   
   vowpal.maximizePrediction(
-    "model"+turnNum+".vw",
+    makeModelName(turnNum+1),
     vwLines.join('\n'),
     responder
   )
@@ -169,5 +180,6 @@ trashHandler = (request, responder, query) ->
 exports.buyChoices = buyChoices
 exports.getDeckFeatures = getDeckFeatures
 exports.normalizeDeck = normalizeDeck
+exports.chooseGain = chooseGain
 exports.gain = exports.gainHandler = gainHandler
 exports.trash = exports.trashHandler = trashHandler

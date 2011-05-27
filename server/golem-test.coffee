@@ -1,4 +1,5 @@
 golem = require("./golem")
+vowpal = require("./vowpal")
 card_info = require("./card_info").card_info
 tests = exports
 
@@ -64,6 +65,17 @@ DECK = {
 STARTDECK = {
   'Copper': 7
   'Estate': 3
+  'vp': 3
+}
+
+SUPPLY2 = {
+  'Province': [8,8]
+  'Duchy': [8,5]
+  'Mountebank': [10,5]
+  'Festival': [10,5]
+  'Smithy': [10,4]
+  'Estate': [8,2]
+  'Curse': [10,0]
 }
 
 tests['card info makes sense'] = (test) ->
@@ -97,3 +109,29 @@ tests['normalize features of starting deck'] = (test) ->
   test.equal norm.vp, 0.3
   test.equal norm.actions, 0
   test.done()
+
+tests['overly simplified feature string'] = (test) ->
+  featString = vowpal.featureString(
+    'Test features',
+    {me: DECK, you: STARTDECK}
+  )
+  test.equal featString, "0 1 Test_features|me Copper:7 Estate:3 Silver:2 Gardens:1 Fairgrounds:1 Smithy:2 vp:8 |you Copper:7 Estate:3 vp:3"
+  test.done()
+
+failure = (obj) -> test.ok(false)
+tests['buy a Mountebank early'] = (test) ->
+  test.expect(1)
+  golem.chooseGain DECK, STARTDECK, SUPPLY2, 8, 1, 3, {
+    succeed: (obj) ->
+      test.equal obj.best, '["Mountebank"]'
+      test.done()
+    fail: failure
+  }
+
+tests['buy a Province later'] = (test) ->
+  golem.chooseGain DECK, DECK, SUPPLY2, 8, 1, 15, {
+    succeed: (obj) ->
+      test.equal obj.best, '["Province"]'
+      test.done()
+    fail: failure
+  }
