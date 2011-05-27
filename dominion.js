@@ -3,7 +3,7 @@
 var player_rewrites = new Object();
 
 // Map from player name to Player object.
-players = new Object();
+var players = new Object();
 // Regular expression that is an OR of players other than "You".
 var player_re = "";
 // Count of the number of players in the game.
@@ -21,24 +21,24 @@ var had_error = false;
 var show_action_count = false;
 var show_unique_count = false;
 var possessed_turn = false;
-turn_number = 0;
+var turn_number = 0;
 var announced_error = false;
 
 // Enabled by debugger when analyzing game logs.
 var debug_mode = false;
 
-last_player = null;
-last_reveal_player = null;
-last_reveal_card = null;
+var last_player = null;
+var last_reveal_player = null;
+var last_reveal_card = null;
 
 // Last time a status message was printed.
 var last_status_print = 0;
 
 // The last player who gained a card.
-last_gain_player = null;
+var last_gain_player = null;
 
 // Track scoping of actions in play such as Watchtower.
-scopes = [];
+var scopes = [];
 
 // The version of the extension currently loaded.
 var extension_version = 'Unknown';
@@ -907,6 +907,7 @@ function handle(doc) {
         updateDeck();
       }
     }
+    window.updateGolem(players, turn_number);
   }
   catch (err) {
     var error = '';
