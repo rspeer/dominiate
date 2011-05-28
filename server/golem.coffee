@@ -162,15 +162,21 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
   )
 
 gainHandler = (request, responder, query) ->
-  mydeck = JSON.parse(query.mydeck)   # mapping from card -> count
-  oppdeck = JSON.parse(query.oppdeck) # mapping from card -> count
-  supply = JSON.parse(query.supply)   # mapping from card -> [count, cost]
+  myself = JSON.parse(query.myself)     # Player object
+  opponent = JSON.parse(query.opponent) # Player object
+  supply = JSON.parse(query.supply)     # mapping from card -> [count, cost]
   # supply should only include cards that the game allows buying or gaining
   # now.
 
   coins = parseInt(query.coins)
   buys = parseInt(query.buys)
   turnNum = parseInt(query.turnNum)
+  
+  mydeck = myself.card_counts
+  mydeck['vp'] = myself.score
+  oppdeck = opponent.card_counts
+  oppdeck['vp'] = opponent.score
+
   chooseGain(mydeck, oppdeck, supply, coins, buys, turnNum, responder)
 
 trashHandler = (request, responder, query) ->
