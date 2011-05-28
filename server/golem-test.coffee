@@ -129,7 +129,7 @@ tests['buy a Mountebank early'] = (test) ->
   }
 
 tests['buy a Province later'] = (test) ->
-  golem.chooseGain DECK, DECK, SUPPLY2, 8, 1, 15, {
+  golem.chooseGain DECK, DECK, SUPPLY2, 8, 1, 24, {
     succeed: (obj) ->
       test.deepEqual obj.best, ["Province"]
       test.done()

@@ -742,12 +742,10 @@ function maybeRewriteName(doc) {
 
 function maybeIntroducePlugin() {
   if (!introduced) {
-    writeText("★ Game scored by Dominion Point Counter ★");
-    writeText("http://goo.gl/iDihS");
-    writeText("Type !status to see the current score.");
-    if (localStorage["allow_disable"] != "f") {
-      writeText("Type !disable to disable the point counter.");
-    }
+    writeText("GREETINGS HUMAN, I AM BUYBORG");
+    writeText("I AM A BOT WHO CHOOSES WHAT TO BUY");
+    writeText("I HAVE ASSIMILATED A HUMAN NAMED RSPEER TO DO LESS IMPORTANT THINGS SUCH AS PLAY CARDS");
+    writeText("I WILL TELL YOU THE SCORE IF YOU TYPE !status");
   }
 }
 
@@ -927,7 +925,7 @@ function handle(doc) {
 //
 
 function buildStatusMessage() {
-  var status_message = "/me Auto▼Count";
+  var status_message = "/me BOT";
   if (localStorage["status_msg"] != undefined &&
       localStorage["status_msg"] != "") {
     status_message = status_message + " - " + localStorage["status_msg"];

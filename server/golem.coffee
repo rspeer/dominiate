@@ -92,7 +92,7 @@ addToDeckFeatures = (deck, feats, newcards) ->
   # Take the known number of chips and use it to fix up the VP count.
   newfeats.chips = feats.chips
   newfeats.vp = newfeats.cardvp + newfeats.chips
-  assert.ok(newfeats.chips >= 0)
+  #assert.ok(newfeats.chips >= 0)
   newfeats
 
 normalizeDeck = (feats) ->
