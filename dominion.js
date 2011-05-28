@@ -134,11 +134,11 @@ function Player(name) {
   // Map from special counts (such as number of gardens) to count.
   this.special_counts = { "Treasure" : 7, "Victory" : 3, "Uniques" : 2 };
   this.card_counts = { "Copper" : 7, "Estate" : 3 };
-
   this.getScore = function() {
     var score_str = this.score;
     var total_score = this.score;
 
+    if (this.special_counts === undefined) debugger;
     if (this.special_counts["Gardens"] != undefined) {
       var gardens = this.special_counts["Gardens"];
       var garden_points = Math.floor(this.deck_size / 10);
@@ -862,7 +862,7 @@ function handleGameEnd(doc) {
 }
 
 function handle(doc) {
-  try {
+  //try {
     if (doc.constructor == HTMLDivElement &&
         doc.innerText.indexOf("Say") == 0) {
       deck_spot = doc.children[5];
@@ -908,14 +908,14 @@ function handle(doc) {
       }
     }
     window.updateGolem(players, turn_number);
-  }
-  catch (err) {
-    var error = '';
-    if (doc.innerText != undefined) {
-      error += "On '" + doc.innerText + "': ";
-    }
-    handleError("Javascript exception: " + debugString(err));
-  }
+  //}
+  //catch (err) {
+  //  var error = '';
+  //  if (doc.innerText != undefined) {
+  //    error += "On '" + doc.innerText + "': ";
+  //  }
+  //  handleError("Javascript exception: " + debugString(err));
+  //}
 }
 
 

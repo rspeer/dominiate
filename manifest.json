@@ -18,11 +18,13 @@
      }
    ],
    "permissions": [
-     "http://dominion.isotropic.org/",
-     "http://dominion-point-counter.appspot.com/"
+     "http://dominion.isotropic.org",
+     "http://dominion-point-counter.appspot.com",
+     "http://localhost",
+     "http://localhost:8888"
    ],
-   "description": "Dominion Point Counter",
-   "name": "Dominion Point Counter",
+   "description": "Golem, a Dominion Bot",
+   "name": "Golem",
    "background_page": "background.html",
-   "version": "3.2.4"
+   "version": "0.0.1"
 }
