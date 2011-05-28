@@ -345,7 +345,6 @@ function maybeHandleTurnChange(node) {
     node.innerHTML =
       node.innerHTML.replace(" ---<br>", " " + print + " ---<br>");
 
-    window.updateGolem(players, turn_number);
     return true;
   }
   return false;
@@ -730,6 +729,7 @@ function initialize(doc) {
   console.log("Waiting " + wait_time + " to introduce " +
               "(index is: " + self_index + ").");
   setTimeout("maybeIntroducePlugin()", wait_time);
+  window.initializeGolem();
 }
 
 function maybeRewriteName(doc) {
@@ -870,6 +870,7 @@ function handle(doc) {
         doc.innerText.indexOf("Say") == 0) {
       deck_spot = doc.children[5];
       points_spot = doc.children[6];
+      linkToGolem(points_spot);
     }
 
     if (doc.constructor == HTMLElement && doc.parentNode.id == "log" &&
@@ -968,6 +969,13 @@ function setupLobbyStatusHandling() {
       $('#fake_entry').val("");
     })
   }
+}
+
+function linkToGolem(points_spot) {
+    $(points_spot).click(function(event) {
+        event.preventDefault();
+        window.updateGolem(players, turn_number);
+    })
 }
 setTimeout("setupLobbyStatusHandling()", 500);
 

@@ -14,10 +14,13 @@ updateGolem = (players, turnNum) ->
     else
       if opponent is null or player.score > opponent.score
         opponent = player
+  if myself is null
+    console.log("players: #{JSON.stringify(players)}")
   mydata = {score: myself.score, card_counts: myself.card_counts}
   oppdata = {score: opponent.score, card_counts: opponent.card_counts}
 
   supply = getSupply()
+  state = getState()
   
   jQuery.ajax "http://localhost:8888/gain", {
     data: {
@@ -25,8 +28,8 @@ updateGolem = (players, turnNum) ->
       opponent: JSON.stringify(oppdata)
       supply: JSON.stringify(supply)
       turnNum: turnNum
-      coins: 11      # show all possibilities for now
-      buys: 1
+      coins: state.coins
+      buys: state.buys
     }
     dataType: 'json'
     success: (data) ->
@@ -46,10 +49,15 @@ showBuyValues = (data) ->
     if choice.length == 1
       cardName = choice[0]
       showCardValue(cardName, score)
+  if data.best.length == 0
+    bestStr = "BUY NOTHING"
+  else
+    bestStr = [str.toUpperCase() for str in data.best].join(" AND ")
+  writeText(bestStr)
 
 getSupply = () ->
   supply = {}
-  for elt in document.getElementsByClassName('supplycard')
+  for elt in document.getElementsByClassName('buy')
     elt_imprice = elt.getElementsByClassName("imprice")[0]
     elt_imavail = elt.getElementsByClassName("imavail")[0]
     cardname = elt.getAttribute("cardname")
@@ -60,18 +68,36 @@ getSupply = () ->
       supply[cardname] = [avail, price]
   supply
 
+getState = () ->
+  holder = document.getElementById('hand_holder')
+  numbers = holder.getElementsByClassName('important')
+  actions = numbers[0].textContent ? 0
+  buys = numbers[1].textContent ? 0
+  coins = numbers[2].textContent?.substring(1) ? 0
+  {
+    actions: parseInt(actions)
+    buys: parseInt(buys)
+    coins: parseInt(coins)
+  }
+
 showCardValue = (cardName, score) ->
+  # Hack the interface to show the relative value of each card.
+  # Good for determining if the bot is sane.
   for elt in document.getElementsByClassName('supplycard')
     if elt.getAttribute("cardname") == cardName
       elt_cardname = elt.getElementsByClassName("cardname")[0]
       if not elt_cardname?
         elt_cardname = document.createElement('div')
-        elt_cardname['class'] = "cardname"
+        elt_cardname['class'] = "cardname condensed"
         elt.appendChild(elt_cardname)
-      try 
-        elt_cardname.innerHTML = cardName + '<br>' + score.toFixed(3)
+      try
+        if elt_cardname['class'] == "cardname condensed"
+          elt_cardname.innerHTML = score.toFixed(3)
+        else
+          elt_cardname.innerHTML = cardName + '<br>' + score.toFixed(3)
       catch exc
         null
 
+window.initializeGolem = () -> null
 window.updateGolem = updateGolem
 

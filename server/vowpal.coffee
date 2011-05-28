@@ -41,7 +41,7 @@ maximizePrediction = (modelName, vwInput, responder) ->
           score = parseFloat(scoreStr)
           choices.push [name, score]
       
-      if choices.length is 0
+      if choices.length == 0
         responder.fail {
           error: 'no choices given'
           model: modelName
