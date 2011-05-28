@@ -173,9 +173,9 @@ gainHandler = (request, responder, query) ->
   turnNum = parseInt(query.turnNum)
   
   mydeck = myself.card_counts
-  mydeck['vp'] = myself.score
+  mydeck['vp'] = myself.score ? 3
   oppdeck = opponent.card_counts
-  oppdeck['vp'] = opponent.score
+  oppdeck['vp'] = opponent.score ? 3
 
   chooseGain(mydeck, oppdeck, supply, coins, buys, turnNum, responder)
 

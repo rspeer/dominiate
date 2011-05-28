@@ -7,7 +7,7 @@ dict2vw = (dict) ->
   # Take a JavaScript key->value object, which I still call a "dict", and
   # express it as a string in the format VW expects.
   colonSeparated = ["#{key.replace(/[ ]/g, '_')}:#{value}" for key, value of dict]
-  return colonSeparated.join().replace(/,/g, ' ')
+  return colonSeparated.join().replace(/,/g, ' ').replace(/NaN/g, '0')
 
 featureString = (name, categories) ->
   namefix = JSON.stringify(name).replace(/[ ]/g, '_')
@@ -22,8 +22,8 @@ maximizePrediction = (modelName, vwInput, responder) ->
   received = []
   proc.stdout.on 'data', (data) ->
     received.push(data)
-  #proc.stderr.on 'data', (data) ->
-  #  console.log('stderr: '+data)
+  proc.stderr.on 'data', (data) ->
+    console.log('stderr: '+data)
   proc.on 'exit', (code) ->
     if code
       responder.fail {

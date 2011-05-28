@@ -18,10 +18,10 @@
      }
    ],
    "permissions": [
-     "http://dominion.isotropic.org",
-     "http://dominion-point-counter.appspot.com",
-     "http://localhost",
-     "http://localhost:8888"
+     "http://dominion.isotropic.org/",
+     "http://dominion-point-counter.appspot.com/",
+     "http://localhost/",
+     "http://localhost:8888/"
    ],
    "description": "Golem, a Dominion Bot",
    "name": "Golem",

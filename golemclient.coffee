@@ -3,7 +3,6 @@ The compiled result of this CoffeeScript gets combined with dominion.js and
 the rest of the extension. We export the function 'updateGolem', which is
 passed relevant information about the game state.
 ###
-
 updateGolem = (players, turnNum) ->
   myself = null
   opponent = null
@@ -38,10 +37,11 @@ updateGolem = (players, turnNum) ->
 
 showBuyValues = (data) ->
   baseline = 0
-  for choice, score of data.choices
-    if choice == []
+  console.log("received choices: #{JSON.stringify(data.choices)}")
+  for [choice, score] in data.choices
+    if choice.length == 0
       baseline = score
-  for choice, score of data.choices
+  for [choice, score] in data.choices
     score -= baseline
     if choice.length == 1
       cardName = choice[0]
@@ -49,23 +49,29 @@ showBuyValues = (data) ->
 
 getSupply = () ->
   supply = {}
-  jQuery('div.supplycard').each (i) ->
-    elt_vertical = this.getElementsByClassName("vertical")[0]
-    elt_imprice = elt_vertical.getElementsByClassName("imprice")[0]
-    elt_imavail = elt_vertical.getElementsByClassName("imavail")[0]
-    cardname = this.getAttribute("cardname")
+  for elt in document.getElementsByClassName('supplycard')
+    elt_imprice = elt.getElementsByClassName("imprice")[0]
+    elt_imavail = elt.getElementsByClassName("imavail")[0]
+    cardname = elt.getAttribute("cardname")
     price = parseInt(elt_imprice.textContent.substring(1))
-    availText = elt_imprice.textContent
+    availText = elt_imavail.textContent
     avail = parseInt(availText.substring(1, availText.length-1))
     if avail > 0
       supply[cardname] = [avail, price]
   supply
 
 showCardValue = (cardName, score) ->
-  jQuery('div.supplycard').each (i) ->
-    if this.getAttribute("cardname") == cardName
-      elt_cardname = this.getElementsByClassName("cardname")[0]
-      elt_cardname.innerHTML = cardName + '<br>' + score.toFixed(3)
+  for elt in document.getElementsByClassName('supplycard')
+    if elt.getAttribute("cardname") == cardName
+      elt_cardname = elt.getElementsByClassName("cardname")[0]
+      if not elt_cardname?
+        elt_cardname = document.createElement('div')
+        elt_cardname['class'] = "cardname"
+        elt.appendChild(elt_cardname)
+      try 
+        elt_cardname.innerHTML = cardName + '<br>' + score.toFixed(3)
+      catch exc
+        null
 
 window.updateGolem = updateGolem
 

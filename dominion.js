@@ -345,6 +345,7 @@ function maybeHandleTurnChange(node) {
     node.innerHTML =
       node.innerHTML.replace(" ---<br>", " " + print + " ---<br>");
 
+    window.updateGolem(players, turn_number);
     return true;
   }
   return false;
@@ -864,6 +865,8 @@ function handleGameEnd(doc) {
 function handle(doc) {
   //try {
     if (doc.constructor == HTMLDivElement &&
+        doc['class'] == 'cardname') return;
+    if (doc.constructor == HTMLDivElement &&
         doc.innerText.indexOf("Say") == 0) {
       deck_spot = doc.children[5];
       points_spot = doc.children[6];
@@ -907,7 +910,6 @@ function handle(doc) {
         updateDeck();
       }
     }
-    window.updateGolem(players, turn_number);
   //}
   //catch (err) {
   //  var error = '';
