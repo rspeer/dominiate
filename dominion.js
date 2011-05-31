@@ -21,7 +21,6 @@ var had_error = false;
 var show_action_count = false;
 var show_unique_count = false;
 var possessed_turn = false;
-var turn_number = 0;
 var announced_error = false;
 
 // Enabled by debugger when analyzing game logs.
@@ -320,9 +319,7 @@ function findTrailingPlayer(text) {
 
 function maybeHandleTurnChange(node) {
   var text = node.innerText;
-  var turn_change_index = text.indexOf("—");
-  if (turn_change_index != -1) {
-    if (turn_change_index == 0) ++turn_number;
+  if (text.indexOf("—") != -1) {
 
     // This must be a turn start.
     if (text.match(/— Your (?:extra )?turn/)) {
@@ -672,7 +669,6 @@ function initialize(doc) {
   show_action_count = false;
   show_unique_count = false;
   possessed_turn = false;
-  turn_number = 0;
   announced_error = false;
 
   last_gain_player = null;
