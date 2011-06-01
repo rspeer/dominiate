@@ -29,6 +29,7 @@ var debug_mode = false;
 var last_player = null;
 var last_reveal_player = null;
 var last_reveal_card = null;
+var turn_number = 0;
 
 // Last time a status message was printed.
 var last_status_print = 0;
@@ -322,10 +323,11 @@ function maybeHandleTurnChange(node) {
   if (text.indexOf("—") != -1) {
 
     // This must be a turn start.
-    if (text.match(/— Your (?:extra )?turn/)) {
+    if (var arr = text.match(/— Your (?:extra )?turn (\d+)/)) {
       last_player = getPlayer("You");
+      turn_number = +arr[1];
     } else {
-      var arr = text.match(/— (.+)'s .*turn/);
+      arr = text.match(/— (.+)'s .*turn/);
       if (arr && arr.length == 2) {
         last_player = getPlayer(arr[1]);
       } else {
