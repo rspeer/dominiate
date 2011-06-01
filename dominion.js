@@ -21,7 +21,6 @@ var had_error = false;
 var show_action_count = false;
 var show_unique_count = false;
 var possessed_turn = false;
-var turn_number = 0;
 var announced_error = false;
 
 // Enabled by debugger when analyzing game logs.
@@ -320,15 +319,13 @@ function findTrailingPlayer(text) {
 
 function maybeHandleTurnChange(node) {
   var text = node.innerText;
-  var turn_change_index = text.indexOf("---");
-  if (turn_change_index != -1) {
-    if (turn_change_index == 0) ++turn_number;
+  if (text.indexOf("—") != -1) {
 
     // This must be a turn start.
-    if (text.match(/--- Your (?:extra )?turn/)) {
+    if (text.match(/— Your (?:extra )?turn/)) {
       last_player = getPlayer("You");
     } else {
-      var arr = text.match(/--- (.+)'s .*turn (?:\([^)]*\) )?---/);
+      var arr = text.match(/— (.+)'s .*turn/);
       if (arr && arr.length == 2) {
         last_player = getPlayer(arr[1]);
       } else {
@@ -336,14 +333,16 @@ function maybeHandleTurnChange(node) {
       }
     }
 
+    if (last_player == null) {
+      console.log("Failed to get player from: " + node.innerText);
+    }
+
     possessed_turn = text.match(/\(possessed by .+\)/);
 
-    var print = turn_number;
     if (debug_mode) {
-      print += " (" + getDecks() + " | " + getScores() + ")";
+      var details = " (" + getDecks() + " | " + getScores() + ")";
+      node.innerHTML.replace(" —<br>", " " + details + " —<br>");
     }
-    node.innerHTML =
-      node.innerHTML.replace(" ---<br>", " " + print + " ---<br>");
 
     return true;
   }
@@ -670,7 +669,6 @@ function initialize(doc) {
   show_action_count = false;
   show_unique_count = false;
   possessed_turn = false;
-  turn_number = 0;
   announced_error = false;
 
   last_gain_player = null;
@@ -871,7 +869,7 @@ function handle(doc) {
       linkToGolem(points_spot);
     }
 
-    if (doc.constructor == HTMLElement && doc.parentNode.id == "log" &&
+    if (doc.className == "logline" &&
         doc.innerText.indexOf("Turn order") != -1) {
       initialize(doc);
     }
@@ -888,7 +886,7 @@ function handle(doc) {
       }
     }
 
-    if (doc.constructor == HTMLElement && doc.parentNode.id == "log") {
+    if (doc.className == "logline") {
       maybeRewriteName(doc);
       handleLogEntry(doc);
     }
@@ -898,7 +896,7 @@ function handle(doc) {
       if (!started) return;
     }
 
-    if (doc.parentNode.id == "chat") {
+    if (doc.parentNode.id == "chat" && doc.childNodes.length > 2) {
       handleChatText(doc.childNodes[1].innerText.slice(0, -1),
                      doc.childNodes[2].nodeValue);
     }
