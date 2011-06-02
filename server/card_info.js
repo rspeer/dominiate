@@ -25,4 +25,21 @@ for (var i=0; i<card_list.length; i++) {
   info.trash = parseValue(card_data.Trash);
   card_info[card_data["Singular"]] = info;
 }
+
+function numCopiesPerGame(card, nPlayers) {
+  if (card == "Province" && nPlayers >= 5) return 15;
+  else if (card_info[card].isVictory) {
+    if (nPlayers >= 3) return 12;
+    else return 8;
+  }
+  else if (card == "Curse") return 10 * (num_players - 1);
+  else if (card == "Potion") return 16;
+  else if (card == "Platinum") return 12;
+  else if (card == "Gold") return 30;
+  else if (card == "Silver") return 40;
+  else if (card == "Copper") return 60;
+  else return 10;
+}
+exports.everySetCards = ["Estate", "Duchy", "Province", "Copper", "Silver", "Gold", "Curse"];
 exports.card_info = card_info;
+exports.numCopiesPerGame = numCopiesPerGame;
