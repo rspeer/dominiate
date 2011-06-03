@@ -8,6 +8,7 @@ you're seeing machine-generated code. The real, understandable code is in
 
 assert = require("assert")
 card_info = require("./card_info").card_info
+deckdata = require("./deckdata")
 util = require("./util")
 vowpal = require("./vowpal")
 
@@ -25,93 +26,6 @@ buyChoices = (supply, coins, mincost, buys) ->
             choices.push([card].concat(choice))
           supply[card][COUNT] += 1
   choices
-
-getDeckFeatures = (deck) ->
-  features = {
-    n: 0
-    nUnique: 0
-    nActions: 0
-    vp: null
-    cardvp: 0
-    chips: null
-    deck: {}
-    unique: {}
-  }
-  for own card, count of deck
-    # Decks that come straight from Isotropic will have a 'vp' entry, holding
-    # the number of actual victory points the player has. We need to figure
-    # out how many of them came from chips -- instead of cards -- and make
-    # that into a feature.
-    if card is 'vp'
-      features.vp = count
-    else
-      features.deck[card] = count
-      features.unique[card] = 1
-      features.nUnique += 1
-      if not card_info[card]?
-        console.log("no such card: #{card}")
-        console.log("Object.prototype is: #{JSON.stringify(Object.prototype)}")
-      if card_info[card].isAction
-        features.nActions += count
-      features.n += count
-  
-  for own card, count of deck
-    if card isnt 'vp'
-      if card_info[card].isVictory or card is 'Curse'
-        cardvp = 0
-        switch card
-          when 'Gardens'
-            cardvp = Math.floor(features.n / 10)
-          when 'Fairgrounds'
-            cardvp = Math.floor(features.nUnique / 5) * 2
-          when 'Duke'
-            cardvp = features.deck['Duchy']
-          when 'Vineyard'
-            cardvp = Math.floor(features.nActions / 3)
-          else
-            cardvp = card_info[card].vp
-        # console.log(count+"x "+card+" is worth "+(cardvp*count))
-        features.cardvp += cardvp * count
-  if features.vp is null
-    features.vp = features.cardvp
-  if features.chips is null
-    features.chips = features.vp - features.cardvp
-  features
-
-addToDeckFeatures = (deck, feats, newcards) ->
-  # Takes in a deck and a 'deckFeatures' object that describes that deck,
-  # plus a list of new cards. Returns the new deckFeatures object.
-  newdeck = util.clone(deck)
-  for card in newcards
-    if newdeck[card]?
-      newdeck[card] += 1
-    else
-      newdeck[card] = 1
-  newfeats = getDeckFeatures(newdeck)
-  
-  # Take the known number of chips and use it to fix up the VP count.
-  newfeats.chips = feats.chips
-  newfeats.vp = newfeats.cardvp + newfeats.chips
-  #assert.ok(newfeats.chips >= 0)
-  newfeats
-
-normalizeDeck = (feats) ->
-  # Takes a deckFeatures object and squishes together the card counts and
-  # a bunch of features into one object. The card counts will be normalized
-  # into cards per hand, and other quantities also reduced, to prepare for
-  # prediction by Vowpal.
-  nHands = Math.max(feats.n, 5) / 5
-  normalized = {actions: 0}
-  for card, count of feats.deck
-    normalized[card] = count / nHands
-    if card_info[card].isAction
-      # This was a bug in our training! Unfortunately, we should test the
-      # same way. We counted unique actions / 5 instead of total actions.
-      normalized.actions += 0.2
-  normalized.unique = feats.nUnique / 5
-  normalized.n = feats.n / 10
-  normalized.vp = feats.vp / 10
-  normalized
 
 makeModelName = (num) ->
   if num < 3 then "model03.vw"
@@ -142,16 +56,14 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
   #
   # Run the file through VW. Sort the results. Do the best thing.
   choices = buyChoices(supply, coins, 0, buys)
-  myfeatures = getDeckFeatures(mydeck)
-  oppfeatures = getDeckFeatures(oppdeck)
+  myfeatures = deckdata.getDeckFeatures(mydeck)
+  oppfeatures = deckdata.getDeckFeatures(oppdeck)
   
   vwLines = for choice in choices
-    newfeats = addToDeckFeatures(mydeck, myfeatures, choice)
+    newfeats = deckdata.addToDeckFeatures(mydeck, myfeatures, choice)
     vwStruct = {
-      cards: normalizeDeck(newfeats)
-      opponent: normalizeDeck(oppfeatures)
-      unique: newfeats.unique
-      vsunique: oppfeatures.unique
+      cards: deckdata.normalizeFeats(newfeats)
+      opponent: deckdata.normalizeFeats(oppfeatures)
     }
     vowpal.featureString(choice, vwStruct)
   
@@ -183,8 +95,6 @@ trashHandler = (request, responder, query) ->
   responder.fail "Not implemented"
 
 exports.buyChoices = buyChoices
-exports.getDeckFeatures = getDeckFeatures
-exports.normalizeDeck = normalizeDeck
 exports.chooseGain = chooseGain
 exports.gain = exports.gainHandler = gainHandler
 exports.trash = exports.trashHandler = trashHandler

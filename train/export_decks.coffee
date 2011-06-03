@@ -1,6 +1,7 @@
 mongodb = require('mongodb')
 fs = require('fs')
 card_info = require('../server/card_info')
+deckdata = require('../server/deckdata')
 
 server = new mongodb.Server("new-caledonia.media.mit.edu", 27017, {})
 
@@ -31,12 +32,10 @@ useCollection = (collection) ->
         for turnNum in [0...nTurns]
           # ... then by player
           for player in doc.players
+            # TODO: do stuff with the player's deck and the best opponent's
             turn = deck[player].turns[turnNum]
             if turn?
-              goonses = 0
-              for play in turn.plays
-                if play is 'Goons' then goonses += 1
-              
+              handleDeckChange(player, decks, supply, turn)
 
 handleDeckChange = (player, decks, supply, change) ->
   if change.buys?

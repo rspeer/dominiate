@@ -32,7 +32,7 @@ function numCopiesPerGame(card, nPlayers) {
     if (nPlayers >= 3) return 12;
     else return 8;
   }
-  else if (card == "Curse") return 10 * (num_players - 1);
+  else if (card == "Curse") return 10 * (nPlayers - 1);
   else if (card == "Potion") return 16;
   else if (card == "Platinum") return 12;
   else if (card == "Gold") return 30;
