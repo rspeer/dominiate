@@ -1,4 +1,5 @@
 card_info = require("./card_info").card_info
+util = require("./util")
 
 getDeckFeatures = (deck) ->
   features = {
@@ -98,5 +99,6 @@ normalizeDeck = (deck) ->
   normalizeFeats(getDeckFeatures(deck))
 
 exports.getDeckFeatures = getDeckFeatures
+exports.addToDeckFeatures = addToDeckFeatures
 exports.normalizeFeats = normalizeFeats
 exports.normalizeDeck = normalizeDeck

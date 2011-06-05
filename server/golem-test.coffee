@@ -1,4 +1,5 @@
 golem = require("./golem")
+deckdata = require("./deckdata")
 vowpal = require("./vowpal")
 card_info = require("./card_info").card_info
 tests = exports
@@ -83,7 +84,7 @@ tests['card info makes sense'] = (test) ->
   test.done()
 
 tests['deck features'] = (test) ->
-  features = golem.getDeckFeatures(DECK)
+  features = deckdata.getDeckFeatures(DECK)
   test.equal features.n, 16
   test.equal features.nUnique, 6
   test.equal features.nActions, 2
@@ -97,17 +98,19 @@ tests['deck features'] = (test) ->
   test.done()
 
 tests['normalize cards in starting deck'] = (test) ->
-  norm = golem.normalizeDeck(golem.getDeckFeatures(STARTDECK))
+  norm = deckdata.normalizeDeck(STARTDECK)
   test.equal norm.Estate, 1.5
   test.equal norm.Copper, 3.5
   test.done()
 
 tests['normalize features of starting deck'] = (test) ->
-  norm = golem.normalizeDeck(golem.getDeckFeatures(STARTDECK))
-  #test.equal norm.unique, 0.4
-  #test.equal norm.n, 1.0
-  test.equal norm.vp, 0.3
+  norm = deckdata.normalizeDeck(STARTDECK)
+  test.equal norm.unique, 2
+  test.equal norm.n, 10
+  test.equal norm.vp, 3
   test.equal norm.actions, 0
+  test.equal norm.coinRatio, 3.5
+  test.equal norm.actionBalance, 0
   test.done()
 
 tests['overly simplified feature string'] = (test) ->
