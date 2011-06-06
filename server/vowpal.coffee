@@ -3,17 +3,33 @@ util = require("./util")
 
 MODELPATH = __dirname + "/../model"
 
+outputVal = (value) ->
+  if isNaN(value) or not value?
+    throw "bad value"
+  else if typeof value is 'number'
+    # do this the quick, truncating way. We don't need that much precision.
+    value.toString()[0...6]
+  else
+    value
+
 dict2vw = (dict) ->
   # Take a JavaScript key->value object, which I still call a "dict", and
   # express it as a string in the format VW expects.
-  colonSeparated = ["#{key.replace(/[ ]/g, '_')}:#{value}" for key, value of dict]
-  return colonSeparated.join().replace(/,/g, ' ').replace(/NaN/g, '0')
+  colonSeparated = ["#{key.replace(/[ ]/g, '_')}:#{outputVal(value)}" for key, value of dict]
 
-featureString = (name, categories) ->
-  namefix = JSON.stringify(name).replace(/[ ]/g, '_')
-  catStrings = [category+' '+dict2vw(value) for category, value of categories]
-  allCatString = catStrings.join().replace(/,/g, ' |')
-  return "0 1 #{namefix}|#{allCatString}"
+  # Not sure why I have to do this; I don't understand why join() seems to
+  # ignore its argument and use a comma here
+  return colonSeparated.join().replace(/,/g, ' ')
+
+featureString = (name, categories, win) ->
+  win ?= 0
+  try
+    namefix = JSON.stringify(name).replace(/[ ]/g, '_')
+    catStrings = [category+' '+dict2vw(value) for category, value of categories]
+    allCatString = catStrings.join().replace(/,/g, ' |')
+    return "#{win} 1 #{namefix}|#{allCatString}"
+  catch err
+    throw "bad value in: #{JSON.stringify(categories)}"
 
 maximizePrediction = (modelName, vwInput, responder) ->
   proc = spawn('sh', ['vowpal-pipe.sh', "#{MODELPATH}/#{modelName}"])

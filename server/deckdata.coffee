@@ -41,7 +41,7 @@ getDeckFeatures = (deck) ->
           when 'Fairgrounds'
             cardvp = Math.floor(features.nUnique / 5) * 2
           when 'Duke'
-            cardvp = features.deck['Duchy']
+            cardvp = features.deck['Duchy'] ? 0
           when 'Vineyard'
             cardvp = Math.floor(features.nActions / 3)
           else
@@ -76,9 +76,12 @@ normalizeFeats = (feats) ->
   # a bunch of features into one object. The card counts will be normalized
   # into cards per hand to prepare for prediction by Vowpal.
   nHands = Math.max(feats.n, 5) / 5
-  normalized = {actions: 0}
-  normalized.actionBalance = 0
-  normalized.coinRatio = 0
+  normalized = {
+    actions: 0
+    actionBalance: 0
+    coinRatio: 0
+    potionRatio: 0
+  }
   for card, count of feats.deck
     normalized[card] = count / nHands
     if card_info[card].isAction
@@ -86,6 +89,7 @@ normalizeFeats = (feats) ->
       normalized.actionBalance += count*(card_info[card].actions - 1) / nHands
     if card_info[card].isTreasure
       normalized.coinRatio += count*(card_info[card].coins) / nHands
+      normalized.potionRatio += count*(card_info[card].potion) / nHands
     # make features such as "Caravan>3"
     for level in [0...count]
       normalized[card+'>'+level] = 1

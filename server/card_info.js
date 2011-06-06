@@ -2,7 +2,8 @@ var card_list = require("../card_list").card_list;
 var card_info = {};
 
 function parseValue(value) {
-  var parsed = parseInt(value);
+  if (value === "P") return 0;
+  var parsed = parseInt(value.replace(/P/, ''));
   if (isNaN(parsed)) return value;
   else return parsed;
 }
@@ -16,14 +17,16 @@ for (var i=0; i<card_list.length; i++) {
   info.isAttack = (card_data.Attack === "1");
   info.isReaction = (card_data.Reaction === "1");
   info.coins = parseValue(card_data.Coins);
+  info.potion = card_data.Singular === "Potion" ? 1 : 0;
   info.duration = parseValue(card_data.Duration);
   info.actions = parseValue(card_data.Actions);
   info.vp = parseValue(card_data.VP);
   info.cost = parseValue(card_data.Cost);
+  info.potionCost = card_data.Cost.match(/P/) ? 1 : 0;
   info.buys = parseValue(card_data.Buys);
   info.cards = parseValue(card_data.Cards);
   info.trash = parseValue(card_data.Trash);
-  card_info[card_data["Singular"]] = info;
+  card_info[card_data.Singular] = info;
 }
 
 function numCopiesPerGame(card, nPlayers) {
@@ -40,6 +43,12 @@ function numCopiesPerGame(card, nPlayers) {
   else if (card == "Copper") return 60;
   else return 10;
 }
+
+// Rough estimates for computing deck statistics
+card_info["Bank"].coins = 3;
+card_info["Tribute"].actions = 2;
+card_info["Mint"].trash = 0;
+card_info["Philosopher's Stone"].coins = 4;
 exports.everySetCards = ["Estate", "Duchy", "Province", "Copper", "Silver", "Gold", "Curse"];
 exports.card_info = card_info;
 exports.numCopiesPerGame = numCopiesPerGame;

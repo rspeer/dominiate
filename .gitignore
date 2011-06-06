@@ -5,3 +5,4 @@ server/golem-test.js
 server/vowpal.js
 golemclient.js
 train/mongo_password.txt
+train/output/*

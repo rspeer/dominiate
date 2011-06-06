@@ -109,6 +109,8 @@ tests['normalize features of starting deck'] = (test) ->
   test.equal norm.n, 10
   test.equal norm.vp, 3
   test.equal norm.actions, 0
+  test.equal norm['Copper'], 3.5
+  test.equal norm['Estate'], 1.5
   test.equal norm.coinRatio, 3.5
   test.equal norm.actionBalance, 0
   test.done()
