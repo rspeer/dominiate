@@ -46,6 +46,7 @@ function numCopiesPerGame(card, nPlayers) {
 
 // Rough estimates for computing deck statistics
 card_info["Bank"].coins = 3;
+card_info["Diadem"].coins = 2;
 card_info["Tribute"].actions = 2;
 card_info["Mint"].trash = 0;
 card_info["Philosopher's Stone"].coins = 4;
