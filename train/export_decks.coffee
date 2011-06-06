@@ -49,7 +49,7 @@ useCollection = (collection, output) ->
                 bestopp = opponent
             # TODO: do stuff with the player's deck and the best opponent's
             win = 0
-            return if not playerdecks[player]?
+            return if not bestopp?
             if playerdecks[player].win_points > playerdecks[bestopp].win_points
               win = 1
             else if playerdecks[player].win_points < playerdecks[bestopp].win_points
