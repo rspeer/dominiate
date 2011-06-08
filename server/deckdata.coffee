@@ -1,4 +1,5 @@
 card_info = require("./card_info").card_info
+numCopiesPerGame = require("./card_info").numCopiesPerGame
 util = require("./util")
 
 getDeckFeatures = (deck) ->
@@ -85,7 +86,7 @@ normalizeFeats = (feats) ->
   for card, count of feats.deck
     normalized[card] = count / nHands
     if card_info[card].isAction
-      normalized.actions += count
+      normalized.actions += count / 10
       normalized.actionBalance += count*(card_info[card].actions - 1) / nHands
     if card_info[card].isTreasure
       normalized.coinRatio += count*(card_info[card].coins) / nHands
@@ -95,14 +96,21 @@ normalizeFeats = (feats) ->
       normalized[card+'>'+level] = 1
   
   normalized.unique = feats.nUnique
-  normalized.n = feats.n
-  normalized.vp = feats.vp
+  normalized.n = feats.n / 10
+  normalized.vp = feats.vp / 10
   normalized
 
 normalizeDeck = (deck) ->
   normalizeFeats(getDeckFeatures(deck))
 
+normalizeSupply = (supply) ->
+  norm = {}
+  for card, value of supply
+    norm[card] = value / numCopiesPerGame(card, 2)
+  norm
+
 exports.getDeckFeatures = getDeckFeatures
 exports.addToDeckFeatures = addToDeckFeatures
 exports.normalizeFeats = normalizeFeats
 exports.normalizeDeck = normalizeDeck
+exports.normalizeSupply = normalizeSupply

@@ -65,10 +65,10 @@ outputFeatures = (mydeck, oppdeck, supply, id, win, out) ->
   vwStruct = {
     cards: deckdata.normalizeDeck(mydeck)
     opponent: deckdata.normalizeDeck(oppdeck)
-    supply: supply
+    supply: deckdata.normalizeSupply(supply)
   }
   try
-    fs.write(out, vowpal.featureString(id, vwStruct, win)+'\n')
+    fs.writeSync(out, vowpal.featureString(id, vwStruct, win)+'\n')
   catch err
     console.log(err)
     debug = {mydeck: mydeck, oppdeck: oppdeck, vwStruct: vwStruct}
