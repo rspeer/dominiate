@@ -320,10 +320,11 @@ function findTrailingPlayer(text) {
 
 function maybeHandleTurnChange(node) {
   var text = node.innerText;
+  var arr = null;
   if (text.indexOf("—") != -1) {
 
     // This must be a turn start.
-    if (var arr = text.match(/— Your (?:extra )?turn (\d+)/)) {
+    if (arr = text.match(/— Your (?:extra )?turn (\d+)/)) {
       last_player = getPlayer("You");
       turn_number = +arr[1];
     } else {
