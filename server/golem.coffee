@@ -28,9 +28,8 @@ buyChoices = (supply, coins, mincost, buys) ->
   choices
 
 makeModelName = (num) ->
-  if num < 3 then "model03.vw"
-  else if num < 10 then "model0#{num}.vw"
-  else if num > 13 then "model13.vw"  # fix when later models work
+  if num < 2 then "model2.vw"
+  else if num > 25 then "model25.vw"  # fix when later models work
   else "model#{num}.vw"
 
 chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
