@@ -57,12 +57,16 @@ chooseGain = (mydeck, oppdeck, supply, coins, buys, turnNum, responder) ->
   choices = buyChoices(supply, coins, 0, buys)
   myfeatures = deckdata.getDeckFeatures(mydeck)
   oppfeatures = deckdata.getDeckFeatures(oppdeck)
-  
+  supply2 = {}
+  for card, info of supply
+    [count, cost] = info
+    supply2[card] = count
   vwLines = for choice in choices
     newfeats = deckdata.addToDeckFeatures(mydeck, myfeatures, choice)
     vwStruct = {
       cards: deckdata.normalizeFeats(newfeats)
       opponent: deckdata.normalizeFeats(oppfeatures)
+      supply: deckdata.normalizeSupply(supply2)
     }
     vowpal.featureString(choice, vwStruct)
   
