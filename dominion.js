@@ -533,8 +533,8 @@ function handleGainOrTrash(player, elems, text, multiplier) {
 function handleLogEntry(node) {
   if (maybeHandleTurnChange(node)) return;
 
-  // Duplicate stuff here. It's printed normally too.
-  if (node.className == "possessed") return;
+  // Make sure this isn't a duplicate possession entry.
+  if (node.className != "logline") return;
 
   var text = node.innerText.split(" ");
 
@@ -884,7 +884,7 @@ function handle(doc) {
       }
     }
 
-    if (doc.className == "logline") {
+    if (doc.className && doc.className.indexOf("logline") == 0) {
       maybeRewriteName(doc);
       handleLogEntry(doc);
     }
