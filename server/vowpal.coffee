@@ -40,6 +40,12 @@ maximizePrediction = (modelName, vwInput, responder) ->
     received.push(data)
   proc.stderr.on 'data', (data) ->
     console.log('stderr: '+data)
+  proc.on 'error', (err) ->
+    responder.fail {
+      error: err
+      model: modelName
+      input: vwInput
+    }
   proc.on 'exit', (code) ->
     if code
       responder.fail {
@@ -72,7 +78,7 @@ maximizePrediction = (modelName, vwInput, responder) ->
         best: choices[0][0]
         score: choices[0][1]
       }
-  proc.stdin.write(vwInput)
+  proc.stdin.write(vwInput+'\n')
   proc.stdin.end()
 
 exports.dict2vw = dict2vw
