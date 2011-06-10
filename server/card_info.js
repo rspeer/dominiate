@@ -31,6 +31,7 @@ for (var i=0; i<card_list.length; i++) {
 
 function numCopiesPerGame(card, nPlayers) {
   if (card == "Province" && nPlayers >= 5) return 15;
+  if (card == "Colony" && nPlayers >= 5) return 15;
   else if (card_info[card].isVictory) {
     if (nPlayers >= 3) return 12;
     else return 8;

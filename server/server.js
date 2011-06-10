@@ -23,11 +23,11 @@ function onRequest(request, response) {
     var handler = router[pathname.substring(1)];
     
     function succeed(data) {
-        respondHTTP(response, 200, data)
+        respondHTTP(response, 200, data);
     }
 
     function fail(data) {
-        respondHTTP(response, 404, data)
+        respondHTTP(response, 404, data);
     }
     responder = {"succeed": succeed, "fail": fail}
 
