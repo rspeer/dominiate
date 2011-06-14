@@ -930,7 +930,7 @@ function buildStatusMessage() {
   return status_message;
 }
 
-function setupLobbyStatusHandling() {
+function enterLobby() {
   if (localStorage["status_announce"] == "t" &&
       $('#lobby').length != 0 && $('#lobby').css('display') != "none") {
     // Set the original status message.
@@ -964,8 +964,12 @@ function setupLobbyStatusHandling() {
       $('#fake_entry').val("");
     })
   }
+
+  console.log($('#autotracker'));
+  $('#tracker').attr('checked', true).attr('disabled', true)
+  $('#autotracker').val('yes').attr('disabled', true);
 }
-setTimeout("setupLobbyStatusHandling()", 500);
+setTimeout("enterLobby()", 500);
 
 document.body.addEventListener('DOMNodeInserted', function(ev) {
   handle(ev.target);
