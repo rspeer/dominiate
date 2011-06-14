@@ -965,11 +965,10 @@ function enterLobby() {
     })
   }
 
-  console.log($('#autotracker'));
   $('#tracker').attr('checked', true).attr('disabled', true)
   $('#autotracker').val('yes').attr('disabled', true);
 }
-setTimeout("enterLobby()", 500);
+setTimeout("enterLobby()", 600);
 
 document.body.addEventListener('DOMNodeInserted', function(ev) {
   handle(ev.target);
