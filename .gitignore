@@ -3,6 +3,11 @@
 server/golem.js
 server/golem-test.js
 server/vowpal.js
+server/deckdata.js
 golemclient.js
 train/mongo_password.txt
 train/output/*
+train/export_decks.js
+model/*
+node-mongodb-native
+
