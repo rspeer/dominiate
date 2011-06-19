@@ -90,16 +90,16 @@ normalizeFeats = (feats) ->
       normalized.actions += count / 10
       normalized.actionBalance += count*(card_info[card].actions - 1) / nHands
     if card_info[card].isTreasure
-      normalized.coinRatio += count*(card_info[card].coins) / nHands
-      normalized.totalCoins += count*(card_info[card].coins) / 10
-      normalized.potionRatio += count*(card_info[card].potion) / nHands
+      normalized.coinRatio += count*(card_info[card].coins) / nHands / 5
+      normalized.totalCoins += count*(card_info[card].coins) / 100
+      normalized.potionRatio += count*(card_info[card].potion) / nHands / 5
     # make features such as "Caravan>3"
     for level in [0...count]
       normalized[card+'>'+level] = 1
   
   normalized.unique = feats.nUnique / 10
-  normalized.n = feats.n / 10
-  normalized.vp = feats.vp / 10
+  normalized.n = feats.n / 100
+  normalized.vp = feats.vp / 100
   normalized
 
 normalizeDeck = (deck) ->

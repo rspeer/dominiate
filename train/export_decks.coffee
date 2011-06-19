@@ -66,14 +66,14 @@ outputFeatures = (mydeck, oppdeck, supply, id, win, out) ->
     opponent: deckdata.normalizeDeck(oppdeck)
     supply: deckdata.normalizeSupply(supply)
   }
-  try
-    fs.writeSync(out, vowpal.featureString(id, vwStruct, win)+'\n')
-  catch err
-    console.log(err)
-    debug = {mydeck: mydeck, oppdeck: oppdeck, vwStruct: vwStruct}
-    console.log(debug)
-    throw "bad feature value"
-
+  if vwStruct.cards.n > 0
+    try
+      fs.writeSync(out, vowpal.featureString(id, vwStruct, win)+'\n')
+    catch err
+      console.log(err)
+      debug = {mydeck: mydeck, oppdeck: oppdeck, vwStruct: vwStruct}
+      console.log(debug)
+      throw "bad feature value"
 
 handleDeckChange = (player, states, supply, change) ->
   # Change the states of players' decks based on a DB object that describes

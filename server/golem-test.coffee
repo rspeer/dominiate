@@ -105,13 +105,13 @@ tests['normalize cards in starting deck'] = (test) ->
 
 tests['normalize features of starting deck'] = (test) ->
   norm = deckdata.normalizeDeck(STARTDECK)
-  test.equal norm.unique, 2   # FIXME if unique range is reduced
-  test.equal norm.n, 1.0
-  test.equal norm.vp, .3
+  test.equal norm.unique, 0.2
+  test.equal norm.n, 0.1
+  test.equal norm.vp, .03
   test.equal norm.actions, 0
   test.equal norm['Copper'], 3.5
   test.equal norm['Estate'], 1.5
-  test.equal norm.coinRatio, 3.5
+  test.equal norm.coinRatio, 0.7
   test.equal norm.actionBalance, 0
   test.done()
 
