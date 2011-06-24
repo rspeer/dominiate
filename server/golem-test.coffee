@@ -10,21 +10,22 @@ SUPPLY = {
   "Estate": [2,2]
   "Curse": [3,0]
 }
+AVAIL = ['Province', 'Duchy', 'Estate', 'Curse']
 
 tests['buy no cards'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, 10, 0, 0)
+  choices = golem.buyChoices(SUPPLY, AVAIL, 10, 0, 0)
   test.deepEqual choices, [[]]
   test.done()
 
 tests['buy one card for 6'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, 6, 0, 1)
+  choices = golem.buyChoices(SUPPLY, AVAIL, 6, 0, 1)
   choices.sort()
   test.deepEqual choices, [[], ["Curse"], ["Duchy"], ["Estate"]]
 
   test.done()
 
 tests['buy two cards for 8'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, 8, 0, 2)
+  choices = golem.buyChoices(SUPPLY, AVAIL, 8, 0, 2)
   choices.sort()
   test.deepEqual choices, [
     []
@@ -43,7 +44,7 @@ tests['buy two cards for 8'] = (test) ->
   test.done()
 
 tests['buy out the estates'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, 6, 2, 6)
+  choices = golem.buyChoices(SUPPLY, AVAIL, 6, 2, 6)
   choices.sort()
   test.deepEqual choices, [
     []
@@ -78,6 +79,9 @@ SUPPLY2 = {
   'Estate': [8,2]
   'Curse': [10,0]
 }
+
+AVAIL2 = ['Province', 'Duchy', 'Mountebank', 'Festival', 'Smithy', 'Estate',
+'Curse']
 
 tests['card info makes sense'] = (test) ->
   test.equal card_info['Copper'].isAction, false
@@ -126,7 +130,7 @@ tests['overly simplified feature string'] = (test) ->
 failure = (obj) -> test.ok(false)
 tests['buy a Mountebank early'] = (test) ->
   test.expect(1)
-  golem.chooseGain DECK, STARTDECK, SUPPLY2, 8, 1, 3, {
+  golem.chooseBuy DECK, STARTDECK, SUPPLY2, AVAIL2, 8, 1, 3, {
     succeed: (obj) ->
       test.deepEqual obj.best, ["Mountebank"]
       test.done()
@@ -134,7 +138,7 @@ tests['buy a Mountebank early'] = (test) ->
   }
 
 tests['buy a Province later'] = (test) ->
-  golem.chooseGain DECK, DECK, SUPPLY2, 8, 1, 24, {
+  golem.chooseBuy DECK, DECK, SUPPLY2, AVAIL2, 8, 1, 24, {
     succeed: (obj) ->
       test.deepEqual obj.best, ["Province"]
       test.done()
@@ -142,7 +146,7 @@ tests['buy a Province later'] = (test) ->
   }
 
 tests['two provinces are better than one'] = (test) ->
-  golem.chooseGain DECK, DECK, SUPPLY2, 16, 2, 15, {
+  golem.chooseBuy DECK, DECK, SUPPLY2, AVAIL2, 16, 2, 15, {
     succeed: (obj) ->
       test.deepEqual obj.best, ["Province","Province"]
       test.done()
