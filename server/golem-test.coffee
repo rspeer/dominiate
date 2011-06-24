@@ -13,19 +13,19 @@ SUPPLY = {
 AVAIL = ['Province', 'Duchy', 'Estate', 'Curse']
 
 tests['buy no cards'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, AVAIL, 10, 0, 0)
+  choices = golem.buyChoices(AVAIL, SUPPLY, 10, 0, 0)
   test.deepEqual choices, [[]]
   test.done()
 
 tests['buy one card for 6'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, AVAIL, 6, 0, 1)
+  choices = golem.buyChoices(AVAIL, SUPPLY, 6, 0, 1)
   choices.sort()
   test.deepEqual choices, [[], ["Curse"], ["Duchy"], ["Estate"]]
 
   test.done()
 
 tests['buy two cards for 8'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, AVAIL, 8, 0, 2)
+  choices = golem.buyChoices(AVAIL, SUPPLY, 8, 0, 2)
   choices.sort()
   test.deepEqual choices, [
     []
@@ -44,7 +44,7 @@ tests['buy two cards for 8'] = (test) ->
   test.done()
 
 tests['buy out the estates'] = (test) ->
-  choices = golem.buyChoices(SUPPLY, AVAIL, 6, 2, 6)
+  choices = golem.buyChoices(AVAIL, SUPPLY, 6, 2, 6)
   choices.sort()
   test.deepEqual choices, [
     []
@@ -64,6 +64,12 @@ DECK = {
   'vp': 8           # contains 2 chips
 }
 
+DECKB = {
+  'Estate': 3
+  'Silver': 2
+  'Bishop': 4
+}
+
 STARTDECK = {
   'Copper': 7
   'Estate': 3
@@ -75,13 +81,15 @@ SUPPLY2 = {
   'Duchy': [8,5]
   'Mountebank': [10,5]
   'Festival': [10,5]
+  'Bishop': [10,4]
   'Smithy': [10,4]
+  'Silver': [30,3]
   'Estate': [8,2]
   'Curse': [10,0]
 }
 
-AVAIL2 = ['Province', 'Duchy', 'Mountebank', 'Festival', 'Smithy', 'Estate',
-'Curse']
+AVAIL2 = ['Province', 'Duchy', 'Mountebank', 'Festival', 'Smithy', 'Bishop',
+'Silver', 'Estate', 'Curse']
 
 tests['card info makes sense'] = (test) ->
   test.equal card_info['Copper'].isAction, false
@@ -133,6 +141,14 @@ tests['buy a Mountebank early'] = (test) ->
   golem.chooseBuy DECK, STARTDECK, SUPPLY2, AVAIL2, 8, 1, 3, {
     succeed: (obj) ->
       test.deepEqual obj.best, ["Mountebank"]
+      test.done()
+    fail: failure
+  }
+
+tests['you do not want another bishop'] = (test) ->
+  golem.chooseBuy DECKB, DECKB, SUPPLY2, AVAIL2, 4, 1, 10, {
+    succeed: (obj) ->
+      test.deepEqual obj.best, ["Silver"]
       test.done()
     fail: failure
   }
