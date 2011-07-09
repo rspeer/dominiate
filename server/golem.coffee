@@ -96,6 +96,7 @@ chooseGain = (mydeck, oppdeck, supply, choices, turnNum, responder) ->
   )
 
 buyHandler = (request, responder, query) ->
+  console.log(JSON.stringify(query))
   myself = JSON.parse(query.myself)     # Player object
   opponent = JSON.parse(query.opponent) # Player object
   supply = JSON.parse(query.supply)     # mapping from card -> [count, cost]
@@ -135,5 +136,6 @@ trashHandler = (request, responder, query) ->
 exports.buyChoices = buyChoices
 exports.chooseGain = chooseGain
 exports.chooseBuy = chooseBuy
+exports.buy = exports.buyHandler = buyHandler
 exports.gain = exports.gainHandler = gainHandler
 exports.trash = exports.trashHandler = trashHandler

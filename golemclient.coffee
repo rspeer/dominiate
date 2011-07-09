@@ -20,6 +20,7 @@ updateGolem = (players, turnNum) ->
   oppdata = {score: opponent.score, card_counts: opponent.card_counts}
 
   supply = getSupply()
+  avail = getAvail()
   state = getState()
   
   jQuery.ajax "http://localhost:8888/gain", {
@@ -27,6 +28,7 @@ updateGolem = (players, turnNum) ->
       myself: JSON.stringify(mydata)
       opponent: JSON.stringify(oppdata)
       supply: JSON.stringify(supply)
+      available: JSON.stringify(avail)
       turnNum: turnNum
       coins: state.coins
       buys: state.buys
@@ -57,7 +59,7 @@ showBuyValues = (data) ->
 
 getSupply = () ->
   supply = {}
-  for elt in document.getElementsByClassName('buy')
+  for elt in document.getElementsByClassName('supplycard')
     elt_imprice = elt.getElementsByClassName("imprice")[0]
     elt_imavail = elt.getElementsByClassName("imavail")[0]
     cardname = elt.getAttribute("cardname")
@@ -67,6 +69,13 @@ getSupply = () ->
     if avail > 0
       supply[cardname] = [avail, price]
   supply
+
+getAvail = () ->
+  avail = []
+  for elt in document.getElementsByClassName('buy')
+    cardname = elt.getAttribute("cardname")
+    avail.push(cardname)
+  avail
 
 getState = () ->
   holder = document.getElementById('hand_holder')
