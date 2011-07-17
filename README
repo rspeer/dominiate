@@ -14,5 +14,11 @@ When you take a robot and make it Dominion-themed, you get a Golem.
 
 So what does it do?
 -------------------
-At the moment, it writes files full of statistics on which cards are good to
-buy. Not that exciting yet. It'll get there.
+The core of Golem is a function that evaluates a game state, containing its
+deck, an opponent's deck, and the supply, and returns a positive or negative
+value representing that deck's ability to win. Much of what it does so far is
+serving a JSON API for this.
+
+It can also hook into the Dominion Point Counter in a kind of flaky way to
+become a semi-bot that suggests what to buy.
+
