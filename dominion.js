@@ -20,6 +20,7 @@ var disabled = false;
 var had_error = false;
 var show_action_count = false;
 var show_unique_count = false;
+var show_duchy_count = false;
 var possessed_turn = false;
 var announced_error = false;
 
@@ -185,13 +186,17 @@ function Player(name) {
     var str = this.deck_size;
     var need_action_string = (show_action_count && this.special_counts["Actions"]);
     var need_unique_string = (show_unique_count && this.special_counts["Uniques"]);
-    if  (need_action_string || need_unique_string) {
+    var need_duchy_string = (show_duchy_count && this.special_counts["Duchy"]);
+    if (need_action_string || need_unique_string || need_duchy_string) {
       var special_types = [];
       if (need_unique_string) {
         special_types.push(this.special_counts["Uniques"] + "u");
       }
       if (need_action_string) {
         special_types.push(this.special_counts["Actions"] + "a");
+      }
+      if (need_duchy_string) {
+        special_types.push(this.special_counts["Duchy"] + "d");
       }
       str += '(' + special_types.join(", ") + ')';
     }
@@ -666,8 +671,6 @@ function initialize(doc) {
   i_introduced = false;
   disabled = false;
   had_error = false;
-  show_action_count = false;
-  show_unique_count = false;
   possessed_turn = false;
   announced_error = false;
 
@@ -872,17 +875,19 @@ function handle(doc) {
       initialize(doc);
     }
 
-    if (!started) return;
-
     if (doc.parentNode.id == "supply") {
+      show_action_count = false;
+      show_unique_count = false;
+      show_duchy_count = false;
       elems = doc.getElementsByTagName("span");
       for (var elem in elems) {
         if (elems[elem].innerText == "Vineyard") show_action_count = true;
-      }
-      for (var elem in elems) {
         if (elems[elem].innerText == "Fairgrounds") show_unique_count = true;
+        if (elems[elem].innerText == "Duke") show_duchy_count = true;
       }
     }
+
+    if (!started) return;
 
     if (doc.className && doc.className.indexOf("logline") == 0) {
       maybeRewriteName(doc);
