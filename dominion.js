@@ -994,8 +994,8 @@ function restoreHistory(node) {
     while (logRegion.hasChildNodes() && logRegion.firstChild != node)
       logRegion.removeChild(logRegion.firstChild);
     var newLogEntryInner = node.innerHTML;
-    var line;
-    while ((line = storedLog.removeChild(storedLog.firstChild)) != undefined) {
+    while (storedLog.hasChildNodes()) {
+      var line = storedLog.removeChild(storedLog.firstChild);
       // The way we avoid logs going away is to put them back in when they go away. So a stored log can 
       // capture both log nodes -- the replacement and the fading original. So we have to make sure that 
       // the log entry hasn't already been handled.
