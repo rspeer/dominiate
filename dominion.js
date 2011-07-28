@@ -708,7 +708,7 @@ function getScores() {
 function updateScores() {
   if (points_spot == undefined) return;
   points_spot.innerHTML = getScores();
-    }
+}
 
 function getDecks() {
   var decks = "Cards: ";
