@@ -717,7 +717,11 @@ function initialize(doc) {
   player_re = "";
   player_count = 0;
 
-  if (localStorage["always_display"] != "f") {
+  if (window.localStorage.getItem("disabled")) {
+    disabled = true;
+  }
+
+  if (!disabled && localStorage["always_display"] != "f") {
     updateScores();
     updateDeck();
   }
@@ -780,7 +784,7 @@ function maybeRewriteName(doc) {
 }
 
 function maybeIntroducePlugin() {
-  if (!introduced) {
+  if (!introduced && !disabled) {
     writeText("★ Game scored by Dominion Point Counter ★");
     writeText("http://goo.gl/iDihS");
     writeText("Type !status to see the current score.");
@@ -812,6 +816,7 @@ function handleChatText(speaker, text) {
     setTimeout(command, wait_time);
   }
   if (localStorage["allow_disable"] != "f" && text == " !disable") {
+    window.localStorage.setItem("disabled", "t");
     disabled = true;
     deck_spot.innerHTML = "exit";
     points_spot.innerHTML = "faq";
@@ -944,13 +949,13 @@ function maybeStartOfGame(node) {
     // The game is starting, so put in the initial blank entries and clear
     // out any local storage.
     console.log("--- starting game ---");
-    started = true;
     next_log_line_num = 0;
     window.localStorage.removeItem("log");
+    window.localStorage.removeItem("disabled");
   } else {
     restoreHistory(node);
-    started = true;
   }
+  started = true;
 }
 
 // Returns true if the log node should be handled as part of the game.
