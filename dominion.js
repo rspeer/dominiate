@@ -982,9 +982,8 @@ function maybeStartOfGame(node) {
     window.localStorage.removeItem("log");
     window.localStorage.removeItem("disabled");
   } else {
-    if (window.localStorage.getItem("disabled") != "t") {
-      restoreHistory(node);
-    }
+    disabled = window.localStorage.getItem("disabled") ==  "t";
+    restoreHistory(node);
   }
   started = true;
 }
