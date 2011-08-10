@@ -14,7 +14,6 @@ var deck_spot;
 var points_spot;
 
 var started = false;
-var solitaire = null;
 var introduced = false;
 var i_introduced = false;
 var disabled = false;
@@ -31,8 +30,6 @@ var debug_mode = false;
 var last_player = null;
 var last_reveal_player = null;
 var last_reveal_card = null;
-
-var game_offer = null;
 
 // Number for generating log line IDs.
 var next_log_line_num = 0;
@@ -544,36 +541,14 @@ function handleGainOrTrash(player, elems, text, multiplier) {
   }
 }
 
-function isGameStart(nodeText) {
-  if (solitaire == null) {
-    if (game_offer != null) {
-      solitaire = game_offer.innerText.match(/this game solitaire\?/) != null;
-      window.localStorage.setItem("solitaire", solitaire);
-    } else {
-      solitaire = eval(window.localStorage.getItem("solitaire"));
-    }
-  }
-
-  if (solitaire == undefined)
-    return false;
-
-  if (solitaire) {
-    return nodeText.match(/ turn 1 —$/);
-  } else {
-    return nodeText.indexOf("Turn order") == 0;
-  }
-}
-
 function maybeHandleGameStart(node) {
   var nodeText = node.innerText;
-  if (nodeText == null || !isGameStart(nodeText)) {
+  if (nodeText == null || nodeText.indexOf("Turn order") != 0) {
     return false;
   }
   initialize(node);
   ensureLogNodeSetup(node);
-  
-  // If this is a solitaire game, the turn start is also the "turn change' entry, so keep on processing to handle that
-  return !solitaire;
+  return true;
 }
 
 function nextLogId() {
@@ -759,7 +734,7 @@ function initialize(doc) {
   // rewrite them and then all the text parsing works as normal.
   var p = "(?:([^,]+), )";    // an optional player
   var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
-  var re = (solitaire ? /.* (You)r turn 1 .*/i : new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+)."));
+  var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
   var arr = doc.innerText.match(re);
   if (arr == null) {
     handleError("Couldn't parse: " + doc.innerText);
@@ -769,7 +744,7 @@ function initialize(doc) {
     if (arr[i] == undefined) continue;
 
     player_count++;
-    if (arr[i].match(/^you$/i)) {
+    if (arr[i] == "you") {
       self_index = player_count;
       arr[i] = "You";
     }
@@ -883,10 +858,7 @@ function handleGameEnd(doc) {
       deck_spot.innerHTML = "exit";
       points_spot.innerHTML = "faq";
 
-      solitaire = undefined;
-      window.localStorage.removeItem('log');
-      window.localStorage.removeItem('offer');
-      window.localStorage.removeItem('solitaire');
+      localStorage.removeItem("log");
 
       // Collect information about the game.
       var href = doc.childNodes[node].href;
@@ -973,18 +945,29 @@ function maybeStartOfGame(node) {
     return;
   }
 
+  if (localStorage.getItem("log") == undefined &&
+      nodeText.indexOf("Your turn 1 —") != -1) {
+    // We don't have a log but it's turn 1. This must be a solitaire game.
+    // Create a fake (and invisible) setup line. We'll get called back again
+    // with it.
+    console.log("Single player game.");
+    node = $('<div class="logline" style="display:none;">' +
+             'Turn order is you and then you.</div>)').insertBefore(node)[0];
+    return;
+  }
+
   // The first line of actual text is either "Turn order" or something in
   // the middle of the game.
-  if (isGameStart(nodeText)) {
+  if (nodeText.indexOf("Turn order") == 0) {
     // The game is starting, so put in the initial blank entries and clear
     // out any local storage.
-    console.log("--- starting game ---" + "\n");
-    started = true;
-    next_log_line_num = 1;
-    window.localStorage.removeItem("log");
-    window.localStorage.removeItem("disabled");
+    console.log("--- starting game ---");
+    next_log_line_num = 0;
+    localStorage.removeItem("log");
+    localStorage.removeItem("disabled");
   } else {
-    disabled = window.localStorage.getItem("disabled") ==  "t";
+    console.log("--- replaying history ---");
+    disabled = localStorage.getItem("disabled") == "t";
     restoreHistory(node);
   }
   started = true;
@@ -1004,8 +987,8 @@ function logEntryForGame(node) {
 
 function restoreHistory(node) {
   // The first log line is not the first line of the game, so restore the
-  // log from history Of course, there must be a log history to restore.
-  var logHistory = window.localStorage.getItem("log");
+  // log from history. Of course, there must be a log history to restore.
+  var logHistory = localStorage.getItem("log");
   if (logHistory == undefined || logHistory.length == 0) {
     return;
   }
@@ -1077,26 +1060,11 @@ function handle(doc) {
       points_spot = doc.children[6];
     }
 
-    if (!started) {
-      var choices = document.getElementById("choices");
-      if (choices != null && choices.hasChildNodes()) {
-        game_offer = undefined;
-        var spans = choices.getElementsByTagName("SPAN");
-        for (var i = 0; i < spans.length; i++) {
-          var txt = spans[i].innerText;
-          if (txt.indexOf("play this game ") == 0) {
-            game_offer = spans[i];
-            break;
-          }
-        }
-      }
-    }
-
     if (doc.className && doc.className.indexOf("logline") >= 0) {
       if (logEntryForGame(doc)) {
         handleLogEntry(doc);
         if (started) {
-          window.localStorage.setItem("log", doc.parentElement.innerHTML);
+          localStorage.setItem("log", doc.parentElement.innerHTML);
         }
       }
     }
