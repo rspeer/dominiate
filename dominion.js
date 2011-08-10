@@ -884,7 +884,9 @@ function handleGameEnd(doc) {
       points_spot.innerHTML = "faq";
 
       solitaire = undefined;
-      window.localStorage.clear();
+      window.localStorage.removeItem('log');
+      window.localStorage.removeItem('offer');
+      window.localStorage.removeItem('solitaire');
 
       // Collect information about the game.
       var href = doc.childNodes[node].href;
