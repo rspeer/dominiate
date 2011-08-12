@@ -1054,6 +1054,12 @@ function inLobby() {
 }
 
 function handle(doc) {
+  // When the lobby screen is built, make sure point tracker settings are used.
+  if (doc.className && doc.className == "constr") {
+    $('#tracker').attr('checked', true).attr('disabled', true);
+    $('#autotracker').val('yes').attr('disabled', true);
+  }
+
   if (rewritingTree > 0) {
     return;
   }
@@ -1163,9 +1169,6 @@ function enterLobby() {
       $('#fake_entry').val("");
     })
   }
-
-  $('#tracker').attr('checked', true).attr('disabled', true)
-  $('#autotracker').val('yes').attr('disabled', true);
 }
 setTimeout("enterLobby()", 600);
 
