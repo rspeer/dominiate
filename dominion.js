@@ -732,10 +732,15 @@ function initialize(doc) {
 
   // Hack: collect player names with spaces and apostrophes in them. We'll
   // rewrite them and then all the text parsing works as normal.
-  var p = "(?:([^,]+), )";    // an optional player
-  var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
-  var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
-  var arr = doc.innerText.match(re);
+  var arr;
+  if (doc.innerText == "Turn order is you.") {
+    arr = [undefined, "you"];
+  } else {
+    var p = "(?:([^,]+), )";    // an optional player
+    var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
+    var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
+    arr = doc.innerText.match(re);
+  }
   if (arr == null) {
     handleError("Couldn't parse: " + doc.innerText);
   }
@@ -952,7 +957,7 @@ function maybeStartOfGame(node) {
     // with it.
     console.log("Single player game.");
     node = $('<div class="logline" style="display:none;">' +
-             'Turn order is you and then you.</div>)').insertBefore(node)[0];
+             'Turn order is you.</div>)').insertBefore(node)[0];
     return;
   }
 
