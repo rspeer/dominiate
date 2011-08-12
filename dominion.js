@@ -825,6 +825,7 @@ function handleChatText(speaker, text) {
     disabled = true;
     deck_spot.innerHTML = "exit";
     points_spot.innerHTML = "faq";
+    $('div[reinserted="true"]').css('display', 'none');
     writeText(">> Point counter disabled.");
   }
 
@@ -935,6 +936,10 @@ function reinsert(ev) {
     var copy = node.cloneNode(true);
     // The "fading" of old log messages reduces opacity to near zero; clear that
     copy.removeAttribute("style");
+    copy.setAttribute("reinserted", "true");
+    if (disabled) {
+      copy.setAttribute("style", "display:none;");
+    }
     try {
       rewritingTree++;
       node.parentNode.insertBefore(copy, node);
