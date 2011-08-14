@@ -826,6 +826,7 @@ function handleChatText(speaker, text) {
     deck_spot.innerHTML = "exit";
     points_spot.innerHTML = "faq";
     $('div[reinserted="true"]').css('display', 'none');
+    localStorage.setItem("log", $('#log').html());
     writeText(">> Point counter disabled.");
   }
 
@@ -946,6 +947,7 @@ function reinsert(ev) {
     } finally {
       rewritingTree--;
     }
+    localStorage.setItem("log", $('#log').html());
   }
 }
 
