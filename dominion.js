@@ -980,7 +980,7 @@ function maybeStartOfGame(node) {
   } else {
     console.log("--- replaying history ---");
     disabled = localStorage.getItem("disabled") == "t";
-    restoreHistory(node);
+    if (!restoreHistory(node)) return;
   }
   started = true;
 }
@@ -1002,7 +1002,7 @@ function restoreHistory(node) {
   // log from history. Of course, there must be a log history to restore.
   var logHistory = localStorage.getItem("log");
   if (logHistory == undefined || logHistory.length == 0) {
-    return;
+    return false;
   }
 
   console.log("--- restoring log ---" + "\n");
@@ -1052,6 +1052,7 @@ function restoreHistory(node) {
   } finally {
     rewritingTree--;
   }
+  return true;
 }
 
 function inLobby() {
