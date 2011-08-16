@@ -573,7 +573,7 @@ function handleLogEntry(node) {
   if (maybeHandleTurnChange(node)) return;
 
   // Make sure this isn't a duplicate possession entry.
-  if (node.className.indexOf("logline") < 0) return;
+  if (node.className.indexOf("possessed-log") > 0) return;
 
   var text = node.innerText.split(" ");
 
