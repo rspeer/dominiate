@@ -15,9 +15,6 @@ they don't like point counting.
 
 Known issues:
 - Masquerade with more than 2 players leads to unknown information.
-- If native point counter is not enabled, reload loses state due to
-  that state information now scrolling off the screen.
-
 
 If you'd like to contribute back you can work from source here.
 If you'd just like to use the extension, you can install it automatically:
