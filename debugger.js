@@ -8,11 +8,7 @@ var detailed_results = [];
 var debug_gain_messages = [];
 for (var i = 0; i < game.childNodes.length; ++i) {
   var node = game.childNodes[i];
-  var turn_change = node.constructor == HTMLElement &&
-                    node.innerText.match(/---.*---/);
-  if (turn_change) {
-    node.innerHTML = node.innerHTML.replace(/[0-9]+ ---/, '---');
-  }
+  var turn_change = node.innerText&& node.innerText.match(/—.*—/);
   handle(game.childNodes[i]);
   if (turn_change) {
     detailed_results.push(debug_gain_messages);
