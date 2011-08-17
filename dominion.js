@@ -826,7 +826,9 @@ function handleChatText(speaker, text) {
     deck_spot.innerHTML = "exit";
     points_spot.innerHTML = "faq";
     $('div[reinserted="true"]').css('display', 'none');
-    localStorage.setItem("log", $('#log').html());
+    if (!debug_mode) {
+      localStorage.setItem("log", $('#log').html());
+    }
     writeText(">> Point counter disabled.");
   }
 
@@ -1082,7 +1084,7 @@ function handle(doc) {
     if (doc.className && doc.className.indexOf("logline") >= 0) {
       if (logEntryForGame(doc)) {
         handleLogEntry(doc);
-        if (started) {
+        if (started && !debug_mode) {
           localStorage.setItem("log", doc.parentElement.innerHTML);
         }
       }
