@@ -682,7 +682,12 @@ function getScores() {
 }
 
 function updateScores() {
-  if (points_spot == undefined) return;
+  if (points_spot == undefined) {
+    var spot = $('a[href="http://dominion.isotropic.org/faq/"]');
+    if (spot.length != 1) return;
+    points_spot = spot[0];
+    return;
+  }
   points_spot.innerHTML = getScores();
 }
 
@@ -695,7 +700,11 @@ function getDecks() {
 }
 
 function updateDeck() {
-  if (deck_spot == undefined) return;
+  if (deck_spot == undefined) {
+    var spot = $('a[href="/signout"]');
+    if (spot.length != 1) return;
+    deck_spot = spot[0];
+  }
   deck_spot.innerHTML = getDecks();
 }
 
@@ -864,8 +873,8 @@ function handleGameEnd(doc) {
     if (doc.childNodes[node].innerText == "game log") {
       // Reset exit / faq at end of game.
       started = false;
-      deck_spot.innerHTML = "exit";
-      points_spot.innerHTML = "faq";
+      if (deck_spot != undefined) deck_spot.innerHTML = "exit";
+      if (points_spot != undefined) points_spot.innerHTML = "faq";
 
       localStorage.removeItem("log");
 
@@ -1077,8 +1086,8 @@ function handle(doc) {
   try {
     if (doc.constructor == HTMLDivElement &&
         doc.innerText.indexOf("Say") == 0) {
-      deck_spot = doc.children[5];
-      points_spot = doc.children[6];
+      if (doc.children[5].innerHTML) deck_spot = doc.children[5];
+      if (doc.children[6].innerHTML) points_spot = doc.children[6];
     }
 
     if (doc.className && doc.className.indexOf("logline") >= 0) {
