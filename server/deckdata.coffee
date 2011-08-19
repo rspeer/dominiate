@@ -27,6 +27,7 @@ getDeckFeatures = (deck) ->
       features.unique[card] = 1
       features.nUnique += 1
       if not card_info[card]?
+        console.log(deck)
         console.log("no such card: #{card}")
       if card_info[card].isAction
         features.nActions += count
