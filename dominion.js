@@ -20,6 +20,7 @@ var disabled = false;
 var had_error = false;
 var show_action_count = false;
 var show_unique_count = false;
+var show_duchy_count = false;
 var possessed_turn = false;
 var announced_error = false;
 
@@ -30,6 +31,9 @@ var last_player = null;
 var last_reveal_player = null;
 var last_reveal_card = null;
 var turn_number = 0;
+
+// Number for generating log line IDs.
+var next_log_line_num = 0;
 
 // Last time a status message was printed.
 var last_status_print = 0;
@@ -42,6 +46,9 @@ var scopes = [];
 
 // The version of the extension currently loaded.
 var extension_version = 'Unknown';
+
+// Tree is being rewritten, so should not process any tree change events.
+var rewritingTree = 0;
 
 // Quotes a string so it matches literally in a regex.
 RegExp.quote = function(str) {
@@ -186,13 +193,17 @@ function Player(name) {
     var str = this.deck_size;
     var need_action_string = (show_action_count && this.special_counts["Actions"]);
     var need_unique_string = (show_unique_count && this.special_counts["Uniques"]);
-    if  (need_action_string || need_unique_string) {
+    var need_duchy_string = (show_duchy_count && this.special_counts["Duchy"]);
+    if (need_action_string || need_unique_string || need_duchy_string) {
       var special_types = [];
       if (need_unique_string) {
         special_types.push(this.special_counts["Uniques"] + "u");
       }
       if (need_action_string) {
         special_types.push(this.special_counts["Actions"] + "a");
+      }
+      if (need_duchy_string) {
+        special_types.push(this.special_counts["Duchy"] + "d");
       }
       str += '(' + special_types.join(", ") + ')';
     }
@@ -225,7 +236,7 @@ function Player(name) {
       delete this.card_counts[name];
       this.special_counts["Uniques"] -= 1;
     }
-  }
+    }
 
   this.recordSpecialCards = function(card, count) {
     var name = card.innerHTML;
@@ -533,11 +544,39 @@ function handleGainOrTrash(player, elems, text, multiplier) {
   }
 }
 
+function maybeHandleGameStart(node) {
+  var nodeText = node.innerText;
+  if (nodeText == null || nodeText.indexOf("Turn order") != 0) {
+    return false;
+  }
+  initialize(node);
+  ensureLogNodeSetup(node);
+  return true;
+}
+
+function nextLogId() {
+  return "logLine" + next_log_line_num++;
+}
+
+function ensureLogNodeSetup(node) {
+  if (!node.id) {
+    node.id = nextLogId();
+  }
+  node.addEventListener("DOMNodeRemovedFromDocument", reinsert);
+}
+
 function handleLogEntry(node) {
+  if (maybeHandleGameStart(node)) return;
+
+  if (!started) return;
+
+  ensureLogNodeSetup(node);
+  maybeRewriteName(node);
+
   if (maybeHandleTurnChange(node)) return;
 
-  // Duplicate stuff here. It's printed normally too.
-  if (node.className == "possessed") return;
+  // Make sure this isn't a duplicate possession entry.
+  if (node.className.indexOf("possessed-log") > 0) return;
 
   var text = node.innerText.split(" ");
 
@@ -646,7 +685,12 @@ function getScores() {
 }
 
 function updateScores() {
-  if (points_spot == undefined) return;
+  if (points_spot == undefined) {
+    var spot = $('a[href="http://dominion.isotropic.org/faq/"]');
+    if (spot.length != 1) return;
+    points_spot = spot[0];
+    return;
+  }
   points_spot.innerHTML = getScores();
 }
 
@@ -659,7 +703,11 @@ function getDecks() {
 }
 
 function updateDeck() {
-  if (deck_spot == undefined) return;
+  if (deck_spot == undefined) {
+    var spot = $('a[href="/signout"]');
+    if (spot.length != 1) return;
+    deck_spot = spot[0];
+  }
   deck_spot.innerHTML = getDecks();
 }
 
@@ -669,10 +717,9 @@ function initialize(doc) {
   i_introduced = false;
   disabled = false;
   had_error = false;
-  show_action_count = false;
-  show_unique_count = false;
   possessed_turn = false;
   announced_error = false;
+  next_log_line_num = 0;
 
   last_gain_player = null;
   scopes = [];
@@ -682,7 +729,11 @@ function initialize(doc) {
   player_re = "";
   player_count = 0;
 
-  if (localStorage["always_display"] != "f") {
+  if (localStorage.getItem("disabled")) {
+    disabled = true;
+  }
+
+  if (!disabled && localStorage["always_display"] != "f") {
     updateScores();
     updateDeck();
   }
@@ -693,10 +744,15 @@ function initialize(doc) {
 
   // Hack: collect player names with spaces and apostrophes in them. We'll
   // rewrite them and then all the text parsing works as normal.
-  var p = "(?:([^,]+), )";    // an optional player
-  var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
-  var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
-  var arr = doc.innerText.match(re);
+  var arr;
+  if (doc.innerText == "Turn order is you.") {
+    arr = [undefined, "you"];
+  } else {
+    var p = "(?:([^,]+), )";    // an optional player
+    var pl = "(?:([^,]+),? )";  // the last player (might not have a comma)
+    var re = new RegExp("Turn order is "+p+"?"+p+"?"+p+"?"+pl+"and then (.+).");
+    arr = doc.innerText.match(re);
+  }
   if (arr == null) {
     handleError("Couldn't parse: " + doc.innerText);
   }
@@ -723,13 +779,17 @@ function initialize(doc) {
   }
   player_re = '(' + other_player_names.join('|') + ')';
 
-  var wait_time = 200 * Math.floor(Math.random() * 10 + 5);
-  if (self_index != -1) {
-    wait_time = 300 * self_index;
+  // Assume it's already introduced if it's rewriting the tree for a reload.
+  // Otherwise setup to maybe introduce the extension.
+  if (!rewritingTree) {
+    var wait_time = 200 * Math.floor(Math.random() * 10 + 5);
+    if (self_index != -1) {
+      wait_time = 300 * self_index;
+    }
+    console.log("Waiting " + wait_time + " to introduce " +
+        "(index is: " + self_index + ").");
+    setTimeout("maybeIntroducePlugin()", wait_time);
   }
-  console.log("Waiting " + wait_time + " to introduce " +
-              "(index is: " + self_index + ").");
-  setTimeout("maybeIntroducePlugin()", wait_time);
   window.initializeGolem();
 }
 
@@ -772,9 +832,14 @@ function handleChatText(speaker, text) {
     setTimeout(command, wait_time);
   }
   if (localStorage["allow_disable"] != "f" && text == " !disable") {
+    localStorage.setItem("disabled", "t");
     disabled = true;
     deck_spot.innerHTML = "exit";
     points_spot.innerHTML = "faq";
+    $('div[reinserted="true"]').css('display', 'none');
+    if (!debug_mode) {
+      localStorage.setItem("log", $('#log').html());
+    }
     writeText(">> Point counter disabled.");
   }
 
@@ -810,8 +875,10 @@ function handleGameEnd(doc) {
     if (doc.childNodes[node].innerText == "game log") {
       // Reset exit / faq at end of game.
       started = false;
-      deck_spot.innerHTML = "exit";
-      points_spot.innerHTML = "faq";
+      if (deck_spot != undefined) deck_spot.innerHTML = "exit";
+      if (points_spot != undefined) points_spot.innerHTML = "faq";
+
+      localStorage.removeItem("log");
 
       // Collect information about the game.
       var href = doc.childNodes[node].href;
@@ -861,8 +928,154 @@ function handleGameEnd(doc) {
   }
 }
 
+/**
+ * This event handler is called when a logline node is being removed. We
+ * don't want log lines removed, so when this happens, we insert another
+ * copy of the node into the parent to take its place. This copy will remain
+ * behind after the original node is actually removed (which comes after the
+ * event notification phase).
+ */
+function reinsert(ev) {
+  if (!started) {
+    // The game isn't running so let the nodes go away.
+    return;
+  }
+
+  var node = ev.target;
+  var next = node.nextElementSibling;
+  var prev = node.previousElementSibling;
+  var duplicated = (next != undefined && next.id == node.id) ||
+                   (prev != undefined && prev.id == node.id);
+  if (!duplicated) {
+    var copy = node.cloneNode(true);
+    // The "fading" of old log messages reduces opacity to near zero; clear that
+    copy.removeAttribute("style");
+    copy.setAttribute("reinserted", "true");
+    if (disabled) {
+      copy.setAttribute("style", "display:none;");
+    }
+    try {
+      rewritingTree++;
+      node.parentNode.insertBefore(copy, node);
+    } finally {
+      rewritingTree--;
+    }
+    localStorage.setItem("log", $('#log').html());
+  }
+}
+
+function maybeStartOfGame(node) {
+  var nodeText = node.innerText.trim();
+  if (nodeText.length == 0) {
+    return;
+  }
+
+  if (localStorage.getItem("log") == undefined &&
+      nodeText.indexOf("Your turn 1 —") != -1) {
+    // We don't have a log but it's turn 1. This must be a solitaire game.
+    // Create a fake (and invisible) setup line. We'll get called back again
+    // with it.
+    console.log("Single player game.");
+    node = $('<div class="logline" style="display:none;">' +
+             'Turn order is you.</div>)').insertBefore(node)[0];
+    return;
+  }
+
+  // The first line of actual text is either "Turn order" or something in
+  // the middle of the game.
+  if (nodeText.indexOf("Turn order") == 0) {
+    // The game is starting, so put in the initial blank entries and clear
+    // out any local storage.
+    console.log("--- starting game ---");
+    next_log_line_num = 0;
+    localStorage.removeItem("log");
+    localStorage.removeItem("disabled");
+  } else {
+    console.log("--- replaying history ---");
+    disabled = localStorage.getItem("disabled") == "t";
+    if (!restoreHistory(node)) return;
+  }
+  started = true;
+}
+
+// Returns true if the log node should be handled as part of the game.
+function logEntryForGame(node) {
+  if (inLobby()) {
+    return false;
+  }
+
+  if (!started) {
+    maybeStartOfGame(node);
+  }
+  return started;
+}
+
+function restoreHistory(node) {
+  // The first log line is not the first line of the game, so restore the
+  // log from history. Of course, there must be a log history to restore.
+  var logHistory = localStorage.getItem("log");
+  if (logHistory == undefined || logHistory.length == 0) {
+    return false;
+  }
+
+  console.log("--- restoring log ---" + "\n");
+  // First build a DOM tree of the old log messages in a copy of the log
+  // parent node.
+  var storedLog = node.parentNode.cloneNode(false);
+  storedLog.innerHTML = logHistory;
+
+  // Write all the entries from the history into the log up to (but not
+  // including) the one that matches the newly added entry that triggered
+  // the need to restore the history.
+  try {
+    rewritingTree++;
+    var logRegion = node.parentElement;
+    // First, clear out anything that's currently there before the newly
+    // added entry.
+    while (logRegion.hasChildNodes() && logRegion.firstChild != node) {
+      logRegion.removeChild(logRegion.firstChild);
+    }
+    var newLogEntryInner = node.innerHTML;
+    while (storedLog.hasChildNodes()) {
+      var line = storedLog.removeChild(storedLog.firstChild);
+      // The way we avoid logs going away is to put them back in when they
+      // go away. So a stored log can capture both log nodes -- the
+      // replacement and the fading original. So we have to make sure that
+      // the log entry hasn't already been handled.
+      if (document.getElementById(line.id) != undefined) {
+        continue;
+      }
+
+      // This might be the "faded" version with low opacity, so remove that.
+      var style = line.getAttribute("style");
+      if (style && style.indexOf("opacity") >= 0) {
+        line.removeAttribute("style");
+      }
+
+      if (line.innerHTML == newLogEntryInner) {
+        var lastLineNum = line.id.match(/[0-9]+/);
+        next_log_line_num = parseInt(lastLineNum);
+        break;
+      } else {
+        // move the node to the actual log region
+        logRegion.insertBefore(line, node);
+        handleLogEntry(line);
+      }
+    }
+  } finally {
+    rewritingTree--;
+  }
+  return true;
+}
+
+function inLobby() {
+  // In the lobby there is no real supply region -- it's empty.
+  var player_spot = document.getElementById("supply");
+  return (player_spot == undefined || player_spot.childElementCount == 0);
+}
+
 function handle(doc) {
-  //try {
+  // try {
     if (doc.constructor == HTMLDivElement &&
         doc['class'] == 'cardname') return;
     if (doc.constructor == HTMLDivElement &&
@@ -871,28 +1084,45 @@ function handle(doc) {
       points_spot = doc.children[6];
       linkToGolem(points_spot);
     }
+  
+  // When the lobby screen is built, make sure point tracker settings are used.
+  if (doc.className && doc.className == "constr") {
+    $('#tracker').attr('checked', true).attr('disabled', true);
+    $('#autotracker').val('yes').attr('disabled', true);
+  }
 
-    if (doc.className == "logline" &&
-        doc.innerText.indexOf("Turn order") != -1) {
-      initialize(doc);
+  if (rewritingTree > 0) {
+    return;
+  }
+
+    if (doc.constructor == HTMLDivElement &&
+        doc.innerText.indexOf("Say") == 0) {
+      if (doc.children[5].innerHTML) deck_spot = doc.children[5];
+      if (doc.children[6].innerHTML) points_spot = doc.children[6];
     }
 
-    if (!started) return;
+    if (doc.className && doc.className.indexOf("logline") >= 0) {
+      if (logEntryForGame(doc)) {
+        handleLogEntry(doc);
+        if (started && !debug_mode) {
+          localStorage.setItem("log", doc.parentElement.innerHTML);
+        }
+      }
+    }
 
     if (doc.parentNode.id == "supply") {
+      show_action_count = false;
+      show_unique_count = false;
+      show_duchy_count = false;
       elems = doc.getElementsByTagName("span");
       for (var elem in elems) {
         if (elems[elem].innerText == "Vineyard") show_action_count = true;
-      }
-      for (var elem in elems) {
         if (elems[elem].innerText == "Fairgrounds") show_unique_count = true;
+        if (elems[elem].innerText == "Duke") show_duchy_count = true;
       }
     }
 
-    if (doc.className == "logline") {
-      maybeRewriteName(doc);
-      handleLogEntry(doc);
-    }
+    if (!started) return;
 
     if (doc.constructor == HTMLDivElement && doc.parentNode.id == "choices") {
       handleGameEnd(doc);
@@ -934,7 +1164,7 @@ function buildStatusMessage() {
   return status_message;
 }
 
-function setupLobbyStatusHandling() {
+function enterLobby() {
   if (localStorage["status_announce"] == "t" &&
       $('#lobby').length != 0 && $('#lobby').css('display') != "none") {
     // Set the original status message.
@@ -969,6 +1199,7 @@ function setupLobbyStatusHandling() {
     })
   }
 }
+<<<<<<< HEAD
 
 function linkToGolem(points_spot) {
     $(points_spot).click(function(event) {
@@ -977,6 +1208,9 @@ function linkToGolem(points_spot) {
     })
 }
 setTimeout("setupLobbyStatusHandling()", 500);
+=======
+setTimeout("enterLobby()", 600);
+>>>>>>> b52036f497e97fe070f2d96da3d6045710c5f3f2
 
 document.body.addEventListener('DOMNodeInserted', function(ev) {
   handle(ev.target);

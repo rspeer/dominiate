@@ -10,4 +10,4 @@ train/output/*
 train/export_decks.js
 model/*
 node-mongodb-native
-
+.idea

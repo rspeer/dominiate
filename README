@@ -21,4 +21,3 @@ serving a JSON API for this.
 
 It can also hook into the Dominion Point Counter in a kind of flaky way to
 become a semi-bot that suggests what to buy.
-
