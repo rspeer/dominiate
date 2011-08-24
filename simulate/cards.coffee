@@ -17,7 +17,7 @@ makeCard = (name, origCard, props) ->
   newCard.parent = origCard.name   # for debugging
   newCard
 
-anycard = {
+basicCard = {
   isAction: false
   isTreasure: false
   isVictory: false
@@ -241,10 +241,7 @@ GrandMarket = makeCard "Grand Market", Market, {
   cost: 6
   coins: 2
   mayBeBought: (state) ->
-    for card in state.current.inPlay
-      if card is Copper
-        return false
-    true
+    not(Copper in state.current.inPlay)
 }
 
 Menagerie = makeCard "Menagerie", basicCard, {
@@ -314,7 +311,19 @@ Quarry = makeCard 'Quarry', Silver, {
       ret(state)
   ]
 
-# Shanty Town should also be easy
+ShantyTown = makeCard 'Shanty Town', basicCard, {
+  cost: 3
+  actions: +2
+  playEffects: [
+    (state, ret) ->
+      draw = 2
+      for card in state.current.inPlay
+        if card.isAction
+          draw = 0
+          break
+      ret(state.current.drawCards(draw))
+  ]
+}
 
 ###
 So far, a State needs to support these methods:
