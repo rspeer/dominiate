@@ -34,7 +34,7 @@ basicCard = {
   costPotion: 0
   costInCoins: (state) -> this.cost
   costInPotions: (state) -> this.costPotion
-
+  
   getCost: (state) ->
     coins = this.costInCoins()
     coins -= state.bridges
@@ -55,6 +55,8 @@ basicCard = {
   #   - The state should have unknown information (no cheating!)
   #   - Use a fresh copy of the state each time, because actions are allowed
   #     to mutate states for efficiency.
+  #   - All AIs should be replaced by the AI making the decision -- AIs don't
+  #     get to ask other AIs what they would do.
   
   actions: 0
   cards: 0
@@ -83,11 +85,15 @@ basicCard = {
     state.current.buys += this.getBuys()
     cardsToDraw = this.getCards()
     if cardsToDraw > 0
-      state.current.drawCards
+      state.drawCards
+        0,
         cardsToDraw,
         (newState) -> this.playEffectLoop(newState, ret)
     else
       this.playEffectLoop(state, ret)
+
+  onDuration: (state, ret) ->
+    this.playEffectLoopInner(state, this.durationEffects, ret)
   
   playEffectLoop: (state, ret) ->
     this.playEffectLoopInner(state, this.playEffects, ret)
@@ -248,7 +254,7 @@ Menagerie = makeCard "Menagerie", basicCard, {
   cost: 3
   actions: 1
   playEffects: [
-    (state, ret) -> state.current.revealHand(ret),
+    (state, ret) -> state.revealHand(ret),
     (state, ret) ->
       seen = {}
       cardsToDraw = 3
@@ -257,7 +263,7 @@ Menagerie = makeCard "Menagerie", basicCard, {
           cardsToDraw = 1
           break
         seen[card.name] = True
-      state.current.drawCards(1, ret)
+      state.drawCards(0, cardsToDraw, ret)
 }
 
 Monument = makeCard "Monument", basicCard, {
@@ -316,28 +322,11 @@ ShantyTown = makeCard 'Shanty Town', basicCard, {
   actions: +2
   playEffects: [
     (state, ret) ->
-      draw = 2
+      cardsToDraw = 2
       for card in state.current.inPlay
         if card.isAction
-          draw = 0
+          cardsToDraw = 0
           break
-      ret(state.current.drawCards(draw))
+      state.drawCards(0, cardsToDraw, ret)
   ]
 }
-
-###
-So far, a State needs to support these methods:
-  bridges
-  copperValue
-  current
-  current.chips
-  current.hand
-  current.draw
-  current.inPlay
-  current.drawCards()
-  current.getDeck()
-  current.revealHand()
-  phase
-  quarries
-###
-
