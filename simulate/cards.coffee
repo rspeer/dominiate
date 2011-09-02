@@ -47,10 +47,6 @@ basicCard = {
   # There are two kinds of methods of a card. Those that can be statically
   # evaluated based on a state take a single argument, the state.
   #
-  # Anything that might require making a decision -- such as the effect of
-  # a card -- takes two arguments: the state, and "ret", a continuation
-  # function that will be passed the return value.
-  #
   # When evaluating different hypothetical decisions to make, remember:
   #   - The state should have unknown information (no cheating!)
   #   - Use a fresh copy of the state each time, because actions are allowed
@@ -69,48 +65,41 @@ basicCard = {
   getCoins: (state) -> this.coins
   getBuys: (state) -> this.buys
   getVP: (state) -> this.vp
+  standardCleanup: (state) ->
+    if this.isDuration
+      state.current.duration.push(this)
+    else
+      state.current.discard.push(this)
+    state
   mayBeBought: (state) -> true
   gainEffects: []
   playEffects: []
   gainInPlayEffects: []
-  cleanupEffects: []
+  cleanupEffects: [this.standardCleanup]
   durationEffects: []
   shuffleEffects: []
   attackReactions: []
   gainReactions: []
+  
+  doEffects: (effects, state) ->
+    for effect in effects
+      state = effect(state)
+    return state
 
-  onPlay: (state, ret) ->
+  onPlay: (state) ->
     state.current.actions += this.getActions()
     state.current.coins += this.getCoins()
     state.current.buys += this.getBuys()
     cardsToDraw = this.getCards()
     if cardsToDraw > 0
-      state.drawCards
-        0,
-        cardsToDraw,
-        (newState) -> this.playEffectLoop(newState, ret)
-    else
-      this.playEffectLoop(state, ret)
+      state.drawCards(0, cardsToDraw)
+    return this.doEffects(this.playEffects, state)
 
-  onDuration: (state, ret) ->
-    this.playEffectLoopInner(state, this.durationEffects, ret)
+  onDuration: (state) ->
+    return this.doEffects(this.durationEffects)
   
-  onCleanup: (state, ret) ->
-    this.playEffectLoopInner(state, this.cleanupEffects, ret)
-
-  playEffectLoop: (state, ret) ->
-    this.playEffectLoopInner(state, this.playEffects, ret)
-  
-  playEffectLoopInner: (state, effects, ret) ->
-    if effects.length == 0
-      ret(state)
-    else
-      nextEffect = effects[0]
-      remainingEffects = effects[1...]
-      nextEffect(
-        state,
-        (newState) -> playEffectLoopInner(newState, remainingEffects, ret)
-      )
+  onCleanup: (state) ->
+    return this.doEffects(this.cleanupEffects)
   
   toString: () -> this.name
 }
@@ -210,18 +199,18 @@ Bridge = makeCard 'Bridge', basicCard, {
   coins: 1
   buys: 1
   playEffects: [
-    (state, ret) ->
+    (state) ->
       state.bridges += 1
-      ret(state)
+      return state
   ]
 }
 
 Coppersmith = makeCard 'Coppersmith', basicCard, {
   cost: 4
   playEffects: [
-    (state, ret) ->
+    (state) ->
       state.copperValue += 1
-      ret(state)
+      return state
   ]
 }
 
@@ -257,8 +246,8 @@ Menagerie = makeCard "Menagerie", basicCard, {
   cost: 3
   actions: 1
   playEffects: [
-    (state, ret) -> state.revealHand(ret),
-    (state, ret) ->
+    (state) -> state.revealHand(0),
+    (state) ->
       seen = {}
       cardsToDraw = 3
       for card in state.current.hand
@@ -266,16 +255,17 @@ Menagerie = makeCard "Menagerie", basicCard, {
           cardsToDraw = 1
           break
         seen[card.name] = True
-      state.drawCards(0, cardsToDraw, ret)
+      state.drawCards(0, cardsToDraw)
+  ]
 }
 
 Monument = makeCard "Monument", basicCard, {
   cost: 4
   coins: 2
   playEffects: [
-    (state, ret) ->
+    (state) ->
       state.current.chips += 1
-      ret(state)
+      return state
   ]
 }
 
@@ -305,9 +295,9 @@ Princess = makeCard 'Princess', basicCard, {
   buys: 1
   isPrize: true
   playEffects: [
-    (state, ret) ->
+    (state) ->
       state.bridges += 2
-      ret(state)
+      return state
   ]
 }
 
@@ -315,21 +305,21 @@ Quarry = makeCard 'Quarry', Silver, {
   cost: 4
   coins: 1
   playEffects: [
-    (state, ret) ->
+    (state) ->
       state.quarries += 1
-      ret(state)
+      return state
   ]
 
 ShantyTown = makeCard 'Shanty Town', basicCard, {
   cost: 3
   actions: +2
   playEffects: [
-    (state, ret) ->
+    (state) ->
       cardsToDraw = 2
       for card in state.current.inPlay
         if card.isAction
           cardsToDraw = 0
           break
-      state.drawCards(0, cardsToDraw, ret)
+      return state.drawCards(0, cardsToDraw)
   ]
 }

@@ -54,86 +54,86 @@ class State
         emptyPiles += 1
     return (emptyPiles >= 3)
 
-  doPlay: (ret) ->
+  doPlay: () ->
     # Do the appropriate next thing, based on the value of @phase:
-    #   'duration': resolve duration effects, then go to action phase
+    #   'start': resolve duration effects, then go to action phase
     #   'action': play and resolve some number of actions, then go to
     #     treasure phase
     #   'treasure': play and resolve some number of treasures, then go to
     #     buy phase
     #   'buy': buy some number of cards, then go to cleanup phase
     #   'cleanup': resolve cleanup effects, discard everything, draw 5 cards
-    #
-    # *Eventually* returns a state where the game is over.
     switch @phase
-      when 'duration'
-        this.resolveDurations @current.duration, (newState) ->
-          newState.phase = 'action'
-          newState.doPlay(ret)
+      when 'start'
+        @current.turnsTaken += 1
+        newState = this.resolveDurations()
+        newState.phase = 'action'
       when 'action'
-        this.resolveActions (newState) ->
-          newState.phase = 'treasure'
-          newState.doPlay(ret)
+        newState = this.resolveActions()
+        newState.phase = 'treasure'
       when 'treasure'
-        this.resolveTreasure (newState) ->
-          newState.phase = 'buy'
-          newState.doPlay(ret)
+        newState = this.resolveTreasures()
+        newState.phase = 'buy'
       when 'buy'
-        this.resolveBuy (newState) ->
-          newState.phase = 'cleanup'
-          newState.doPlay(ret)
+        newState = this.resolveBuy()
+        newState.phase = 'cleanup'
       when 'cleanup'
-        this.resolveCleanup (newState) ->
-          if newState2.gameIsOver()
-            ret(newState2)
-          else
-            newState.drawCards 0, 5, (newState2) ->
-              newState2.rotatePlayer().doPlay(ret)
+        newState = this.resolveCleanup()
+        newState = newState.rotatePlayer()
+
   
-  resolveDurations: (cards, ret) ->
-    if cards.length == 0
-      ret(this)
-    else
-      nextCard = cards[0]
-      remainingCards = cards[1...]
-      nextCard.onDuration this, (newState) ->
-        newState.resolveDurations(remainingCards, ret)
+  resolveDurations: () ->
+    state = this
+    for card in @current.duration
+      state = card.onDuration(state)
+    return state
   
-  resolveActions: (cards, ret) ->
+  resolveActions: () ->
     ...
 
-  resolveTreasure: (cards, ret) ->
+  resolveTreasure: () ->
     ...
   
-  resolveBuy: (cards, ret) ->
+  resolveBuy: () ->
     ...
 
-  resolveCleanup: (cards, ret) ->
+  resolveCleanup: () ->
+    # Discard old duration cards
+    @current.discard = @current.discard + @current.duration
+    @current.duration = []
+
+    # Clean up cards in play, where the default is to discard them
     # TODO: allow cleanup order to be selected? (not very important)
-    if cards.length == 0
-      ret(this)
-    else
-      nextCard = cards[0]
-      remainingCards = cards[1...]
-      nextCard.onCleanup this, (newState) ->
-        newState.resolveCleanup(remainingCards, ret)
+    state = this
+    while state.inPlay.length > 0
+      card = state.inPlay[0]
+      state.inPlay = state.inPlay[1...]
+      state = card.onCleanup(state)
+
+    # Discard remaining cards in hand
+    state.current.discard = state.current.discard + state.current.hand
+    state.current.hand = []
+
+    state.current.actions = 1
+    state.current.buys = 1
+    state.drawCards(0, 5)
+    return state
   
-  drawCards: (playerNum, nCards, ret) ->
-    # returns itself through a callback
+  drawCards: (playerNum, nCards) ->
     player = @players[playerNum]
     if player.draw.length < nCards
       diff = nCards - player.draw.length
       player.hand = player.hand.concat(player.draw)
       player.draw = []
-      this.shuffle playerNum, (newState) ->
-        newState.drawCards(playerNum, diff, ret)
+      newState = this.shuffle(playerNum)
+      return newState.drawCards(playerNum, diff)
         
     else
       player.hand = player.hand.concat(player.draw[0...nCards])
       player.draw = player.draw[nCards...]
-      ret(this)
+      return this
   
-  shuffle: (playerNum, ret) ->
+  shuffle: (playerNum) ->
     # returns itself through a callback
     player = @players[playerNum]
     shuffle(player.discard)
@@ -141,24 +141,31 @@ class State
     player.discard = []
 
     # TODO: add a decision for Stashes
-    ret(this)
+    return this
+  
+  revealHand: (playerNum) ->
+    # nothing interesting happens
+    return this
 
 class PlayerState
   # A PlayerState is a simple structure that stores the part of the game state
   # that is specific to each player, plus what AI is making the decisions.
 
-  constructor: (@hand, @draw, @discard, @inPlay, @duration, @chips, @ai) ->
+  constructor: (@actions, @buys, @coins, @chips, @hand, @draw, @discard, @inPlay, @duration, @chips, @ai) ->
   
   copy: () ->
-    new PlayerState(
-      @hand.slice(0),
-      @draw.slice(0),
-      @discard.slice(0),
-      @inPlay.slice(0),
-      @duration.slice(0),
-      @chips,
-      @ai
-    )
+    other = new PlayerState()
+    other.actions = @actions
+    other.buys = @buys
+    other.coins = @coins
+    other.chips = @chips
+    other.hand = @hand.slice(0)
+    other.draw = @draw.slice(0)
+    other.discard = @discard.slice(0)
+    other.inPlay = @inPlay.slice(0)
+    other.duration = @duration.slice(0)
+    other.ai = @ai
+    other.turnsTaken = @turnsTaken
 
   getDeck: () ->
     @draw.concat @discard.concat @hand.concat @inPlay.concat @duration
@@ -166,18 +173,4 @@ class PlayerState
 class PlayerAI
   ...
 
-###
-A State still needs to support these methods:
-  current
-  current.chips
-  current.hand
-  current.draw
-  current.discard
-  current.inPlay
-  current.drawCards(nCards, ret)
-  current.getDeck()
-  current.revealHand(ret)
-  phase
-  quarries
-###
 
