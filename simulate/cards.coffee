@@ -95,6 +95,9 @@ basicCard = {
   onDuration: (state, ret) ->
     this.playEffectLoopInner(state, this.durationEffects, ret)
   
+  onCleanup: (state, ret) ->
+    this.playEffectLoopInner(state, this.cleanupEffects, ret)
+
   playEffectLoop: (state, ret) ->
     this.playEffectLoopInner(state, this.playEffects, ret)
   
@@ -103,7 +106,7 @@ basicCard = {
       ret(state)
     else
       nextEffect = effects[0]
-      remainingEffects = effects[1...effects.length]
+      remainingEffects = effects[1...]
       nextEffect(
         state,
         (newState) -> playEffectLoopInner(newState, remainingEffects, ret)
