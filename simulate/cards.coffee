@@ -72,7 +72,7 @@ basicCard = {
       state.current.discard.push(this)
     state
   mayBeBought: (state) -> true
-  gainEffects: []
+  buyEffects: []
   playEffects: []
   gainInPlayEffects: []
   cleanupEffects: [this.standardCleanup]
@@ -100,6 +100,9 @@ basicCard = {
   
   onCleanup: (state) ->
     return this.doEffects(this.cleanupEffects)
+
+  onBuy: (state) ->
+    return this.doEffects(this.buyEffects)
   
   toString: () -> this.name
 }
@@ -182,7 +185,7 @@ Bazaar = makeCard 'Bazaar', basicCard, {
 }
 
 ###
-Not-quite-vanilla cards that still involve no mid-card decisions.
+Cards that involve no mid-card decisions.
 ###
 Bank = makeCard 'Bank', Silver, {
   cost: 7

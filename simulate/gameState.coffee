@@ -8,6 +8,13 @@ shuffle = (v) ->
     v[j] = temp
   v
 
+# parameterize logging, so we can send it somewhere else when needed
+log = (obj) ->
+  console.log(obj)
+
+warn = (obj) ->
+  console.log("WARNING: ", obj)
+
 class State
   # Stores the complete state of the game.
   # 
@@ -63,40 +70,95 @@ class State
     #     buy phase
     #   'buy': buy some number of cards, then go to cleanup phase
     #   'cleanup': resolve cleanup effects, discard everything, draw 5 cards
+    
     switch @phase
       when 'start'
         @current.turnsTaken += 1
+        log("== #{@current.ai}'s turn #{@current.turnsTaken} ==")
         newState = this.resolveDurations()
         newState.phase = 'action'
       when 'action'
+        log("(action phase)")
         newState = this.resolveActions()
         newState.phase = 'treasure'
       when 'treasure'
+        log("(treasure phase)")
         newState = this.resolveTreasures()
         newState.phase = 'buy'
       when 'buy'
+        log("(buy phase)")
         newState = this.resolveBuy()
         newState.phase = 'cleanup'
       when 'cleanup'
+        log("(cleanup phase)")
         newState = this.resolveCleanup()
         newState = newState.rotatePlayer()
-
   
+  # All these functions are written defensively so that the card effects
+  # may replace the state with a new object. This is a bit ugly, and I may
+  # want to revisit the design when I know what happens to the objects.
   resolveDurations: () ->
     state = this
     for card in @current.duration
+      log("#{@current.ai} resolves the duration effect of #{card}.")
       state = card.onDuration(state)
     return state
   
   resolveActions: () ->
-    ...
+    state = this
+    loop
+      validActions = []
+      for card in state.current.hand
+        if card.isAction and card not in validActions
+          validActions.push(card)
+      
+      action = state.current.ai.chooseAction(validActions)
+      return state if action is null
+      log("#{state.current.ai} plays #{action}.")
+      idx = state.current.hand.indexOf(action)
+      if idx == -1
+        warn("#{state.current.ai} chose an invalid action.")
+        return state
+      state.current.hand.splice(idx, 1)   # remove the action from the hand
+      state.current.inPlay.push(action)   # and put it in play
+      state = action.onPlay(state)
 
   resolveTreasure: () ->
-    ...
+    state = this
+    loop
+      validTreasures = []
+      for card in state.current.hand
+        if card.isTreasure and card not in validTreasures
+          validTreasures.push(card)
+      
+      treasure = state.current.ai.chooseTreasure(validTreasures)
+      return state if action is null
+      log("#{state.current.ai} plays #{treasure}.")
+      idx = state.current.hand.indexOf(treasure)
+      if idx == -1
+        warn("#{ai} chose an invalid treasure")
+        return state
+      state.current.hand.splice(idx, 1)   # remove the treasure from the hand
+      state.current.inPlay.push(treasure) # and put it in play
+      state = treasure.onPlay(state)
   
   resolveBuy: () ->
-    ...
+    buyable = []
+    state = this
+    while state.buys > 0
+      for card, count of state.supply
+        if card.mayBeBought(state) and count > 0
+          buyable.push(card)
+      choice = state.current.ai.chooseBuy(buyable)
+      return state if choice is null
+      log("#{state.current.ai} buys #{choice}.")
+      state.supply[card] -= 1
+      state.current.discard.push(card)
+      state = card.onBuy(state)
 
+      # TODO: handle gain reactions
+    return state
+    
   resolveCleanup: () ->
     # Discard old duration cards
     @current.discard = @current.discard + @current.duration
@@ -107,6 +169,7 @@ class State
     state = this
     while state.inPlay.length > 0
       card = state.inPlay[0]
+      log("Cleaning up #{card}.")
       state.inPlay = state.inPlay[1...]
       state = card.onCleanup(state)
 
@@ -158,6 +221,8 @@ class PlayerState
     other.actions = @actions
     other.buys = @buys
     other.coins = @coins
+    other.potions = @potions
+    other.mats = @mats
     other.chips = @chips
     other.hand = @hand.slice(0)
     other.draw = @draw.slice(0)
