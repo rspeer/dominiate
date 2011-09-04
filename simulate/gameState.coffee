@@ -1,4 +1,9 @@
-exports ?= window['gameState']
+# ambidextrous import/export
+if exports?
+  c = require('./cards')
+else
+  gameState = {}
+  exports = gameState
 
 shuffle = (v) ->
   i = v.length
@@ -167,42 +172,39 @@ class State
 
     @current.actions = 1
     @current.buys = 1
-    this.drawCards(0, 5)
-  
-  drawCards: (playerNum, nCards) ->
-    player = @players[playerNum]
-    if player.draw.length < nCards
-      diff = nCards - player.draw.length
-      player.hand = player.hand.concat(player.draw)
-      player.draw = []
-      newState = this.shuffle(playerNum)
-      return newState.drawCards(playerNum, diff)
-        
-    else
-      player.hand = player.hand.concat(player.draw[0...nCards])
-      player.draw = player.draw[nCards...]
-      return this
-  
-  shuffle: (playerNum) ->
-    # returns itself through a callback
-    player = @players[playerNum]
-    shuffle(player.discard)
-    player.draw = player.discard
-    player.discard = []
-
-    # TODO: add a decision for Stashes
-    return this
+    @current.drawCards(5)
   
   revealHand: (playerNum) ->
     # nothing interesting happens
-    return this
 
 class PlayerState
-  # A PlayerState is a simple structure that stores the part of the game state
+  # A PlayerState stores the part of the game state
   # that is specific to each player, plus what AI is making the decisions.
 
-  constructor: (@actions, @buys, @coins, @chips, @hand, @draw, @discard, @inPlay, @duration, @chips, @ai) ->
-  
+  # We just use the default Object constructor, because new PlayerState objects
+  # will almost always be created by copying. At the start of the game,
+  # .initialize() each PlayerState, which assigns its AI and sets up its
+  # starting state.
+
+  initialize: (ai) ->
+    @actions = 1
+    @buys = 1
+    @coins = 0
+    @potions = 0
+    @mats = {
+      pirateShip: 0
+      nativeVillage: []
+      island: []
+    }
+    @chips = 0
+    @hand = []
+    @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
+                c.Copper, c.Copper, c.Copper, c.Estate, c.Estate]
+    @inPlay = []
+    @duration = []
+    @turnsTaken = 0
+    @ai = ai
+
   copy: () ->
     other = new PlayerState()
     other.actions = @actions
@@ -221,10 +223,25 @@ class PlayerState
 
   getDeck: () ->
     @draw.concat @discard.concat @hand.concat @inPlay.concat @duration
-
-class PlayerAI
-  # TODO
+  
+  drawCards: (nCards) ->
+    if @draw.length < nCards
+      diff = nCards - @draw.length
+      @hand = @hand.concat(@draw)
+      @draw = []
+      if @discard.length > 0
+        this.shuffle()
+        this.drawCards(diff)
+        
+    else
+      @hand = @hand.concat(@draw[0...nCards])
+      @draw = @draw[nCards...]
+  
+  shuffle: () ->
+    shuffle(@discard)
+    @draw = @discard
+    @discard = []
+    # TODO: add an AI decision for Stashes
 
 exports.State = State
-exports.PlayerAI = PlayerAI
 

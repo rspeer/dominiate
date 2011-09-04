@@ -1,6 +1,9 @@
-# browser hack
-exports ?= window['c']
-c = exports
+# ambidextrous export
+if exports?
+  c = exports
+else
+  c = {}
+  exports = c
 
 # Cards here are built in an *almost* object-oriented way. Almost, because each
 # card is a singleton value, not a class. There are no instances of cards,
@@ -96,7 +99,7 @@ basicCard = {
     state.current.buys += this.getBuys()
     cardsToDraw = this.getCards()
     if cardsToDraw > 0
-      state.drawCards(0, cardsToDraw)
+      state.current.drawCards(cardsToDraw)
     this.doEffects(this.playEffects, state)
 
   onDuration: (state) ->
@@ -260,7 +263,7 @@ makeCard "Menagerie", basicCard, {
           cardsToDraw = 1
           break
         seen[card.name] = true
-      state.drawCards(0, cardsToDraw)
+      state.current.drawCards(cardsToDraw)
   ]
 }
 
@@ -324,7 +327,7 @@ makeCard 'Shanty Town', basicCard, {
         if card.isAction
           cardsToDraw = 0
           break
-      state.drawCards(0, cardsToDraw)
+      state.current.drawCards(cardsToDraw)
   ]
 }
 
