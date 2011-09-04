@@ -511,8 +511,14 @@ heuristics = {
   Tournament: {
   }
   "Trade Route": {
+    cards: -2
+    trash: 1
+    coins: +1
+    buys: +1
   }
   "Trading Post": {
+    trash: 2
+    cards: -2
   }
   Transmute: {
     trash: 1

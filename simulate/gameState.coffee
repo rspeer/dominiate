@@ -1,3 +1,5 @@
+exports ?= window['gameState']
+
 shuffle = (v) ->
   i = v.length
   while i
@@ -236,6 +238,8 @@ class PlayerState
     @draw.concat @discard.concat @hand.concat @inPlay.concat @duration
 
 class PlayerAI
-  ...
+  # TODO
 
+exports.State = State
+exports.PlayerAI = PlayerAI
 

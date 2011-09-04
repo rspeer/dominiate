@@ -4,10 +4,15 @@ server/golem.js
 server/golem-test.js
 server/vowpal.js
 server/deckdata.js
+server/ranking.js
 golemclient.js
 train/mongo_password.txt
 train/output/*
 train/export_decks.js
 model/*
 node-mongodb-native
+simulate/cards.js
+simulate/gameState.js
+simulate/simple_test.js
+simulate/heuristics.js
 .idea

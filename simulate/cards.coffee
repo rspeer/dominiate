@@ -1,3 +1,7 @@
+# browser hack
+exports ?= window['c']
+c = exports
+
 # Cards here are built in an *almost* object-oriented way. Almost, because each
 # card is a singleton value, not a class. There are no instances of cards,
 # there are just cards.
@@ -15,7 +19,15 @@ makeCard = (name, origCard, props) ->
   for key, value of props
     newCard[key] = value
   newCard.parent = origCard.name   # for debugging
+  c[name] = newCard
   newCard
+
+standardCleanup = (state) ->
+  if this.isDuration
+    state.current.duration.push(this)
+  else
+    state.current.discard.push(this)
+  state
 
 basicCard = {
   isAction: false
@@ -65,17 +77,11 @@ basicCard = {
   getCoins: (state) -> this.coins
   getBuys: (state) -> this.buys
   getVP: (state) -> this.vp
-  standardCleanup: (state) ->
-    if this.isDuration
-      state.current.duration.push(this)
-    else
-      state.current.discard.push(this)
-    state
   mayBeBought: (state) -> true
   buyEffects: []
   playEffects: []
   gainInPlayEffects: []
-  cleanupEffects: [this.standardCleanup]
+  cleanupEffects: [standardCleanup]
   durationEffects: []
   shuffleEffects: []
   attackReactions: []
@@ -114,43 +120,43 @@ Estate and Silver are the prototypes that other Victory and Treasure cards
 derive from, respectively. (Copper is actually more complex than Silver!)
 ###
 
-Curse = makeCard 'Curse', basicCard, {
+makeCard 'Curse', basicCard, {
   cost: 0
   vp: -1
 }
 
-Estate = makeCard 'Estate', basicCard, {
+makeCard 'Estate', basicCard, {
   cost: 2
   isVictory: true
   vp: 1
 }
 
-Duchy = makeCard 'Duchy', Estate, {cost: 5, vp: 3}
-Province = makeCard 'Province', Estate, {cost: 8, vp: 6}
-Colony = makeCard 'Colony', Estate, {cost: 11, vp: 10}
+makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
+makeCard 'Province', c.Estate, {cost: 8, vp: 6}
+makeCard 'Colony', c.Estate, {cost: 11, vp: 10}
 
-Silver = makeCard 'Silver', basicCard, {
+makeCard 'Silver', basicCard, {
   cost: 3
   isTreasure: true
   coins: 2
 }
 
-Copper = makeCard 'Copper', Silver, {
+makeCard 'Copper', c.Silver, {
   cost: 0
   coins: 1
   getCoins: (state) -> state.copperValue ? 1
 }
 
-Gold = makeCard 'Gold', Silver, {cost: 6, coins: 3}
-Platinum = makeCard 'Platinum', Silver, {cost: 9, coins: 5}
-Potion = makeCard 'Potion', Silver, {
+makeCard 'Gold', c.Silver, {cost: 6, coins: 3}
+makeCard 'Platinum', c.Silver, {cost: 9, coins: 5}
+makeCard 'Potion', c.Silver, {
   cost: 4
   coins: 0
   getPotion: (state) -> 1
 }
 
 # And one that isn't a base card, but is easily described in terms of them:
-Harem = makeCard 'Harem', Silver, {
+makeCard 'Harem', c.Silver, {
   cost: 6
   isVictory: true
   getVP: (state) -> 2
@@ -163,31 +169,31 @@ These cards have effects that involve no decisions, and are expressed entirely
 in +actions, +cards, +coins, +buys, and VP.
 ###
 
-Village = makeCard 'Village', basicCard, {actions: 2, cards: 1}
-WorkersVillage = makeCard "Worker's Village", basicCard, {
+makeCard 'Village', basicCard, {actions: 2, cards: 1}
+makeCard "Worker's Village", basicCard, {
   cost: 4
   actions: 2
   cards: 1
   buys: 1
 }
-Laboratory = makeCard 'Laboratory', basicCard, {cost: 5, actions: 1, cards: 2}
-Smithy = makeCard 'Smithy', basicCard, {cost: 4, cards: 3}
-Festival = makeCard 'Festival', basicCard, {cost: 5, actions: 2, coins: 2}
-Woodcutter = makeCard 'Woodcutter', basicCard, {cost: 3, coins: 2, buys: 1}
-GreatHall = makeCard 'Great Hall', basicCard, {
+makeCard 'Laboratory', basicCard, {cost: 5, actions: 1, cards: 2}
+makeCard 'Smithy', basicCard, {cost: 4, cards: 3}
+makeCard 'Festival', basicCard, {cost: 5, actions: 2, coins: 2}
+makeCard 'Woodcutter', basicCard, {cost: 3, coins: 2, buys: 1}
+makeCard 'Great Hall', basicCard, {
   cost: 3, actions: 1, cards: 1, vp: 1, isVictory: true
 }
-Market = makeCard 'Market', basicCard, {
+makeCard 'Market', basicCard, {
   cost: 5, actions: 1, cards: 1, coins: 1, buys: 1
 }
-Bazaar = makeCard 'Bazaar', basicCard, {
+makeCard 'Bazaar', basicCard, {
   cost: 5, actions: 2, cards: 1, coins: 1
 }
 
 ###
 Cards that involve no mid-card decisions.
 ###
-Bank = makeCard 'Bank', Silver, {
+makeCard 'Bank', c.Silver, {
   cost: 7
   getCoins: (state) ->
     coins = 0
@@ -197,7 +203,7 @@ Bank = makeCard 'Bank', Silver, {
     coins
 }
 
-Bridge = makeCard 'Bridge', basicCard, {
+makeCard 'Bridge', basicCard, {
   cost: 4
   coins: 1
   buys: 1
@@ -208,7 +214,7 @@ Bridge = makeCard 'Bridge', basicCard, {
   ]
 }
 
-Coppersmith = makeCard 'Coppersmith', basicCard, {
+makeCard 'Coppersmith', basicCard, {
   cost: 4
   playEffects: [
     (state) ->
@@ -217,35 +223,35 @@ Coppersmith = makeCard 'Coppersmith', basicCard, {
   ]
 }
 
-Diadem = makeCard 'Diadem', Silver, {
+makeCard 'Diadem', c.Silver, {
   cost: 0
-  isPrize: True
+  isPrize: true
   getCoins: (state) -> 2 + state.current.actions
 }
 
-Duke = makeCard "Duke", Estate, {
+makeCard "Duke", c.Estate, {
   cost: 5
   getVP: (state) ->
     vp = 0
     for card in state.current.getDeck()
-      if card is Duchy
+      if card is c.Duchy
         vp += 1
     vp
 }
 
-Gardens = makeCard "Gardens", Estate, {
+makeCard "Gardens", c.Estate, {
   cost: 4
   getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
 }
 
-GrandMarket = makeCard "Grand Market", Market, {
+makeCard "Grand Market", c.Market, {
   cost: 6
   coins: 2
   mayBeBought: (state) ->
-    not(Copper in state.current.inPlay)
+    not(c.Copper in state.current.inPlay)
 }
 
-Menagerie = makeCard "Menagerie", basicCard, {
+makeCard "Menagerie", basicCard, {
   cost: 3
   actions: 1
   playEffects: [
@@ -257,12 +263,12 @@ Menagerie = makeCard "Menagerie", basicCard, {
         if seen[card.name]?
           cardsToDraw = 1
           break
-        seen[card.name] = True
+        seen[card.name] = true
       state.drawCards(0, cardsToDraw)
   ]
 }
 
-Monument = makeCard "Monument", basicCard, {
+makeCard "Monument", basicCard, {
   cost: 4
   coins: 2
   playEffects: [
@@ -272,7 +278,7 @@ Monument = makeCard "Monument", basicCard, {
   ]
 }
 
-Peddler = makeCard 'Peddler', basicCard, {
+makeCard 'Peddler', basicCard, {
   cost: 8
   actions: 1
   cards: 1
@@ -286,17 +292,18 @@ Peddler = makeCard 'Peddler', basicCard, {
     cost
 }
 
-PhilosophersStone = makeCard "Philosopher's Stone", Silver, {
+makeCard "Philosopher's Stone", c.Silver, {
   cost: 3
   costPotion: 1
   getCoins: (state) ->
     Math.floor((state.current.draw.length + state.current.discard.length) / 5)
 }
 
-Princess = makeCard 'Princess', basicCard, {
+makeCard 'Princess', basicCard, {
   cost: 0
   buys: 1
   isPrize: true
+  mayBeBought: (state) -> false
   playEffects: [
     (state) ->
       state.bridges += 2
@@ -304,7 +311,7 @@ Princess = makeCard 'Princess', basicCard, {
   ]
 }
 
-Quarry = makeCard 'Quarry', Silver, {
+makeCard 'Quarry', c.Silver, {
   cost: 4
   coins: 1
   playEffects: [
@@ -312,8 +319,9 @@ Quarry = makeCard 'Quarry', Silver, {
       state.quarries += 1
       return state
   ]
+}
 
-ShantyTown = makeCard 'Shanty Town', basicCard, {
+makeCard 'Shanty Town', basicCard, {
   cost: 3
   actions: +2
   playEffects: [
@@ -326,3 +334,4 @@ ShantyTown = makeCard 'Shanty Town', basicCard, {
       return state.drawCards(0, cardsToDraw)
   ]
 }
+
