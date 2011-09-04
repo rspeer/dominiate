@@ -23,9 +23,6 @@ class State
   # Many operations will mutate the state, for the sake of efficiency.
   # Any AI that evaluates different possible decisions must make a copy of
   # that state with less information in it, anyway.
-  #
-  # All functions that might cause a player to have to make a decision are
-  # written in continuation-passing style.
 
   constructor: (@players, @supply, @phase) ->
     @nPlayers = @players.length
@@ -52,7 +49,7 @@ class State
     
   rotatePlayer: () ->
     players = @players[1...@nPlayers].concat [@players[0]]
-    new State(players, @supply, 'start').copy()
+    @phase = start
 
   gameIsOver: () ->
     emptyPiles = 0
@@ -77,112 +74,100 @@ class State
       when 'start'
         @current.turnsTaken += 1
         log("== #{@current.ai}'s turn #{@current.turnsTaken} ==")
-        newState = this.resolveDurations()
-        newState.phase = 'action'
+        this.resolveDurations()
+        @phase = 'action'
       when 'action'
         log("(action phase)")
-        newState = this.resolveActions()
-        newState.phase = 'treasure'
+        this.resolveActions()
+        @phase = 'treasure'
       when 'treasure'
         log("(treasure phase)")
-        newState = this.resolveTreasures()
-        newState.phase = 'buy'
+        this.resolveTreasures()
+        @phase = 'buy'
       when 'buy'
         log("(buy phase)")
-        newState = this.resolveBuy()
-        newState.phase = 'cleanup'
+        this.resolveBuy()
+        @phase = 'cleanup'
       when 'cleanup'
         log("(cleanup phase)")
-        newState = this.resolveCleanup()
-        newState = newState.rotatePlayer()
+        this.resolveCleanup()
+        this.rotatePlayer()
   
-  # All these functions are written defensively so that the card effects
-  # may replace the state with a new object. This is a bit ugly, and I may
-  # want to revisit the design when I know what happens to the objects.
   resolveDurations: () ->
-    state = this
     for card in @current.duration
       log("#{@current.ai} resolves the duration effect of #{card}.")
-      state = card.onDuration(state)
-    return state
+      card.onDuration(this)
   
   resolveActions: () ->
-    state = this
     loop
       validActions = []
-      for card in state.current.hand
+      for card in @current.hand
         if card.isAction and card not in validActions
           validActions.push(card)
       
-      action = state.current.ai.chooseAction(validActions)
-      return state if action is null
-      log("#{state.current.ai} plays #{action}.")
-      idx = state.current.hand.indexOf(action)
+      action = @current.ai.chooseAction(validActions)
+      return if action is null
+      log("#{@current.ai} plays #{action}.")
+      idx = @current.hand.indexOf(action)
       if idx == -1
-        warn("#{state.current.ai} chose an invalid action.")
-        return state
-      state.current.hand.splice(idx, 1)   # remove the action from the hand
-      state.current.inPlay.push(action)   # and put it in play
-      state = action.onPlay(state)
+        warn("#{@current.ai} chose an invalid action.")
+        return
+      @current.hand.splice(idx, 1)   # remove the action from the hand
+      @current.inPlay.push(action)   # and put it in play
+      action.onPlay(this)
 
   resolveTreasure: () ->
-    state = this
     loop
       validTreasures = []
-      for card in state.current.hand
+      for card in @current.hand
         if card.isTreasure and card not in validTreasures
           validTreasures.push(card)
       
-      treasure = state.current.ai.chooseTreasure(validTreasures)
-      return state if action is null
-      log("#{state.current.ai} plays #{treasure}.")
-      idx = state.current.hand.indexOf(treasure)
+      treasure = @current.ai.chooseTreasure(validTreasures)
+      return if action is null
+      log("#{@current.ai} plays #{treasure}.")
+      idx = @current.hand.indexOf(treasure)
       if idx == -1
         warn("#{ai} chose an invalid treasure")
-        return state
-      state.current.hand.splice(idx, 1)   # remove the treasure from the hand
-      state.current.inPlay.push(treasure) # and put it in play
-      state = treasure.onPlay(state)
+        return
+      @current.hand.splice(idx, 1)   # remove the treasure from the hand
+      @current.inPlay.push(treasure) # and put it in play
+      treasure.onPlay(this)
   
   resolveBuy: () ->
     buyable = []
-    state = this
-    while state.buys > 0
-      for card, count of state.supply
-        if card.mayBeBought(state) and count > 0
+    while @buys > 0
+      for card, count of @supply
+        if card.mayBeBought(this) and count > 0
           buyable.push(card)
-      choice = state.current.ai.chooseBuy(buyable)
-      return state if choice is null
-      log("#{state.current.ai} buys #{choice}.")
-      state.supply[card] -= 1
-      state.current.discard.push(card)
-      state = card.onBuy(state)
-
+      choice = @current.ai.chooseBuy(buyable)
+      return if choice is null
+      log("#{@current.ai} buys #{choice}.")
+      @supply[card] -= 1
+      @current.discard.push(card)
+      card.onBuy(this)
       # TODO: handle gain reactions
-    return state
     
   resolveCleanup: () ->
     # Discard old duration cards
-    @current.discard = @current.discard + @current.duration
+    @current.discard = @current.discard.concat @current.duration
     @current.duration = []
 
     # Clean up cards in play, where the default is to discard them
     # TODO: allow cleanup order to be selected? (not very important)
-    state = this
-    while state.inPlay.length > 0
-      card = state.inPlay[0]
+    while @current.inPlay.length > 0
+      card = @current.inPlay[0]
       log("Cleaning up #{card}.")
-      state.inPlay = state.inPlay[1...]
-      state = card.onCleanup(state)
+      @current.inPlay = @current.inPlay[1...]
+      card.onCleanup(this)
 
     # Discard remaining cards in hand
-    state.current.discard = state.current.discard + state.current.hand
-    state.current.hand = []
+    @current.discard = @current.discard.concat @current.hand
+    @current.hand = []
 
-    state.current.actions = 1
-    state.current.buys = 1
-    state.drawCards(0, 5)
-    return state
+    @current.actions = 1
+    @current.buys = 1
+    this.drawCards(0, 5)
   
   drawCards: (playerNum, nCards) ->
     player = @players[playerNum]

@@ -27,7 +27,6 @@ standardCleanup = (state) ->
     state.current.duration.push(this)
   else
     state.current.discard.push(this)
-  state
 
 basicCard = {
   isAction: false
@@ -89,8 +88,7 @@ basicCard = {
   
   doEffects: (effects, state) ->
     for effect in effects
-      state = effect(state)
-    return state
+      effect(state)
 
   onPlay: (state) ->
     state.current.actions += this.getActions()
@@ -99,10 +97,10 @@ basicCard = {
     cardsToDraw = this.getCards()
     if cardsToDraw > 0
       state.drawCards(0, cardsToDraw)
-    return this.doEffects(this.playEffects, state)
+    this.doEffects(this.playEffects, state)
 
   onDuration: (state) ->
-    return this.doEffects(this.durationEffects)
+    this.doEffects(this.durationEffects)
   
   onCleanup: (state) ->
     return this.doEffects(this.cleanupEffects)
@@ -210,7 +208,6 @@ makeCard 'Bridge', basicCard, {
   playEffects: [
     (state) ->
       state.bridges += 1
-      return state
   ]
 }
 
@@ -219,7 +216,6 @@ makeCard 'Coppersmith', basicCard, {
   playEffects: [
     (state) ->
       state.copperValue += 1
-      return state
   ]
 }
 
@@ -274,7 +270,6 @@ makeCard "Monument", basicCard, {
   playEffects: [
     (state) ->
       state.current.chips += 1
-      return state
   ]
 }
 
@@ -307,7 +302,6 @@ makeCard 'Princess', basicCard, {
   playEffects: [
     (state) ->
       state.bridges += 2
-      return state
   ]
 }
 
@@ -317,7 +311,6 @@ makeCard 'Quarry', c.Silver, {
   playEffects: [
     (state) ->
       state.quarries += 1
-      return state
   ]
 }
 
@@ -331,7 +324,7 @@ makeCard 'Shanty Town', basicCard, {
         if card.isAction
           cardsToDraw = 0
           break
-      return state.drawCards(0, cardsToDraw)
+      state.drawCards(0, cardsToDraw)
   ]
 }
 
