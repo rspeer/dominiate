@@ -162,24 +162,29 @@ These cards have effects that involve no decisions, and are expressed entirely
 in +actions, +cards, +coins, +buys, and VP.
 ###
 
-makeCard 'Village', basicCard, {actions: 2, cards: 1}
-makeCard "Worker's Village", basicCard, {
+# make an action card to derive from
+makeCard 'action', basicCard, {isAction: true}
+action = c.action
+delete c.action
+
+makeCard 'Village', action, {actions: 2, cards: 1}
+makeCard "Worker's Village", action, {
   cost: 4
   actions: 2
   cards: 1
   buys: 1
 }
-makeCard 'Laboratory', basicCard, {cost: 5, actions: 1, cards: 2}
-makeCard 'Smithy', basicCard, {cost: 4, cards: 3}
-makeCard 'Festival', basicCard, {cost: 5, actions: 2, coins: 2}
-makeCard 'Woodcutter', basicCard, {cost: 3, coins: 2, buys: 1}
-makeCard 'Great Hall', basicCard, {
+makeCard 'Laboratory', action, {cost: 5, actions: 1, cards: 2}
+makeCard 'Smithy', action, {cost: 4, cards: 3}
+makeCard 'Festival', action, {cost: 5, actions: 2, coins: 2}
+makeCard 'Woodcutter', action, {cost: 3, coins: 2, buys: 1}
+makeCard 'Great Hall', action, {
   cost: 3, actions: 1, cards: 1, vp: 1, isVictory: true
 }
-makeCard 'Market', basicCard, {
+makeCard 'Market', action, {
   cost: 5, actions: 1, cards: 1, coins: 1, buys: 1
 }
-makeCard 'Bazaar', basicCard, {
+makeCard 'Bazaar', action, {
   cost: 5, actions: 2, cards: 1, coins: 1
 }
 
@@ -196,7 +201,7 @@ makeCard 'Bank', c.Silver, {
     coins
 }
 
-makeCard 'Bridge', basicCard, {
+makeCard 'Bridge', action, {
   cost: 4
   coins: 1
   buys: 1
@@ -206,7 +211,7 @@ makeCard 'Bridge', basicCard, {
   ]
 }
 
-makeCard 'Coppersmith', basicCard, {
+makeCard 'Coppersmith', action, {
   cost: 4
   playEffects: [
     (state) ->
@@ -242,7 +247,7 @@ makeCard "Grand Market", c.Market, {
     not(c.Copper in state.current.inPlay)
 }
 
-makeCard "Menagerie", basicCard, {
+makeCard "Menagerie", action, {
   cost: 3
   actions: 1
   playEffects: [
@@ -259,7 +264,7 @@ makeCard "Menagerie", basicCard, {
   ]
 }
 
-makeCard "Monument", basicCard, {
+makeCard "Monument", action, {
   cost: 4
   coins: 2
   playEffects: [
@@ -268,7 +273,7 @@ makeCard "Monument", basicCard, {
   ]
 }
 
-makeCard 'Peddler', basicCard, {
+makeCard 'Peddler', action, {
   cost: 8
   actions: 1
   cards: 1
@@ -289,7 +294,7 @@ makeCard "Philosopher's Stone", c.Silver, {
     Math.floor((state.current.draw.length + state.current.discard.length) / 5)
 }
 
-makeCard 'Princess', basicCard, {
+makeCard 'Princess', action, {
   cost: 0
   buys: 1
   isPrize: true
@@ -309,7 +314,7 @@ makeCard 'Quarry', c.Silver, {
   ]
 }
 
-makeCard 'Shanty Town', basicCard, {
+makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
   playEffects: [

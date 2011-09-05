@@ -116,7 +116,7 @@ class State
       for card in @current.hand
         if card.isAction and card not in validActions
           validActions.push(card)
-      
+      console.log("Actions: #{validActions}")
       action = @current.ai.chooseAction(this, validActions)
       return if action is null
       log("#{@current.ai} plays #{action}.")
@@ -308,6 +308,7 @@ this.supplies = {
     Silver: 30
     Gold: 30
     Curse: 10
+    Smithy: 10
   }
 }
 
