@@ -27,19 +27,19 @@ class BasicAI
   chooseDiscard: (state, choices) ->
     this.choosePriority(state, choices, this.discardPriority)
 
+  # The default strategy is Big Money Ultimate.
+
   buyPriority: (state) -> [
-    "Colony"
+    "Colony" if state.current.countInDeck("Platinum") > 0
+    "Province" if state.supply.Colony <= 6
+    "Duchy" if state.supply.Colony <= 5
+    "Estate" if state.supply.Colony <= 2
     "Platinum"
-    "Province" if state.supply.Colony <= 5
-    "Duchy" if state.supply.Province <= 6
     "Gold"
-    "Smithy" if state.current.countInDeck("Smithy") == 0
     "Silver"
-    "Estate" if state.supply.Province <= 2
   ]
 
   actionPriority: (state) -> [
-    "Smithy"
   ]
   
   treasurePriority: (state) -> [
@@ -56,7 +56,6 @@ class BasicAI
     "Estate"
     "Copper"
     "Silver"
-    "Smithy"
     "Gold"
     "Platinum"
   ]

@@ -41,13 +41,13 @@ basicCard = {
   costInPotions: (state) -> this.costPotion
   
   getCost: (state) ->
-    coins = this.costInCoins()
+    coins = this.costInCoins(state)
     coins -= state.bridges
     if this.isAction
       coins -= state.quarries * 2
     if coins < 0
       coins = 0
-    return [coins, this.costInPotions()]
+    return [coins, this.costInPotions(state)]
 
   # There are two kinds of methods of a card. Those that can be statically
   # evaluated based on a state take a single argument, the state.
@@ -71,6 +71,7 @@ basicCard = {
   getBuys: (state) -> this.buys
   getVP: (state) -> this.vp
   mayBeBought: (state) -> true
+  startingSupply: (state) -> 10
   buyEffects: []
   playEffects: []
   gainInPlayEffects: []
@@ -116,12 +117,23 @@ derive from, respectively. (Copper is actually more complex than Silver!)
 makeCard 'Curse', basicCard, {
   cost: 0
   vp: -1
+  startingSupply: (state) ->
+    switch state.players.length
+      when 1, 2 then 10
+      when 3 then 20
+      when 4 then 30
+      else 40      
 }
 
 makeCard 'Estate', basicCard, {
   cost: 2
   isVictory: true
   vp: 1
+  startingSupply: (state) ->
+    switch state.players.length
+      when 1, 2 then 8
+      when 3, 4 then 12
+      else 15
 }
 
 makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
@@ -141,18 +153,15 @@ makeCard 'Copper', c.Silver, {
 }
 
 makeCard 'Gold', c.Silver, {cost: 6, coins: 3}
-makeCard 'Platinum', c.Silver, {cost: 9, coins: 5}
+makeCard 'Platinum', c.Silver, {
+  cost: 9,
+  coins: 5,
+  startingSupply: (state) -> 12
+}
 makeCard 'Potion', c.Silver, {
   cost: 4
   coins: 0
   getPotion: (state) -> 1
-}
-
-# And one that isn't a base card, but is easily described in terms of them:
-makeCard 'Harem', c.Silver, {
-  cost: 6
-  isVictory: true
-  getVP: (state) -> 2
 }
 
 ###
@@ -186,6 +195,11 @@ makeCard 'Market', action, {
 }
 makeCard 'Bazaar', action, {
   cost: 5, actions: 2, cards: 1, coins: 1
+}
+makeCard 'Harem', c.Silver, {
+  cost: 6
+  isVictory: true
+  getVP: (state) -> 2
 }
 
 ###

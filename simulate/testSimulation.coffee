@@ -3,7 +3,7 @@ gameState = require('./gameState')
 BasicAI = require('./basicAI').BasicAI
 
 this['game is initialized correctly'] = (test) ->
-  st = new gameState.State().initialize([null, null], gameState.supplies.money2P)
+  st = new gameState.State().initialize([null, null], gameState.kingdoms.moneyOnly)
   test.equal st.players.length, 2 
   test.equal st.current.getVP(), 3
   test.equal st.current.hand.length, 5
@@ -14,9 +14,9 @@ this['game is initialized correctly'] = (test) ->
   test.equal st.gameIsOver(), false
   test.done()
 
-this['AI resolves decisions on first three turns'] = (test) ->
+this['game runs without crashing'] = (test) ->
   ai = new BasicAI()
-  st = new gameState.State().initialize([ai], gameState.supplies.money2P)
+  st = new gameState.State().initialize([ai], gameState.kingdoms.allDefined)
   st.doPlay(); test.equal st.phase, 'action'
   st.doPlay(); test.equal st.phase, 'treasure'
   st.doPlay(); test.equal st.phase, 'buy'
@@ -31,4 +31,6 @@ this['AI resolves decisions on first three turns'] = (test) ->
   st.doPlay(); test.equal st.phase, 'treasure'
   st.doPlay(); test.equal st.phase, 'buy'
   st.doPlay(); test.equal st.phase, 'cleanup'
+  until st.gameIsOver()
+    st.doPlay()
   test.done()

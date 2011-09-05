@@ -4,6 +4,7 @@ if require?
 else
   c = this.c
 
+# general function to randomly shuffle a list
 shuffle = (v) ->
   i = v.length
   while i
@@ -21,24 +22,35 @@ log = (obj) ->
 warn = (obj) ->
   console.log("WARNING: ", obj)
 
+
 class State
   # Stores the complete state of the game.
   # 
   # Many operations will mutate the state, for the sake of efficiency.
   # Any AI that evaluates different possible decisions must make a copy of
   # that state with less information in it, anyway.
-  
-  initialize: (ais, supply) ->
+  basicSupply: ['Curse', 'Copper', 'Silver', 'Gold',
+                'Estate', 'Duchy', 'Province']
+
+  initialize: (ais, kingdom) ->
     @players = (new PlayerState().initialize(ai) for ai in ais)
     @nPlayers = @players.length
     @current = @players[0]
-    @supply = supply
+    @supply = this.makeSupply(kingdom)
 
     @bridges = 0
     @quarries = 0
     @copperValue = 1
     @phase = 'start'
     return this
+  
+  makeSupply: (kingdom) ->
+    allCards = this.basicSupply.concat(kingdom)
+    supply = {}
+    for card in allCards
+      card = c[card] ? card
+      supply[card] = card.startingSupply(this)
+    supply
 
   copy: () ->
     newSupply = {}
@@ -63,13 +75,16 @@ class State
     @phase = 'start'
 
   gameIsOver: () ->
-    emptyPiles = 0
+    emptyPiles = []
     for key, value of @supply
       if value == 0
-        if key is cards.Province
-          return true
-        emptyPiles += 1
-    return (emptyPiles >= 3)
+        emptyPiles.push(key)
+    if emptyPiles.length >= 3\
+        or 'Province' in emptyPiles\
+        or 'Colony' in emptyPiles
+      console.log("Empty piles: #{emptyPiles}")
+      return true
+    return false
 
   doPlay: () ->
     # Do the appropriate next thing, based on the value of @phase:
@@ -111,7 +126,7 @@ class State
       card.onDuration(this)
   
   resolveActions: () ->
-    loop
+    while @current.actions > 0
       validActions = []
       for card in @current.hand
         if card.isAction and card not in validActions
@@ -299,17 +314,17 @@ class PlayerState
       total += card.getVP(state)
     total
 
-this.supplies = {
-  money2P: {
-    Estate: 8
-    Duchy: 8
-    Province: 8
-    Copper: 30
-    Silver: 30
-    Gold: 30
-    Curse: 10
-    Smithy: 10
-  }
+    
+
+this.kingdoms = {
+  moneyOnly: []
+  allDefined: [
+    'Platinum', 'Colony', 'Potion',
+    'Bank', 'Bazaar', 'Bridge', 'Coppersmith', 'Duke', 'Festival',
+    'Gardens', 'Grand Market', 'Great Hall', 'Harem', 'Laboratory', 'Market',
+    'Menagerie', 'Monument', 'Peddler', "Philosopher's Stone", 'Quarry',
+    'Shanty Town', 'Smithy', 'Village', 'Woodcutter', "Worker's Village",
+  ]
 }
 
 this.State = State
