@@ -15,8 +15,11 @@ this['game is initialized correctly'] = (test) ->
   test.done()
 
 this['game runs without crashing'] = (test) ->
-  ai = new BasicAI()
-  st = new gameState.State().initialize([ai], gameState.kingdoms.allDefined)
+  ai1 = new BasicAI()
+  ai2 = new BasicAI()
+  ai1.name = 'p1'
+  ai2.name = 'p2'
+  st = new gameState.State().initialize([ai1, ai2], gameState.kingdoms.moneyOnly)
   st.doPlay(); test.equal st.phase, 'action'
   st.doPlay(); test.equal st.phase, 'treasure'
   st.doPlay(); test.equal st.phase, 'buy'

@@ -118,7 +118,7 @@ makeCard 'Curse', basicCard, {
   cost: 0
   vp: -1
   startingSupply: (state) ->
-    switch state.players.length
+    switch state.nPlayers
       when 1, 2 then 10
       when 3 then 20
       when 4 then 30
@@ -130,7 +130,7 @@ makeCard 'Estate', basicCard, {
   isVictory: true
   vp: 1
   startingSupply: (state) ->
-    switch state.players.length
+    switch state.nPlayers
       when 1, 2 then 8
       when 3, 4 then 12
       else 15
@@ -144,6 +144,7 @@ makeCard 'Silver', basicCard, {
   cost: 3
   isTreasure: true
   coins: 2
+  startingSupply: (state) -> 30
 }
 
 makeCard 'Copper', c.Silver, {

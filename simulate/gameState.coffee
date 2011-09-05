@@ -15,6 +15,9 @@ shuffle = (v) ->
     v[j] = temp
   v
 
+numericSort = (array) ->
+  array.sort( (a, b) -> (a-b) )
+
 # parameterize logging, so we can send it somewhere else when needed
 log = (obj) ->
   console.log(obj)
@@ -71,7 +74,8 @@ class State
     newState
     
   rotatePlayer: () ->
-    players = @players[1...@nPlayers].concat [@players[0]]
+    @players = @players[1...@nPlayers].concat [@players[0]]
+    @current = @players[0]
     @phase = 'start'
 
   gameIsOver: () ->
@@ -82,7 +86,7 @@ class State
     if emptyPiles.length >= 3\
         or 'Province' in emptyPiles\
         or 'Colony' in emptyPiles
-      console.log("Empty piles: #{emptyPiles}")
+      log("Empty piles: #{emptyPiles}")
       return true
     return false
 
@@ -101,6 +105,9 @@ class State
         @current.turnsTaken += 1
         log("\n== #{@current.ai}'s turn #{@current.turnsTaken} ==")
         log("Hand: #{@current.hand}")
+        log("Draw: #{@current.draw}")
+        log("Discard: #{@current.discard}")
+        log(@supply)
         this.resolveDurations()
         @phase = 'action'
       when 'action'
@@ -131,7 +138,6 @@ class State
       for card in @current.hand
         if card.isAction and card not in validActions
           validActions.push(card)
-      console.log("Actions: #{validActions}")
       action = @current.ai.chooseAction(this, validActions)
       return if action is null
       log("#{@current.ai} plays #{action}.")
@@ -170,11 +176,10 @@ class State
           [coinCost, potionCost] = card.getCost(this)
           if coinCost <= @current.coins and potionCost <= @current.potions
             buyable.push(card)
-      log(@current.coins)
+      log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
       choice = @current.ai.chooseBuy(this, buyable)
       return if choice is null
       log("#{@current.ai} buys #{choice}.")
-      log(choice.name)
       @supply[choice] -= 1
       @current.discard.push(choice)
       [coinCost, potionCost] = choice.getCost(this)
@@ -222,6 +227,28 @@ class State
   
   revealHand: (playerNum) ->
     # nothing interesting happens
+
+  countInSupply: (card) ->
+    @supply[card] ? 0
+  
+  pilesToEndGame: () ->
+    # How many piles have to be bought out to end the game?
+    switch @nPlayers
+      when 1, 2, 3, 4 then 3
+      else 4
+
+  gainsToEndGame: () ->
+    # How many cards would have to be gained to end the game?
+    counts = (count for card, count of @supply)
+    numericSort(counts)
+    piles = this.pilesToEndGame()
+    minimum = 0
+    for count in counts[...piles]
+      minimum += count
+    minimum = Math.min(minimum, @supply['Province'])
+    if @supply['Colony']?
+      minimum = Math.min(minimum, @supply['Colony'])
+    minimum
 
 class PlayerState
   # A PlayerState stores the part of the game state
@@ -318,6 +345,7 @@ class PlayerState
 
 this.kingdoms = {
   moneyOnly: []
+  moneyOnlyColony: ['Platinum', 'Colony']
   allDefined: [
     'Platinum', 'Colony', 'Potion',
     'Bank', 'Bazaar', 'Bridge', 'Coppersmith', 'Duke', 'Festival',
