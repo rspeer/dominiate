@@ -1,9 +1,8 @@
-# ambidextrous import/export
-if exports?
-  c = require('./cards')
+# ambidextrous import
+if require?
+  c = require('./cards').c
 else
-  gameState = {}
-  exports = gameState
+  c = this.c
 
 shuffle = (v) ->
   i = v.length
@@ -28,14 +27,18 @@ class State
   # Many operations will mutate the state, for the sake of efficiency.
   # Any AI that evaluates different possible decisions must make a copy of
   # that state with less information in it, anyway.
-
-  constructor: (@players, @supply, @phase) ->
+  
+  initialize: (ais, supply) ->
+    @players = (new PlayerState().initialize(ai) for ai in ais)
     @nPlayers = @players.length
     @current = @players[0]
+    @supply = supply
 
     @bridges = 0
     @quarries = 0
     @copperValue = 1
+    @phase = 'start'
+    return this
 
   copy: () ->
     newSupply = {}
@@ -44,8 +47,11 @@ class State
     newPlayers = []
     for player in @players
       newPlayers.push(player.copy())
-    newState = new State(newPlayers, newSupply, @phase)
+    newState = new State()
 
+    newState.players = newPlayers
+    newState.current = newPlayers[0]
+    newState.nPlayers = @nPlayers
     newState.bridges = @bridges
     newState.quarries = @quarries
     newState.copperValue = @copperValue
@@ -54,7 +60,7 @@ class State
     
   rotatePlayer: () ->
     players = @players[1...@nPlayers].concat [@players[0]]
-    @phase = start
+    @phase = 'start'
 
   gameIsOver: () ->
     emptyPiles = 0
@@ -78,7 +84,8 @@ class State
     switch @phase
       when 'start'
         @current.turnsTaken += 1
-        log("== #{@current.ai}'s turn #{@current.turnsTaken} ==")
+        log("\n== #{@current.ai}'s turn #{@current.turnsTaken} ==")
+        log("Hand: #{@current.hand}")
         this.resolveDurations()
         @phase = 'action'
       when 'action'
@@ -87,7 +94,7 @@ class State
         @phase = 'treasure'
       when 'treasure'
         log("(treasure phase)")
-        this.resolveTreasures()
+        this.resolveTreasure()
         @phase = 'buy'
       when 'buy'
         log("(buy phase)")
@@ -110,7 +117,7 @@ class State
         if card.isAction and card not in validActions
           validActions.push(card)
       
-      action = @current.ai.chooseAction(validActions)
+      action = @current.ai.chooseAction(this, validActions)
       return if action is null
       log("#{@current.ai} plays #{action}.")
       idx = @current.hand.indexOf(action)
@@ -128,50 +135,74 @@ class State
         if card.isTreasure and card not in validTreasures
           validTreasures.push(card)
       
-      treasure = @current.ai.chooseTreasure(validTreasures)
-      return if action is null
+      treasure = @current.ai.chooseTreasure(this, validTreasures)
+      return if treasure is null
       log("#{@current.ai} plays #{treasure}.")
       idx = @current.hand.indexOf(treasure)
       if idx == -1
-        warn("#{ai} chose an invalid treasure")
+        warn("#{@current.ai} chose an invalid treasure")
         return
       @current.hand.splice(idx, 1)   # remove the treasure from the hand
       @current.inPlay.push(treasure) # and put it in play
       treasure.onPlay(this)
   
   resolveBuy: () ->
-    buyable = []
-    while @buys > 0
-      for card, count of @supply
+    while @current.buys > 0
+      buyable = []
+      for cardname, count of @supply
+        card = c[cardname]
         if card.mayBeBought(this) and count > 0
-          buyable.push(card)
-      choice = @current.ai.chooseBuy(buyable)
+          [coinCost, potionCost] = card.getCost(this)
+          if coinCost <= @current.coins and potionCost <= @current.potions
+            buyable.push(card)
+      log(@current.coins)
+      choice = @current.ai.chooseBuy(this, buyable)
       return if choice is null
       log("#{@current.ai} buys #{choice}.")
-      @supply[card] -= 1
-      @current.discard.push(card)
-      card.onBuy(this)
-      # TODO: handle gain reactions
-    
+      log(choice.name)
+      @supply[choice] -= 1
+      @current.discard.push(choice)
+      [coinCost, potionCost] = choice.getCost(this)
+      @current.coins -= coinCost
+      @current.potionCost -= potionCost
+      @current.buys -= 1
+      choice.onBuy(this)
+      this.resolveGain(choice)
+  
+  resolveGain: () ->
+    # TODO: handle gain reactions
+
   resolveCleanup: () ->
     # Discard old duration cards
     @current.discard = @current.discard.concat @current.duration
     @current.duration = []
 
+    # if any cards remain set aside, clean them up
+    if @current.setAside.length > 0
+      warn(["Cards were set aside at the end of turn", @current.setAside])
+      @current.discard = @current.discard.concat @current.setAside
+      @current.setAside = []
+
     # Clean up cards in play, where the default is to discard them
     # TODO: allow cleanup order to be selected? (not very important)
     while @current.inPlay.length > 0
       card = @current.inPlay[0]
-      log("Cleaning up #{card}.")
       @current.inPlay = @current.inPlay[1...]
+      if card.isDuration
+        @current.duration.push(card)
+      else
+        @current.discard.push(card)
       card.onCleanup(this)
 
     # Discard remaining cards in hand
-    @current.discard = @current.discard.concat @current.hand
+    @current.discard = @current.discard.concat(@current.hand)
     @current.hand = []
 
     @current.actions = 1
     @current.buys = 1
+    @current.coins = 0
+    @current.copperValue = 1
+    @current.bridges = 0
     @current.drawCards(5)
   
   revealHand: (playerNum) ->
@@ -199,11 +230,15 @@ class PlayerState
     @chips = 0
     @hand = []
     @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
-                c.Copper, c.Copper, c.Copper, c.Estate, c.Estate]
+                c.Copper, c.Copper, c.Estate, c.Estate, c.Estate]
+    @draw = []
     @inPlay = []
     @duration = []
+    @setAside = []
     @turnsTaken = 0
     @ai = ai
+    this.drawCards(5)
+    this
 
   copy: () ->
     other = new PlayerState()
@@ -218,15 +253,26 @@ class PlayerState
     other.discard = @discard.slice(0)
     other.inPlay = @inPlay.slice(0)
     other.duration = @duration.slice(0)
+    other.setAside = @setAside.slice(0)
     other.ai = @ai
     other.turnsTaken = @turnsTaken
+    other
 
   getDeck: () ->
-    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration
-  
+    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @mats.nativeVillage.concat @mats.island
+
+  countInDeck: (card) ->
+    count = 0
+    for card2 in this.getDeck()
+      if card.toString() == card2.toString()
+        count++
+    count
+
   drawCards: (nCards) ->
     if @draw.length < nCards
       diff = nCards - @draw.length
+      if @draw.length > 0
+        log("#{@ai} draws #{@draw.length} cards.")
       @hand = @hand.concat(@draw)
       @draw = []
       if @discard.length > 0
@@ -234,14 +280,37 @@ class PlayerState
         this.drawCards(diff)
         
     else
+      log("#{@ai} draws #{nCards} cards.")
       @hand = @hand.concat(@draw[0...nCards])
       @draw = @draw[nCards...]
   
   shuffle: () ->
+    log("#{@ai} shuffles.")
+    if @draw.length > 0
+      throw new Error("Shuffling while there are cards left to draw")
     shuffle(@discard)
     @draw = @discard
     @discard = []
     # TODO: add an AI decision for Stashes
 
-exports.State = State
+  getVP: (state) ->
+    total = 0
+    for card in this.getDeck()
+      total += card.getVP(state)
+    total
+
+this.supplies = {
+  money2P: {
+    Estate: 8
+    Duchy: 8
+    Province: 8
+    Copper: 30
+    Silver: 30
+    Gold: 30
+    Curse: 10
+  }
+}
+
+this.State = State
+this.PlayerState = PlayerState
 

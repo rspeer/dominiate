@@ -1,9 +1,6 @@
-# ambidextrous export
-if exports?
-  c = exports
-else
-  c = {}
-  exports = c
+# Create an exported object to store all card definitions
+c = {}
+this.c = c
 
 # Cards here are built in an *almost* object-oriented way. Almost, because each
 # card is a singleton value, not a class. There are no instances of cards,
@@ -24,12 +21,6 @@ makeCard = (name, origCard, props) ->
   newCard.parent = origCard.name   # for debugging
   c[name] = newCard
   newCard
-
-standardCleanup = (state) ->
-  if this.isDuration
-    state.current.duration.push(this)
-  else
-    state.current.discard.push(this)
 
 basicCard = {
   isAction: false
@@ -83,7 +74,8 @@ basicCard = {
   buyEffects: []
   playEffects: []
   gainInPlayEffects: []
-  cleanupEffects: [standardCleanup]
+  cleanupEffects: []
+
   durationEffects: []
   shuffleEffects: []
   attackReactions: []
@@ -94,22 +86,22 @@ basicCard = {
       effect(state)
 
   onPlay: (state) ->
-    state.current.actions += this.getActions()
-    state.current.coins += this.getCoins()
-    state.current.buys += this.getBuys()
-    cardsToDraw = this.getCards()
+    state.current.actions += this.getActions(state)
+    state.current.coins += this.getCoins(state)
+    state.current.buys += this.getBuys(state)
+    cardsToDraw = this.getCards(state)
     if cardsToDraw > 0
       state.current.drawCards(cardsToDraw)
     this.doEffects(this.playEffects, state)
 
   onDuration: (state) ->
-    this.doEffects(this.durationEffects)
+    this.doEffects(this.durationEffects, state)
   
   onCleanup: (state) ->
-    return this.doEffects(this.cleanupEffects)
+    this.doEffects(this.cleanupEffects, state)
 
   onBuy: (state) ->
-    return this.doEffects(this.buyEffects)
+    this.doEffects(this.buyEffects, state)
   
   toString: () -> this.name
 }
@@ -330,4 +322,3 @@ makeCard 'Shanty Town', basicCard, {
       state.current.drawCards(cardsToDraw)
   ]
 }
-
