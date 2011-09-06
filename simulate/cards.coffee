@@ -94,7 +94,8 @@ basicCard = {
   playEffects: []
   gainInPlayEffects: []
   cleanupEffects: []
-
+  
+  # TODO: replace durationEffects with a simple onDuration
   durationEffects: []
   shuffleEffects: []
   attackReactions: []
@@ -224,6 +225,57 @@ makeCard 'Harem', c.Silver, {
   cost: 6
   isVictory: true
   getVP: (state) -> 2
+}
+
+###
+Duration cards
+###
+duration = makeCard 'duration', action, {
+  durationActions: 0
+  durationBuys: 0
+  durationCoins: 0
+  durationCards: 0
+  isDuration: true
+
+  onDuration:
+    (state) ->
+      state.current.actions += this.durationActions
+      state.current.buys += this.durationBuys
+      state.current.coins += this.durationCoins
+      if this.durationCards > 0
+        state.current.drawCards(this.durationCards)
+}, true
+
+makeCard 'Caravan', duration, {
+  cards: +1
+  actions: +1
+  durationCards: +1
+}
+
+makeCard 'Fishing Village', duration, {
+  cost: 3
+  cards: 0
+  coins: +1
+  actions: +2
+  durationActions: +1
+  durationCoins: +1
+  durationCards: 0
+}
+
+makeCard 'Wharf', duration, {
+  cost: 5
+  cards: +2
+  buys: +1
+  durationCards: +2
+  durationBuys: +1
+}
+
+makeCard 'Merchant Ship', duration, {
+  cost: 5
+  cards: 0
+  coins: +2
+  durationCards: 0
+  durationCoins: +2
 }
 
 ###

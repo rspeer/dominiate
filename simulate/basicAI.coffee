@@ -60,7 +60,6 @@ class BasicAI
     null
   ]
   
-  # TODO: expand this to cover all defined actions
   actionPriority: (state) -> [
     "Menagerie" if state.current.menagerieDraws() == 3
     "Shanty Town" if state.current.shantyTownDraws() == 2
@@ -71,6 +70,8 @@ class BasicAI
     "Grand Market"
     "Alchemist"
     "Laboratory"
+    "Caravan"
+    "Fishing Village"
     "Market"
     "Peddler"
     "Great Hall"
@@ -78,11 +79,13 @@ class BasicAI
     "Menagerie"
     "Shanty Town" if state.current.actions == 1
     "Militia"
+    "Wharf"
     "Princess"
     "Bridge"
     "Horse Traders"
     "Coppersmith" if state.current.countInHand("Copper") >= 3
     "Smithy"
+    "Merchant Ship"
     "Monument"
     "Woodcutter"
     "Coppersmith" if state.current.countInHand("Copper") >= 2
