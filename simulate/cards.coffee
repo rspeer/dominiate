@@ -2,6 +2,13 @@
 c = {}
 this.c = c
 
+transferCard = (card, fromList, toList) ->
+  idx = fromList.indexOf(card)
+  if idx == -1
+    throw new Error("#{fromList} does not contain #{card}")
+  fromList.splice(idx, 1)
+  toList.push(card)
+
 # Cards here are built in an *almost* object-oriented way. Almost, because each
 # card is a singleton value, not a class. There are no instances of cards,
 # there are just cards.
@@ -270,6 +277,29 @@ makeCard "Grand Market", c.Market, {
     not(c.Copper in state.current.inPlay)
 }
 
+makeCard "Horse Traders", action, {
+  cost: 4
+  buys: 1
+  coins: 3
+  isReaction: true
+  playEffects: [
+    (state) -> state.requireDiscard(state.current, 2)
+  ]
+  
+  # not a duration card, but we can simulate its set-aside state as a duration
+  # effect
+  durationEffects: [
+    (state) -> 
+      # pick up the card
+      transferCard(this, state.current.duration, state.current.hand)
+      state.current.drawCards(1)
+  ]
+  attackReactions: [
+    (state) ->
+      transferCard(this, state.current.hand, state.current.duration)
+  ]
+}
+
 makeCard "Menagerie", action, {
   cost: 3
   actions: 1
@@ -294,6 +324,7 @@ makeCard "Militia", action, {
 makeCard "Moat", action, {
   cost: 2
   cards: +2
+  isReaction: true
   attackReactions: [
     (player) -> player.moatProtected = true
   ]

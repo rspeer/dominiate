@@ -79,6 +79,7 @@ class BasicAI
     "Militia"
     "Princess"
     "Bridge"
+    "Horse Traders"
     "Coppersmith" if state.current.countInHand("Copper") >= 3
     "Smithy"
     "Monument"

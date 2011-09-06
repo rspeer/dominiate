@@ -292,7 +292,8 @@ class State
   attackPlayer: (player, effect) ->
     player.moatProtected = false
     for card in player.hand
-      card.reactToAttack(player)
+      if card.isReaction
+        card.reactToAttack(player)
     if not player.moatProtected
       effect(player)
       
@@ -464,9 +465,9 @@ this.kingdoms = {
   allDefined: [
     'Platinum', 'Colony', 'Potion',
     'Bank', 'Bazaar', 'Bridge', 'Coppersmith', 'Duke', 'Festival',
-    'Gardens', 'Grand Market', 'Great Hall', 'Harem', 'Laboratory', 'Market',
-    'Menagerie', 'Moat', 'Militia', 'Monument', 'Peddler',
-    "Philosopher's Stone", 'Quarry',
+    'Gardens', 'Grand Market', 'Great Hall', 'Harem', 'Horse Traders', 
+    'Laboratory', 'Market', 'Menagerie', 'Moat', 'Militia', 'Monument',
+    'Peddler', "Philosopher's Stone", 'Quarry',
     'Shanty Town', 'Smithy', 'Village', 'Woodcutter', "Worker's Village",
   ]
 }
