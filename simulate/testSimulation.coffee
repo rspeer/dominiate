@@ -1,6 +1,6 @@
 c = require('./cards')
 gameState = require('./gameState')
-BasicAI = require('./basicAI').BasicAI
+basicAI = require('./basicAI')
 
 this['game is initialized correctly'] = (test) ->
   st = new gameState.State().initialize([null, null], gameState.kingdoms.moneyOnly)
@@ -15,11 +15,9 @@ this['game is initialized correctly'] = (test) ->
   test.done()
 
 this['game runs without crashing'] = (test) ->
-  ai1 = new BasicAI()
-  ai2 = new BasicAI()
-  ai1.name = 'p1'
-  ai2.name = 'p2'
-  st = new gameState.State().initialize([ai1, ai2], gameState.kingdoms.moneyOnly)
+  ai1 = new basicAI.BasicAI()
+  ai2 = new basicAI.SillyAI()
+  st = new gameState.State().initialize([ai1, ai2], gameState.kingdoms.allDefined)
   st.doPlay(); test.equal st.phase, 'action'
   st.doPlay(); test.equal st.phase, 'treasure'
   st.doPlay(); test.equal st.phase, 'buy'
@@ -36,4 +34,5 @@ this['game runs without crashing'] = (test) ->
   st.doPlay(); test.equal st.phase, 'cleanup'
   until st.gameIsOver()
     st.doPlay()
+  console.log([player.ai.toString(), player.getVP(st), player.turnsTaken] for player in st.players)
   test.done()

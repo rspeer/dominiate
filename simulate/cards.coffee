@@ -35,6 +35,7 @@ basicCard = {
   # *actually* costs, use the getCost() method. In most cases, the cost can
   # be set directly through the "cost" attribute, but it should never be
   # accessed that way.
+
   cost: 0
   costPotion: 0
   costInCoins: (state) -> this.cost
@@ -104,6 +105,10 @@ basicCard = {
   onBuy: (state) ->
     this.doEffects(this.buyEffects, state)
   
+  reactToAttack: (player) ->
+    for reaction in this.attackReactions
+      reaction(player)
+  
   toString: () -> this.name
 }
 
@@ -162,6 +167,9 @@ makeCard 'Platinum', c.Silver, {
 makeCard 'Potion', c.Silver, {
   cost: 4
   coins: 0
+  playEffects: [
+    (state) -> state.current.potions += 1
+  ]
   getPotion: (state) -> 1
 }
 
@@ -186,7 +194,7 @@ makeCard "Worker's Village", action, {
 }
 makeCard 'Laboratory', action, {cost: 5, actions: 1, cards: 2}
 makeCard 'Smithy', action, {cost: 4, cards: 3}
-makeCard 'Festival', action, {cost: 5, actions: 2, coins: 2}
+makeCard 'Festival', action, {cost: 5, actions: 2, coins: 2, buys: 1}
 makeCard 'Woodcutter', action, {cost: 3, coins: 2, buys: 1}
 makeCard 'Great Hall', action, {
   cost: 3, actions: 1, cards: 1, vp: 1, isVictory: true
@@ -268,14 +276,26 @@ makeCard "Menagerie", action, {
   playEffects: [
     (state) -> state.revealHand(0),
     (state) ->
-      seen = {}
-      cardsToDraw = 3
-      for card in state.current.hand
-        if seen[card.name]?
-          cardsToDraw = 1
-          break
-        seen[card.name] = true
-      state.current.drawCards(cardsToDraw)
+      state.current.drawCards(state.current.menagerieDraws())
+  ]
+}
+
+makeCard "Militia", action, {
+  cost: 4
+  coins: 2
+  isAttack: true
+  playEffects: [
+    (state) ->
+      state.attackOpponents (opp) ->
+        state.requireDiscard(opp, 2)
+  ]
+}
+
+makeCard "Moat", action, {
+  cost: 2
+  cards: +2
+  attackReactions: [
+    (player) -> player.moatProtected = true
   ]
 }
 
@@ -297,8 +317,9 @@ makeCard 'Peddler', action, {
     cost = 8
     if state.phase is 'buy'
       for card in state.current.inPlay
-        cost -= 2
-        break if cost <= 0
+        if card.isAction
+          cost -= 2
+          break if cost <= 0
     cost
 }
 
@@ -333,12 +354,8 @@ makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
   playEffects: [
+    (state) -> state.revealHand(0),
     (state) ->
-      cardsToDraw = 2
-      for card in state.current.inPlay
-        if card.isAction
-          cardsToDraw = 0
-          break
-      state.current.drawCards(cardsToDraw)
+      state.current.drawCards(state.current.shantyTownDraws())
   ]
 }

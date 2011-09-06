@@ -15,6 +15,13 @@ shuffle = (v) ->
     v[j] = temp
   v
 
+countStr = (list, elt) ->
+  count = 0
+  for member in list
+    if member.toString() == elt.toString()
+      count++
+  count
+
 numericSort = (array) ->
   array.sort( (a, b) -> (a-b) )
 
@@ -34,6 +41,9 @@ class State
   # that state with less information in it, anyway.
   basicSupply: ['Curse', 'Copper', 'Silver', 'Gold',
                 'Estate', 'Duchy', 'Province']
+  
+  # make card information available to strategies
+  cardInfo: c
 
   initialize: (ais, kingdom) ->
     @players = (new PlayerState().initialize(ai) for ai in ais)
@@ -107,7 +117,6 @@ class State
         log("Hand: #{@current.hand}")
         log("Draw: #{@current.draw}")
         log("Discard: #{@current.discard}")
-        log(@supply)
         this.resolveDurations()
         @phase = 'action'
       when 'action'
@@ -134,7 +143,7 @@ class State
   
   resolveActions: () ->
     while @current.actions > 0
-      validActions = []
+      validActions = [null]
       for card in @current.hand
         if card.isAction and card not in validActions
           validActions.push(card)
@@ -147,11 +156,12 @@ class State
         return
       @current.hand.splice(idx, 1)   # remove the action from the hand
       @current.inPlay.push(action)   # and put it in play
+      @current.actions -= 1
       action.onPlay(this)
 
   resolveTreasure: () ->
     loop
-      validTreasures = []
+      validTreasures = [null]
       for card in @current.hand
         if card.isTreasure and card not in validTreasures
           validTreasures.push(card)
@@ -169,27 +179,30 @@ class State
   
   resolveBuy: () ->
     while @current.buys > 0
-      buyable = []
+      buyable = [null]
       for cardname, count of @supply
         card = c[cardname]
         if card.mayBeBought(this) and count > 0
           [coinCost, potionCost] = card.getCost(this)
           if coinCost <= @current.coins and potionCost <= @current.potions
             buyable.push(card)
+      
       log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
       choice = @current.ai.chooseBuy(this, buyable)
       return if choice is null
+      
       log("#{@current.ai} buys #{choice}.")
-      @supply[choice] -= 1
-      @current.discard.push(choice)
       [coinCost, potionCost] = choice.getCost(this)
       @current.coins -= coinCost
       @current.potionCost -= potionCost
       @current.buys -= 1
+
+      this.doGain(@current, choice)
       choice.onBuy(this)
-      this.resolveGain(choice)
   
-  resolveGain: () ->
+  doGain: (player, card) ->
+    player.discard.push(card)
+    @supply[card] -= 1
     # TODO: handle gain reactions
 
   resolveCleanup: () ->
@@ -221,13 +234,68 @@ class State
     @current.actions = 1
     @current.buys = 1
     @current.coins = 0
-    @current.copperValue = 1
-    @current.bridges = 0
+    @current.potions = 0
+    @copperValue = 1
+    @bridges = 0
+    @quarries = 0
     @current.drawCards(5)
   
-  revealHand: (playerNum) ->
+  revealHand: (player) ->
     # nothing interesting happens
+  
+  allowDiscard: (player, num) ->
+    numDiscarded = 0
+    while numDiscarded < num
+      validDiscards = player.hand
+      validDiscards.push(null)
+      choice = player.ai.chooseDiscard(this, validDiscards)
+      return if choice is null
+      log("#{player.ai} discards #{choice}.")
+      numDiscarded++
+      player.doDiscard(choice)
+  
+  requireDiscard: (player, num) ->
+    numDiscarded = 0
+    while numDiscarded < num
+      validDiscards = player.hand
+      return if validDiscards.length == 0
+      choice = player.ai.chooseDiscard(this, validDiscards)
+      log("#{player.ai} discards #{choice}.")
+      numDiscarded++
+      player.doDiscard(choice)
+  
+  allowTrash: (player, num) ->
+    numTrashed = 0
+    while numTrashed < num
+      valid = player.hand
+      valid.push(null)
+      choice = player.ai.chooseTrash(this, valid)
+      return if choice is null
+      log("#{player.ai} trashes #{choice}.")
+      numTrashed++
+      player.doTrash(choice)
+  
+  requireTrash: (player, num) ->
+    numTrashed = 0
+    while numTrashed < num
+      valid = player.hand
+      return if valid.length == 0
+      choice = player.ai.chooseTrash(this, valid)
+      log("#{player.ai} trashes #{choice}.")
+      numTrashed++
+      player.doTrash(choice)
+  
+  attackOpponents: (effect) ->
+    for opp in @players[1...]
+      this.attackPlayer(opp, effect)
 
+  attackPlayer: (player, effect) ->
+    player.moatProtected = false
+    for card in player.hand
+      card.reactToAttack(player)
+    if not player.moatProtected
+      effect(player)
+      
   countInSupply: (card) ->
     @supply[card] ? 0
   
@@ -277,6 +345,7 @@ class PlayerState
     @inPlay = []
     @duration = []
     @setAside = []
+    @moatProtected = false
     @turnsTaken = 0
     @ai = ai
     this.drawCards(5)
@@ -296,6 +365,7 @@ class PlayerState
     other.inPlay = @inPlay.slice(0)
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
+    other.moatProtected = @moatProtected
     other.ai = @ai
     other.turnsTaken = @turnsTaken
     other
@@ -325,6 +395,21 @@ class PlayerState
       log("#{@ai} draws #{nCards} cards.")
       @hand = @hand.concat(@draw[0...nCards])
       @draw = @draw[nCards...]
+
+  doDiscard: (card) ->
+    idx = @hand.indexOf(card)
+    if idx == -1
+      warn("#{@ai} has no #{card} to discard")
+      return
+    @hand.splice(idx, 1)
+    @discard.push(card)
+  
+  doTrash: (card) ->
+    idx = @hand.indexOf(card)
+    if idx == -1
+      warn("#{@ai} has no #{card} to trash")
+      return
+    @hand.splice(idx, 1)
   
   shuffle: () ->
     log("#{@ai} shuffles.")
@@ -340,8 +425,38 @@ class PlayerState
     for card in this.getDeck()
       total += card.getVP(state)
     total
+  
+  # Helpful indicators
+  countInHand: (card) ->
+    countStr(@hand, card)
 
-    
+  countInDiscard: (card) ->
+    countStr(@discard, card)
+
+  countInPlay: (card) ->
+    # Count the number of copies of a card in play. Don't use this
+    # for evaluating effects that stack, because you may also need
+    # to take Throne Rooms and King's Courts into account.
+    countStr(@inPlay, card)
+
+  menagerieDraws: () ->
+    seen = {}
+    cardsToDraw = 3
+    for card in @hand
+      if seen[card.name]?
+        cardsToDraw = 1
+        break
+      seen[card.name] = true
+    cardsToDraw
+
+  shantyTownDraws: () ->
+    cardsToDraw = 2
+    for card in @hand
+      if card.isAction
+        cardsToDraw = 0
+        break
+    cardsToDraw
+
 
 this.kingdoms = {
   moneyOnly: []
@@ -350,7 +465,8 @@ this.kingdoms = {
     'Platinum', 'Colony', 'Potion',
     'Bank', 'Bazaar', 'Bridge', 'Coppersmith', 'Duke', 'Festival',
     'Gardens', 'Grand Market', 'Great Hall', 'Harem', 'Laboratory', 'Market',
-    'Menagerie', 'Monument', 'Peddler', "Philosopher's Stone", 'Quarry',
+    'Menagerie', 'Moat', 'Militia', 'Monument', 'Peddler',
+    "Philosopher's Stone", 'Quarry',
     'Shanty Town', 'Smithy', 'Village', 'Woodcutter', "Worker's Village",
   ]
 }
