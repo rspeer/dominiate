@@ -78,8 +78,10 @@ class BasicAI
     "Peddler"
     "Great Hall"
     "Smithy" if state.current.actions > 1
+    "Pawn"
     "Menagerie"
     "Shanty Town" if state.current.actions == 1
+    "Nobles"
     "Militia"
     "Wharf"
     "Princess"
@@ -134,12 +136,38 @@ class BasicAI
     "Potion"
     "Estate"
     "Silver"
-    "Duchy"
-    "Gold"
-    "Platinum"
-    "Province"
-    "Colony"
   ]
+
+  chooseBenefit: (state, choices) -> 
+    buyValue = 1
+    cardValue = 2
+    coinValue = 3
+    trashValue = 4      # if there are cards we want to trash
+    actionValue = 5     # if we need more actions
+    trashableCards = 0
+    usableActions = Math.max(0, -state.current.actionBalance())
+
+    # How many cards do we want to trash?
+    for card in state.current.hand
+      if this.chooseTrash(state, [card, null]) is card
+        trashableCards += 1
+    
+    best = null
+    bestValue = -1000
+    for choice in choices
+      value = cardValue * (choice.cards ? 0)
+      value += coinValue * (choice.coins ? 0)
+      value += buyValue * (choice.buys ? 0)
+      trashes = (choice.trashes ? 0)
+      if trashes <= trashableCards
+        value += trashValue * trashes
+      else
+        value -= trashValue * trashes
+      value += actionValue * Math.max((choice.actions ? 0), usableActions)
+      if value > bestValue
+        best = choice
+        bestValue = value
+    best
 
   toString: () -> this.name
 

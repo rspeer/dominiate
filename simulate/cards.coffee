@@ -17,6 +17,20 @@ transferCardToTop = (card, fromList, toList) ->
   fromList.splice(idx, 1)
   toList.unshift(card)
 
+applyBenefit = (state, benefit) ->
+  # work into the standard logging
+  console.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
+  if benefit.cards?
+    state.current.drawCards(benefit.cards)
+  if benefit.actions?
+    state.current.actions += benefit.actions
+  if benefit.buys?
+    state.current.buys += benefit.buys
+  if benefit.coins?
+    state.current.coins += benefit.coins
+  if benefit.trash?
+    state.requireTrash(state.current, benefit.trash)
+
 # Cards here are built in an *almost* object-oriented way. Almost, because each
 # card is a singleton value, not a class. There are no instances of cards,
 # there are just cards.
@@ -418,6 +432,36 @@ makeCard "Monument", action, {
   playEffects: [
     (state) ->
       state.current.chips += 1
+  ]
+}
+
+makeCard 'Nobles', action, {
+  cost: 6
+  isVictory: true
+  getVP: (state) -> 2
+  playEffects: [
+    (state) ->
+      benefit = state.current.ai.chooseBenefit(state, [
+        {actions: 2},
+        {cards: 3}
+      ])
+      applyBenefit(state, benefit)
+  ]
+}
+
+makeCard 'Pawn', action, {
+  cost: 2
+  playEffects: [
+    (state) ->
+      benefit = state.current.ai.chooseBenefit(state, [
+        {cards: 1, actions: 1},
+        {cards: 1, buys: 1},
+        {cards: 1, coins: 1},
+        {actions: 1, buys: 1},
+        {actions: 1, coins: 1},
+        {buys: 1, coins: 1}
+      ])
+      applyBenefit(state, benefit)
   ]
 }
 

@@ -463,6 +463,14 @@ class PlayerState
         cardsToDraw = 0
         break
     cardsToDraw
+  
+  actionBalance: () ->
+    balance = 0
+    for card in @hand
+      if card.isAction
+        balance += card.actions
+        balance--
+    balance
 
 
 this.kingdoms = {
