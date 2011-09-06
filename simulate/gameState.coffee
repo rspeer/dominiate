@@ -445,6 +445,16 @@ class PlayerState
     # for evaluating effects that stack, because you may also need
     # to take Throne Rooms and King's Courts into account.
     countStr(@inPlay, card)
+
+  countActionCardsInDeck: () ->
+    count = 0
+    for card in this.getDeck()
+      if card.isAction
+        count += 1
+    count
+
+  getActionDensity: () ->
+    this.countActionCardsInDeck() / this.getDeck().length
   
   menagerieDraws: () ->
     seen = {}
@@ -465,11 +475,16 @@ class PlayerState
     cardsToDraw
   
   actionBalance: () ->
-    balance = 0
+    balance = @actions
     for card in @hand
       if card.isAction
         balance += card.actions
         balance--
+
+        # Estimate the risk of drawing an action dead.
+        # TODO: do something better when there are variable card-drawers
+        if card.actions == 0
+          balance -= card.cards * this.getActionDensity()
     balance
 
 
