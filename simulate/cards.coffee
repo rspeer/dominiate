@@ -1,8 +1,16 @@
-# Create an exported object to store all card definitions
+# Dominion cards and their effects are defined in this file.  Each card is a
+# singleton, immutable object.
+
+# We begin by creating the `c` object, an exported object with which one can 
+# look up any card by its name.
 c = {}
 this.c = c
 c.allCards = []
 
+# Utility functions
+# -----------------
+
+# `transferCard` will move a card from one list to the end of another.
 transferCard = (card, fromList, toList) ->
   idx = fromList.indexOf(card)
   if idx == -1
@@ -10,6 +18,8 @@ transferCard = (card, fromList, toList) ->
   fromList.splice(idx, 1)
   toList.push(card)
 
+# `transferCardToTop` will move a card from one list to the front of another.
+# This is used to put a card on top of the deck, for example.
 transferCardToTop = (card, fromList, toList) ->
   idx = fromList.indexOf(card)
   if idx == -1
@@ -17,8 +27,21 @@ transferCardToTop = (card, fromList, toList) ->
   fromList.splice(idx, 1)
   toList.unshift(card)
 
+# Some cards give you a constant benefit, such as +cards or +actions,
+# every time you play them; these benefits are defined directly on the card
+# object. Other cards give you such a benefit only under certain conditions,
+# and if the benefits are straightforward, we may use `applyBenefit` to make
+# them happen. This takes in an object that describes the benefit, and
+# applies it to the game state.
+#
+# The actions that can be performed through `applyBenefit` currently are:
+#
+# - `{cards: n}`: draw *n* cards
+# - `{actions: n}`: get *+n* actions
+# - `{buys: n}`: get *+n* buys
+# - `{coins: n}`: get *+n* coins
+# - `{trash: n}`: trash *n* cards
 applyBenefit = (state, benefit) ->
-  # work into the standard logging
   console.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
   if benefit.cards?
     state.current.drawCards(benefit.cards)
@@ -31,16 +54,35 @@ applyBenefit = (state, benefit) ->
   if benefit.trash?
     state.requireTrash(state.current, benefit.trash)
 
-# Cards here are built in an *almost* object-oriented way. Almost, because each
-# card is a singleton value, not a class. There are no instances of cards,
-# there are just cards.
-#
-# Therefore, they "inherit" from each other by copying their properties, using
-# the cardFrom function. There isn't even a need for Javascript's prototype
-# system here.
+# Design 
+# ------
+# Many cards are defined in terms of other cards using a pattern similar to
+# inheritance, except without the classes. There is no need for classes because
+# there are no separate instances.
+# 
+# Each Copper is a reference to the same single Copper object, for example.
+
+# Defining cards
+# --------------
+# The `makeCard` function will define a new card and add it to the card list.
+# 
+# `makeCard` is used by copying an existing card object and applying a few new
+# properties to it, which is a sort of inheritance.
+# 
+# `name` is the name of the card, which will be the card's string
+# representation and the key that you look it up in the card list `c` by.
+# 
+# To define a card independently of any existing card, let `origCard` be the
+# abstract card called `basicCard`. To define a card in terms of another card,
+# let `origCard` be that card object (probably a member of `c`, such as
+# `c.Estate`).
+# 
+# `props` are the properties of the card that differ from its parent.
+# 
+# `fake` is true when this should be an abstract card, not a card in the
+# supply. Fake cards are simply returned, not added to `c`.
 
 makeCard = (name, origCard, props, fake) ->
-  # Derive a card from an existing one.
   newCard = {}
   for key, value of origCard
     newCard[key] = value
@@ -53,7 +95,15 @@ makeCard = (name, origCard, props, fake) ->
     c.allCards.push(name)
   newCard
 
+#### The basicCard object
+# `basicCard` contains all the things that are true by default
+# about a card, plus many useful methods that will be available on all cards.
+# All other cards should have `basicCard` as an ancestor. Many of the
+# properties and methods of `basicCard` are meant to be overridden in
+# real cards.
 basicCard = {
+  # This set of boolean values defines a card's types. Cards may have any
+  # number of types; the only card with no type is Curse.
   isAction: false
   isTreasure: false
   isVictory: false
@@ -62,16 +112,22 @@ basicCard = {
   isDuration: false
   isPrize: false
   
-  # The _base cost_ of a card is defined here. To find out what a card
-  # *actually* costs, use the getCost() method. In most cases, the cost can
-  # be set directly through the "cost" attribute, but it should never be
-  # accessed that way.
-
+  # The **base cost** of a card is defined here. To find out what a card
+  # *actually* costs, use the getCost() method.
   cost: 0
   costPotion: 0
+
+  # These methods may be overridden by cards whose costs vary on their own,
+  # particularly Peddler.
   costInCoins: (state) -> this.cost
   costInPotions: (state) -> this.costPotion
   
+  # Card costs can change according to things external to the card, such as
+  # bridges and quarries in play. Therefore, any code that wants to know the
+  # actual cost of a card in a state should call `card.getCost(state)`.
+  #
+  # This method returns a list of two elements, which are the cost in
+  # coins and the cost in potions.
   getCost: (state) ->
     coins = this.costInCoins(state)
     coins -= state.bridges
@@ -80,45 +136,77 @@ basicCard = {
     if coins < 0
       coins = 0
     return [coins, this.costInPotions(state)]
-
-  # There are two kinds of methods of a card. Those that can be statically
-  # evaluated based on a state take a single argument, the state.
-  #
-  # When evaluating different hypothetical decisions to make, remember:
-  #   - The state should have unknown information (no cheating!)
-  #   - Use a fresh copy of the state each time, because actions are allowed
-  #     to mutate states for efficiency.
-  #   - All AIs should be replaced by the AI making the decision -- AIs don't
-  #     get to ask other AIs what they would do.
   
+  # These properties define simple, non-variable effects of playing a card.
+  # They may only have constant numeric values.
   actions: 0
   cards: 0
   coins: 0
   buys: 0
   vp: 0
 
+  # If a card has simple effects that *vary* based on the state, define
+  # them by overriding these methods, which do take the state as a parameter.
+  # The constant properties above will be ignored in that case, but you could
+  # fill them in with reasonable guesses for the benefit of AI methods that
+  # don't want to examine the state.
   getActions: (state) -> this.actions
   getCards: (state) -> this.cards
   getCoins: (state) -> this.coins
   getBuys: (state) -> this.buys
   getVP: (state) -> this.vp
+
+  # Some cards (Grand Market) may not be bought in certain situations.
+  # Use `cards.mayBeBought(state)` to define when. By default, a card may be
+  # bought whenever it is in the supply.
   mayBeBought: (state) -> true
+
+  # `card.startingSupply(state)` is called once for each card in the supply
+  # at the start of the game, to determine how many of them go into the supply.
+  # This is 10 by default, but some types of cards override it.
   startingSupply: (state) -> 10
+
+  #### Effect lists
+  # More complex effects of a card can be defined by a list of things that
+  # happen in response to certain events, such as the card being played or
+  # the card being bought. The list will typically have 0 or 1 things in it.
+  #
+  # Each element of the effect list should be a function that takes in the
+  # `state` and alters it.
+  #
+  # Note: As these functions are part of an array object
+  # and not part of the card itself, references to `this` will not work
+  # inside an effect list.
+
+  # What happens when the card is bought?
   buyEffects: []
+  # What happens (besides the simple effects defined above) when the card is
+  # played?
   playEffects: []
+  # What happens when this card is in play and another card is gained?
   gainInPlayEffects: []
+  # What happens when this card is cleaned up from play?
   cleanupEffects: []
-  
-  # TODO: replace durationEffects with a simple onDuration
+  # What happens when the card is in play as a Duration at the start of
+  # the turn?
+  # 
+  # *TODO*: replace durationEffects with a simple onDuration, so that
+  # duration effects may refer to `this`
   durationEffects: []
+  # What happens when the card is shuffled into the draw deck?
   shuffleEffects: []
+  # What happens when this card is in hand and an opponent plays an attack?
   attackReactions: []
+  # What happens when this card is in hand and its owner gains a card?
   gainReactions: []
   
+  # Apply an effect list to the current game state.
   doEffects: (effects, state) ->
     for effect in effects
       effect(state)
-
+  
+  # This defines everything that happens when a card is played, including
+  # basic effects and complex effects defined in `playEffects`.
   onPlay: (state) ->
     state.current.actions += this.getActions(state)
     state.current.coins += this.getCoins(state)
@@ -127,7 +215,9 @@ basicCard = {
     if cardsToDraw > 0
       state.current.drawCards(cardsToDraw)
     this.doEffects(this.playEffects, state)
-
+  
+  # Apply effects that are triggered by certain events. This code is
+  # not yet complete; for example, it does not handle gain reactions.
   onDuration: (state) ->
     this.doEffects(this.durationEffects, state)
   
@@ -141,15 +231,19 @@ basicCard = {
     for reaction in this.attackReactions
       reaction(player)
   
+  # A card's string representation is its name.
+  #
+  # If you have a value called
+  # `card` that may be a string or a card object, you can ensure that it is
+  # a card object by looking up `c[card]`.
   toString: () -> this.name
 }
 
-###
-BASE CARDS
-
-Estate and Silver are the prototypes that other Victory and Treasure cards
-derive from, respectively. (Copper is actually more complex than Silver!)
-###
+# Base cards
+# ----------
+#
+# Estate and Silver are the prototypes that other Victory and Treasure cards
+# derive from, respectively. (Copper is actually more complex than Silver!)
 
 makeCard 'Curse', basicCard, {
   cost: 0
@@ -205,14 +299,13 @@ makeCard 'Potion', c.Silver, {
   getPotion: (state) -> 1
 }
 
-###
-VANILLA CARDS
-
-These cards have effects that involve no decisions, and are expressed entirely
-in +actions, +cards, +coins, +buys, and VP.
-###
-
-# make an action card to derive from
+# Vanilla cards
+# -------------
+#
+# These cards have effects that involve no decisions, and are expressed entirely
+# in +actions, +cards, +coins, +buys, and VP.
+#
+# Action cards may derive from the virtual card called `action`.
 action = makeCard 'action', basicCard, {isAction: true}, true
 
 makeCard 'Village', action, {actions: 2, cards: 1}
@@ -238,12 +331,13 @@ makeCard 'Bazaar', action, {
 makeCard 'Harem', c.Silver, {
   cost: 6
   isVictory: true
-  getVP: (state) -> 2
+  vp: 2
 }
 
-###
-Duration cards
-###
+# Duration cards
+# --------------
+# These cards have additional properties, such as `durationActions`, defining
+# constant effects that happen when the card is resolved as a duration card.
 duration = makeCard 'duration', action, {
   durationActions: 0
   durationBuys: 0
@@ -292,9 +386,11 @@ makeCard 'Merchant Ship', duration, {
   durationCoins: +2
 }
 
-###
-Other cards
-###
+# Miscellaneous cards
+# -------------------
+# All of these cards have effects beyond what can be expressed with a
+# simple formula, which are generally defined using effect lists such as
+# `playEffects`.
 
 makeCard 'Alchemist', action, {
   cost: 3
@@ -348,6 +444,7 @@ makeCard 'Coppersmith', action, {
 makeCard 'Diadem', c.Silver, {
   cost: 0
   isPrize: true
+  mayBeBought: (state) -> false
   getCoins: (state) -> 2 + state.current.actions
 }
 
@@ -369,6 +466,7 @@ makeCard "Gardens", c.Estate, {
 makeCard "Grand Market", c.Market, {
   cost: 6
   coins: 2
+  # Grand Market may not be bought if Copper is in play.
   mayBeBought: (state) ->
     not(c.Copper in state.current.inPlay)
 }
@@ -382,11 +480,12 @@ makeCard "Horse Traders", action, {
     (state) -> state.requireDiscard(state.current, 2)
   ]
 
-  # not a duration card, but we can simulate its set-aside state as a duration
-  # effect
+  # Horse Traders is not actually a duration card, but it resolves like one
+  # when it is set aside. There seems to be no harm in simplifying by
+  # putting it in the duration area.
   durationEffects: [
     (state) -> 
-      # pick up the card
+      # Pick up Horse Traders and draw another card.
       transferCard(c['Horse Traders'], state.current.duration, state.current.hand)
       state.current.drawCards(1)
   ]
@@ -410,6 +509,10 @@ makeCard "Militia", action, {
   cost: 4
   coins: 2
   isAttack: true
+  # Militia is a straightforward example of an attack card.
+  #
+  # All attack effects are wrapped in the `state.attackOpponents`
+  # method, to give opponents a chance to play reaction cards.
   playEffects: [
     (state) ->
       state.attackOpponents (opp) ->
@@ -421,6 +524,9 @@ makeCard "Moat", action, {
   cost: 2
   cards: +2
   isReaction: true
+  # Revealing Moat sets a flag in the player's state, indicating
+  # that the player is unaffected by the attack. In this code, Moat
+  # is always revealed, without an AI decision.
   attackReactions: [
     (player) -> player.moatProtected = true
   ]
@@ -438,7 +544,12 @@ makeCard "Monument", action, {
 makeCard 'Nobles', action, {
   cost: 6
   isVictory: true
-  getVP: (state) -> 2
+  vp: 2
+
+  # Nobles is an example of a card that allows a choice from multiple
+  # simple effects. We implement this using the `chooseBenefit` AI method,
+  # which is passed a list of benefit objects, one of which it will choose
+  # to apply to the state.
   playEffects: [
     (state) ->
       benefit = state.current.ai.chooseBenefit(state, [
@@ -529,3 +640,4 @@ makeCard 'Steward', action, {
       applyBenefit(state, benefit)
   ]
 }
+
