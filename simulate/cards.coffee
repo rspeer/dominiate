@@ -315,6 +315,14 @@ makeCard 'Bridge', action, {
   ]
 }
 
+makeCard 'Chapel', action, {
+  cost: 2
+  playEffects: [
+    (state) ->
+      state.allowTrash(state.current, 4)
+  ]
+}
+
 makeCard 'Coppersmith', action, {
   cost: 4
   playEffects: [

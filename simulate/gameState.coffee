@@ -246,7 +246,7 @@ class State
   allowDiscard: (player, num) ->
     numDiscarded = 0
     while numDiscarded < num
-      validDiscards = player.hand
+      validDiscards = player.hand.slice(0)
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
       return if choice is null
@@ -257,7 +257,7 @@ class State
   requireDiscard: (player, num) ->
     numDiscarded = 0
     while numDiscarded < num
-      validDiscards = player.hand
+      validDiscards = player.hand.slice(0)
       return if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
       log("#{player.ai} discards #{choice}.")
@@ -267,7 +267,7 @@ class State
   allowTrash: (player, num) ->
     numTrashed = 0
     while numTrashed < num
-      valid = player.hand
+      valid = player.hand.slice(0)
       valid.push(null)
       choice = player.ai.chooseTrash(this, valid)
       return if choice is null
@@ -278,7 +278,7 @@ class State
   requireTrash: (player, num) ->
     numTrashed = 0
     while numTrashed < num
-      valid = player.hand
+      valid = player.hand.slice(0)
       return if valid.length == 0
       choice = player.ai.chooseTrash(this, valid)
       log("#{player.ai} trashes #{choice}.")
@@ -427,6 +427,12 @@ class PlayerState
       total += card.getVP(state)
     total
   
+  getTotalMoney: () ->
+    total = 0
+    for card in this.getDeck()
+      total += card.coins
+    total
+
   # Helpful indicators
   countInHand: (card) ->
     countStr(@hand, card)
@@ -439,7 +445,7 @@ class PlayerState
     # for evaluating effects that stack, because you may also need
     # to take Throne Rooms and King's Courts into account.
     countStr(@inPlay, card)
-
+  
   menagerieDraws: () ->
     seen = {}
     cardsToDraw = 3

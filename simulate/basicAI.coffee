@@ -46,6 +46,8 @@ class BasicAI
     this.choosePriority(state, choices, this.gainPriority)
   chooseDiscard: (state, choices) ->
     this.choosePriority(state, choices, this.discardPriority)
+  chooseTrash: (state, choices) ->
+    this.choosePriority(state, choices, this.trashPriority)
 
   # The default buying strategy is Big Money Ultimate.
   gainPriority: (state) -> [
@@ -90,6 +92,7 @@ class BasicAI
     "Woodcutter"
     "Coppersmith" if state.current.countInHand("Copper") >= 2
     "Moat"
+    "Chapel"
     "Coppersmith"
     "Shanty Town"
     null
@@ -123,10 +126,11 @@ class BasicAI
   trashPriority: (state) -> [
     "Curse"
     "Estate" if state.gainsToEndGame() > 4
-    "Copper"
+    "Copper" if state.current.getTotalMoney() > 4
     "Potion" if state.current.turnsTaken >= 10
     "Estate" if state.gainsToEndGame() > 2
     null
+    "Copper"
     "Potion"
     "Estate"
     "Silver"
