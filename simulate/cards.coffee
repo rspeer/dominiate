@@ -1,6 +1,7 @@
 # Create an exported object to store all card definitions
 c = {}
 this.c = c
+c.allCards = []
 
 transferCard = (card, fromList, toList) ->
   idx = fromList.indexOf(card)
@@ -8,6 +9,13 @@ transferCard = (card, fromList, toList) ->
     throw new Error("#{fromList} does not contain #{card}")
   fromList.splice(idx, 1)
   toList.push(card)
+
+transferCardToTop = (card, fromList, toList) ->
+  idx = fromList.indexOf(card)
+  if idx == -1
+    throw new Error("#{fromList} does not contain #{card}")
+  fromList.splice(idx, 1)
+  toList.unshift(card)
 
 # Cards here are built in an *almost* object-oriented way. Almost, because each
 # card is a singleton value, not a class. There are no instances of cards,
@@ -17,7 +25,7 @@ transferCard = (card, fromList, toList) ->
 # the cardFrom function. There isn't even a need for Javascript's prototype
 # system here.
 
-makeCard = (name, origCard, props) ->
+makeCard = (name, origCard, props, fake) ->
   # Derive a card from an existing one.
   newCard = {}
   for key, value of origCard
@@ -26,7 +34,9 @@ makeCard = (name, origCard, props) ->
   for key, value of props
     newCard[key] = value
   newCard.parent = origCard.name   # for debugging
-  c[name] = newCard
+  if not fake
+    c[name] = newCard
+    c.allCards.push(name)
   newCard
 
 basicCard = {
@@ -188,9 +198,7 @@ in +actions, +cards, +coins, +buys, and VP.
 ###
 
 # make an action card to derive from
-makeCard 'action', basicCard, {isAction: true}
-action = c.action
-delete c.action
+action = makeCard 'action', basicCard, {isAction: true}, true
 
 makeCard 'Village', action, {actions: 2, cards: 1}
 makeCard "Worker's Village", action, {
@@ -219,8 +227,22 @@ makeCard 'Harem', c.Silver, {
 }
 
 ###
-Cards that involve no mid-card decisions.
+Other cards
 ###
+
+makeCard 'Alchemist', action, {
+  cost: 3
+  costPotion: 1
+  actions: +1
+  cards: +2
+
+  cleanupEffects: [
+    (state) ->
+      if c.Potion in state.current.inPlay
+        transferCardToTop(c.Alchemist, state.current.discard, state.current.draw)
+  ]
+}
+
 makeCard 'Bank', c.Silver, {
   cost: 7
   getCoins: (state) ->
@@ -285,18 +307,18 @@ makeCard "Horse Traders", action, {
   playEffects: [
     (state) -> state.requireDiscard(state.current, 2)
   ]
-  
+
   # not a duration card, but we can simulate its set-aside state as a duration
   # effect
   durationEffects: [
     (state) -> 
       # pick up the card
-      transferCard(this, state.current.duration, state.current.hand)
+      transferCard(c['Horse Traders'], state.current.duration, state.current.hand)
       state.current.drawCards(1)
   ]
   attackReactions: [
     (state) ->
-      transferCard(this, state.current.hand, state.current.duration)
+      transferCard(c['Horse Traders'], state.current.hand, state.current.duration)
   ]
 }
 

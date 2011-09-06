@@ -69,6 +69,7 @@ class BasicAI
     "Worker's Village"
     "Village"
     "Grand Market"
+    "Alchemist"
     "Laboratory"
     "Market"
     "Peddler"

@@ -462,15 +462,9 @@ class PlayerState
 this.kingdoms = {
   moneyOnly: []
   moneyOnlyColony: ['Platinum', 'Colony']
-  allDefined: [
-    'Platinum', 'Colony', 'Potion',
-    'Bank', 'Bazaar', 'Bridge', 'Coppersmith', 'Duke', 'Festival',
-    'Gardens', 'Grand Market', 'Great Hall', 'Harem', 'Horse Traders', 
-    'Laboratory', 'Market', 'Menagerie', 'Moat', 'Militia', 'Monument',
-    'Peddler', "Philosopher's Stone", 'Quarry',
-    'Shanty Town', 'Smithy', 'Village', 'Woodcutter', "Worker's Village",
-  ]
+  allDefined: c.allCards
 }
+console.log(this.kingdoms.allDefined)
 
 this.State = State
 this.PlayerState = PlayerState
