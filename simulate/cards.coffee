@@ -516,3 +516,16 @@ makeCard 'Shanty Town', action, {
       state.current.drawCards(state.current.shantyTownDraws())
   ]
 }
+
+makeCard 'Steward', action, {
+  cost: 3
+  playEffects: [
+    (state) ->
+      benefit = state.current.ai.chooseBenefit(state, [
+        {cards: 2},
+        {coins: 2},
+        {trash: 2}
+      ])
+      applyBenefit(state, benefit)
+  ]
+}

@@ -85,6 +85,7 @@ class BasicAI
     "Militia"
     "Wharf"
     "Princess"
+    "Steward"
     "Bridge"
     "Horse Traders"
     "Coppersmith" if state.current.countInHand("Copper") >= 3
@@ -145,8 +146,14 @@ class BasicAI
     trashValue = 4      # if there are cards we want to trash
     actionValue = 10    # if we need more actions
     trashableCards = 0
-    usableActions = Math.max(0, -state.current.actionBalance())
+
+    actionBalance = state.current.actionBalance()
+    usableActions = Math.max(0, -actionBalance)
     console.log("Current actions: #{state.current.actions} / Needed actions: #{usableActions}")
+
+    # Draw cards if we have a surplus of actions
+    if actionBalance >= 1
+      cardValue += actionBalance
 
     # How many cards do we want to trash?
     for card in state.current.hand
