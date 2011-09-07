@@ -166,47 +166,33 @@ basicCard = {
   # This is 10 by default, but some types of cards override it.
   startingSupply: (state) -> 10
 
-  #### Effect lists
-  # More complex effects of a card can be defined by a list of things that
-  # happen in response to certain events, such as the card being played or
-  # the card being bought. The list will typically have 0 or 1 things in it.
-  #
-  # Each element of the effect list should be a function that takes in the
-  # `state` and alters it.
-  #
-  # Note: As these functions are part of an array object
-  # and not part of the card itself, references to `this` will not work
-  # inside an effect list.
+  #### Complex effects
+  # More complex effects of a card can be defined using arbitrary functions
+  # that modify the state. These functions are no-ops in `basicCard`, and
+  # may be overridden by cards that need them:
 
-  # What happens when the card is bought?
-  buyEffects: []
-  # What happens (besides the simple effects defined above) when the card is
-  # played?
-  playEffects: []
-  # What happens when this card is in play and another card is gained?
-  gainInPlayEffects: []
-  # What happens when this card is cleaned up from play?
-  cleanupEffects: []
-  # What happens when the card is in play as a Duration at the start of
-  # the turn?
-  # 
-  # *TODO*: replace durationEffects with a simple onDuration, so that
-  # duration effects may refer to `this`
-  durationEffects: []
-  # What happens when the card is shuffled into the draw deck?
-  shuffleEffects: []
-  # What happens when this card is in hand and an opponent plays an attack?
-  attackReactions: []
-  # What happens when this card is in hand and its owner gains a card?
-  gainReactions: []
-  
-  # Apply an effect list to the current game state.
-  doEffects: (effects, state) ->
-    for effect in effects
-      effect(state)
+  # - What happens when the card is bought?
+  buyEffect: (state) ->
+  # - What happens (besides the simple effects defined above) when the card is
+  #   played?
+  playEffect: (state) ->
+  # - What happens when this card is in play and another card is gained?
+  gainInPlayEffect: (state) ->
+  # - What happens when this card is cleaned up from play?
+  cleanupEffect: (state) ->
+  # - What happens when the card is in play as a Duration at the start of
+  #   the turn?
+  durationEffect: (state) ->
+  # - What happens when the card is shuffled into the draw deck?
+  shuffleEffect: (state) ->
+  # - What happens when this card is in hand and an opponent plays an attack?
+  attackReaction: (state) ->
+  # - What happens when this card is in hand and its owner gains a card?
+  gainReaction: (state) ->
   
   # This defines everything that happens when a card is played, including
-  # basic effects and complex effects defined in `playEffects`.
+  # basic effects and complex effects defined in `playEffect`. Cards
+  # should not override `onPlay`; they should override `playEffect` instead.
   onPlay: (state) ->
     state.current.actions += this.getActions(state)
     state.current.coins += this.getCoins(state)
@@ -214,22 +200,21 @@ basicCard = {
     cardsToDraw = this.getCards(state)
     if cardsToDraw > 0
       state.current.drawCards(cardsToDraw)
-    this.doEffects(this.playEffects, state)
+    this.playEffect(state)
   
-  # Apply effects that are triggered by certain events. This code is
-  # not yet complete; for example, it does not handle gain reactions.
+  # Similarly, these are other ways for the game state to interact
+  # with the card. Cards should override the `Effect` methods, not these.
   onDuration: (state) ->
-    this.doEffects(this.durationEffects, state)
+    this.durationEffect(state)
   
   onCleanup: (state) ->
-    this.doEffects(this.cleanupEffects, state)
+    this.cleanupEffect(state)
 
   onBuy: (state) ->
-    this.doEffects(this.buyEffects, state)
+    this.buyEffect(state)
   
   reactToAttack: (player) ->
-    for reaction in this.attackReactions
-      reaction(player)
+    this.attackReaction(player)
   
   # A card's string representation is its name.
   #
@@ -293,9 +278,8 @@ makeCard 'Platinum', c.Silver, {
 makeCard 'Potion', c.Silver, {
   cost: 4
   coins: 0
-  playEffects: [
+  playEffect:
     (state) -> state.current.potions += 1
-  ]
   getPotion: (state) -> 1
 }
 
@@ -389,8 +373,8 @@ makeCard 'Merchant Ship', duration, {
 # Miscellaneous cards
 # -------------------
 # All of these cards have effects beyond what can be expressed with a
-# simple formula, which are generally defined using effect lists such as
-# `playEffects`.
+# simple formula, which are generally defined by overriding the complex
+# methods such as `playEffect`.
 
 makeCard 'Alchemist', action, {
   cost: 3
@@ -398,11 +382,10 @@ makeCard 'Alchemist', action, {
   actions: +1
   cards: +2
 
-  cleanupEffects: [
+  cleanupEffect:
     (state) ->
       if c.Potion in state.current.inPlay
         transferCardToTop(c.Alchemist, state.current.discard, state.current.draw)
-  ]
 }
 
 makeCard 'Bank', c.Silver, {
@@ -419,26 +402,23 @@ makeCard 'Bridge', action, {
   cost: 4
   coins: 1
   buys: 1
-  playEffects: [
+  playEffect:
     (state) ->
       state.bridges += 1
-  ]
 }
 
 makeCard 'Chapel', action, {
   cost: 2
-  playEffects: [
+  playEffect:
     (state) ->
       state.allowTrash(state.current, 4)
-  ]
 }
 
 makeCard 'Coppersmith', action, {
   cost: 4
-  playEffects: [
+  playEffect:
     (state) ->
       state.copperValue += 1
-  ]
 }
 
 makeCard 'Diadem', c.Silver, {
@@ -476,33 +456,29 @@ makeCard "Horse Traders", action, {
   buys: 1
   coins: 3
   isReaction: true
-  playEffects: [
+  playEffect:
     (state) -> state.requireDiscard(state.current, 2)
-  ]
 
   # Horse Traders is not actually a duration card, but it resolves like one
   # when it is set aside. There seems to be no harm in simplifying by
   # putting it in the duration area.
-  durationEffects: [
+  durationEffect:
     (state) -> 
       # Pick up Horse Traders and draw another card.
       transferCard(c['Horse Traders'], state.current.duration, state.current.hand)
       state.current.drawCards(1)
-  ]
-  attackReactions: [
-    (state) ->
-      transferCard(c['Horse Traders'], state.current.hand, state.current.duration)
-  ]
+  
+  attackReaction:
+    (player) ->
+      transferCard(c['Horse Traders'], player.hand, player.duration)
 }
 
 makeCard "Menagerie", action, {
   cost: 3
   actions: 1
-  playEffects: [
-    (state) -> state.revealHand(0),
-    (state) ->
-      state.current.drawCards(state.current.menagerieDraws())
-  ]
+  playEffect: (state) ->
+    state.revealHand(state.current)
+    state.current.drawCards(state.current.menagerieDraws())
 }
 
 makeCard "Militia", action, {
@@ -513,11 +489,10 @@ makeCard "Militia", action, {
   #
   # All attack effects are wrapped in the `state.attackOpponents`
   # method, to give opponents a chance to play reaction cards.
-  playEffects: [
+  playEffect:
     (state) ->
       state.attackOpponents (opp) ->
         state.requireDiscard(opp, 2)
-  ]
 }
 
 makeCard "Moat", action, {
@@ -527,18 +502,16 @@ makeCard "Moat", action, {
   # Revealing Moat sets a flag in the player's state, indicating
   # that the player is unaffected by the attack. In this code, Moat
   # is always revealed, without an AI decision.
-  attackReactions: [
+  attackReaction:
     (player) -> player.moatProtected = true
-  ]
 }
 
 makeCard "Monument", action, {
   cost: 4
   coins: 2
-  playEffects: [
+  playEffect:
     (state) ->
       state.current.chips += 1
-  ]
 }
 
 makeCard 'Nobles', action, {
@@ -550,19 +523,18 @@ makeCard 'Nobles', action, {
   # simple effects. We implement this using the `chooseBenefit` AI method,
   # which is passed a list of benefit objects, one of which it will choose
   # to apply to the state.
-  playEffects: [
+  playEffect:
     (state) ->
       benefit = state.current.ai.chooseBenefit(state, [
         {actions: 2},
         {cards: 3}
       ])
       applyBenefit(state, benefit)
-  ]
 }
 
 makeCard 'Pawn', action, {
   cost: 2
-  playEffects: [
+  playEffect:
     (state) ->
       benefit = state.current.ai.chooseBenefit(state, [
         {cards: 1, actions: 1},
@@ -573,7 +545,6 @@ makeCard 'Pawn', action, {
         {buys: 1, coins: 1}
       ])
       applyBenefit(state, benefit)
-  ]
 }
 
 makeCard 'Peddler', action, {
@@ -603,34 +574,30 @@ makeCard 'Princess', action, {
   buys: 1
   isPrize: true
   mayBeBought: (state) -> false
-  playEffects: [
+  playEffect:
     (state) ->
       state.bridges += 2
-  ]
 }
 
 makeCard 'Quarry', c.Silver, {
   cost: 4
   coins: 1
-  playEffects: [
+  playEffect:
     (state) ->
       state.quarries += 1
-  ]
 }
 
 makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
-  playEffects: [
-    (state) -> state.revealHand(0),
-    (state) ->
-      state.current.drawCards(state.current.shantyTownDraws())
-  ]
+  playEffect: (state) ->
+    state.revealHand(0)
+    state.current.drawCards(state.current.shantyTownDraws())
 }
 
 makeCard 'Steward', action, {
   cost: 3
-  playEffects: [
+  playEffect:
     (state) ->
       benefit = state.current.ai.chooseBenefit(state, [
         {cards: 2},
@@ -638,6 +605,5 @@ makeCard 'Steward', action, {
         {trash: 2}
       ])
       applyBenefit(state, benefit)
-  ]
 }
 
