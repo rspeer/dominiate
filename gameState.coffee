@@ -201,8 +201,9 @@ class State
       choice.onBuy(this)
   
   doGain: (player, card) ->
-    player.discard.push(card)
-    @supply[card] -= 1
+    if @supply[card] > 0
+      player.discard.push(card)
+      @supply[card] -= 1
     # TODO: handle gain reactions
 
   resolveCleanup: () ->
@@ -243,6 +244,9 @@ class State
   revealHand: (player) ->
     # nothing interesting happens
   
+  drawCards: (player, num) ->
+    player.drawCards(num)
+
   allowDiscard: (player, num) ->
     numDiscarded = 0
     while numDiscarded < num

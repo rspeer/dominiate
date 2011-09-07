@@ -44,7 +44,7 @@ transferCardToTop = (card, fromList, toList) ->
 applyBenefit = (state, benefit) ->
   console.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
   if benefit.cards?
-    state.current.drawCards(benefit.cards)
+    state.drawCards(state.current, benefit.cards)
   if benefit.actions?
     state.current.actions += benefit.actions
   if benefit.buys?
@@ -199,7 +199,7 @@ basicCard = {
     state.current.buys += this.getBuys(state)
     cardsToDraw = this.getCards(state)
     if cardsToDraw > 0
-      state.current.drawCards(cardsToDraw)
+      state.drawCards(state.current, cardsToDraw)
     this.playEffect(state)
   
   # Similarly, these are other ways for the game state to interact
@@ -335,7 +335,7 @@ duration = makeCard 'duration', action, {
       state.current.buys += this.durationBuys
       state.current.coins += this.durationCoins
       if this.durationCards > 0
-        state.current.drawCards(this.durationCards)
+        state.drawCards(state.current, this.durationCards)
 }, true
 
 makeCard 'Caravan', duration, {
@@ -407,6 +407,16 @@ makeCard 'Bridge', action, {
       state.bridges += 1
 }
 
+makeCard 'Cellar', action, {
+  cost: 2
+  actions: 1
+  playEffect: (state) ->
+    startingCards = state.current.hand.length
+    state.allowDiscard(state.current, 1000)
+    numDiscarded = startingCards - state.current.hand.length
+    state.drawCards(state.current, numDiscarded)
+}
+
 makeCard 'Chapel', action, {
   cost: 2
   playEffect:
@@ -466,7 +476,7 @@ makeCard "Horse Traders", action, {
     (state) -> 
       # Pick up Horse Traders and draw another card.
       transferCard(c['Horse Traders'], state.current.duration, state.current.hand)
-      state.current.drawCards(1)
+      state.drawCards(state.current, 1)
   
   attackReaction:
     (player) ->
@@ -478,7 +488,7 @@ makeCard "Menagerie", action, {
   actions: 1
   playEffect: (state) ->
     state.revealHand(state.current)
-    state.current.drawCards(state.current.menagerieDraws())
+    state.drawCards(state.current, state.current.menagerieDraws())
 }
 
 makeCard "Militia", action, {
@@ -592,7 +602,7 @@ makeCard 'Shanty Town', action, {
   actions: +2
   playEffect: (state) ->
     state.revealHand(0)
-    state.current.drawCards(state.current.shantyTownDraws())
+    state.drawCards(state.current, state.current.shantyTownDraws())
 }
 
 makeCard 'Steward', action, {
@@ -607,3 +617,17 @@ makeCard 'Steward', action, {
       applyBenefit(state, benefit)
 }
 
+makeCard 'Warehouse', action, {
+  cost: 3
+  playEffect: (state) ->
+    state.drawCards(state.current, 3)
+    state.requireDiscard(state.current, 3)
+}
+
+makeCard 'Witch', action, {
+  cost: 5
+  cards: 2
+  playEffect: (state) ->
+    attackOpponents (opp) ->
+      state.doGain(opp, c.Witch)
+}

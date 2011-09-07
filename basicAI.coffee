@@ -79,11 +79,13 @@ class BasicAI
     "Great Hall"
     "Smithy" if state.current.actions > 1
     "Pawn"
+    "Warehouse"
     "Menagerie"
     "Shanty Town" if state.current.actions == 1
     "Nobles"
-    "Militia"
+    "Witch"
     "Wharf"
+    "Militia"
     "Princess"
     "Steward"
     "Bridge"
