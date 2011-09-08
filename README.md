@@ -37,7 +37,7 @@ Enable CoffeeScript by running `sudo npm-g install coffee-script` (or whatever
 the equivalent is on Windows). Now node.js will understand CoffeeScript source
 files.
 
-Running "./play.coffee <bot1> <bot2>" will load the two bots with the
+Running "./play.coffee bot1 bot2" will load the two bots with the
 specified names and play them against each other. For example:
 
     ./play.coffee strategies/BigMoney.coffee strategies/ChapelWitch.coffee

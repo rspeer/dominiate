@@ -591,8 +591,8 @@ makeCard 'Witch', action, {
   cost: 5
   cards: 2
   playEffect: (state) ->
-    attackOpponents (opp) ->
-      state.doGain(opp, c.Witch)
+    state.attackOpponents (opp) ->
+      state.doGain(opp, c.Curse)
 }
 
 # Utility functions
