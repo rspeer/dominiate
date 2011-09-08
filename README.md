@@ -60,6 +60,7 @@ programmers who are also Dominion players. Short-term planned features include:
 - Almost all cards implemented
 
 Longer term plans:
+
 - Hook into Golem, in order to buy a card based on the situation
 - Simulate the effects of playing cards (to a shallow depth) in order to
   choose an action.
@@ -67,6 +68,7 @@ Longer term plans:
   Penultimate Province Rule.
 
 Things I never plan to implement without help:
+
 - Tricks with multi-revealing Secret Chamber
 - Outpost
 - Possession
