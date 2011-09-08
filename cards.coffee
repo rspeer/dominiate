@@ -7,67 +7,16 @@ c = {}
 this.c = c
 c.allCards = []
 
-# Utility functions
-# -----------------
-
-# `transferCard` will move a card from one list to the end of another.
-transferCard = (card, fromList, toList) ->
-  idx = fromList.indexOf(card)
-  if idx == -1
-    throw new Error("#{fromList} does not contain #{card}")
-  fromList.splice(idx, 1)
-  toList.push(card)
-
-# `transferCardToTop` will move a card from one list to the front of another.
-# This is used to put a card on top of the deck, for example.
-transferCardToTop = (card, fromList, toList) ->
-  idx = fromList.indexOf(card)
-  if idx == -1
-    throw new Error("#{fromList} does not contain #{card}")
-  fromList.splice(idx, 1)
-  toList.unshift(card)
-
-# Some cards give you a constant benefit, such as +cards or +actions,
-# every time you play them; these benefits are defined directly on the card
-# object. Other cards give you such a benefit only under certain conditions,
-# and if the benefits are straightforward, we may use `applyBenefit` to make
-# them happen. This takes in an object that describes the benefit, and
-# applies it to the game state.
-#
-# The actions that can be performed through `applyBenefit` currently are:
-#
-# - `{cards: n}`: draw *n* cards
-# - `{actions: n}`: get *+n* actions
-# - `{buys: n}`: get *+n* buys
-# - `{coins: n}`: get *+n* coins
-# - `{trash: n}`: trash *n* cards
-applyBenefit = (state, benefit) ->
-  console.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
-  if benefit.cards?
-    state.drawCards(state.current, benefit.cards)
-  if benefit.actions?
-    state.current.actions += benefit.actions
-  if benefit.buys?
-    state.current.buys += benefit.buys
-  if benefit.coins?
-    state.current.coins += benefit.coins
-  if benefit.trash?
-    state.requireTrash(state.current, benefit.trash)
-
-# Design 
-# ------
+# Defining cards
+# --------------
 # Many cards are defined in terms of other cards using a pattern similar to
 # inheritance, except without the classes. There is no need for classes because
 # there are no separate instances.
-# 
 # Each Copper is a reference to the same single Copper object, for example.
-
-# Defining cards
-# --------------
+#
 # The `makeCard` function will define a new card and add it to the card list.
-# 
-# `makeCard` is used by copying an existing card object and applying a few new
-# properties to it, which is a sort of inheritance.
+# `makeCard` works by copying an existing card object and applying a few new
+# properties to it.
 # 
 # `name` is the name of the card, which will be the card's string
 # representation and the key that you look it up in the card list `c` by.
@@ -103,7 +52,7 @@ makeCard = (name, origCard, props, fake) ->
 # real cards.
 basicCard = {
   # This set of boolean values defines a card's types. Cards may have any
-  # number of types; the only card with no type is Curse.
+  # number of types.
   isAction: false
   isTreasure: false
   isVictory: false
@@ -226,11 +175,11 @@ basicCard = {
 
 # Base cards
 # ----------
-#
-# Estate and Silver are the prototypes that other Victory and Treasure cards
-# derive from, respectively. (Copper is actually more complex than Silver!)
+# These are the cards that are not Kingdom cards. Most of them appear in every
+# game; Potion, Platinum, and Colony appear in only some games.
 
 makeCard 'Curse', basicCard, {
+  # Curse is the only card with no type.
   cost: 0
   vp: -1
   startingSupply: (state) ->
@@ -241,6 +190,8 @@ makeCard 'Curse', basicCard, {
       else 40      
 }
 
+# To define victory cards, we define Estate and then derive other cards from
+# it.
 makeCard 'Estate', basicCard, {
   cost: 2
   isVictory: true
@@ -256,6 +207,9 @@ makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
 makeCard 'Province', c.Estate, {cost: 8, vp: 6}
 makeCard 'Colony', c.Estate, {cost: 11, vp: 10}
 
+# Now we define the basic treasure cards. Our prototypical card here is
+# Silver.
+
 makeCard 'Silver', basicCard, {
   cost: 3
   isTreasure: true
@@ -263,6 +217,8 @@ makeCard 'Silver', basicCard, {
   startingSupply: (state) -> 30
 }
 
+# Copper is actually more complex than Silver: its value can vary when modified
+# by Coppersmith.
 makeCard 'Copper', c.Silver, {
   cost: 0
   coins: 1
@@ -281,6 +237,8 @@ makeCard 'Potion', c.Silver, {
   playEffect:
     (state) -> state.current.potions += 1
   getPotion: (state) -> 1
+  # *TODO*: I don't actually remember how many Potions are in the stack. I
+  # should check.
 }
 
 # Vanilla cards
@@ -322,6 +280,7 @@ makeCard 'Harem', c.Silver, {
 # --------------
 # These cards have additional properties, such as `durationActions`, defining
 # constant effects that happen when the card is resolved as a duration card.
+# The virtual card `duration` specifies how to process these effects.
 duration = makeCard 'duration', action, {
   durationActions: 0
   durationBuys: 0
@@ -329,7 +288,7 @@ duration = makeCard 'duration', action, {
   durationCards: 0
   isDuration: true
 
-  onDuration:
+  durationEffect:
     (state) ->
       state.current.actions += this.durationActions
       state.current.buys += this.durationBuys
@@ -339,6 +298,7 @@ duration = makeCard 'duration', action, {
 }, true
 
 makeCard 'Caravan', duration, {
+  cost: 4
   cards: +1
   actions: +1
   durationCards: +1
@@ -351,7 +311,6 @@ makeCard 'Fishing Village', duration, {
   actions: +2
   durationActions: +1
   durationCoins: +1
-  durationCards: 0
 }
 
 makeCard 'Wharf', duration, {
@@ -456,7 +415,10 @@ makeCard "Gardens", c.Estate, {
 makeCard "Grand Market", c.Market, {
   cost: 6
   coins: 2
-  # Grand Market may not be bought if Copper is in play.
+  actions: 1
+  cards: 1
+  buys: 1
+  # Grand Market is the only card with a non-constant mayBeBought value.
   mayBeBought: (state) ->
     not(c.Copper in state.current.inPlay)
 }
@@ -502,7 +464,8 @@ makeCard "Militia", action, {
   playEffect:
     (state) ->
       state.attackOpponents (opp) ->
-        state.requireDiscard(opp, 2)
+        if opp.hand.length > 3
+          state.requireDiscard(opp, opp.hand.length - 3)
 }
 
 makeCard "Moat", action, {
@@ -631,3 +594,51 @@ makeCard 'Witch', action, {
     attackOpponents (opp) ->
       state.doGain(opp, c.Witch)
 }
+
+# Utility functions
+# -----------------
+
+# `transferCard` will move a card from one list to the end of another.
+transferCard = (card, fromList, toList) ->
+  idx = fromList.indexOf(card)
+  if idx == -1
+    throw new Error("#{fromList} does not contain #{card}")
+  fromList.splice(idx, 1)
+  toList.push(card)
+
+# `transferCardToTop` will move a card from one list to the front of another.
+# This is used to put a card on top of the deck, for example.
+transferCardToTop = (card, fromList, toList) ->
+  idx = fromList.indexOf(card)
+  if idx == -1
+    throw new Error("#{fromList} does not contain #{card}")
+  fromList.splice(idx, 1)
+  toList.unshift(card)
+
+# Some cards give you a constant benefit, such as +cards or +actions,
+# every time you play them; these benefits are defined directly on the card
+# object. Other cards give you such a benefit only under certain conditions,
+# and if the benefits are straightforward, we may use `applyBenefit` to make
+# them happen. This takes in an object that describes the benefit, and
+# applies it to the game state.
+#
+# The actions that can be performed through `applyBenefit` currently are:
+#
+# - `{cards: n}`: draw *n* cards
+# - `{actions: n}`: get *+n* actions
+# - `{buys: n}`: get *+n* buys
+# - `{coins: n}`: get *+n* coins
+# - `{trash: n}`: trash *n* cards
+applyBenefit = (state, benefit) ->
+  console.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
+  if benefit.cards?
+    state.drawCards(state.current, benefit.cards)
+  if benefit.actions?
+    state.current.actions += benefit.actions
+  if benefit.buys?
+    state.current.buys += benefit.buys
+  if benefit.coins?
+    state.current.coins += benefit.coins
+  if benefit.trash?
+    state.requireTrash(state.current, benefit.trash)
+

@@ -1,8 +1,8 @@
-# ambidextrous import
-if require?
-  c = require('./cards').c
-else
-  c = this.c
+# Many modules begin with this "indecisive import" pattern. It's messy
+# but it gets the job done, and it's explained at the bottom of this
+# documentation.
+
+{c} = require './cards' if require?
 
 # general function to randomly shuffle a list
 shuffle = (v) ->
@@ -502,3 +502,25 @@ console.log(this.kingdoms.allDefined)
 this.State = State
 this.PlayerState = PlayerState
 
+# Indecisive imports
+# ------------------
+# Recall that this code begins with:
+#
+#     {c} = require './cards' if require?
+#
+# This means "get the variable named `c` from the module `./cards`. Unless
+# you don't know how. In that case, don't."
+#
+# Here's why that is useful. When the code
+# is running inside node.js, it will use node.js's import system. This
+# uses the predefined function `require`, which doesn't exist in a 
+# Web browser's JS environment.
+#
+# When running in a web browser, there is no sane way for one module to
+# import another. Instead,
+# the typical practice -- which we will use too -- is to just load a bunch of
+# JavaScript files into the same global namespace.
+#
+# In that case, the variable `c` already exists without any additional effort
+# from us. We're polluting the global namespace and defeating some of the
+# point of modules, but that's how most JavaScript in the wild works anyway.
