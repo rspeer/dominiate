@@ -3,6 +3,227 @@
 # documentation.
 {c} = require './cards' if require?
 
+# The PlayerState class
+# ---------------------  
+# A PlayerState stores the part of the game state
+# that is specific to each player, plus what AI is making the decisions.
+class PlayerState
+  # At the start of the game, the State should
+  # .initialize() each PlayerState, which assigns its AI and sets up its
+  # starting state. Before then, it is an empty object.
+  initialize: (ai) ->
+    # These attributes of the PlayerState are okay for card effects and
+    # AI strategies to refer to.
+    # 
+    # Often, you will want to find out something
+    # about the player whose turn it is, who will appear as `state.current`.
+    # For example, if you want to know how many actions the current player
+    # has, you can look up `state.current.actions`.
+    @actions = 1
+    @buys = 1
+    @coins = 0
+    @potions = 0
+    @mats = {
+      pirateShip: 0
+      nativeVillage: []
+      island: []
+    }
+    @chips = 0
+    @hand = []
+    @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
+                c.Copper, c.Copper, c.Estate, c.Estate, c.Estate]
+    
+    # For now, AIs shouldn't ask what's in a player's draw pile. This would
+    # cause the AI to cheat, by accessing information it shouldn't have.
+    #
+    # When hidden information is implemented, however, `state.current.draw`
+    # will contain a random guess about what's in the draw pile.
+    @draw = []
+    @inPlay = []
+    @duration = []
+    @setAside = []
+    @moatProtected = false
+    @turnsTaken = 0
+    @ai = ai
+
+    # To start the game, the player starts with the 10 starting cards
+    # in the discard pile, then shuffles them and draws 5.
+    this.drawCards(5)
+    this
+
+  #### Informational methods
+  # 
+  # The methods here ask about general properties of a player's deck,
+  # discard pile, and so on.
+  
+  # `getDeck()` returns all the cards in the player's deck, even those in
+  # strange places such as the Island mat.
+  getDeck: () ->
+    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @mats.nativeVillage.concat @mats.island
+  
+  # `countInDeck(card)` counts the number of copies of a card in the deck.
+  # The card may be specified either by name or as a card object.
+  countInDeck: (card) ->
+    count = 0
+    for card2 in this.getDeck()
+      if card.toString() == card2.toString()
+        count++
+    count
+  
+  # `numCardsInDeck()` returns the size of the player's deck.
+  numCardsInDeck: () -> this.getDeck().length
+  
+  # `getVP()` returns the number of VP the player would have if the game
+  # ended now.
+  getVP: (state) ->
+    total = 0
+    for card in this.getDeck()
+      total += card.getVP(state)
+    total
+  
+  # `getTotalMoney()` adds up the total money in the player's deck,
+  # including *all* cards that provide a constant number of +$, not just
+  # Treasure.
+  getTotalMoney: () ->
+    total = 0
+    for card in this.getDeck()
+      total += card.coins
+    total
+  
+  # `countInHand(card)` counts the number of copies of a card in hand.
+  countInHand: (card) ->
+    countStr(@hand, card)
+
+  # `countInHand(card)` counts the number of copies of a card in the discard
+  # pile.
+  countInDiscard: (card) ->
+    countStr(@discard, card)
+
+  # `countInPlay(card)`
+  # counts the number of copies of a card in play. Don't use this
+  # for evaluating effects that stack, because you may also need
+  # to take Throne Rooms and King's Courts into account.
+  countInPlay: (card) ->
+    countStr(@inPlay, card)
+  
+  # `numActionCardsInDeck()` is the number of action cards in the player's
+  # entire deck.
+  numActionCardsInDeck: () ->
+    count = 0
+    for card in this.getDeck()
+      if card.isAction
+        count += 1
+    count
+  
+  # `getActionDensity()` returns a fractional value, between 0.0 and 1.0,
+  # representing the proportion of actions in the deck.
+  getActionDensity: () ->
+    this.numActionCardsInDeck() / this.getDeck().length
+  
+  # `menagerieDraws()` is the number of cards the player would draw upon
+  # playing a Menagerie: either 1 or 3.
+  menagerieDraws: () ->
+    seen = {}
+    cardsToDraw = 3
+    for card in @hand
+      if seen[card.name]?
+        cardsToDraw = 1
+        break
+      seen[card.name] = true
+    cardsToDraw
+
+  # `shantyTownDraws()` is the number of cards the player would draw upon
+  # playing a Shanty town: either 0 or 2.
+  shantyTownDraws: () ->
+    cardsToDraw = 2
+    for card in @hand
+      if card.isAction
+        cardsToDraw = 0
+        break
+    cardsToDraw
+  
+  # `actionBalance()` is a complex method meant to be used by AIs in
+  # deciding whether they want +actions or +cards, for example.
+  #
+  # If the actionBalance is
+  # less than 0, you want +actions, because otherwise you will have dead
+  # action cards in hand or risk drawing them dead. If it is greater than
+  # 0, you want +cards, because you have a surplus of actions and need
+  # action cards to spend them on.
+  actionBalance: () ->
+    balance = @actions
+    for card in @hand
+      if card.isAction
+        balance += card.actions
+        balance--
+
+        # Estimate the risk of drawing an action card dead.
+        #
+        # *TODO*: do something better when there are variable card-drawers.
+        if card.actions == 0
+          balance -= card.cards * this.getActionDensity()
+    balance
+
+  drawCards: (nCards) ->
+    if @draw.length < nCards
+      diff = nCards - @draw.length
+      if @draw.length > 0
+        log("#{@ai} draws #{@draw.length} cards.")
+      @hand = @hand.concat(@draw)
+      @draw = []
+      if @discard.length > 0
+        this.shuffle()
+        this.drawCards(diff)
+        
+    else
+      log("#{@ai} draws #{nCards} cards.")
+      @hand = @hand.concat(@draw[0...nCards])
+      @draw = @draw[nCards...]
+
+  doDiscard: (card) ->
+    idx = @hand.indexOf(card)
+    if idx == -1
+      warn("#{@ai} has no #{card} to discard")
+      return
+    @hand.splice(idx, 1)
+    @discard.push(card)
+  
+  doTrash: (card) ->
+    idx = @hand.indexOf(card)
+    if idx == -1
+      warn("#{@ai} has no #{card} to trash")
+      return
+    @hand.splice(idx, 1)
+  
+  shuffle: () ->
+    log("#{@ai} shuffles.")
+    if @draw.length > 0
+      throw new Error("Shuffling while there are cards left to draw")
+    shuffle(@discard)
+    @draw = @discard
+    @discard = []
+    # TODO: add an AI decision for Stashes
+
+  # Most PlayerStates are created by copying an existing one.
+  copy: () ->
+    other = new PlayerState()
+    other.actions = @actions
+    other.buys = @buys
+    other.coins = @coins
+    other.potions = @potions
+    other.mats = @mats
+    other.chips = @chips
+    other.hand = @hand.slice(0)
+    other.draw = @draw.slice(0)
+    other.discard = @discard.slice(0)
+    other.inPlay = @inPlay.slice(0)
+    other.duration = @duration.slice(0)
+    other.setAside = @setAside.slice(0)
+    other.moatProtected = @moatProtected
+    other.ai = @ai
+    other.turnsTaken = @turnsTaken
+    other
+
 # The State class
 # ---------------
 # A State instance stores the complete state of the game at a point in time.
@@ -14,7 +235,8 @@ class State
   basicSupply: ['Curse', 'Copper', 'Silver', 'Gold',
                 'Estate', 'Duchy', 'Province']
   
-  # make card information available to strategies
+  # AIs can get at the `c` object that stores information about cards
+  # by looking up `state.c`.
   cardInfo: c
   
   # Set up the state at the start of the game. Takes these arguments:
@@ -437,172 +659,6 @@ class State
     newState.copperValue = @copperValue
     newState.phase = @phase
     newState
-  
-# A PlayerState stores the part of the game state
-# that is specific to each player, plus what AI is making the decisions.
-class PlayerState
-  # At the start of the game, the State should
-  # .initialize() each PlayerState, which assigns its AI and sets up its
-  # starting state. Before then, it is an empty object.
-  initialize: (ai) ->
-    @actions = 1
-    @buys = 1
-    @coins = 0
-    @potions = 0
-    @mats = {
-      pirateShip: 0
-      nativeVillage: []
-      island: []
-    }
-    @chips = 0
-    @hand = []
-    @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
-                c.Copper, c.Copper, c.Estate, c.Estate, c.Estate]
-    @draw = []
-    @inPlay = []
-    @duration = []
-    @setAside = []
-    @moatProtected = false
-    @turnsTaken = 0
-    @ai = ai
-    this.drawCards(5)
-    this
-  
-  # Most PlayerStates are created by copying an existing one.
-  copy: () ->
-    other = new PlayerState()
-    other.actions = @actions
-    other.buys = @buys
-    other.coins = @coins
-    other.potions = @potions
-    other.mats = @mats
-    other.chips = @chips
-    other.hand = @hand.slice(0)
-    other.draw = @draw.slice(0)
-    other.discard = @discard.slice(0)
-    other.inPlay = @inPlay.slice(0)
-    other.duration = @duration.slice(0)
-    other.setAside = @setAside.slice(0)
-    other.moatProtected = @moatProtected
-    other.ai = @ai
-    other.turnsTaken = @turnsTaken
-    other
-
-  getDeck: () ->
-    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @mats.nativeVillage.concat @mats.island
-
-  countInDeck: (card) ->
-    count = 0
-    for card2 in this.getDeck()
-      if card.toString() == card2.toString()
-        count++
-    count
-
-  drawCards: (nCards) ->
-    if @draw.length < nCards
-      diff = nCards - @draw.length
-      if @draw.length > 0
-        log("#{@ai} draws #{@draw.length} cards.")
-      @hand = @hand.concat(@draw)
-      @draw = []
-      if @discard.length > 0
-        this.shuffle()
-        this.drawCards(diff)
-        
-    else
-      log("#{@ai} draws #{nCards} cards.")
-      @hand = @hand.concat(@draw[0...nCards])
-      @draw = @draw[nCards...]
-
-  doDiscard: (card) ->
-    idx = @hand.indexOf(card)
-    if idx == -1
-      warn("#{@ai} has no #{card} to discard")
-      return
-    @hand.splice(idx, 1)
-    @discard.push(card)
-  
-  doTrash: (card) ->
-    idx = @hand.indexOf(card)
-    if idx == -1
-      warn("#{@ai} has no #{card} to trash")
-      return
-    @hand.splice(idx, 1)
-  
-  shuffle: () ->
-    log("#{@ai} shuffles.")
-    if @draw.length > 0
-      throw new Error("Shuffling while there are cards left to draw")
-    shuffle(@discard)
-    @draw = @discard
-    @discard = []
-    # TODO: add an AI decision for Stashes
-
-  getVP: (state) ->
-    total = 0
-    for card in this.getDeck()
-      total += card.getVP(state)
-    total
-  
-  getTotalMoney: () ->
-    total = 0
-    for card in this.getDeck()
-      total += card.coins
-    total
-
-  # Helpful indicators
-  countInHand: (card) ->
-    countStr(@hand, card)
-
-  countInDiscard: (card) ->
-    countStr(@discard, card)
-
-  countInPlay: (card) ->
-    # Count the number of copies of a card in play. Don't use this
-    # for evaluating effects that stack, because you may also need
-    # to take Throne Rooms and King's Courts into account.
-    countStr(@inPlay, card)
-
-  countActionCardsInDeck: () ->
-    count = 0
-    for card in this.getDeck()
-      if card.isAction
-        count += 1
-    count
-
-  getActionDensity: () ->
-    this.countActionCardsInDeck() / this.getDeck().length
-  
-  menagerieDraws: () ->
-    seen = {}
-    cardsToDraw = 3
-    for card in @hand
-      if seen[card.name]?
-        cardsToDraw = 1
-        break
-      seen[card.name] = true
-    cardsToDraw
-
-  shantyTownDraws: () ->
-    cardsToDraw = 2
-    for card in @hand
-      if card.isAction
-        cardsToDraw = 0
-        break
-    cardsToDraw
-  
-  actionBalance: () ->
-    balance = @actions
-    for card in @hand
-      if card.isAction
-        balance += card.actions
-        balance--
-
-        # Estimate the risk of drawing an action dead.
-        # TODO: do something better when there are variable card-drawers
-        if card.actions == 0
-          balance -= card.cards * this.getActionDensity()
-    balance
 
 # Define some possible tableaux to play the game with. None of these are
 # actually legal tableaux, but that gives strategies more room to play.
@@ -650,9 +706,9 @@ log = (obj) ->
 warn = (obj) ->
   console.log("WARNING: ", obj)
 
-
-
-
+# Exports
+# -------
+# Export the State and PlayerState classes for other modules to use.
 this.State = State
 this.PlayerState = PlayerState
 

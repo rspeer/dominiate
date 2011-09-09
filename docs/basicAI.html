@@ -1,0 +1,185 @@
+<!DOCTYPE html>  <html> <head>   <title>basicAI.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="basicAI.html">                 basicAI.coffee               </a>                                           <a class="source" href="cards.html">                 cards.coffee               </a>                                           <a class="source" href="gameState.html">                 gameState.coffee               </a>                                           <a class="source" href="heuristics.html">                 heuristics.coffee               </a>                                           <a class="source" href="play.html">                 play.coffee               </a>                                           <a class="source" href="testSimulation.html">                 testSimulation.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               basicAI.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>utility functions</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">count = </span><span class="nf">(list, elt) -&gt;</span>
+  <span class="nv">count = </span><span class="mi">0</span>
+  <span class="k">for</span> <span class="nx">member</span> <span class="k">in</span> <span class="nx">list</span>
+    <span class="k">if</span> <span class="nx">member</span> <span class="o">==</span> <span class="nx">elt</span>
+      <span class="nx">count</span><span class="o">++</span>
+  <span class="nx">count</span>
+
+<span class="nv">stringify = </span><span class="nf">(obj) -&gt;</span>
+  <span class="k">if</span> <span class="nx">obj</span> <span class="o">is</span> <span class="kc">null</span>
+    <span class="k">return</span> <span class="kc">null</span>
+  <span class="k">else</span>
+    <span class="k">return</span> <span class="nx">obj</span><span class="p">.</span><span class="nx">toString</span><span class="p">()</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>This class defines a rule-based AI, the kind that is currently popular
+for evaluating Dominion strategies. Subclass it to define new strategies.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">class</span> <span class="nx">BasicAI</span>
+  <span class="nv">name: </span><span class="s1">&#39;BasicAI&#39;</span>
+
+  <span class="nv">choosePriority: </span><span class="nf">(state, choices, priorityfunc) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Given a game state, a list of possible choices, and a function
+that returns a preference order, make the best choice in that
+preference order.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">priority = </span><span class="nx">priorityfunc</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="nv">bestChoice = </span><span class="kc">null</span>
+    <span class="nv">bestIndex = </span><span class="kc">null</span>
+    <span class="k">for</span> <span class="nx">choice</span> <span class="k">in</span> <span class="nx">choices</span>
+      <span class="nv">index = </span><span class="nx">priority</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">choice</span><span class="p">))</span>
+      <span class="k">if</span> <span class="nx">index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">and</span> <span class="p">(</span><span class="nx">bestIndex</span> <span class="o">is</span> <span class="kc">null</span> <span class="o">or</span> <span class="nx">index</span> <span class="o">&lt;</span> <span class="nx">bestIndex</span><span class="p">)</span>
+        <span class="nv">bestIndex = </span><span class="nx">index</span>
+        <span class="nv">bestChoice = </span><span class="nx">choice</span>
+    <span class="k">if</span> <span class="nx">bestChoice</span> <span class="o">is</span> <span class="kc">null</span> <span class="o">and</span> <span class="kc">null</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">choices</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <p>either no choices are available, or this AI is being forced
+to make a decision it's not prepared for</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">return</span> <span class="nx">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">?</span> <span class="kc">null</span>
+    <span class="k">return</span> <span class="nx">bestChoice</span>
+
+  <span class="nv">chooseAction: </span><span class="nf">(state, choices) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">choosePriority</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">actionPriority</span><span class="p">)</span>
+  <span class="nv">chooseTreasure: </span><span class="nf">(state, choices) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">choosePriority</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">treasurePriority</span><span class="p">)</span>
+  <span class="nv">chooseBuy: </span><span class="nf">(state, choices) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">choosePriority</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">gainPriority</span><span class="p">)</span>
+  <span class="nv">chooseGain: </span><span class="nf">(state, choices) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">choosePriority</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">gainPriority</span><span class="p">)</span>
+  <span class="nv">chooseDiscard: </span><span class="nf">(state, choices) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">choosePriority</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">discardPriority</span><span class="p">)</span>
+  <span class="nv">chooseTrash: </span><span class="nf">(state, choices) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">choosePriority</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">trashPriority</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>The default buying strategy is Big Money Ultimate.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">gainPriority: </span><span class="nf">(state) -&gt;</span> <span class="p">[</span>
+    <span class="s2">&quot;Colony&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInDeck</span><span class="p">(</span><span class="s2">&quot;Platinum&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="s2">&quot;Province&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">countInSupply</span><span class="p">(</span><span class="s2">&quot;Colony&quot;</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span>
+    <span class="s2">&quot;Duchy&quot;</span> <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="nx">state</span><span class="p">.</span><span class="nx">gainsToEndGame</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">5</span>
+    <span class="s2">&quot;Estate&quot;</span> <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="nx">state</span><span class="p">.</span><span class="nx">gainsToEndGame</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">2</span>
+    <span class="s2">&quot;Platinum&quot;</span>
+    <span class="s2">&quot;Gold&quot;</span>
+    <span class="s2">&quot;Silver&quot;</span>
+    <span class="s2">&quot;Copper&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">gainsToEndGame</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">3</span>
+    <span class="kc">null</span>
+  <span class="p">]</span>
+  
+  <span class="nv">actionPriority: </span><span class="nf">(state) -&gt;</span> <span class="p">[</span>
+    <span class="s2">&quot;Menagerie&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">menagerieDraws</span><span class="p">()</span> <span class="o">==</span> <span class="mi">3</span>
+    <span class="s2">&quot;Shanty Town&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">shantyTownDraws</span><span class="p">()</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="s2">&quot;Festival&quot;</span>
+    <span class="s2">&quot;Bazaar&quot;</span>
+    <span class="s2">&quot;Worker&#39;s Village&quot;</span>
+    <span class="s2">&quot;Village&quot;</span>
+    <span class="s2">&quot;Grand Market&quot;</span>
+    <span class="s2">&quot;Alchemist&quot;</span>
+    <span class="s2">&quot;Laboratory&quot;</span>
+    <span class="s2">&quot;Caravan&quot;</span>
+    <span class="s2">&quot;Fishing Village&quot;</span>
+    <span class="s2">&quot;Market&quot;</span>
+    <span class="s2">&quot;Peddler&quot;</span>
+    <span class="s2">&quot;Great Hall&quot;</span>
+    <span class="s2">&quot;Smithy&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">&gt;</span> <span class="mi">1</span>
+    <span class="s2">&quot;Pawn&quot;</span>
+    <span class="s2">&quot;Warehouse&quot;</span>
+    <span class="s2">&quot;Menagerie&quot;</span>
+    <span class="s2">&quot;Shanty Town&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="s2">&quot;Nobles&quot;</span>
+    <span class="s2">&quot;Witch&quot;</span>
+    <span class="s2">&quot;Wharf&quot;</span>
+    <span class="s2">&quot;Militia&quot;</span>
+    <span class="s2">&quot;Princess&quot;</span>
+    <span class="s2">&quot;Steward&quot;</span>
+    <span class="s2">&quot;Bridge&quot;</span>
+    <span class="s2">&quot;Horse Traders&quot;</span>
+    <span class="s2">&quot;Coppersmith&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInHand</span><span class="p">(</span><span class="s2">&quot;Copper&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+    <span class="s2">&quot;Smithy&quot;</span>
+    <span class="s2">&quot;Merchant Ship&quot;</span>
+    <span class="s2">&quot;Monument&quot;</span>
+    <span class="s2">&quot;Woodcutter&quot;</span>
+    <span class="s2">&quot;Coppersmith&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInHand</span><span class="p">(</span><span class="s2">&quot;Copper&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+    <span class="s2">&quot;Moat&quot;</span>
+    <span class="s2">&quot;Chapel&quot;</span>
+    <span class="s2">&quot;Coppersmith&quot;</span>
+    <span class="s2">&quot;Shanty Town&quot;</span>
+    <span class="kc">null</span>
+  <span class="p">]</span>
+  
+  <span class="nv">treasurePriority: </span><span class="nf">(state) -&gt;</span> <span class="p">[</span>
+    <span class="s2">&quot;Platinum&quot;</span>
+    <span class="s2">&quot;Diadem&quot;</span>
+    <span class="s2">&quot;Philosopher&#39;s Stone&quot;</span>
+    <span class="s2">&quot;Gold&quot;</span>
+    <span class="s2">&quot;Harem&quot;</span>
+    <span class="s2">&quot;Silver&quot;</span>
+    <span class="s2">&quot;Quarry&quot;</span>
+    <span class="s2">&quot;Copper&quot;</span>
+    <span class="s2">&quot;Potion&quot;</span>
+    <span class="s2">&quot;Bank&quot;</span>
+  <span class="p">]</span>
+  
+  <span class="nv">discardPriority: </span><span class="nf">(state) -&gt;</span> <span class="p">[</span>
+    <span class="s2">&quot;Colony&quot;</span>
+    <span class="s2">&quot;Province&quot;</span>
+    <span class="s2">&quot;Duchy&quot;</span>
+    <span class="s2">&quot;Estate&quot;</span>
+    <span class="s2">&quot;Copper&quot;</span>
+    <span class="kc">null</span>   <span class="c1"># this is where discarding-for-benefit should stop</span>
+    <span class="s2">&quot;Silver&quot;</span>
+    <span class="s2">&quot;Gold&quot;</span>
+    <span class="s2">&quot;Platinum&quot;</span>
+  <span class="p">]</span>
+
+  <span class="nv">trashPriority: </span><span class="nf">(state) -&gt;</span> <span class="p">[</span>
+    <span class="s2">&quot;Curse&quot;</span>
+    <span class="s2">&quot;Estate&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">gainsToEndGame</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">4</span>
+    <span class="s2">&quot;Copper&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">getTotalMoney</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">4</span>
+    <span class="s2">&quot;Potion&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">turnsTaken</span> <span class="o">&gt;=</span> <span class="mi">10</span>
+    <span class="s2">&quot;Estate&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">gainsToEndGame</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">2</span>
+    <span class="kc">null</span>
+    <span class="s2">&quot;Copper&quot;</span>
+    <span class="s2">&quot;Potion&quot;</span>
+    <span class="s2">&quot;Estate&quot;</span>
+    <span class="s2">&quot;Silver&quot;</span>
+  <span class="p">]</span>
+
+  <span class="nv">chooseBenefit: </span><span class="nf">(state, choices) -&gt;</span> 
+    <span class="nv">buyValue = </span><span class="mi">1</span>
+    <span class="nv">cardValue = </span><span class="mi">2</span>
+    <span class="nv">coinValue = </span><span class="mi">3</span>
+    <span class="nv">trashValue = </span><span class="mi">4</span>      <span class="c1"># if there are cards we want to trash</span>
+    <span class="nv">actionValue = </span><span class="mi">10</span>    <span class="c1"># if we need more actions</span>
+    <span class="nv">trashableCards = </span><span class="mi">0</span>
+
+    <span class="nv">actionBalance = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actionBalance</span><span class="p">()</span>
+    <span class="nv">usableActions = </span><span class="nb">Math</span><span class="p">.</span><span class="nx">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="nx">actionBalance</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;Current actions: #{state.current.actions} / Needed actions: #{usableActions}&quot;</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>Draw cards if we have a surplus of actions</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">if</span> <span class="nx">actionBalance</span> <span class="o">&gt;=</span> <span class="mi">1</span>
+      <span class="nx">cardValue</span> <span class="o">+=</span> <span class="nx">actionBalance</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>How many cards do we want to trash?</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span>
+      <span class="k">if</span> <span class="k">this</span><span class="p">.</span><span class="nx">chooseTrash</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span><span class="nx">card</span><span class="p">,</span> <span class="kc">null</span><span class="p">])</span> <span class="o">is</span> <span class="nx">card</span>
+        <span class="nx">trashableCards</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="nv">best = </span><span class="kc">null</span>
+    <span class="nv">bestValue = </span><span class="o">-</span><span class="mi">1000</span>
+    <span class="k">for</span> <span class="nx">choice</span> <span class="k">in</span> <span class="nx">choices</span>
+      <span class="nv">value = </span><span class="nx">cardValue</span> <span class="o">*</span> <span class="p">(</span><span class="nx">choice</span><span class="p">.</span><span class="nx">cards</span> <span class="o">?</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="nx">value</span> <span class="o">+=</span> <span class="nx">coinValue</span> <span class="o">*</span> <span class="p">(</span><span class="nx">choice</span><span class="p">.</span><span class="nx">coins</span> <span class="o">?</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="nx">value</span> <span class="o">+=</span> <span class="nx">buyValue</span> <span class="o">*</span> <span class="p">(</span><span class="nx">choice</span><span class="p">.</span><span class="nx">buys</span> <span class="o">?</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="nv">trashes = </span><span class="p">(</span><span class="nx">choice</span><span class="p">.</span><span class="nx">trashes</span> <span class="o">?</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nx">trashes</span> <span class="o">&lt;=</span> <span class="nx">trashableCards</span>
+        <span class="nx">value</span> <span class="o">+=</span> <span class="nx">trashValue</span> <span class="o">*</span> <span class="nx">trashes</span>
+      <span class="k">else</span>
+        <span class="nx">value</span> <span class="o">-=</span> <span class="nx">trashValue</span> <span class="o">*</span> <span class="nx">trashes</span>
+      <span class="nx">value</span> <span class="o">+=</span> <span class="nx">actionValue</span> <span class="o">*</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">min</span><span class="p">((</span><span class="nx">choice</span><span class="p">.</span><span class="nx">actions</span> <span class="o">?</span> <span class="mi">0</span><span class="p">),</span> <span class="nx">usableActions</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nx">value</span> <span class="o">&gt;</span> <span class="nx">bestValue</span>
+        <span class="nv">best = </span><span class="nx">choice</span>
+        <span class="nv">bestValue = </span><span class="nx">value</span>
+    <span class="nx">best</span>
+
+  <span class="nv">toString: </span><span class="nf">() -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span>
+
+<span class="k">class</span> <span class="nx">SillyAI</span> <span class="k">extends</span> <span class="nx">BasicAI</span></pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Plays like BasicAI, except it always buys a card of the highest
+value it can, at random. Good for simulating newbie play and testing
+all cases that the simulator might run into.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">name: </span><span class="s1">&#39;SillyAI&#39;</span>
+
+  <span class="nv">gainPriority: </span><span class="nf">(state) -&gt;</span> 
+    <span class="nv">cards = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">card</span><span class="p">,</span> <span class="nx">count</span> <span class="k">of</span> <span class="nx">state</span><span class="p">.</span><span class="nx">supply</span></pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>original cost</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">cardInfo</span><span class="p">[</span><span class="nx">card</span><span class="p">].</span><span class="nx">cost</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="nx">cards</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+    <span class="nv">effectiveCost = </span><span class="nf">(card) -&gt;</span>
+      <span class="p">[</span><span class="nx">coins</span><span class="p">,</span> <span class="nx">potions</span><span class="p">]</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">cardInfo</span><span class="p">[</span><span class="nx">card</span><span class="p">].</span><span class="nx">getCost</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+      <span class="nx">coins</span> <span class="o">+</span> <span class="nx">potions</span><span class="o">*</span><span class="mi">2</span> <span class="o">+</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">random</span><span class="p">()</span>
+    <span class="nx">cards</span><span class="p">.</span><span class="nx">sort</span><span class="p">(</span> <span class="nf">(c1, c2) -&gt;</span>
+      <span class="nx">effectiveCost</span><span class="p">(</span><span class="nx">c2</span><span class="p">)</span> <span class="o">-</span> <span class="nx">effectiveCost</span><span class="p">(</span><span class="nx">c1</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nx">cards</span>
+
+<span class="k">this</span><span class="p">.</span><span class="nv">BasicAI = </span><span class="nx">BasicAI</span>
+<span class="k">this</span><span class="p">.</span><span class="nv">SillyAI = </span><span class="nx">SillyAI</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
