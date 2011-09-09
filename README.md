@@ -1,7 +1,7 @@
-The Minion
-==========
+Dominiate
+=========
 
-The Minion is a Dominion simulator, in which you can program bots to follow
+Dominiate is a Dominion simulator, in which you can program bots to follow
 strategies that you define and see which one wins.
 
 It is inspired by Geronimoo's Dominion Simulator. It shares the feature that,
@@ -14,7 +14,7 @@ system doesn't allow you to define the strategy you want and you're okay with
 writing more code, I encourage you to fork the simulator and change it so that
 it does.
 
-The Minion is written in CoffeeScript-flavored node.js. This means it runs
+Dominiate is written in CoffeeScript-flavored node.js. This means it runs
 inside a JavaScript interpreter, but uses a nicer syntax than JavaScript for
 defining both its code and its AI preferences. With some slight changes (which
 I haven't made yet), it should be able to run natively in a Web browser!
@@ -28,7 +28,7 @@ does.
 Installation
 ------------
 This isn't yet end-user code. You need a reasonable development environment
-with a command line to use the Minion.
+with a command line to use Dominiate.
 
 First, acquire node.js (v0.4 or later) and npm (the Node Package Manager).  The
 best way to do this differs by operating system and changes a lot.
@@ -42,19 +42,12 @@ specified names and play them against each other. For example:
 
     ./play.coffee strategies/BigMoney.coffee strategies/ChapelWitch.coffee
 
-Compilation to JavaScript
--------------------------
-This shouldn't be necessary at this point, but you can convert the Minion to
-not-very-readable JavaScript code by running:
-
-    coffee -c *.coffee
-
 Roadmap
 -------
 This is a development release that's probably only usable by certain kinds of
 programmers who are also Dominion players. Short-term planned features include:
 
-- A way to run the Minion in your Web browser, without being a Node haxor
+- A way to run Dominiate in your Web browser, without being a Node haxor
 - Comparing the win rates of strategies over multiple runs
 - don't buy cards that make you instantly lose
 - Almost all cards implemented
