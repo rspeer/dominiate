@@ -54,7 +54,21 @@ class PlayerState
   #### Informational methods
   # 
   # The methods here ask about general properties of a player's deck,
-  # discard pile, and so on.
+  # discard pile, and so on. A number of similar methods appear on the `State`
+  # class defined below, which deal with information that is not so
+  # player-specific, such as the cards in the supply.
+  # 
+  # As an example:
+  # Most AI code will start with a reference to the State, called `state`.
+  # If you want to check the number of cards in the current player's deck,
+  # you would ask the *player object* `state.current`:
+  #
+  #    state.current.numCardsInDeck()
+  #
+  # If you want to check how many piles are currently empty, you would ask
+  # the *state object* itself:
+  #
+  #    state.numEmptyPiles()
   
   # `getDeck()` returns all the cards in the player's deck, even those in
   # strange places such as the Island mat.
