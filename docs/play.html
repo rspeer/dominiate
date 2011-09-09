@@ -1,0 +1,32 @@
+<!DOCTYPE html>  <html> <head>   <title>play.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               play.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="c1">#!/usr/bin/env coffee</span></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>This is the script that you can run at the command line to see how
+strategies play against each other.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">{</span><span class="nx">State</span><span class="p">,</span><span class="nx">tableaux</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s1">&#39;./gameState&#39;</span>
+<span class="p">{</span><span class="nx">BasicAI</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s1">&#39;./basicAI&#39;</span>
+<span class="nv">fs = </span><span class="nx">require</span> <span class="s1">&#39;fs&#39;</span>
+<span class="nv">coffee = </span><span class="nx">require</span> <span class="s1">&#39;coffee-script&#39;</span>
+
+<span class="nv">loadStrategy = </span><span class="nf">(filename) -&gt;</span>
+  <span class="nv">ai = </span><span class="k">new</span> <span class="nx">BasicAI</span><span class="p">()</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span>
+
+  <span class="nv">changes = </span><span class="nx">coffee</span><span class="p">.</span><span class="nb">eval</span><span class="p">(</span>
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="nx">filename</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">),</span>
+    <span class="p">{</span><span class="nv">sandbox: </span><span class="p">{}}</span>
+  <span class="p">)</span>
+  <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">changes</span>
+    <span class="nx">ai</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+  <span class="nx">ai</span>
+
+<span class="nv">playGame = </span><span class="nf">(filenames) -&gt;</span>
+  <span class="nv">ais = </span><span class="p">(</span><span class="nx">loadStrategy</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="k">for</span> <span class="nx">filename</span> <span class="k">in</span> <span class="nx">filenames</span><span class="p">)</span>
+  <span class="nv">st = </span><span class="k">new</span> <span class="nx">State</span><span class="p">().</span><span class="nx">initialize</span><span class="p">(</span><span class="nx">ais</span><span class="p">,</span> <span class="nx">tableaux</span><span class="p">.</span><span class="nx">all</span><span class="p">)</span>
+  <span class="nx">until</span> <span class="nx">st</span><span class="p">.</span><span class="nx">gameIsOver</span><span class="p">()</span>
+    <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">()</span>
+  <span class="nv">result = </span><span class="p">([</span><span class="nx">player</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">toString</span><span class="p">(),</span> <span class="nx">player</span><span class="p">.</span><span class="nx">getVP</span><span class="p">(</span><span class="nx">st</span><span class="p">),</span> <span class="nx">player</span><span class="p">.</span><span class="nx">turnsTaken</span><span class="p">]</span> <span class="k">for</span> <span class="nx">player</span> <span class="k">in</span> <span class="nx">st</span><span class="p">.</span><span class="nx">players</span><span class="p">)</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">result</span><span class="p">)</span>
+  <span class="nx">result</span>
+
+<span class="k">this</span><span class="p">.</span><span class="nv">playGame = </span><span class="nx">playGame</span>
+<span class="nv">args = </span><span class="nx">process</span><span class="p">.</span><span class="nx">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">...]</span>
+<span class="nx">playGame</span><span class="p">(</span><span class="nx">args</span><span class="p">)</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

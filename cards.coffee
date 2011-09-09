@@ -592,7 +592,7 @@ makeCard 'Witch', action, {
   cards: 2
   playEffect: (state) ->
     state.attackOpponents (opp) ->
-      state.doGain(opp, c.Curse)
+      state.gainCard(opp, c.Curse)
 }
 
 # Utility functions

@@ -1,55 +1,33 @@
 # Many modules begin with this "indecisive import" pattern. It's messy
 # but it gets the job done, and it's explained at the bottom of this
 # documentation.
-
 {c} = require './cards' if require?
 
-# general function to randomly shuffle a list
-shuffle = (v) ->
-  i = v.length
-  while i
-    j = parseInt(Math.random() * i)
-    i -= 1
-    temp = v[i]
-    v[i] = v[j]
-    v[j] = temp
-  v
-
-countStr = (list, elt) ->
-  count = 0
-  for member in list
-    if member.toString() == elt.toString()
-      count++
-  count
-
-numericSort = (array) ->
-  array.sort( (a, b) -> (a-b) )
-
-# parameterize logging, so we can send it somewhere else when needed
-log = (obj) ->
-  console.log(obj)
-
-warn = (obj) ->
-  console.log("WARNING: ", obj)
-
-
+# The State class
+# ---------------
+# A State instance stores the complete state of the game at a point in time.
+# 
+# Many operations will mutate the state, for the sake of efficiency.
+# Any AI that evaluates different possible decisions must make a copy of
+# that state with less information in it, anyway.
 class State
-  # Stores the complete state of the game.
-  # 
-  # Many operations will mutate the state, for the sake of efficiency.
-  # Any AI that evaluates different possible decisions must make a copy of
-  # that state with less information in it, anyway.
   basicSupply: ['Curse', 'Copper', 'Silver', 'Gold',
                 'Estate', 'Duchy', 'Province']
   
   # make card information available to strategies
   cardInfo: c
-
-  initialize: (ais, kingdom) ->
+  
+  # Set up the state at the start of the game. Takes these arguments:
+  #
+  # - `ais`: a list of AI objects that will make the decisions, one per player.
+  #   This sets the number of players in the game.
+  # - `tableau`: the list of non-basic cards in the supply. Colony, Platinum,
+  #   and Potion have to be listed explicitly.
+  initialize: (ais, tableau) ->
     @players = (new PlayerState().initialize(ai) for ai in ais)
     @nPlayers = @players.length
     @current = @players[0]
-    @supply = this.makeSupply(kingdom)
+    @supply = this.makeSupply(tableau)
 
     @bridges = 0
     @quarries = 0
@@ -57,59 +35,101 @@ class State
     @phase = 'start'
     return this
   
-  makeSupply: (kingdom) ->
-    allCards = this.basicSupply.concat(kingdom)
+  # Given the tableau (the set of non-basic cards in play), construct the
+  # appropriate supply for the number of players.
+  makeSupply: (tableau) ->
+    allCards = this.basicSupply.concat(tableau)
     supply = {}
     for card in allCards
       card = c[card] ? card
       supply[card] = card.startingSupply(this)
     supply
 
-  copy: () ->
-    newSupply = {}
-    for key, value of @supply
-      newSupply[key] = value
-    newPlayers = []
-    for player in @players
-      newPlayers.push(player.copy())
-    newState = new State()
-
-    newState.players = newPlayers
-    newState.current = newPlayers[0]
-    newState.nPlayers = @nPlayers
-    newState.bridges = @bridges
-    newState.quarries = @quarries
-    newState.copperValue = @copperValue
-    newState.phase = @phase
-    newState
-    
-  rotatePlayer: () ->
-    @players = @players[1...@nPlayers].concat [@players[0]]
-    @current = @players[0]
-    @phase = 'start'
-
-  gameIsOver: () ->
-    emptyPiles = []
+  #### Informational methods
+  # These methods are referred to by some card effects, but can also be useful
+  # in crafting a strategy.
+  #
+  # `emptyPiles()` determines which supply piles are empty.
+  emptyPiles: () ->
+    piles = []
     for key, value of @supply
       if value == 0
-        emptyPiles.push(key)
-    if emptyPiles.length >= 3\
-        or 'Province' in emptyPiles\
+        piles.push(key)
+    piles
+  
+  # `numEmptyPiles()` simply returns the number of empty piles.
+  numEmptyPiles: () ->
+    this.emptyPiles().length
+  
+  # `gameIsOver()` returns whether the game is over.
+  gameIsOver: () ->
+    # The game can only end after a player has taken a full turn. Check that
+    # by making sure the phase is `'start'`.
+    return false if @phase != 'start'
+
+    # Check all the conditions in which empty piles can end the game.
+    emptyPiles = this.emptyPiles()
+    if emptyPiles.length >= this.totalPilesToEndGame() \
+        or (@nPlayers < 5 and emptyPiles.length >= 3) \
+        or 'Province' in emptyPiles \
         or 'Colony' in emptyPiles
       log("Empty piles: #{emptyPiles}")
       return true
     return false
+  
+  # `countInSupply()` returns the number of copies of a card that remain
+  # in the supply. It can take in either a card object or card name.
+  #
+  # If the card has never been in the supply, it returns 0,
+  # so it is safe to refer to `state.countInSupply('Colony')` even in
+  # a non-Colony game. This does not count as an empty pile, of course.
+  countInSupply: (card) ->
+    @supply[card] ? 0
+  
+  # `totalPilesToEndGame()` returns the number of empty piles that triggers
+  # the end of the game, which is almost always 3.
+  totalPilesToEndGame: () ->
+    switch @nPlayers
+      when 1, 2, 3, 4 then 3
+      else 4
 
-  doPlay: () ->
-    # Do the appropriate next thing, based on the value of @phase:
-    #   'start': resolve duration effects, then go to action phase
-    #   'action': play and resolve some number of actions, then go to
-    #     treasure phase
-    #   'treasure': play and resolve some number of treasures, then go to
-    #     buy phase
-    #   'buy': buy some number of cards, then go to cleanup phase
-    #   'cleanup': resolve cleanup effects, discard everything, draw 5 cards
-    
+  # As a useful heuristic, `gainsToEndGame()` returns the minimum number of
+  # buys/gains that would have to be used by an opponent who is determined to
+  # end the game. A low number means the game is probably ending soon.
+  gainsToEndGame: () ->
+    counts = (count for card, count of @supply)
+    numericSort(counts)
+    # First, add up the smallest 3 (or 4) piles.
+    piles = this.totalPilesToEndGame()
+    minimum = 0
+    for count in counts[...piles]
+      minimum += count
+    # Then compare this to the number of Provinces or possibly Colonies
+    # remaining, and see which one is smallest.
+    minimum = Math.min(minimum, @supply['Province'])
+    if @supply['Colony']?
+      minimum = Math.min(minimum, @supply['Colony'])
+    minimum
+  
+  #### Playing a turn
+  #
+  # `doPlay` performs the next step of the game, which is a particular phase
+  # of a particular player's turn. If the phase is...
+  #
+  # - 'start': resolve duration effects, then go to action phase
+  # - 'action': play and resolve some number of actions, then go to
+  #     treasure phase
+  # - 'treasure': play and resolve some number of treasures, then go to
+  #     buy phase
+  # - 'buy': buy some number of cards, then go to cleanup phase
+  # - 'cleanup': resolve cleanup effects, discard everything, draw 5 cards,
+  #     and go to the start phase of the next player's turn.
+  # 
+  # To play the entire game, iterate `doPlay()` until `gameIsOver()`. Putting
+  # this in a single loop would be a bad idea because it would make Web
+  # browsers freeze up. Browser-facing code should return control after each
+  # call to `doPlay()`.
+  doPlay: () ->  
     switch @phase
       when 'start'
         @current.turnsTaken += 1
@@ -117,121 +137,155 @@ class State
         log("Hand: #{@current.hand}")
         log("Draw: #{@current.draw}")
         log("Discard: #{@current.discard}")
-        this.resolveDurations()
+        this.doDurationPhase()
         @phase = 'action'
       when 'action'
         log("(action phase)")
-        this.resolveActions()
+        this.doActionPhase()
         @phase = 'treasure'
       when 'treasure'
         log("(treasure phase)")
-        this.resolveTreasure()
+        this.doTreasurePhase()
         @phase = 'buy'
       when 'buy'
         log("(buy phase)")
-        this.resolveBuy()
+        this.doBuyPhase()
         @phase = 'cleanup'
       when 'cleanup'
         log("(cleanup phase)")
-        this.resolveCleanup()
+        this.doCleanupPhase()
         this.rotatePlayer()
   
-  resolveDurations: () ->
+  # `@current.duration` contains all cards that are in play with duration
+  # effects. At the start of the turn, check all of these cards and run their
+  # `onDuration` method.
+  doDurationPhase: () ->
     for card in @current.duration
       log("#{@current.ai} resolves the duration effect of #{card}.")
       card.onDuration(this)
   
-  resolveActions: () ->
+  # Perform the action phase. Ask the AI repeatedly which action to play,
+  # until there are no more action cards to play or there are no
+  # actions remaining to play them with, or the AI chooses `null`, indicating
+  # that it doesn't want to play an action.
+  doActionPhase: () ->
     while @current.actions > 0
       validActions = [null]
+
+      # Determine the set of unique actions that may be played.
       for card in @current.hand
         if card.isAction and card not in validActions
           validActions.push(card)
+
+      # Ask the AI for its choice.
       action = @current.ai.chooseAction(this, validActions)
       return if action is null
       log("#{@current.ai} plays #{action}.")
+
+      # Remove the action from the hand and put it in the play area.
       idx = @current.hand.indexOf(action)
       if idx == -1
         warn("#{@current.ai} chose an invalid action.")
         return
-      @current.hand.splice(idx, 1)   # remove the action from the hand
-      @current.inPlay.push(action)   # and put it in play
+      @current.hand.splice(idx, 1)
+      @current.inPlay.push(action)
+
+      # Subtract 1 from the action count, perform the action, and go back
+      # to the start of the loop.
       @current.actions -= 1
       action.onPlay(this)
-
-  resolveTreasure: () ->
+  
+  # The "treasure phase" is a concept introduced in Prosperity. After playing
+  # actions, you play any number of treasures in some order. This loop
+  # repeats until the AI chooses `null`, either because there are no treasures
+  # left to play or because it does not want to play any more treasures.
+  doTreasurePhase: () ->
     loop
       validTreasures = [null]
+
+      # Determine the set of unique treasures that may be played.
       for card in @current.hand
         if card.isTreasure and card not in validTreasures
           validTreasures.push(card)
       
+      # Ask the AI for its choice.
       treasure = @current.ai.chooseTreasure(this, validTreasures)
       return if treasure is null
       log("#{@current.ai} plays #{treasure}.")
+
+      # Remove the treasure from the hand and put it in the play area.
       idx = @current.hand.indexOf(treasure)
       if idx == -1
         warn("#{@current.ai} chose an invalid treasure")
         return
-      @current.hand.splice(idx, 1)   # remove the treasure from the hand
-      @current.inPlay.push(treasure) # and put it in play
+      @current.hand.splice(idx, 1)
+      @current.inPlay.push(treasure)
       treasure.onPlay(this)
   
-  resolveBuy: () ->
+  # Ask the AI what to buy. Repeat until the player has no buys left or
+  # the AI chooses to buy nothing.
+  doBuyPhase: () ->
     while @current.buys > 0
       buyable = [null]
       for cardname, count of @supply
+        # Because the supply must reference cards by their names, we use
+        # `c[cardname]` to get the actual object for the card.
         card = c[cardname]
+
+        # Determine whether each card can be bought in the current state.
         if card.mayBeBought(this) and count > 0
           [coinCost, potionCost] = card.getCost(this)
           if coinCost <= @current.coins and potionCost <= @current.potions
             buyable.push(card)
       
+      # Ask the AI for its choice.
       log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
       choice = @current.ai.chooseBuy(this, buyable)
       return if choice is null
-      
       log("#{@current.ai} buys #{choice}.")
+
+      # Update money and buys.
       [coinCost, potionCost] = choice.getCost(this)
       @current.coins -= coinCost
       @current.potionCost -= potionCost
       @current.buys -= 1
 
-      this.doGain(@current, choice)
+      # Gain the card and deal with the effects.
+      this.gainCard(@current, choice)
       choice.onBuy(this)
   
-  doGain: (player, card) ->
-    if @supply[card] > 0
-      player.discard.push(card)
-      @supply[card] -= 1
-    # TODO: handle gain reactions
-
-  resolveCleanup: () ->
-    # Discard old duration cards
+  # Handle all the things that happen at the end of the turn.
+  doCleanupPhase: () ->
+    # Discard old duration cards.
     @current.discard = @current.discard.concat @current.duration
     @current.duration = []
 
-    # if any cards remain set aside, clean them up
+    # If there are cards set aside at this point, it probably means something
+    # went wrong in performing an action. But clean them up anyway.
     if @current.setAside.length > 0
       warn(["Cards were set aside at the end of turn", @current.setAside])
       @current.discard = @current.discard.concat @current.setAside
       @current.setAside = []
 
-    # Clean up cards in play, where the default is to discard them
-    # TODO: allow cleanup order to be selected? (not very important)
+    # Clean up cards in play.
     while @current.inPlay.length > 0
       card = @current.inPlay[0]
       @current.inPlay = @current.inPlay[1...]
+      # Put duration cards by default in the duration area, and other cards
+      # in play in the discard pile.
       if card.isDuration
         @current.duration.push(card)
       else
         @current.discard.push(card)
+      # Handle effects of cleaning up the card, which may involve moving it
+      # somewhere else.
       card.onCleanup(this)
 
-    # Discard remaining cards in hand
+    # Discard the remaining cards in hand.
     @current.discard = @current.discard.concat(@current.hand)
     @current.hand = []
 
+    # Reset things for the next turn.
     @current.actions = 1
     @current.buys = 1
     @current.coins = 0
@@ -239,17 +293,55 @@ class State
     @copperValue = 1
     @bridges = 0
     @quarries = 0
+
+    # Finally, draw the next hand of five cards.
     @current.drawCards(5)
+
+  # The player list is implemented so that the current player is always first
+  # in the list; the list rotates after every turn.
+  #
+  # For convenience, the attribute `@current` always points to the current
+  # player.
+  rotatePlayer: () ->
+    @players = @players[1...@nPlayers].concat [@players[0]]
+    @current = @players[0]
+    @phase = 'start'
   
+  #### Small-scale effects
+  # `gainCard` performs the effects of a player gaining a card.
+  #
+  # This is one of many events that affects a particular player, and
+  # also has some effect on the overall state (in that the supply is
+  # decreased). In this function and others like it, the `player` argument
+  # is the appropriate PlayerState object to affect. This must, of course,
+  # be one of the objects in the `@players` array.
+  gainCard: (player, card) ->
+    if @supply[card] > 0
+      player.discard.push(card)
+      @supply[card] -= 1
+    # TODO: handle gain reactions
+  
+  # Effects of an action could cause players to reveal their hand.
+  # So far, nothing happens as a result, but in the future, AIs might
+  # be able to take advantage of the information.
   revealHand: (player) ->
-    # nothing interesting happens
   
+  # `drawCards` causes the player to draw `num` cards.
+  #
+  # This currently passes through directly to the PlayerState, without
+  # passing any information from the global state.
+  # An improved version would pass the state in case the player shuffles,
+  # and has Stash in the deck, and wants to use information from the state
+  # to decide where to put the Stash.
   drawCards: (player, num) ->
     player.drawCards(num)
 
+  # `allowDiscard` allows a player to discard 0 through `num` cards.
   allowDiscard: (player, num) ->
     numDiscarded = 0
     while numDiscarded < num
+      # In `allowDiscard`, valid discards are the entire hand, plus `null`
+      # to stop discarding.
       validDiscards = player.hand.slice(0)
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
@@ -258,6 +350,8 @@ class State
       numDiscarded++
       player.doDiscard(choice)
   
+  # `requireDiscard` requires the player to discard exactly `num` cards,
+  # except that it stops if the player has 0 cards in hand.
   requireDiscard: (player, num) ->
     numDiscarded = 0
     while numDiscarded < num
@@ -268,6 +362,8 @@ class State
       numDiscarded++
       player.doDiscard(choice)
   
+  # `allowTrash` and `requireTrash` are similar to `allowDiscard` and
+  # `requireDiscard`.
   allowTrash: (player, num) ->
     numTrashed = 0
     while numTrashed < num
@@ -289,49 +385,65 @@ class State
       numTrashed++
       player.doTrash(choice)
   
+  # `attackOpponents` takes in a function of one argument, and applies
+  # it to all players except the one whose turn it is.
+  #
+  # The function should take in the PlayerState of the player to attack,
+  # and alter it somehow. This function can also involve the global state:
+  # it doesn't need to be passed in because it's already in scope in the place
+  # where the action is defined. See `Militia` in `cards.coffee` for an
+  # example.
   attackOpponents: (effect) ->
     for opp in @players[1...]
       this.attackPlayer(opp, effect)
-
+  
+  # `attackPlayer` does the work of attacking a particular player, including
+  # handling their reactions to attacks.
   attackPlayer: (player, effect) ->
+    # The most straightforward reaction is Moat, which cancels the attack.
+    # Set a flag on the PlayerState that indicates that the player has not
+    # yet revealed a Moat.
     player.moatProtected = false
     for card in player.hand
       if card.isReaction
         card.reactToAttack(player)
-    if not player.moatProtected
+
+    # If the player has revealed a Moat, or has Lighthouse in the duration
+    # area, the attack is averted. Otherwise, it happens.
+    if not player.moatProtected and not c.Lighthouse in player.duration
       effect(player)
-      
-  countInSupply: (card) ->
-    @supply[card] ? 0
   
-  pilesToEndGame: () ->
-    # How many piles have to be bought out to end the game?
-    switch @nPlayers
-      when 1, 2, 3, 4 then 3
-      else 4
+  # `copy()` makes a copy of this state that can be safely mutated
+  # without affecting the original state.
+  #
+  # Ideally, the AI would be passed a copy of the state, with unknown
+  # information randomized, when it is asked to make a decision. This would
+  # allow it to try simulating the effects of various plays without actually
+  # breaking the game. But this isn't implemented yet, so make this a TODO.
+  copy: () ->
+    newSupply = {}
+    for key, value of @supply
+      newSupply[key] = value
+    newPlayers = []
+    for player in @players
+      newPlayers.push(player.copy())
+    newState = new State()
 
-  gainsToEndGame: () ->
-    # How many cards would have to be gained to end the game?
-    counts = (count for card, count of @supply)
-    numericSort(counts)
-    piles = this.pilesToEndGame()
-    minimum = 0
-    for count in counts[...piles]
-      minimum += count
-    minimum = Math.min(minimum, @supply['Province'])
-    if @supply['Colony']?
-      minimum = Math.min(minimum, @supply['Colony'])
-    minimum
-
+    newState.players = newPlayers
+    newState.current = newPlayers[0]
+    newState.nPlayers = @nPlayers
+    newState.bridges = @bridges
+    newState.quarries = @quarries
+    newState.copperValue = @copperValue
+    newState.phase = @phase
+    newState
+  
+# A PlayerState stores the part of the game state
+# that is specific to each player, plus what AI is making the decisions.
 class PlayerState
-  # A PlayerState stores the part of the game state
-  # that is specific to each player, plus what AI is making the decisions.
-
-  # We just use the default Object constructor, because new PlayerState objects
-  # will almost always be created by copying. At the start of the game,
+  # At the start of the game, the State should
   # .initialize() each PlayerState, which assigns its AI and sets up its
-  # starting state.
-
+  # starting state. Before then, it is an empty object.
   initialize: (ai) ->
     @actions = 1
     @buys = 1
@@ -355,7 +467,8 @@ class PlayerState
     @ai = ai
     this.drawCards(5)
     this
-
+  
+  # Most PlayerStates are created by copying an existing one.
   copy: () ->
     other = new PlayerState()
     other.actions = @actions
@@ -491,13 +604,54 @@ class PlayerState
           balance -= card.cards * this.getActionDensity()
     balance
 
-
-this.kingdoms = {
+# Define some possible tableaux to play the game with. None of these are
+# actually legal tableaux, but that gives strategies more room to play.
+this.tableaux = {
   moneyOnly: []
   moneyOnlyColony: ['Platinum', 'Colony']
-  allDefined: c.allCards
+  all: c.allCards
+  noColony: (card for card in c.allCards if card != 'Platinum' and card != 'Colony')
 }
-console.log(this.kingdoms.allDefined)
+
+# Utility functions
+# -----------------
+# General function to randomly shuffle a list.
+shuffle = (v) ->
+  i = v.length
+  while i
+    j = parseInt(Math.random() * i)
+    i -= 1
+    temp = v[i]
+    v[i] = v[j]
+    v[j] = temp
+  v
+
+# Count the number of times a value appears in a list, coercing everything
+# to its string value.
+countStr = (list, elt) ->
+  count = 0
+  for member in list
+    if member.toString() == elt.toString()
+      count++
+  count
+
+# Sort by numeric value. You'd think this would be in the standard library.
+numericSort = (array) ->
+  array.sort( (a, b) -> (a-b) )
+
+# Games can provide output using the `log` function, which prints to the
+# console in node.js. This must be overridden by something else when running
+# on the Web.
+log = (obj) ->
+  console.log(obj)
+
+# A warning has a similar effect to a log message, but indicates that something
+# has gone wrong with the gameplay.
+warn = (obj) ->
+  console.log("WARNING: ", obj)
+
+
+
 
 this.State = State
 this.PlayerState = PlayerState
