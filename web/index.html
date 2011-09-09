@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Editor</title>
+  <style type="text/css" media="screen">
+    body {
+        overflow: hidden;
+    }
+    
+    #editor-left { 
+        margin: 0;
+        position: absolute;
+        top: 0;
+        left: 20%;
+        width: 40%;
+        height: 500px;
+        border: 1px solid #999;
+    }
+    #editor-right { 
+        margin: 0;
+        position: absolute;
+        top: 0;
+        left: 60%;
+        width: 40%;
+        height: 500px;
+        border: 1px solid #999;
+    }
+  </style>
+</head>
+<body>
+
+<pre id="editor-left">{
+    name: 'SimpleMoney'
+    buyPriority: (state) -&gt; [
+        "Province"
+        "Gold"
+        "Silver"
+    ]
+}</pre>
+<pre id="editor-right">{
+    name: 'SimpleMoney'
+    buyPriority: (state) -&gt; [
+        "Province"
+        "Gold"
+        "Silver"
+    ]
+}</pre>
+
+<script src="libs/ace/src/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/ace/src/theme-dawn.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/ace/src/mode-coffee.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/coffee-script.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/jquery-1.6.3.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/coffeescript">
+$ = jQuery
+$ ->
+  for box in ["editor-left", "editor-right"]
+    editor = ace.edit(box)
+    editor.setTheme("ace/theme/dawn")
+      
+    JavaScriptMode = require("ace/mode/coffee").Mode;
+    editor.getSession().setMode(new JavaScriptMode())
+    
+    editor.setHighlightActiveLine(false)
+    editor.setShowPrintMargin(false)
+    editor.renderer.setShowGutter(false)
+    window.editor = editor
+</script>
+
+</body>
+</html>
