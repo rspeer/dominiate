@@ -14,10 +14,9 @@ system doesn't allow you to define the strategy you want and you're okay with
 writing more code, I encourage you to fork the simulator and change it so that
 it does.
 
-Dominiate is written in CoffeeScript-flavored node.js. This means it runs
-inside a JavaScript interpreter, but uses a nicer syntax than JavaScript for
-defining both its code and its AI preferences. With some slight changes (which
-I haven't made yet), it should be able to run natively in a Web browser!
+Dominiate is written in CoffeeScript, which compiles to JavaScript. This means
+it can either run at the command line using node.js, or it can run natively
+in a Web browser!
 
 Documentation
 -------------
@@ -27,8 +26,8 @@ does.
 
 Installation
 ------------
-This isn't yet end-user code. You need a reasonable development environment
-with a command line to use Dominiate.
+To use the command-line version, you will need a reasonable development
+environment with a command line.
 
 First, acquire node.js (v0.4 or later) and npm (the Node Package Manager).  The
 best way to do this differs by operating system and changes a lot.
@@ -37,28 +36,36 @@ Enable CoffeeScript by running `sudo npm-g install coffee-script` (or whatever
 the equivalent is on Windows). Now node.js will understand CoffeeScript source
 files.
 
-Running "./play.coffee bot1 bot2" will load the two bots with the
+Running "./play.coffee bot1 bot2" will load the bots with the
 specified names and play them against each other. For example:
 
     ./play.coffee strategies/BigMoney.coffee strategies/ChapelWitch.coffee
 
+Building the Web app
+--------------------
+The Web version of Dominiate is built using CoffeeScript and Less CSS. You'll
+need to follow the instructions above to set up CoffeeScript. You should also
+install Less CSS with `sudo npm-g install less`.
+
+Then, type `make` to build the JavaScript and CSS files that will be used
+on the Web.
+
+Do not edit the computer-written JavaScript directly! That way lies madness.
+
 Roadmap
 -------
-This is a development release that's probably only usable by certain kinds of
-programmers who are also Dominion players. Short-term planned features include:
+Short-term planned features include:
 
-- A way to run Dominiate in your Web browser, without being a Node haxor
-- Comparing the win rates of strategies over multiple runs
-- don't buy cards that make you instantly lose
-- Almost all cards implemented
+- Don't buy cards that make you instantly lose
+- Implement almost all the cards
 
 Longer term plans:
 
-- Hook into Golem, in order to buy a card based on the situation
 - Simulate the effects of playing cards (to a shallow depth) in order to
   choose an action.
 - Calculate the game-theoretic implications of a buy, to implement the
   Penultimate Province Rule.
+- Hook into Golem, in order to buy a card based on the situation
 
 Things I never plan to implement without help:
 
