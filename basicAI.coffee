@@ -36,18 +36,56 @@ class BasicAI
       return choices[0] ? null
     return bestChoice
 
+  chooseValue: (state, choices, valuefunc) ->
+    # Given a game state, a list of possible choices, and a function that
+    # returns a *value* for each choice, make the highest-valued choice.
+    #
+    # The null choice has value 0 when it is available, so negative-valued
+    # choices will be avoided.
+    bestChoice = null
+    bestValue = -Infinity
+    for choice in choices
+      if choice is null
+        value = 0
+      else
+        value = valuefunc(state, stringify(choice))
+      if value > bestValue
+        bestValue = value
+        bestChoice = choice
+    if bestChoice is null and null not in choices
+      # Either no choices are available, or this AI is being forced
+      # to make a decision it's not prepared for.
+      return choices[0] ? null
+    return bestChoice
+
+  # When an AI is asked to make a choice, it has two ways of doing so that
+  # we support: to rank the possible choices in a preference order, or to
+  # assign a numerical value to each choice.
   chooseAction: (state, choices) ->
-    this.choosePriority(state, choices, this.actionPriority)
+    if this.actionValue?
+      this.chooseValue(state, choices, this.actionValue)
+    else
+      this.choosePriority(state, choices, this.actionPriority)
   chooseTreasure: (state, choices) ->
-    this.choosePriority(state, choices, this.treasurePriority)
-  chooseBuy: (state, choices) ->
-    this.choosePriority(state, choices, this.gainPriority)
+    if this.treasureValue?
+      this.chooseValue(state, choices, this.treasureValue)
+    else
+      this.choosePriority(state, choices, this.treasurePriority)
   chooseGain: (state, choices) ->
-    this.choosePriority(state, choices, this.gainPriority)
+    if this.gainValue?
+      this.chooseValue(state, choices, this.gainValue)
+    else
+      this.choosePriority(state, choices, this.gainPriority)
   chooseDiscard: (state, choices) ->
-    this.choosePriority(state, choices, this.discardPriority)
+    if this.discardValue?
+      this.chooseValue(state, choices, this.discardValue)
+    else
+      this.choosePriority(state, choices, this.discardPriority)
   chooseTrash: (state, choices) ->
-    this.choosePriority(state, choices, this.trashPriority)
+    if this.trashValue?
+      this.chooseValue(state, choices, this.trashValue)
+    else
+      this.choosePriority(state, choices, this.trashPriority)
 
   # The default buying strategy is Big Money Ultimate.
   gainPriority: (state) -> [

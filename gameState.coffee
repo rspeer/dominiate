@@ -249,7 +249,7 @@ class PlayerState
       this.logFunc(obj)
     else
       if console?
-        console.log(this)
+        console.log(obj)
 
 # The State class
 # ---------------
@@ -508,14 +508,14 @@ class State
       
       # Ask the AI for its choice.
       this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
-      choice = @current.ai.chooseBuy(this, buyable)
+      choice = @current.ai.chooseGain(this, buyable)
       return if choice is null
       this.log("#{@current.ai} buys #{choice}.")
 
       # Update money and buys.
       [coinCost, potionCost] = choice.getCost(this)
       @current.coins -= coinCost
-      @current.potionCost -= potionCost
+      @current.potions -= potionCost
       @current.buys -= 1
 
       # Gain the card and deal with the effects.
