@@ -33,29 +33,36 @@
 </div>
 
 <div id="layoutSeparator"></div>
-<form id="gameControls">
-  <ul class="inputs-list">
-    <li>
-      <label>
-        <input type="checkbox" name="optionsCheckboxes" value="randomize"
-        id="randomize" checked="checked" />
-        <span>Randomize player order</span>
-      </label>
-    </li>
-    <li>
-      <label>
-        <input type="checkbox" name="optionsCheckboxes" value="colonies"
-        id="colonies" checked="checked" />
-        <span>Include Colony and Platinum</span>
-      </label>
-    </li>
-  </ul>
-  <p id="actionButtons">
+<div class="row" id="gameControls">
+  <div class="span3">
+    <a id="playMany" href="#playMany" class="btn success">
+      Play until one player dominates
+    </a>
+  </div>
+  <div class="span2">
     <a id="playButton" href="#playButton" class="btn success">
       Play single game
     </a>
-  </p>
-</form>
+  </div>
+  <div class="span8">
+    <ul class="inputs-list">
+      <li>
+        <label>
+          <input type="checkbox" name="optionsCheckboxes" value="randomize"
+          id="randomize" checked="checked" />
+          <span>Randomize player order</span>
+        </label>
+      </li>
+      <li>
+        <label>
+          <input type="checkbox" name="optionsCheckboxes" value="colonies"
+          id="colonies" checked="checked" />
+          <span>Include Colony and Platinum</span>
+        </label>
+      </li>
+    </ul>
+  </div>
+</div>
 
 <div id="logs">
   <h2>Game logs</h2>

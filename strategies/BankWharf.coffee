@@ -12,6 +12,5 @@
     "Wharf"
     "Silver"
     "Copper" if state.gainsToEndGame() <= 3
-    null
   ]
 }
