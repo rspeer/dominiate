@@ -679,15 +679,16 @@ class State
     newState.phase = @phase
     newState
 
-    # Games can provide output using the `log` function. For now it just
-    # prints to the console.
-    log = (obj) ->
-      if console?
-        console.log(obj)
+  # Games can provide output using the `log` function. For now it just
+  # prints to the console.
+  log: (obj) ->
+    if console?
+      console.log(obj)
 
-    # A warning has a similar effect to a log message, but indicates that
-    # something has gone wrong with the gameplay.
-    warn = (obj) ->
+  # A warning has a similar effect to a log message, but indicates that
+  # something has gone wrong with the gameplay.
+  warn: (obj) ->
+    if console?
       console.log("WARNING: ", obj)
 
 
