@@ -238,6 +238,7 @@ class PlayerState
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
     other.ai = @ai
+    other.log = @log
     other.turnsTaken = @turnsTaken
     other
 
