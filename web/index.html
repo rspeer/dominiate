@@ -120,7 +120,7 @@ $ ->
 
   singleGameResult = (state) ->
     result = state.getWinners().toString() + " wins!"
-    $('#gameOutput').text(result)
+    $('#gameLog').append(result)
     scrollToBottom($('#gameLog'))
 
   log = (text) -> $('#gameLog').append(text+'\n')

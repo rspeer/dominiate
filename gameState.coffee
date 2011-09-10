@@ -214,7 +214,7 @@ class PlayerState
     @hand.splice(idx, 1)
   
   shuffle: () ->
-    this.log("(#{@ai} reshuffles.)")
+    this.log("(#{@ai} shuffles.)")
     if @draw.length > 0
       throw new Error("Shuffling while there are cards left to draw")
     shuffle(@discard)

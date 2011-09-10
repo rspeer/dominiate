@@ -125,6 +125,7 @@ body {
   overflow: scroll;
   overflow-x: hidden;
   clear: both;
+  font-family: sans-serif;
 }
 #gameOutput {
   font-size: 14pt;

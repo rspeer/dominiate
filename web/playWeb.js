@@ -969,7 +969,7 @@
       return this.hand.splice(idx, 1);
     };
     PlayerState.prototype.shuffle = function() {
-      this.log("(" + this.ai + " reshuffles.)");
+      this.log("(" + this.ai + " shuffles.)");
       if (this.draw.length > 0) {
         throw new Error("Shuffling while there are cards left to draw");
       }
