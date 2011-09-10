@@ -8,3 +8,4 @@ geronimoo
 .idea
 web/playWeb.js
 web/multiLog.js
+web/strategies.js

@@ -16,47 +16,22 @@
 
 <div id="p1">
 <h2>Player 1</h2>
+<select name="loadStrategy1" id="loadStrategy1">
+</select>
 <div class="status" id="status1"></div>
-<pre id="editor-left"># A pure money strategy.
-{
-  name: 'BigMoney'
-  gainPriority: (state) -&gt; [
-    "Colony" if state.current.countInDeck("Platinum") &gt; 0
-    "Province" if state.countInSupply("Colony") &lt;= 6 \
-               or state.countInSupply("Province") &lt;= 6
-    "Duchy" if 0 &lt; state.gainsToEndGame() &lt;= 5
-    "Estate" if 0 &lt; state.gainsToEndGame() &lt;= 2
-    "Platinum"
-    "Gold"
-    "Silver"
-    "Copper" if state.gainsToEndGame() &lt;= 3
-    null
-  ]
-}
+<pre id="editor-left">
 </pre>
 </div>
 
 <div id="p2">
 <h2>Player 2</h2>
+<select name="loadStrategy2" id="loadStrategy2">
+</select>
 <div class="status" id="status2"></div>
-<pre id="editor-right"># Buys random cards (of the highest cost available) like a noob.
-{
-  name: 'SillyAI'
-  gainPriority: (state) -&gt;
-    cards = []
-    for card, count of state.supply
-      if state.cardInfo[card].cost &gt; 0
-        cards.push(card)
-    effectiveCost = (card) -&gt;
-      [coins, potions] = state.cardInfo[card].getCost(state)
-      coins + potions*2 + Math.random()
-
-    cards.sort( (c1, c2) -&gt;
-      effectiveCost(c2) - effectiveCost(c1)
-    )
-    cards
-}</pre>
+<pre id="editor-right">
+</pre>
 </div>
+
 <div id="layoutSeparator"></div>
 <form id="gameControls">
   <ul class="inputs-list">
@@ -107,7 +82,8 @@
 <script src="libs/jquery-1.6.3.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="libs/zeroTimeout.js" type="text/javascript" charset="utf-8"></script>
 <script src="playWeb.js" type="text/javascript" charset="utf-8"></script>
-<script src ="multiLog.js" type="text/javascript"></script>
+<script src="multiLog.js" type="text/javascript"></script>
+<script src="strategies.js" type="text/javascript"></script>
 
 <script type="text/coffeescript">
 $ = jQuery
@@ -155,6 +131,25 @@ $ ->
       randomizeOrder: $('#randomize').is(':checked')
     }
     compileAndPlay(scripts, singleGameResult, errorHandlers, options)
+
+  strategyElements = ['<option></option>']
+  for name of strategies
+    strategyElements.push("<option>#{name}</option>")
+  strategyElements.sort()
+
+  $('#loadStrategy1').html(strategyElements.join(''))
+  $('#loadStrategy2').html(strategyElements.join(''))
+  $('#loadStrategy1').change =>
+    choice = $('#loadStrategy1 option:selected').text()
+    strategy = strategies[choice] ? ''
+    leftEd.setValue(strategy)
+  $('#loadStrategy2').change =>
+    choice = $('#loadStrategy2 option:selected').text()
+    strategy = strategies[choice] ? ''
+    rightEd.setValue(strategy)
+
+  $('#loadStrategy1').val('BigMoney').change()
+  $('#loadStrategy2').val('SillyAI').change()
 
 </script>
 

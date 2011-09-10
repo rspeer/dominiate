@@ -32,6 +32,11 @@ body {
   left: 5%;
   color: #990000;
 }
+#p1 select {
+  position: absolute;
+  top: 50px;
+  right: 52%;
+}
 #p1 .status {
   position: absolute;
   top: 57px;
@@ -42,6 +47,11 @@ body {
   top: 50px;
   left: 50%;
   color: #000099;
+}
+#p2 select {
+  position: absolute;
+  top: 50px;
+  right: 7%;
 }
 #p2 .status {
   position: absolute;
