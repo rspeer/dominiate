@@ -692,8 +692,7 @@ class State
   # something has gone wrong with the gameplay.
   warn: (obj) ->
     if console?
-      console.log("WARNING: ", obj)
-
+      console.warn("WARNING: ", obj)
 
 # Define some possible tableaux to play the game with. None of these are
 # actually legal tableaux, but that gives strategies more room to play.

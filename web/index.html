@@ -3,48 +3,20 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Editor</title>
-  <style type="text/css" media="screen">
-    #p1-caption {
-        position: absolute;
-        top: 0;
-        left: 10%;
-        font: bold 14pt Helvetica, Arial, sans-serif;
-        color: #990000;
-        padding: 0.5ex;
-    }
-    #p2-caption {
-        position: absolute;
-        top: 0;
-        left: 50%;
-        font-weight: bold;
-        font: bold 14pt Helvetica, Arial, sans-serif;
-        color: #000099;
-        padding: 0.5ex;
-    }
-    #editor-left { 
-        margin: 0;
-        position: absolute;
-        top: 3em;
-        left: 10%;
-        width: 40%;
-        height: 40em;
-        border: 1px solid #bbb;
-    }
-    #editor-right { 
-        margin: 0;
-        position: absolute;
-        top: 3em;
-        left: 50%;
-        width: 40%;
-        height: 40em;
-        border: 1px solid #bbb;
-    }
-  </style>
+  <title>Dominiate</title>
+  <link rel="stylesheet" href="libs/bootstrap-mod.css">
+  <link rel="stylesheet" href="dominiate.css">
 </head>
 <body>
+
+<div id="masthead">
+  <h1>dominiate</h1>
+  <h2 class="tagline">A simulator for Dominion strategies.</h2>
+</div>
+
 <div id="p1">
-<div id="p1-caption">Player 1</div>
+<h2>Player 1</h2>
+<div class="status" id="status1"></div>
 <pre id="editor-left">{
     name: 'SimpleMoney'
     buyPriority: (state) -&gt; [
@@ -54,8 +26,10 @@
     ]
 }</pre>
 </div>
+
 <div id="p2">
-<div id="p2-caption">Player 2</div>
+<h2>Player 2</h2>
+<div class="status" id="status2"></div>
 <pre id="editor-right">{
     name: 'SimpleMoney'
     buyPriority: (state) -&gt; [
@@ -71,9 +45,11 @@
 <script src="libs/ace/src/mode-coffee.js" type="text/javascript" charset="utf-8"></script>
 <script src="libs/coffee-script.js" type="text/javascript" charset="utf-8"></script>
 <script src="libs/jquery-1.6.3.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/zeroTimeout.js" type="text/javascript" charset="utf-8"></script>
 <script type="text/coffeescript">
 $ = jQuery
 $ ->
+  window.editors = []
   for box in ["editor-left", "editor-right"]
     editor = ace.edit(box)
     editor.setTheme("ace/theme/dawn")
@@ -81,10 +57,30 @@ $ ->
     JavaScriptMode = require("ace/mode/coffee").Mode;
     editor.getSession().setMode(new JavaScriptMode())
     
-    editor.setHighlightActiveLine(false)
     editor.setShowPrintMargin(false)
-    editor.renderer.setShowGutter(false)
-    window.editor = editor
+    window.editors.push(editor)
+ 
+  leftEd = window.editors[0].getSession()
+  rightEd = window.editors[1].getSession()
+
+  leftEd.on 'change', ->
+    val = leftEd.getValue()
+    try
+      compiled = CoffeeScript.compile(val)
+      # do something with it
+      $('#status1').text('')
+    catch e
+      $('#status1').text(e.toString())
+
+  rightEd.on 'change', ->
+    val = rightEd.getValue()
+    try
+      compiled = CoffeeScript.compile(val)
+      # do something with it
+      $('#status2').text('')
+    catch e
+      $('#status2').text(e.toString())
+
 </script>
 
 </body>
