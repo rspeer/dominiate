@@ -151,7 +151,6 @@ class BasicAI
 
     actionBalance = state.current.actionBalance()
     usableActions = Math.max(0, -actionBalance)
-    console.log("Current actions: #{state.current.actions} / Needed actions: #{usableActions}")
 
     # Draw cards if we have a surplus of actions
     if actionBalance >= 1

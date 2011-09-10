@@ -630,7 +630,7 @@ transferCardToTop = (card, fromList, toList) ->
 # - `{coins: n}`: get *+n* coins
 # - `{trash: n}`: trash *n* cards
 applyBenefit = (state, benefit) ->
-  console.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
+  state.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
   if benefit.cards?
     state.drawCards(state.current, benefit.cards)
   if benefit.actions?

@@ -11,7 +11,7 @@ class PlayerState
   # At the start of the game, the State should
   # .initialize() each PlayerState, which assigns its AI and sets up its
   # starting state. Before then, it is an empty object.
-  initialize: (ai) ->
+  initialize: (ai, log) ->
     # These attributes of the PlayerState are okay for card effects and
     # AI strategies to refer to.
     # 
@@ -44,7 +44,10 @@ class PlayerState
     @setAside = []
     @moatProtected = false
     @turnsTaken = 0
+    
+    # Set the properties passed in from the State.
     @ai = ai
+    @log = log
 
     # To start the game, the player starts with the 10 starting cards
     # in the discard pile, then shuffles them and draws 5.
@@ -182,7 +185,7 @@ class PlayerState
     if @draw.length < nCards
       diff = nCards - @draw.length
       if @draw.length > 0
-        log("#{@ai} draws #{@draw.length} cards.")
+        this.log("#{@ai} draws #{@draw.length} cards.")
       @hand = @hand.concat(@draw)
       @draw = []
       if @discard.length > 0
@@ -190,14 +193,14 @@ class PlayerState
         this.drawCards(diff)
         
     else
-      log("#{@ai} draws #{nCards} cards.")
+      this.log("#{@ai} draws #{nCards} cards.")
       @hand = @hand.concat(@draw[0...nCards])
       @draw = @draw[nCards...]
 
   doDiscard: (card) ->
     idx = @hand.indexOf(card)
     if idx == -1
-      warn("#{@ai} has no #{card} to discard")
+      this.warn("#{@ai} has no #{card} to discard")
       return
     @hand.splice(idx, 1)
     @discard.push(card)
@@ -205,12 +208,12 @@ class PlayerState
   doTrash: (card) ->
     idx = @hand.indexOf(card)
     if idx == -1
-      warn("#{@ai} has no #{card} to trash")
+      this.warn("#{@ai} has no #{card} to trash")
       return
     @hand.splice(idx, 1)
   
   shuffle: () ->
-    log("#{@ai} shuffles.")
+    this.log("#{@ai} shuffles.")
     if @draw.length > 0
       throw new Error("Shuffling while there are cards left to draw")
     shuffle(@discard)
@@ -260,7 +263,7 @@ class State
   # - `tableau`: the list of non-basic cards in the supply. Colony, Platinum,
   #   and Potion have to be listed explicitly.
   initialize: (ais, tableau) ->
-    @players = (new PlayerState().initialize(ai) for ai in ais)
+    @players = (new PlayerState().initialize(ai, this.log) for ai in ais)
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
@@ -309,7 +312,7 @@ class State
         or (@nPlayers < 5 and emptyPiles.length >= 3) \
         or 'Province' in emptyPiles \
         or 'Colony' in emptyPiles
-      log("Empty piles: #{emptyPiles}")
+      this.log("Empty piles: #{emptyPiles}")
       return true
     return false
   
@@ -369,26 +372,26 @@ class State
     switch @phase
       when 'start'
         @current.turnsTaken += 1
-        log("\n== #{@current.ai}'s turn #{@current.turnsTaken} ==")
-        log("Hand: #{@current.hand}")
-        log("Draw: #{@current.draw}")
-        log("Discard: #{@current.discard}")
+        this.log("\n== #{@current.ai}'s turn #{@current.turnsTaken} ==")
+        this.log("Hand: #{@current.hand}")
+        this.log("Draw: #{@current.draw}")
+        this.log("Discard: #{@current.discard}")
         this.doDurationPhase()
         @phase = 'action'
       when 'action'
-        log("(action phase)")
+        this.log("(action phase)")
         this.doActionPhase()
         @phase = 'treasure'
       when 'treasure'
-        log("(treasure phase)")
+        this.log("(treasure phase)")
         this.doTreasurePhase()
         @phase = 'buy'
       when 'buy'
-        log("(buy phase)")
+        this.log("(buy phase)")
         this.doBuyPhase()
         @phase = 'cleanup'
       when 'cleanup'
-        log("(cleanup phase)")
+        this.log("(cleanup phase)")
         this.doCleanupPhase()
         this.rotatePlayer()
   
@@ -397,7 +400,7 @@ class State
   # `onDuration` method.
   doDurationPhase: () ->
     for card in @current.duration
-      log("#{@current.ai} resolves the duration effect of #{card}.")
+      this.log("#{@current.ai} resolves the duration effect of #{card}.")
       card.onDuration(this)
   
   # Perform the action phase. Ask the AI repeatedly which action to play,
@@ -416,12 +419,12 @@ class State
       # Ask the AI for its choice.
       action = @current.ai.chooseAction(this, validActions)
       return if action is null
-      log("#{@current.ai} plays #{action}.")
+      this.log("#{@current.ai} plays #{action}.")
 
       # Remove the action from the hand and put it in the play area.
       idx = @current.hand.indexOf(action)
       if idx == -1
-        warn("#{@current.ai} chose an invalid action.")
+        this.warn("#{@current.ai} chose an invalid action.")
         return
       @current.hand.splice(idx, 1)
       @current.inPlay.push(action)
@@ -447,12 +450,12 @@ class State
       # Ask the AI for its choice.
       treasure = @current.ai.chooseTreasure(this, validTreasures)
       return if treasure is null
-      log("#{@current.ai} plays #{treasure}.")
+      this.log("#{@current.ai} plays #{treasure}.")
 
       # Remove the treasure from the hand and put it in the play area.
       idx = @current.hand.indexOf(treasure)
       if idx == -1
-        warn("#{@current.ai} chose an invalid treasure")
+        this.warn("#{@current.ai} chose an invalid treasure")
         return
       @current.hand.splice(idx, 1)
       @current.inPlay.push(treasure)
@@ -475,10 +478,10 @@ class State
             buyable.push(card)
       
       # Ask the AI for its choice.
-      log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
+      this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
       choice = @current.ai.chooseBuy(this, buyable)
       return if choice is null
-      log("#{@current.ai} buys #{choice}.")
+      this.log("#{@current.ai} buys #{choice}.")
 
       # Update money and buys.
       [coinCost, potionCost] = choice.getCost(this)
@@ -499,7 +502,7 @@ class State
     # If there are cards set aside at this point, it probably means something
     # went wrong in performing an action. But clean them up anyway.
     if @current.setAside.length > 0
-      warn(["Cards were set aside at the end of turn", @current.setAside])
+      this.warn(["Cards were set aside at the end of turn", @current.setAside])
       @current.discard = @current.discard.concat @current.setAside
       @current.setAside = []
 
@@ -582,7 +585,7 @@ class State
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
       return if choice is null
-      log("#{player.ai} discards #{choice}.")
+      this.log("#{player.ai} discards #{choice}.")
       numDiscarded++
       player.doDiscard(choice)
   
@@ -594,7 +597,7 @@ class State
       validDiscards = player.hand.slice(0)
       return if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
-      log("#{player.ai} discards #{choice}.")
+      this.log("#{player.ai} discards #{choice}.")
       numDiscarded++
       player.doDiscard(choice)
   
@@ -607,7 +610,7 @@ class State
       valid.push(null)
       choice = player.ai.chooseTrash(this, valid)
       return if choice is null
-      log("#{player.ai} trashes #{choice}.")
+      this.log("#{player.ai} trashes #{choice}.")
       numTrashed++
       player.doTrash(choice)
   
@@ -617,7 +620,7 @@ class State
       valid = player.hand.slice(0)
       return if valid.length == 0
       choice = player.ai.chooseTrash(this, valid)
-      log("#{player.ai} trashes #{choice}.")
+      this.log("#{player.ai} trashes #{choice}.")
       numTrashed++
       player.doTrash(choice)
   
@@ -649,6 +652,7 @@ class State
     if not player.moatProtected and not c.Lighthouse in player.duration
       effect(player)
   
+  #### Bookkeeping
   # `copy()` makes a copy of this state that can be safely mutated
   # without affecting the original state.
   #
@@ -673,6 +677,18 @@ class State
     newState.copperValue = @copperValue
     newState.phase = @phase
     newState
+
+    # Games can provide output using the `log` function. For now it just
+    # prints to the console.
+    log = (obj) ->
+      if console?
+        console.log(obj)
+
+    # A warning has a similar effect to a log message, but indicates that
+    # something has gone wrong with the gameplay.
+    warn = (obj) ->
+      console.log("WARNING: ", obj)
+
 
 # Define some possible tableaux to play the game with. None of these are
 # actually legal tableaux, but that gives strategies more room to play.
@@ -708,17 +724,6 @@ countStr = (list, elt) ->
 # Sort by numeric value. You'd think this would be in the standard library.
 numericSort = (array) ->
   array.sort( (a, b) -> (a-b) )
-
-# Games can provide output using the `log` function, which prints to the
-# console in node.js. This must be overridden by something else when running
-# on the Web.
-log = (obj) ->
-  console.log(obj)
-
-# A warning has a similar effect to a log message, but indicates that something
-# has gone wrong with the gameplay.
-warn = (obj) ->
-  console.log("WARNING: ", obj)
 
 # Exports
 # -------
