@@ -677,6 +677,9 @@ class State
     newState.quarries = @quarries
     newState.copperValue = @copperValue
     newState.phase = @phase
+
+    # If something overrode the log function, make sure that's preserved.
+    newState.log = @log
     newState
 
   # Games can provide output using the `log` function. For now it just
