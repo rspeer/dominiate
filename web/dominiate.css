@@ -22,6 +22,10 @@
   border: 1px solid #faa;
   padding: 2px;
 }
+body {
+  margin-left: 5%;
+  margin-right: 5%;
+}
 #p1 h2 {
   position: absolute;
   top: 50px;
@@ -99,10 +103,32 @@
   font-size: 12pt;
   margin: 0;
 }
-#gameControls {
+#layoutSeparator {
   margin-top: 550px;
-  margin-left: 5%;
-  margin-right: 5%;
+}
+#gameControls {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  background-color: #eee;
+  border: 1px solid #ddd;
+  width: 30%;
+  padding: 1em;
+  float: left;
+}
+#matchResults {
+  padding: 1em;
+  float: left;
+}
+#gameLog {
+  height: 400px;
+  overflow: scroll;
+  overflow-x: hidden;
+  clear: both;
+}
+#gameOutput {
+  font-size: 14pt;
+  margin-left: 10px;
 }
 .ace_editor {
   font-family: "Menlo", "Monaco", "Inconsolata", "Andale Mono", monospace !important;

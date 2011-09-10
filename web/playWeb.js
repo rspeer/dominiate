@@ -6,7 +6,7 @@
     }
     return -1;
   };
-  compileAndPlay = function(scripts, doneCallback, errorCallbacks) {
+  compileAndPlay = function(scripts, log, doneCallback, errorCallbacks) {
     var i, strategies, strategy, _ref;
     strategies = [];
     for (i = 0, _ref = scripts.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
@@ -14,13 +14,12 @@
         strategy = CoffeeScript.eval(scripts[i], {
           bare: true
         });
-        console.log(strategy);
         strategies.push(strategy);
       } catch (e) {
         return errorCallbacks[i](e);
       }
     }
-    return playGame(strategies, doneCallback);
+    return playGame(strategies, log, doneCallback);
   };
   makeStrategy = function(changes) {
     var ai, key, value;
@@ -31,7 +30,7 @@
     }
     return ai;
   };
-  playGame = function(strategies, ret) {
+  playGame = function(strategies, log, ret) {
     var ais, item, state;
     ais = (function() {
       var _i, _len, _results;
@@ -42,9 +41,9 @@
       }
       return _results;
     })();
-    state = new State().initialize(ais, tableaux.all);
+    state = new State().initialize(ais, tableaux.all, log);
     if (ret == null) {
-      ret = state.log;
+      ret = log;
     }
     return window.setZeroTimeout(function() {
       return playStep(state, ret);
@@ -800,7 +799,7 @@
   }
   PlayerState = (function() {
     function PlayerState() {}
-    PlayerState.prototype.initialize = function(ai, log) {
+    PlayerState.prototype.initialize = function(ai, logFunc) {
       this.actions = 1;
       this.buys = 1;
       this.coins = 0;
@@ -820,7 +819,7 @@
       this.moatProtected = false;
       this.turnsTaken = 0;
       this.ai = ai;
-      this.log = log;
+      this.logFunc = logFunc;
       this.drawCards(5);
       return this;
     };
@@ -931,11 +930,11 @@
       return balance;
     };
     PlayerState.prototype.drawCards = function(nCards) {
-      var diff;
+      var diff, drawn;
       if (this.draw.length < nCards) {
         diff = nCards - this.draw.length;
         if (this.draw.length > 0) {
-          this.log("" + this.ai + " draws " + this.draw.length + " cards.");
+          this.log("" + this.ai + " draws " + this.draw.length + " cards (" + this.draw + ").");
         }
         this.hand = this.hand.concat(this.draw);
         this.draw = [];
@@ -944,8 +943,9 @@
           return this.drawCards(diff);
         }
       } else {
-        this.log("" + this.ai + " draws " + nCards + " cards.");
-        this.hand = this.hand.concat(this.draw.slice(0, nCards));
+        drawn = this.draw.slice(0, nCards);
+        this.log("" + this.ai + " draws " + nCards + " cards (" + drawn + ").");
+        this.hand = this.hand.concat(drawn);
         return this.draw = this.draw.slice(nCards);
       }
     };
@@ -969,7 +969,7 @@
       return this.hand.splice(idx, 1);
     };
     PlayerState.prototype.shuffle = function() {
-      this.log("" + this.ai + " shuffles.");
+      this.log("(" + this.ai + " reshuffles.)");
       if (this.draw.length > 0) {
         throw new Error("Shuffling while there are cards left to draw");
       }
@@ -994,9 +994,18 @@
       other.setAside = this.setAside.slice(0);
       other.moatProtected = this.moatProtected;
       other.ai = this.ai;
-      other.log = this.log;
+      other.logFunc = this.logFunc;
       other.turnsTaken = this.turnsTaken;
       return other;
+    };
+    PlayerState.prototype.log = function(obj) {
+      if (this.logFunc != null) {
+        return this.logFunc(obj);
+      } else {
+        if (typeof console !== "undefined" && console !== null) {
+          return console.log(this);
+        }
+      }
     };
     return PlayerState;
   })();
@@ -1004,14 +1013,15 @@
     function State() {}
     State.prototype.basicSupply = ['Curse', 'Copper', 'Silver', 'Gold', 'Estate', 'Duchy', 'Province'];
     State.prototype.cardInfo = c;
-    State.prototype.initialize = function(ais, tableau) {
+    State.prototype.initialize = function(ais, tableau, logFunc) {
       var ai;
+      this.logFunc = logFunc;
       this.players = (function() {
         var _i, _len, _results;
         _results = [];
         for (_i = 0, _len = ais.length; _i < _len; _i++) {
           ai = ais[_i];
-          _results.push(new PlayerState().initialize(ai, this.log));
+          _results.push(new PlayerState().initialize(ai, this.logFunc));
         }
         return _results;
       }).call(this);
@@ -1051,13 +1061,18 @@
       return this.emptyPiles().length;
     };
     State.prototype.gameIsOver = function() {
-      var emptyPiles;
+      var emptyPiles, playerName, turns, vp, _i, _len, _ref, _ref2;
       if (this.phase !== 'start') {
         return false;
       }
       emptyPiles = this.emptyPiles();
       if (emptyPiles.length >= this.totalPilesToEndGame() || (this.nPlayers < 5 && emptyPiles.length >= 3) || __indexOf.call(emptyPiles, 'Province') >= 0 || __indexOf.call(emptyPiles, 'Colony') >= 0) {
         this.log("Empty piles: " + emptyPiles);
+        _ref = this.getFinalStatus();
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          _ref2 = _ref[_i], playerName = _ref2[0], vp = _ref2[1], turns = _ref2[2];
+          this.log("" + playerName + " took " + turns + " turns and scored " + vp + " points.");
+        }
         return true;
       }
       return false;
@@ -1136,25 +1151,18 @@
         case 'start':
           this.current.turnsTaken += 1;
           this.log("\n== " + this.current.ai + "'s turn " + this.current.turnsTaken + " ==");
-          this.log("Hand: " + this.current.hand);
-          this.log("Draw: " + this.current.draw);
-          this.log("Discard: " + this.current.discard);
           this.doDurationPhase();
           return this.phase = 'action';
         case 'action':
-          this.log("(action phase)");
           this.doActionPhase();
           return this.phase = 'treasure';
         case 'treasure':
-          this.log("(treasure phase)");
           this.doTreasurePhase();
           return this.phase = 'buy';
         case 'buy':
-          this.log("(buy phase)");
           this.doBuyPhase();
           return this.phase = 'cleanup';
         case 'cleanup':
-          this.log("(cleanup phase)");
           this.doCleanupPhase();
           return this.rotatePlayer();
       }
@@ -1415,12 +1423,16 @@
       newState.quarries = this.quarries;
       newState.copperValue = this.copperValue;
       newState.phase = this.phase;
-      newState.log = this.log;
+      newState.logFunc = this.logFunc;
       return newState;
     };
     State.prototype.log = function(obj) {
-      if (typeof console !== "undefined" && console !== null) {
-        return console.log(obj);
+      if (this.logFunc != null) {
+        return this.logFunc(obj);
+      } else {
+        if (typeof console !== "undefined" && console !== null) {
+          return console.log(obj);
+        }
       }
     };
     State.prototype.warn = function(obj) {

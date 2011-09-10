@@ -44,6 +44,11 @@
 @darkred: #990000;
 @darkblue: #000099;
 
+body {
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
 #p1 {
     h2 {
         .level1;
@@ -105,10 +110,34 @@
     }
 }
 
-#gameControls {
+#layoutSeparator {
     .level3;
-    margin-left: 5%;
-    margin-right: 5%;
+}
+
+#gameControls {
+    .rounded-corners(2px);
+    background-color: #eee;
+    border: 1px solid #ddd;
+    width: 30%;
+    padding: 1em;
+    float: left;
+}
+
+#matchResults {
+  padding: 1em;
+  float: left;
+}
+
+#gameLog {
+    height: 400px;
+    overflow: scroll;
+    overflow-x: hidden;
+    clear: both;
+}
+
+#gameOutput {
+    font-size: 14pt;
+    margin-left: 10px;
 }
 
 .ace_editor {

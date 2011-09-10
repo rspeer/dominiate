@@ -1,16 +1,15 @@
 # This is the main entry point for playing strategies against each
 # other on the Web.
 
-compileAndPlay = (scripts, doneCallback, errorCallbacks) ->
+compileAndPlay = (scripts, log, doneCallback, errorCallbacks) ->
   strategies = []
   for i in [0...scripts.length]
     try
       strategy = CoffeeScript.eval(scripts[i], {bare: yes})
-      console.log(strategy)
       strategies.push(strategy)
     catch e
       return errorCallbacks[i](e)
-  playGame(strategies, doneCallback)
+  playGame(strategies, log, doneCallback)
 
 makeStrategy = (changes) ->
   ai = new BasicAI()
@@ -18,10 +17,10 @@ makeStrategy = (changes) ->
     ai[key] = value
   ai
 
-playGame = (strategies, ret) ->
+playGame = (strategies, log, ret) ->
   ais = (makeStrategy(item) for item in strategies)
-  state = new State().initialize(ais, tableaux.all)
-  ret ?= state.log
+  state = new State().initialize(ais, tableaux.all, log)
+  ret ?= log
   window.setZeroTimeout -> playStep(state, ret)
 
 playStep = (state, ret) ->

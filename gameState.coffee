@@ -11,7 +11,7 @@ class PlayerState
   # At the start of the game, the State should
   # .initialize() each PlayerState, which assigns its AI and sets up its
   # starting state. Before then, it is an empty object.
-  initialize: (ai, log) ->
+  initialize: (ai, logFunc) ->
     # These attributes of the PlayerState are okay for card effects and
     # AI strategies to refer to.
     # 
@@ -47,7 +47,7 @@ class PlayerState
     
     # Set the properties passed in from the State.
     @ai = ai
-    @log = log
+    @logFunc = logFunc
 
     # To start the game, the player starts with the 10 starting cards
     # in the discard pile, then shuffles them and draws 5.
@@ -193,8 +193,9 @@ class PlayerState
         this.drawCards(diff)
         
     else
-      this.log("#{@ai} draws #{nCards} cards.")
-      @hand = @hand.concat(@draw[0...nCards])
+      drawn = @draw[0...nCards]
+      this.log("#{@ai} draws #{nCards} cards (#{drawn}).")
+      @hand = @hand.concat(drawn)
       @draw = @draw[nCards...]
 
   doDiscard: (card) ->
@@ -238,9 +239,17 @@ class PlayerState
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
     other.ai = @ai
-    other.log = @log
+    other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
     other
+  
+  # Games can provide output using the `log` function.
+  log: (obj) ->
+    if this.logFunc?
+      this.logFunc(obj)
+    else
+      if console?
+        console.log(this)
 
 # The State class
 # ---------------
@@ -263,8 +272,9 @@ class State
   #   This sets the number of players in the game.
   # - `tableau`: the list of non-basic cards in the supply. Colony, Platinum,
   #   and Potion have to be listed explicitly.
-  initialize: (ais, tableau) ->
-    @players = (new PlayerState().initialize(ai, this.log) for ai in ais)
+  initialize: (ais, tableau, logFunc) ->
+    this.logFunc = logFunc
+    @players = (new PlayerState().initialize(ai, this.logFunc) for ai in ais)
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
@@ -314,6 +324,8 @@ class State
         or 'Province' in emptyPiles \
         or 'Colony' in emptyPiles
       this.log("Empty piles: #{emptyPiles}")
+      for [playerName, vp, turns] in this.getFinalStatus()
+        this.log("#{playerName} took #{turns} turns and scored #{vp} points.")
       return true
     return false
 
@@ -695,14 +707,16 @@ class State
     newState.phase = @phase
 
     # If something overrode the log function, make sure that's preserved.
-    newState.log = @log
+    newState.logFunc = @logFunc
     newState
 
-  # Games can provide output using the `log` function. For now it just
-  # prints to the console.
+  # Games can provide output using the `log` function.
   log: (obj) ->
-    if console?
-      console.log(obj)
+    if this.logFunc?
+      this.logFunc(obj)
+    else 
+      if console?
+        console.log(obj)
 
   # A warning has a similar effect to a log message, but indicates that
   # something has gone wrong with the gameplay.

@@ -57,11 +57,38 @@
     cards
 }</pre>
 </div>
-
+<div id="layoutSeparator"></div>
 <form id="gameControls">
-  <a id="playButton" href="#" class="btn large success">Play single game</a>
-  <span id="gameOutput"></span>
+  <ul class="inputs-list">
+    <li>
+      <label>
+        <input type="checkbox" name="optionsCheckboxes" value="option1"
+        checked="checked" />
+        <span>Randomize player order</span>
+      </label>
+    </li>
+    <li>
+      <label>
+        <input type="checkbox" name="optionsCheckboxes" value="option1"
+        checked="checked" />
+        <span>Include Colony and Platinum</span>
+      </label>
+    </li>
+  </ul>
+  <p id="actionButtons">
+    <a id="playButton" href="#playButton" class="btn success">
+      Play single game
+    </a>
+  </p>
 </form>
+
+<div id="matchResults">
+<h2>Results</h2>
+Results over multiple games will go here.
+</div>
+
+<pre id="gameLog">
+</pre>
 
 <script src="libs/ace/src/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="libs/ace/src/theme-dawn.js" type="text/javascript" charset="utf-8"></script>
@@ -72,6 +99,9 @@
 <script src="playWeb.js" type="text/javascript" charset="utf-8"></script>
 
 <script type="text/coffeescript">
+scrollToBottom = (elt) ->
+  elt.prop({ scrollTop: elt.prop("scrollHeight") })
+
 $ = jQuery
 $ ->
   window.editors = []
@@ -89,7 +119,11 @@ $ ->
   rightEd = window.editors[1].getSession()
 
   singleGameResult = (state) ->
-    $('#gameOutput').text(JSON.stringify(state.getWinners()))
+    result = state.getWinners().toString() + " wins!"
+    $('#gameOutput').text(result)
+    scrollToBottom($('#gameLog'))
+
+  log = (text) -> $('#gameLog').append(text+'\n')
 
   $('#playButton').click (event) ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
@@ -97,7 +131,7 @@ $ ->
     errorHandlers = []
     errorHandlers.push (error) => $('#status1').html('<div class="error">'+error.message+'</div>')
     errorHandlers.push (error) => $('#status2').html('<div class="error">'+error.message+'</div>')
-    compileAndPlay(scripts, singleGameResult, errorHandlers)
+    compileAndPlay(scripts, log, singleGameResult, errorHandlers)
 
 </script>
 
