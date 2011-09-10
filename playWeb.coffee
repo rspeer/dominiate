@@ -1,7 +1,7 @@
 # This is the main entry point for playing strategies against each
 # other on the Web.
 
-compileAndPlay = (scripts, log, doneCallback, errorCallbacks) ->
+compileAndPlay = (scripts, doneCallback, errorCallbacks, options) ->
   strategies = []
   for i in [0...scripts.length]
     try
@@ -9,7 +9,7 @@ compileAndPlay = (scripts, log, doneCallback, errorCallbacks) ->
       strategies.push(strategy)
     catch e
       return errorCallbacks[i](e)
-  playGame(strategies, log, doneCallback)
+  playGame(strategies, options, doneCallback)
 
 makeStrategy = (changes) ->
   ai = new BasicAI()
@@ -17,10 +17,16 @@ makeStrategy = (changes) ->
     ai[key] = value
   ai
 
-playGame = (strategies, log, ret) ->
+playGame = (strategies, options, ret) ->
   ais = (makeStrategy(item) for item in strategies)
-  state = new State().initialize(ais, tableaux.all, log)
-  ret ?= log
+  if options.colonies
+    tableau = tableaux.all
+  else
+    tableau = tableaux.noColony
+  if options.randomizeOrder
+    shuffle(ais)
+  state = new State().initialize(ais, tableau, options.log)
+  ret ?= options.log
   window.setZeroTimeout -> playStep(state, ret)
 
 playStep = (state, ret) ->

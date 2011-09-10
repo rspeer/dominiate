@@ -6,7 +6,7 @@
     }
     return -1;
   };
-  compileAndPlay = function(scripts, log, doneCallback, errorCallbacks) {
+  compileAndPlay = function(scripts, doneCallback, errorCallbacks, options) {
     var i, strategies, strategy, _ref;
     strategies = [];
     for (i = 0, _ref = scripts.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
@@ -19,7 +19,7 @@
         return errorCallbacks[i](e);
       }
     }
-    return playGame(strategies, log, doneCallback);
+    return playGame(strategies, options, doneCallback);
   };
   makeStrategy = function(changes) {
     var ai, key, value;
@@ -30,8 +30,8 @@
     }
     return ai;
   };
-  playGame = function(strategies, log, ret) {
-    var ais, item, state;
+  playGame = function(strategies, options, ret) {
+    var ais, item, state, tableau;
     ais = (function() {
       var _i, _len, _results;
       _results = [];
@@ -41,9 +41,17 @@
       }
       return _results;
     })();
-    state = new State().initialize(ais, tableaux.all, log);
+    if (options.colonies) {
+      tableau = tableaux.all;
+    } else {
+      tableau = tableaux.noColony;
+    }
+    if (options.randomizeOrder) {
+      shuffle(ais);
+    }
+    state = new State().initialize(ais, tableau, options.log);
     if (ret == null) {
-      ret = log;
+      ret = options.log;
     }
     return window.setZeroTimeout(function() {
       return playStep(state, ret);
