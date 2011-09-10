@@ -121,8 +121,8 @@ $ ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
     $('.status').text('')
     errorHandlers = []
-    errorHandlers.push (error) => $('#status1').html('<div class="error">'+error.message+'</div>')
-    errorHandlers.push (error) => $('#status2').html('<div class="error">'+error.message+'</div>')
+    errorHandlers.push (error) => multiLog.addLineToCurrent("Player 1: "+error.message)
+    errorHandlers.push (error) => multiLog.addLineToCurrent("Player 2: "+error.message)
 
     multiLog.addPage('')
     options = {

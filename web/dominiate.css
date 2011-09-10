@@ -127,9 +127,14 @@ body {
   margin-top: 550px;
 }
 #gameControls {
-  width: 30%;
   padding: 1em;
-  float: left;
+}
+#gameControls input {
+  margin-left: 1em;
+}
+#gameControls label {
+  display: inline;
+  margin-right: 1em;
 }
 #matchResults {
   padding: 1em;
