@@ -1072,6 +1072,24 @@
       }
       return _results;
     };
+    State.prototype.getWinners = function() {
+      var best, bestScore, modScore, player, score, scores, turns, _i, _len, _ref;
+      scores = this.getFinalStatus();
+      best = [];
+      bestScore = -Infinity;
+      for (_i = 0, _len = scores.length; _i < _len; _i++) {
+        _ref = scores[_i], player = _ref[0], score = _ref[1], turns = _ref[2];
+        modScore = score - turns / 100;
+        if (modScore === bestScore) {
+          best.push(player);
+        }
+        if (modScore > bestScore) {
+          best = [player];
+          bestScore = modScore;
+        }
+      }
+      return best;
+    };
     State.prototype.countInSupply = function(card) {
       var _ref;
       return (_ref = this.supply[card]) != null ? _ref : 0;

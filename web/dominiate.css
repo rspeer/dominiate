@@ -4,7 +4,7 @@
 }
 .level1a {
   position: absolute;
-  top: 62px;
+  top: 57px;
 }
 .level2 {
   position: absolute;
@@ -30,9 +30,8 @@
 }
 #p1 .status {
   position: absolute;
-  top: 62px;
+  top: 57px;
   left: 15%;
-  line-height: 1em;
 }
 #p2 h2 {
   position: absolute;
@@ -42,9 +41,8 @@
 }
 #p2 .status {
   position: absolute;
-  top: 62px;
+  top: 57px;
   left: 60%;
-  line-height: 1em;
 }
 #editor-left {
   position: absolute;
@@ -105,4 +103,7 @@
   margin-top: 550px;
   margin-left: 5%;
   margin-right: 5%;
+}
+.ace_editor {
+  font-family: "Menlo", "Monaco", "Inconsolata", "Andale Mono", monospace !important;
 }

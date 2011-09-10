@@ -89,14 +89,14 @@ $ ->
   rightEd = window.editors[1].getSession()
 
   singleGameResult = (state) ->
-    $('#gameOutput').text(JSON.stringify(state.getFinalStatus()))
+    $('#gameOutput').text(JSON.stringify(state.getWinners()))
 
   $('#playButton').click (event) ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
     $('.status').text('')
     errorHandlers = []
-    for messageArea in [$('#status1'), $('#status2')]
-      errorHandlers.push (error) -> messageArea.text(error.message)
+    errorHandlers.push (error) => $('#status1').html('<div class="error">'+error.message+'</div>')
+    errorHandlers.push (error) => $('#status2').html('<div class="error">'+error.message+'</div>')
     compileAndPlay(scripts, singleGameResult, errorHandlers)
 
 </script>

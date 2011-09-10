@@ -321,6 +321,24 @@ class State
   # It returns a list of triples of [player name, score, turns taken].
   getFinalStatus: () ->
     ([player.ai.toString(), player.getVP(this), player.turnsTaken] for player in @players)
+
+  # `getWinners()` returns a list (usually of length 1) of the names of players
+  # that won the game, or would win if it were over now.
+  getWinners: () ->
+    scores = this.getFinalStatus()
+    best = []
+    bestScore = -Infinity
+    
+    for [player, score, turns] in scores
+      # Modify the score by subtracting a fraction of turnsTaken.
+      modScore = score - turns/100
+
+      if modScore == bestScore
+        best.push(player)
+      if modScore > bestScore
+        best = [player]
+        bestScore = modScore
+    best
   
   # `countInSupply()` returns the number of copies of a card that remain
   # in the supply. It can take in either a card object or card name.
