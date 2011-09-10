@@ -6,3 +6,5 @@ gameState.js
 heuristics.js
 geronimoo
 .idea
+web/playWeb.js
+web/multiLog.js
