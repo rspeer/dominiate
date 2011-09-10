@@ -12,9 +12,9 @@ loadStrategy = (filename) ->
   ai = new BasicAI()
   console.log(filename)
 
-  changes = coffee.eval(
+  changes = eval coffee.compile(
     fs.readFileSync(filename, 'utf-8'),
-    {sandbox: {}}
+    {bare: yes}
   )
   for key, value of changes
     ai[key] = value
