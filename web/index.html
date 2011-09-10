@@ -17,28 +17,51 @@
 <div id="p1">
 <h2>Player 1</h2>
 <div class="status" id="status1"></div>
-<pre id="editor-left">{
-    name: 'SimpleMoney'
-    buyPriority: (state) -&gt; [
-        "Province"
-        "Gold"
-        "Silver"
-    ]
-}</pre>
+<pre id="editor-left"># A pure money strategy.
+{
+  name: 'BigMoney'
+  gainPriority: (state) -&gt; [
+    "Colony" if state.current.countInDeck("Platinum") &gt; 0
+    "Province" if state.countInSupply("Colony") &lt;= 6 \
+               or state.countInSupply("Province") &lt;= 6
+    "Duchy" if 0 &lt; state.gainsToEndGame() &lt;= 5
+    "Estate" if 0 &lt; state.gainsToEndGame() &lt;= 2
+    "Platinum"
+    "Gold"
+    "Silver"
+    "Copper" if state.gainsToEndGame() &lt;= 3
+    null
+  ]
+}
+</pre>
 </div>
 
 <div id="p2">
 <h2>Player 2</h2>
 <div class="status" id="status2"></div>
-<pre id="editor-right">{
-    name: 'SimpleMoney'
-    buyPriority: (state) -&gt; [
-        "Province"
-        "Gold"
-        "Silver"
-    ]
+<pre id="editor-right"># Buys random cards (of the highest cost available) like a noob.
+{
+  name: 'SillyAI'
+  gainPriority: (state) -&gt;
+    cards = []
+    for card, count of state.supply
+      if state.cardInfo[card].cost &gt; 0
+        cards.push(card)
+    effectiveCost = (card) -&gt;
+      [coins, potions] = state.cardInfo[card].getCost(state)
+      coins + potions*2 + Math.random()
+
+    cards.sort( (c1, c2) -&gt;
+      effectiveCost(c2) - effectiveCost(c1)
+    )
+    cards
 }</pre>
 </div>
+
+<form id="gameControls">
+  <a id="playButton" href="#" class="btn large success">Play single game</a>
+  <span id="gameOutput"></span>
+</form>
 
 <script src="libs/ace/src/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="libs/ace/src/theme-dawn.js" type="text/javascript" charset="utf-8"></script>
@@ -46,6 +69,8 @@
 <script src="libs/coffee-script.js" type="text/javascript" charset="utf-8"></script>
 <script src="libs/jquery-1.6.3.min.js" type="text/javascript" charset="utf-8"></script>
 <script src="libs/zeroTimeout.js" type="text/javascript" charset="utf-8"></script>
+<script src="playWeb.js" type="text/javascript" charset="utf-8"></script>
+
 <script type="text/coffeescript">
 $ = jQuery
 $ ->
@@ -63,23 +88,16 @@ $ ->
   leftEd = window.editors[0].getSession()
   rightEd = window.editors[1].getSession()
 
-  leftEd.on 'change', ->
-    val = leftEd.getValue()
-    try
-      compiled = CoffeeScript.compile(val)
-      # do something with it
-      $('#status1').text('')
-    catch e
-      $('#status1').text(e.toString())
+  singleGameResult = (state) ->
+    $('#gameOutput').text(JSON.stringify(state.getFinalStatus()))
 
-  rightEd.on 'change', ->
-    val = rightEd.getValue()
-    try
-      compiled = CoffeeScript.compile(val)
-      # do something with it
-      $('#status2').text('')
-    catch e
-      $('#status2').text(e.toString())
+  $('#playButton').click (event) ->
+    scripts = [leftEd.getValue(), rightEd.getValue()]
+    $('.status').text('')
+    errorHandlers = []
+    for messageArea in [$('#status1'), $('#status2')]
+      errorHandlers.push (error) -> messageArea.text(error.message)
+    compileAndPlay(scripts, singleGameResult, errorHandlers)
 
 </script>
 

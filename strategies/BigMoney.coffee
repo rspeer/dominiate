@@ -8,7 +8,8 @@
     # thing, there is no separate "BM with Colonies" strategy; it will include
     # Colonies and Platinums in its strategy if they are in the supply.
     "Colony" if state.current.countInDeck("Platinum") > 0
-    "Province" if state.countInSupply("Colony") <= 6
+    "Province" if state.countInSupply("Colony") <= 6 \
+               or state.countInSupply("Province") <= 6
     # When deciding whether to go for Duchies and Estates:
     # Instead of counting the number of Colonies or Provinces to the end of
     # the game, we count the minimum number of gains (of any cards) that it

@@ -1,7 +1,7 @@
 # Many modules begin with this "indecisive import" pattern. It's messy
 # but it gets the job done, and it's explained at the bottom of this
 # documentation.
-{c} = require './cards' if require?
+{c} = require './cards' if exports?
 
 # The PlayerState class
 # ---------------------  
@@ -316,6 +316,11 @@ class State
       this.log("Empty piles: #{emptyPiles}")
       return true
     return false
+
+  # `getFinalStatus()` is a useful thing to call when `gameIsOver()` is true.
+  # It returns a list of triples of [player name, score, turns taken].
+  getFinalStatus: () ->
+    ([player.ai.toString(), player.getVP(this), player.turnsTaken] for player in @players)
   
   # `countInSupply()` returns the number of copies of a card that remain
   # in the supply. It can take in either a card object or card name.
@@ -739,10 +744,10 @@ this.PlayerState = PlayerState
 # ------------------
 # Recall that this code begins with:
 #
-#     {c} = require './cards' if require?
+#     {c} = require './cards' if exports?
 #
 # This means "get the variable named `c` from the module `./cards`. Unless
-# you don't know how. In that case, don't."
+# there's no module system. In that case, don't."
 #
 # Here's why that is useful. When the code
 # is running inside node.js, it will use node.js's import system. This

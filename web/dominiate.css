@@ -1,0 +1,108 @@
+.level1 {
+  position: absolute;
+  top: 50px;
+}
+.level1a {
+  position: absolute;
+  top: 62px;
+}
+.level2 {
+  position: absolute;
+  top: 85px;
+}
+.level3 {
+  margin-top: 550px;
+}
+.error {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  color: #990000;
+  background-color: #fee;
+  border: 1px solid #faa;
+  padding: 2px;
+}
+#p1 h2 {
+  position: absolute;
+  top: 50px;
+  left: 5%;
+  color: #990000;
+}
+#p1 .status {
+  position: absolute;
+  top: 62px;
+  left: 15%;
+  line-height: 1em;
+}
+#p2 h2 {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  color: #000099;
+}
+#p2 .status {
+  position: absolute;
+  top: 62px;
+  left: 60%;
+  line-height: 1em;
+}
+#editor-left {
+  position: absolute;
+  top: 85px;
+  position: absolute;
+  top: 85px;
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  margin: 0;
+  position: absolute;
+  width: 45%;
+  height: 450px;
+  border: 1px solid #bbb;
+  left: 5%;
+}
+#editor-right {
+  position: absolute;
+  top: 85px;
+  position: absolute;
+  top: 85px;
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  margin: 0;
+  position: absolute;
+  width: 45%;
+  height: 450px;
+  border: 1px solid #bbb;
+  left: 50%;
+}
+#masthead {
+  background: #555;
+  color: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  font-size: 80%;
+}
+#masthead h1 {
+  color: #fff4bb;
+  display: inline;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  font-weight: bold;
+  margin: 0;
+}
+#masthead h2.tagline {
+  color: #fff;
+  display: inline;
+  font-weight: normal;
+  font-size: 12pt;
+  margin: 0;
+}
+#gameControls {
+  margin-top: 550px;
+  margin-left: 5%;
+  margin-right: 5%;
+}

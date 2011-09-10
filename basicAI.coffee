@@ -179,26 +179,4 @@ class BasicAI
     best
 
   toString: () -> this.name
-
-class SillyAI extends BasicAI
-  # Plays like BasicAI, except it always buys a card of the highest
-  # value it can, at random. Good for simulating newbie play and testing
-  # all cases that the simulator might run into.
-  name: 'SillyAI'
-
-  gainPriority: (state) -> 
-    cards = []
-    for card, count of state.supply
-      # original cost
-      if state.cardInfo[card].cost > 0
-        cards.push(card)
-    effectiveCost = (card) ->
-      [coins, potions] = state.cardInfo[card].getCost(state)
-      coins + potions*2 + Math.random()
-    cards.sort( (c1, c2) ->
-      effectiveCost(c2) - effectiveCost(c1)
-    )
-    cards
-
 this.BasicAI = BasicAI
-this.SillyAI = SillyAI
