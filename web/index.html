@@ -96,7 +96,7 @@ $ ->
     $('.status').text('')
     errorHandlers = []
     for messageArea in [$('#status1'), $('#status2')]
-      errorHandlers.push (error) -> messageArea.text(error.message)
+      errorHandlers.push (error) => messageArea.text(error.message)
     compileAndPlay(scripts, singleGameResult, errorHandlers)
 
 </script>

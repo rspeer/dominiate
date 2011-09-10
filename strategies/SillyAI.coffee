@@ -8,7 +8,6 @@
   gainPriority: (state) -> 
     cards = []
     for card, count of state.supply
-      # original cost
       if state.cardInfo[card].cost > 0
         cards.push(card)
     effectiveCost = (card) ->

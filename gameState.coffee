@@ -185,7 +185,7 @@ class PlayerState
     if @draw.length < nCards
       diff = nCards - @draw.length
       if @draw.length > 0
-        this.log("#{@ai} draws #{@draw.length} cards.")
+        this.log("#{@ai} draws #{@draw.length} cards (#{@draw}).")
       @hand = @hand.concat(@draw)
       @draw = []
       if @discard.length > 0
@@ -213,7 +213,7 @@ class PlayerState
     @hand.splice(idx, 1)
   
   shuffle: () ->
-    this.log("#{@ai} shuffles.")
+    this.log("(#{@ai} reshuffles.)")
     if @draw.length > 0
       throw new Error("Shuffling while there are cards left to draw")
     shuffle(@discard)
@@ -379,25 +379,18 @@ class State
       when 'start'
         @current.turnsTaken += 1
         this.log("\n== #{@current.ai}'s turn #{@current.turnsTaken} ==")
-        this.log("Hand: #{@current.hand}")
-        this.log("Draw: #{@current.draw}")
-        this.log("Discard: #{@current.discard}")
         this.doDurationPhase()
         @phase = 'action'
       when 'action'
-        this.log("(action phase)")
         this.doActionPhase()
         @phase = 'treasure'
       when 'treasure'
-        this.log("(treasure phase)")
         this.doTreasurePhase()
         @phase = 'buy'
       when 'buy'
-        this.log("(buy phase)")
         this.doBuyPhase()
         @phase = 'cleanup'
       when 'cleanup'
-        this.log("(cleanup phase)")
         this.doCleanupPhase()
         this.rotatePlayer()
   
