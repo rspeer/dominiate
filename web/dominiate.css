@@ -32,6 +32,11 @@ body {
   left: 5%;
   color: #990000;
 }
+#p1 .selectLabel {
+  position: absolute;
+  top: 50px;
+  right: 62%;
+}
 #p1 select {
   position: absolute;
   top: 50px;
@@ -47,6 +52,11 @@ body {
   top: 50px;
   left: 50%;
   color: #000099;
+}
+#p2 .selectLabel {
+  position: absolute;
+  top: 50px;
+  right: 17%;
 }
 #p2 select {
   position: absolute;

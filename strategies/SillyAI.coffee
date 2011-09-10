@@ -5,16 +5,10 @@
 {
   name: 'SillyAI'
 
-  gainPriority: (state) -> 
-    cards = []
-    for card, count of state.supply
-      if state.cardInfo[card].cost > 0
-        cards.push(card)
-    effectiveCost = (card) ->
-      [coins, potions] = state.cardInfo[card].getCost(state)
-      coins + potions*2 + Math.random()
-    cards.sort( (c1, c2) ->
-      effectiveCost(c2) - effectiveCost(c1)
-    )
-    cards
+  gainValue: (state, card) ->
+    if card.name is "Copper" or card.name is "Curse"
+      return -1
+    else
+      [coins, potions] = card.getCost(state)
+      return coins + potions*2 + Math.random()
 }

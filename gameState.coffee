@@ -678,7 +678,11 @@ class State
 
     # If the player has revealed a Moat, or has Lighthouse in the duration
     # area, the attack is averted. Otherwise, it happens.
-    if not player.moatProtected and not c.Lighthouse in player.duration
+    if player.moatProtected
+      this.log("#{player.ai} is protected by a Moat.")
+    else if c.Lighthouse in player.duration
+      this.log("#{player.ai} is protected by the Lighthouse.")
+    else
       effect(player)
   
   #### Bookkeeping

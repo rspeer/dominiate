@@ -48,7 +48,7 @@ class BasicAI
       if choice is null
         value = 0
       else
-        value = valuefunc(state, stringify(choice))
+        value = valuefunc(state, choice)
       if value > bestValue
         bestValue = value
         bestChoice = choice
