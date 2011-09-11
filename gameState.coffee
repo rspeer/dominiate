@@ -457,7 +457,6 @@ class State
   # that it doesn't want to play an action.
   doActionPhase: () ->
     while @current.actions > 0
-      this.log("Hand: #{@current.hand}")
       validActions = [null]
 
       # Determine the set of unique actions that may be played.

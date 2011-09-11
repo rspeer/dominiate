@@ -119,6 +119,7 @@ class BasicAI
     "Pawn"
     "Warehouse"
     "Menagerie"
+    "Cellar"
     "Shanty Town" if state.current.actions == 1
     "Nobles"
     "Witch"
