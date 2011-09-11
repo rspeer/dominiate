@@ -166,12 +166,11 @@ class BasicAI
     "Colony"
     "Province"
     "Duchy"
+    "Curse"
     "Estate"
     "Copper"
     null   # this is where discarding-for-benefit should stop
     "Silver"
-    "Gold"
-    "Platinum"
   ]
 
   trashPriority: (state) -> [

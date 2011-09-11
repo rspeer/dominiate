@@ -17,4 +17,18 @@
     "Silver"
     "Copper" if state.gainsToEndGame() <= 3
   ]
+  
+  discardPriority: (state) -> [
+    "Colony"
+    "Duchy"
+    "Curse"
+    "Estate"
+    "Province" if state.current.countInHand("Tournament") == 0 \
+               or state.current.countInHand("Province") > 1
+    "Copper"
+    null
+    "Silver"
+    "Gold"
+  ]
+
 }
