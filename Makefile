@@ -14,3 +14,6 @@ css:
 docs:
 	docco *.coffee
 
+web-deploy: web-coffee web-strategies css docs
+	cp -av web/* gh-pages/
+	cp -av docs/* gh-pages/docs/
