@@ -570,6 +570,20 @@ makeCard "Militia", action, {
           state.requireDiscard(opp, opp.hand.length - 3)
 }
 
+makeCard "Mountebank", action, {
+  cost: 5
+  coins: 2
+  isAttack: true
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      if c.Curse in opp.hand
+        # Discarding a Curse against Mountebank is automatic.
+        opp.doDiscard(c.Curse)
+      else
+        state.gainCard(opp, c.Copper)
+        state.gainCard(opp, c.Curse)
+}
+
 makeCard "Goons", c.Militia, {
   cost: 6
   coins: 2

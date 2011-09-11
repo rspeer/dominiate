@@ -126,6 +126,7 @@ class BasicAI
     "Shanty Town" if state.current.actions == 1
     "Nobles"
     "Followers"
+    "Mountebank"
     "Witch"
     "Goons"
     "Wharf"
