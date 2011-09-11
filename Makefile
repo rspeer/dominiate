@@ -11,9 +11,9 @@ web-strategies:
 css:
 	lessc web/dominiate.less web/dominiate.css
 
-docs:
+doc:
 	docco *.coffee
 
-web-deploy: web-coffee web-strategies css docs
+web-deploy: web-coffee web-strategies css doc
 	cp -av web/* gh-pages/
 	cp -av docs/* gh-pages/docs/
