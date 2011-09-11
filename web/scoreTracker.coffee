@@ -45,7 +45,7 @@ class ScoreTracker
   
   decisiveWinner: ->
     for i in [0...@players.length]
-      if @scores[i] - this.errorMargin() > 1 / @scores.length
+      if @proportions[i] - this.errorMargin() > 1 / @scores.length
         return @players[i]
     return null
 

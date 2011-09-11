@@ -71,9 +71,18 @@ class MultiLog
     this.updatePaginator()
 
   addPage: (content) ->
+    if @pages.length > 100
+      @pages = @pages[50...]
     @pages.push(content)
     @currentPage = this.numPages()
     this.updateOutput()
+    this.updatePaginator()
+  
+  addPageQuietly: (content) ->
+    if @pages.length > 100
+      @pages = @pages[50...]
+      this.updateOutput()
+    @pages.push(content)
     this.updatePaginator()
   
   addLineToCurrent: (text) =>
@@ -83,5 +92,13 @@ class MultiLog
 
     # don't reload the output on every line; that would be ugly and slow
     @outputElt.append(text+'\n')
+  
+  addLineToEnd: (text) =>
+    current = this.getCurrent()
+    return if not current?
+    @pages[@pages.length-1] += text+'\n'
+
+    if @currentPage == @pages.length - 1
+      @outputElt.append(text+'\n')
 
 this.MultiLog = MultiLog

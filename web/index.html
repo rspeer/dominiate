@@ -19,7 +19,6 @@
 <h2>Player 1</h2>
 <select name="loadStrategy1" id="loadStrategy1">
 </select>
-<div class="status" id="status1"></div>
 <pre id="editor-left">
 </pre>
 </div>
@@ -28,7 +27,6 @@
 <h2>Player 2</h2>
 <select name="loadStrategy2" id="loadStrategy2">
 </select>
-<div class="status" id="status2"></div>
 <pre id="editor-right">
 </pre>
 </div>
@@ -106,6 +104,9 @@ scrollToBottom = (elt) ->
 window.scrollToBottom = scrollToBottom
 
 $ ->
+  # Here we have all the code that hooks the game into the web page.
+  # It is organized *terribly*, I realize.
+
   window.editors = []
   for box in ["editor-left", "editor-right"]
     editor = ace.edit(box)
@@ -121,13 +122,13 @@ $ ->
   rightEd = window.editors[1].getSession()
 
   multiLog = new MultiLog($('#gameLog'), $('#paginator'))
-  log = multiLog.addLineToCurrent
+  log = multiLog.addLineToEnd
   tracker = new ScoreTracker($('#scores'))
   window.tracker = tracker
 
   singleGameResult = (state) =>
     result = state.getWinners().toString() + " wins!"
-    multiLog.addLineToCurrent(result)
+    multiLog.addLineToEnd(result)
     multiLog.updateOutput()
     tracker.recordGame(state)
 
@@ -136,20 +137,41 @@ $ ->
   errorHandlers.push (error) => multiLog.addLineToCurrent("Player 2: "+error.message)
   errorHandler = (error) => multiLog.addLineToCurrent(error.message)
 
-  $('#playButton').click (event) -> playOneGame()
-
   playOneGame = ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
     compiled = compileStrategies(scripts, errorHandlers)
-
-    $('.status').text('')
     multiLog.addPage('')
+    
     options = {
       log: log
       colonies: $('#colonies').is(':checked')
       randomizeOrder: $('#randomize').is(':checked')
     }
     playGame(compiled, options, singleGameResult)
+
+  playUntilDecisive = ->
+    scripts = [leftEd.getValue(), rightEd.getValue()]
+    compiled = compileStrategies(scripts, errorHandlers)
+    
+    options = {
+      log: log
+      colonies: $('#colonies').is(':checked')
+      randomizeOrder: $('#randomize').is(':checked')
+    }
+
+    playLoop = (result) ->
+      singleGameResult(result)
+      if not tracker.decisiveWinner()?
+        multiLog.addPageQuietly('')
+        nextIteration = ->
+          playGame(compiled, options, playLoop)
+        window.setTimeout(nextIteration, 1)
+
+    multiLog.addPageQuietly('')
+    playGame(compiled, options, playLoop)
+  
+  $('#playButton').click (event) -> playOneGame()
+  $('#playMany').click (event) -> playUntilDecisive()
 
   strategyElements = ['<option></option>']
   for name of strategies
