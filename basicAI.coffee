@@ -106,6 +106,7 @@ class BasicAI
     "Festival"
     "Bazaar"
     "Worker's Village"
+    "City"
     "Village"
     "Grand Market"
     "Alchemist"
@@ -135,6 +136,7 @@ class BasicAI
     "Smithy"
     "Merchant Ship"
     "Monument"
+    "Adventurer"
     "Harvest"
     "Woodcutter"
     "Coppersmith" if state.current.countInHand("Copper") >= 2

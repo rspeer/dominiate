@@ -339,6 +339,28 @@ makeCard 'Merchant Ship', duration, {
 # simple formula, which are generally defined by overriding the complex
 # methods such as `playEffect`.
 
+makeCard 'Adventurer', action, {
+  cost: 6
+
+  playEffect: (state) ->
+    treasuresDrawn = 0
+    while treasuresDrawn < 2
+      # Take cards one at a time, and either put them in hand or set them
+      # aside depending on their type.
+      drawn = state.current.getCardsFromDeck(1)
+      if drawn.length == 0
+        break
+      card = drawn[0]
+      if card.isTreasure
+        treasuresDrawn += 1
+        state.current.hand.push(card)
+        state.log("...drawing a #{card}.")
+      else
+        state.current.setAside.push(card)
+    state.current.discard = state.current.discard.concat(state.current.setAside)
+    state.current.setAside = []
+}
+
 makeCard 'Alchemist', action, {
   cost: 3
   costPotion: 1
@@ -385,6 +407,30 @@ makeCard 'Chapel', action, {
   playEffect:
     (state) ->
       state.allowTrash(state.current, 4)
+}
+
+makeCard 'City', action, {
+  cost: 5
+  actions: +2
+  cards: +1
+  
+  getCards: (state) ->
+    if state.numEmptyPiles() >= 1
+      2
+    else
+      1
+  
+  getBuys: (state) ->
+    if state.numEmptyPiles() >= 2
+      1
+    else
+      0
+  
+  getCoins: (state) ->
+    if state.numEmptyPiles() >= 2
+      1
+    else
+      0
 }
 
 makeCard 'Coppersmith', action, {
