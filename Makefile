@@ -17,3 +17,7 @@ docs:
 web-deploy: web-coffee web-strategies css docs
 	cp -av web/* gh-pages/
 	cp -av docs/* gh-pages/docs/
+	cd gh-pages
+	git add .
+	git commit -am "Deploying to Web from commit `cat ../.git/refs/heads/master`"
+	git push
