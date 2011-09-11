@@ -71,7 +71,7 @@ class MultiLog
     this.updatePaginator()
 
   addPage: (content) ->
-    if @pages.length > 100
+    if @pages.length >= 100
       @pages = @pages[50...]
     @pages.push(content)
     @currentPage = this.numPages()
