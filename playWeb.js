@@ -190,7 +190,7 @@
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank"];
     };
     BasicAI.prototype.discardPriority = function(state) {
-      return ["Colony", "Province", "Duchy", "Estate", "Copper", null, "Silver", "Gold", "Platinum"];
+      return ["Colony", "Province", "Duchy", "Curse", "Estate", "Copper", null, "Silver"];
     };
     BasicAI.prototype.trashPriority = function(state) {
       return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, state.current.getTotalMoney() > 4 ? "Copper" : void 0, state.current.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0, null, "Copper", "Potion", "Estate", "Silver"];
