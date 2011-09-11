@@ -217,19 +217,17 @@ class PlayerState
       return drawn
   
   doDiscard: (card) ->
-    idx = @hand.indexOf(card)
-    if idx == -1
+    if card not in @hand
       this.warn("#{@ai} has no #{card} to discard")
       return
-    @hand.splice(idx, 1)
+    @hand.remove(card)
     @discard.push(card)
   
   doTrash: (card) ->
-    idx = @hand.indexOf(card)
-    if idx == -1
+    if card not in @hand
       this.warn("#{@ai} has no #{card} to trash")
       return
-    @hand.splice(idx, 1)
+    @hand.remove(card)
   
   shuffle: () ->
     this.log("(#{@ai} shuffles.)")
@@ -296,6 +294,7 @@ class State
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
+    @prizes = [c["Bag of Gold"], c.Diadem, c.Followers, c.Princess, c["Trusty Steed"]]
 
     @bridges = 0
     @quarries = 0
@@ -470,11 +469,10 @@ class State
       this.log("#{@current.ai} plays #{action}.")
 
       # Remove the action from the hand and put it in the play area.
-      idx = @current.hand.indexOf(action)
-      if idx == -1
+      if action not in @current.hand
         this.warn("#{@current.ai} chose an invalid action.")
         return
-      @current.hand.splice(idx, 1)
+      @current.hand.remove(action)
       @current.inPlay.push(action)
 
       # Subtract 1 from the action count, perform the action, and go back
@@ -502,10 +500,10 @@ class State
 
       # Remove the treasure from the hand and put it in the play area.
       idx = @current.hand.indexOf(treasure)
-      if idx == -1
+      if treasure not in @current.hand
         this.warn("#{@current.ai} chose an invalid treasure")
         return
-      @current.hand.splice(idx, 1)
+      @current.hand.remove(treasure)
       @current.inPlay.push(treasure)
       treasure.onPlay(this)
   
@@ -538,7 +536,7 @@ class State
       @current.buys -= 1
 
       # Gain the card and deal with the effects.
-      this.gainCard(@current, choice)
+      this.gainCard(@current, choice, true)
       choice.onBuy(this)
 
       # Gain victory for each Goons in play.
@@ -611,10 +609,20 @@ class State
   # decreased). In this function and others like it, the `player` argument
   # is the appropriate PlayerState object to affect. This must, of course,
   # be one of the objects in the `@players` array.
-  gainCard: (player, card) ->
-    if @supply[card] > 0
+  #
+  # `suppressMessage` is true when this happens as the direct result of a
+  # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
+  gainCard: (player, card, suppressMessage=false) ->
+    if card in @prizes or @supply[card] > 0
+      if not suppressMessage
+        this.log("#{player.ai} gains #{card}.")
       player.discard.push(card)
-      @supply[card] -= 1
+      if card in @prizes
+        @prizes.remove(card)
+      else
+        @supply[card] -= 1
+    else
+      this.log("There is no #{card} to gain.")
     # TODO: handle gain reactions
   
   # Effects of an action could cause players to reveal their hand.
@@ -696,6 +704,14 @@ class State
       this.log("#{player.ai} trashes #{choice}.")
       numTrashed++
       player.doTrash(choice)
+  
+  # `gainChoice` gives the player a choice of cards to gain. Include
+  # `null` if gaining nothing is an option.
+  gainChoice: (player, options) ->
+    choice = player.ai.chooseGain(this, options)
+    return null if choice is null
+    this.gainCard(player, choice)
+    return choice
   
   # `attackOpponents` takes in a function of one argument, and applies
   # it to all players except the one whose turn it is.
@@ -792,12 +808,21 @@ this.tableaux = {
   all: c.allCards
 }
 
+# How to remove something from a JavaScript array. Modifies the list and
+# returns the 0 or 1 removed elements.
+Array.prototype.remove = (elt) ->
+  idx = this.indexOf(elt)
+  if idx != -1
+    this.splice(idx, 1)
+  else
+    []
+
 # Define the additional tableau of everything but Platinum/Colony.
 # If there's a better way to remove items from a JS array, I'd like to know
 # what it is.
 noColony = this.tableaux.all.slice(0)
-noColony.splice(noColony.indexOf('Platinum'), 1)
-noColony.splice(noColony.indexOf('Colony'), 1)
+noColony.remove('Platinum')
+noColony.remove('Colony')
 this.tableaux.noColony = noColony
 
 # Utility functions

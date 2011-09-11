@@ -373,6 +373,18 @@ makeCard 'Alchemist', action, {
         transferCardToTop(c.Alchemist, state.current.discard, state.current.draw)
 }
 
+makeCard 'Bag of Gold', action, {
+  cost: 0
+  actions: +1
+  isPrize: true
+  mayBeBought: (state) -> false
+
+  playEffect: (state) ->
+    state.current.gainCard(c.Gold)
+    state.log("...putting the Gold on top of the deck.")
+    transferCardToTop(c.Gold, state.current.discard, state.current.draw)
+}
+
 makeCard 'Bank', c.Silver, {
   cost: 7
   getCoins: (state) ->
@@ -496,7 +508,7 @@ makeCard "Harvest", action, {
       if card not in unique
         unique.push(card)
     state.current.coins += unique.length
-    state.log("...gaining $+#{unique.length}.")
+    state.log("...gaining +$#{unique.length}.")
 }
 
 makeCard "Horse Traders", action, {
@@ -666,6 +678,45 @@ makeCard 'Steward', action, {
       applyBenefit(state, benefit)
 }
 
+makeCard 'Tournament', action, {
+  cost: 4
+  actions: +1
+  playEffect:
+    (state) ->
+      # All Provinces are automatically revealed.
+      opposingProvince = false
+      for opp in state.players[1...]
+        if c.Province in opp.hand
+          state.log("#{opp.ai} reveals a Province.")
+          opposingProvince = true
+      if c.Province in state.current.hand
+        state.log("#{state.current.ai} reveals a Province.")
+        choices = state.prizes
+        if state.supply[c.Duchy] > 0
+          choices.push(c.Duchy)
+        choice = state.gainChoice(state.current, choices)
+        state.log("...putting the #{choice} on top of the deck.")
+        transferCardToTop(choice, state.current.discard, state.current.draw)
+        state.tidyList(state.current.discard)
+      if not opposingProvince
+        state.current.coins += 1
+        state.current.drawCards(1)
+}
+
+makeCard "Trusty Steed", c["Bag of Gold"], {
+  actions: 0
+  playEffect: (state) ->
+    benefit = state.current.ai.chooseBenefit(state, [
+      {cards: 2, actions: 2},
+      {cards: 2, coins: 2},
+      {actions: 2, coins: 2},
+      {cards: 2, horseEffect: yes},
+      {actions: 2, horseEffect: yes},
+      {coins: 2, horseEffect: yes}
+    ])
+    applyBenefit(state, benefit)
+}
+
 makeCard 'Warehouse', action, {
   cost: 3
   playEffect: (state) ->
@@ -719,6 +770,7 @@ transferCardToTop = (card, fromList, toList) ->
 # - `{buys: n}`: get *+n* buys
 # - `{coins: n}`: get *+n* coins
 # - `{trash: n}`: trash *n* cards
+# - `{horseEffect: yes}`: gain 4 Silvers and discard your draw pile
 applyBenefit = (state, benefit) ->
   state.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
   if benefit.cards?
@@ -731,4 +783,9 @@ applyBenefit = (state, benefit) ->
     state.current.coins += benefit.coins
   if benefit.trash?
     state.requireTrash(state.current, benefit.trash)
+  if benefit.horseEffect
+    for i in [0...4]
+      state.gainCard(state.current, c.Silver)
+    state.current.discard = state.current.discard.concat(state.current.draw)
+    state.current.draw = []
 

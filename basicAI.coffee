@@ -103,6 +103,7 @@ class BasicAI
   actionPriority: (state) -> [
     "Menagerie" if state.current.menagerieDraws() == 3
     "Shanty Town" if state.current.shantyTownDraws() == 2
+    "Trusty Steed"
     "Festival"
     "Bazaar"
     "Worker's Village"
@@ -120,6 +121,7 @@ class BasicAI
     "Pawn"
     "Warehouse"
     "Menagerie"
+    "Tournament"  # should be above cards that might discard a Province
     "Cellar"
     "Shanty Town" if state.current.actions == 1
     "Nobles"
