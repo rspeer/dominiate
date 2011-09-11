@@ -168,6 +168,7 @@ floor" after that, so to speak.</p>             </td>             <td class="cod
     <span class="k">if</span> <span class="nx">card</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">@hand</span>
       <span class="k">this</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;#{@ai} has no #{card} to discard&quot;</span><span class="p">)</span>
       <span class="k">return</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{@ai} discards #{card}.&quot;</span><span class="p">)</span>
     <span class="nx">@hand</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
     <span class="nx">@discard</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
   
@@ -482,7 +483,6 @@ to stop discarding.</p>             </td>             <td class="code">         
       <span class="nx">validDiscards</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span>
       <span class="nv">choice = </span><span class="nx">player</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseDiscard</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">validDiscards</span><span class="p">)</span>
       <span class="k">return</span> <span class="k">if</span> <span class="nx">choice</span> <span class="o">is</span> <span class="kc">null</span>
-      <span class="k">this</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{player.ai} discards #{choice}.&quot;</span><span class="p">)</span>
       <span class="nx">numDiscarded</span><span class="o">++</span>
       <span class="nx">player</span><span class="p">.</span><span class="nx">doDiscard</span><span class="p">(</span><span class="nx">choice</span><span class="p">)</span>
   </pre></div>             </td>           </tr>                               <tr id="section-81">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-81">&#182;</a>               </div>               <p><code>requireDiscard</code> requires the player to discard exactly <code>num</code> cards,

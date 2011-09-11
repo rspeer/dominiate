@@ -184,7 +184,7 @@
       return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "Bazaar", "Worker's Village", "City", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
+      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "Bazaar", "Worker's Village", "City", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Mountebank", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
     };
     BasicAI.prototype.treasurePriority = function(state) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank"];
@@ -194,6 +194,9 @@
     };
     BasicAI.prototype.trashPriority = function(state) {
       return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, state.current.getTotalMoney() > 4 ? "Copper" : void 0, state.current.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0, null, "Copper", "Potion", "Estate", "Silver"];
+    };
+    BasicAI.prototype.chooseBaronDiscard = function(state) {
+      return true;
     };
     BasicAI.prototype.chooseBenefit = function(state, choices) {
       var actionBalance, actionValue, best, bestValue, buyValue, card, cardValue, choice, coinValue, trashValue, trashableCards, trashes, usableActions, value, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
@@ -608,6 +611,23 @@
       return coins;
     }
   });
+  makeCard('Baron', action, {
+    cost: 4,
+    buys: 1,
+    playEffect: function(state) {
+      var discardEstate, _ref;
+      discardEstate = false;
+      if (_ref = c.Estate, __indexOf.call(state.current.hand, _ref) >= 0) {
+        discardEstate = state.current.ai.chooseBaronDiscard(state);
+      }
+      if (discardEstate) {
+        state.current.doDiscard(c.Estate);
+        return state.current.coins += 4;
+      } else {
+        return state.gainCard(state.current.c.Estate);
+      }
+    }
+  });
   makeCard('Bridge', action, {
     cost: 4,
     coins: 1,
@@ -772,6 +792,22 @@
       return state.attackOpponents(function(opp) {
         if (opp.hand.length > 3) {
           return state.requireDiscard(opp, opp.hand.length - 3);
+        }
+      });
+    }
+  });
+  makeCard("Mountebank", action, {
+    cost: 5,
+    coins: 2,
+    isAttack: true,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var _ref;
+        if (_ref = c.Curse, __indexOf.call(opp.hand, _ref) >= 0) {
+          return opp.doDiscard(c.Curse);
+        } else {
+          state.gainCard(opp, c.Copper);
+          return state.gainCard(opp, c.Curse);
         }
       });
     }
@@ -1205,6 +1241,7 @@
         this.warn("" + this.ai + " has no " + card + " to discard");
         return;
       }
+      this.log("" + this.ai + " discards " + card + ".");
       this.hand.remove(card);
       return this.discard.push(card);
     };
@@ -1592,7 +1629,6 @@
         if (choice === null) {
           return;
         }
-        this.log("" + player.ai + " discards " + choice + ".");
         numDiscarded++;
         _results.push(player.doDiscard(choice));
       }
