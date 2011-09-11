@@ -1,0 +1,50 @@
+<!DOCTYPE html>  <html> <head>   <title>playWeb.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="basicAI.html">                 basicAI.coffee               </a>                                           <a class="source" href="cards.html">                 cards.coffee               </a>                                           <a class="source" href="compileStrategies.html">                 compileStrategies.coffee               </a>                                           <a class="source" href="gameState.html">                 gameState.coffee               </a>                                           <a class="source" href="heuristics.html">                 heuristics.coffee               </a>                                           <a class="source" href="play.html">                 play.coffee               </a>                                           <a class="source" href="playWeb.html">                 playWeb.coffee               </a>                                           <a class="source" href="testSimulation.html">                 testSimulation.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               playWeb.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>This is the main entry point for playing strategies against each
+other on the Web.</p>
+
+<p>Needs more documentation.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">compileStrategies = </span><span class="nf">(scripts, errorCallbacks) -&gt;</span>
+  <span class="nv">strategies = </span><span class="p">[]</span>
+  <span class="nv">usedNames = </span><span class="p">[]</span>
+  <span class="k">for</span> <span class="nx">i</span> <span class="k">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">...</span><span class="nx">scripts</span><span class="p">.</span><span class="nx">length</span><span class="p">]</span>
+    <span class="k">try</span>
+      <span class="nv">strategy = </span><span class="nx">CoffeeScript</span><span class="p">.</span><span class="nb">eval</span><span class="p">(</span><span class="nx">scripts</span><span class="p">[</span><span class="nx">i</span><span class="p">],</span> <span class="p">{</span><span class="nv">bare: </span><span class="kc">yes</span><span class="p">})</span>
+      <span class="k">while</span> <span class="nx">strategy</span><span class="p">.</span><span class="nx">name</span> <span class="k">in</span> <span class="nx">usedNames</span>
+        <span class="nx">strategy</span><span class="p">.</span><span class="nx">name</span> <span class="o">+=</span> <span class="s2">&quot;Clone&quot;</span>
+      <span class="nx">usedNames</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">strategy</span><span class="p">.</span><span class="nx">name</span><span class="p">)</span>
+      <span class="nx">strategies</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">strategy</span><span class="p">)</span>
+    <span class="k">catch</span> <span class="nx">e</span>
+      <span class="nx">errorCallbacks</span><span class="p">[</span><span class="nx">i</span><span class="p">](</span><span class="nx">e</span><span class="p">)</span>
+      <span class="k">return</span> <span class="kc">null</span>
+  <span class="k">return</span> <span class="nx">strategies</span>
+
+<span class="nv">makeStrategy = </span><span class="nf">(changes) -&gt;</span>
+  <span class="nv">ai = </span><span class="k">new</span> <span class="nx">BasicAI</span><span class="p">()</span>
+  <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">changes</span>
+    <span class="nx">ai</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+  <span class="nx">ai</span>
+
+<span class="nv">playGame = </span><span class="nf">(strategies, options, ret) -&gt;</span>
+  <span class="nv">ais = </span><span class="p">(</span><span class="nx">makeStrategy</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span> <span class="k">for</span> <span class="nx">item</span> <span class="k">in</span> <span class="nx">strategies</span><span class="p">)</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>Take note of the player names, in order, while they're
+still in this order.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nb">window</span><span class="p">.</span><span class="nx">tracker</span><span class="p">.</span><span class="nx">setPlayers</span><span class="p">(</span><span class="nx">ai</span><span class="p">.</span><span class="nx">name</span> <span class="k">for</span> <span class="nx">ai</span> <span class="k">in</span> <span class="nx">ais</span><span class="p">)</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <p>Handle options from the checkboxes on the page.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">colonies</span>
+    <span class="nv">tableau = </span><span class="nx">tableaux</span><span class="p">.</span><span class="nx">all</span>
+  <span class="k">else</span>
+    <span class="nv">tableau = </span><span class="nx">tableaux</span><span class="p">.</span><span class="nx">noColony</span>
+  <span class="k">if</span> <span class="nx">options</span><span class="p">.</span><span class="nx">randomizeOrder</span>
+    <span class="nx">shuffle</span><span class="p">(</span><span class="nx">ais</span><span class="p">)</span>
+  
+  <span class="nv">state = </span><span class="k">new</span> <span class="nx">State</span><span class="p">().</span><span class="nx">initialize</span><span class="p">(</span><span class="nx">ais</span><span class="p">,</span> <span class="nx">tableau</span><span class="p">,</span> <span class="nx">options</span><span class="p">.</span><span class="nx">log</span><span class="p">)</span>
+  <span class="nx">ret</span> <span class="o">?=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">log</span>
+  <span class="nb">window</span><span class="p">.</span><span class="nx">setZeroTimeout</span> <span class="o">-&gt;</span> <span class="nx">playStep</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">ret</span><span class="p">)</span>
+
+<span class="nv">playStep = </span><span class="nf">(state, ret) -&gt;</span>
+  <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">gameIsOver</span><span class="p">()</span>
+    <span class="nx">ret</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+  <span class="k">else</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">()</span>
+    <span class="nb">window</span><span class="p">.</span><span class="nx">setZeroTimeout</span> <span class="o">-&gt;</span> <span class="nx">playStep</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">ret</span><span class="p">)</span>
+
+<span class="k">this</span><span class="p">.</span><span class="nv">compileStrategies = </span><span class="nx">compileStrategies</span>
+<span class="k">this</span><span class="p">.</span><span class="nv">playGame = </span><span class="nx">playGame</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
