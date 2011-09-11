@@ -638,20 +638,22 @@
       return !(_ref = c.Copper, __indexOf.call(state.current.inPlay, _ref) >= 0);
     }
   });
-  /*
-  makeCard "Harvest", action, {
-    cost: 5
-    playEffect: (state) ->
-      unique = []
-      cards = state.revealCards(state.current, 4)
-      for card in cards
-        if card not in unique
-          unique.push(card)
-      state.current.coins += unique.length
-      state.log("...revealing #{cards} for $+#{unique.length}.")
-      state.current.discard = state.current.discard.concat(cards)
-  }
-  */
+  makeCard("Harvest", action, {
+    cost: 5,
+    playEffect: function(state) {
+      var card, cards, unique, _i, _len;
+      unique = [];
+      cards = state.discardFromDeck(state.current, 4);
+      for (_i = 0, _len = cards.length; _i < _len; _i++) {
+        card = cards[_i];
+        if (__indexOf.call(unique, card) < 0) {
+          unique.push(card);
+        }
+      }
+      state.current.coins += unique.length;
+      return state.log("...gaining $+" + unique.length + ".");
+    }
+  });
   makeCard("Horse Traders", action, {
     cost: 4,
     buys: 1,
@@ -1010,21 +1012,20 @@
       var drawn;
       drawn = this.getCardsFromDeck(nCards);
       this.hand = this.hand.concat(drawn);
+      this.log("" + this.ai + " draws " + drawn.length + " cards (" + drawn + ").");
       return drawn;
     };
     PlayerState.prototype.discardFromDeck = function(nCards) {
       var drawn;
       drawn = this.getCardsFromDeck(nCards);
       this.discard = this.discard.concat(drawn);
+      this.log("" + this.ai + " draws and discards " + drawn.length + " cards (" + drawn + ").");
       return drawn;
     };
     PlayerState.prototype.getCardsFromDeck = function(nCards) {
       var diff, drawn;
       if (this.draw.length < nCards) {
         diff = nCards - this.draw.length;
-        if (this.draw.length > 0) {
-          this.log("" + this.ai + " draws " + this.draw.length + " cards (" + this.draw + ").");
-        }
         drawn = this.draw.slice(0);
         this.draw = [];
         if (this.discard.length > 0) {
@@ -1036,7 +1037,6 @@
       } else {
         drawn = this.draw.slice(0, nCards);
         this.draw = this.draw.slice(nCards);
-        this.log("" + this.ai + " draws " + nCards + " cards (" + drawn + ").");
         return drawn;
       }
     };
@@ -1405,6 +1405,9 @@
     State.prototype.revealHand = function(player) {};
     State.prototype.drawCards = function(player, num) {
       return player.drawCards(num);
+    };
+    State.prototype.discardFromDeck = function(player, num) {
+      return player.discardFromDeck(num);
     };
     State.prototype.getCardsFromDeck = function(player, num) {
       return player.getCardsFromDeck(num);
