@@ -250,7 +250,7 @@ makeCard 'Potion', c.Silver, {
 # Action cards may derive from the virtual card called `action`.
 action = makeCard 'action', basicCard, {isAction: true}, true
 
-makeCard 'Village', action, {actions: 2, cards: 1}
+makeCard 'Village', action, {cost: 3, actions: 2, cards: 1}
 makeCard "Worker's Village", action, {
   cost: 4
   actions: 2
@@ -421,6 +421,19 @@ makeCard "Grand Market", c.Market, {
   # Grand Market is the only card with a non-constant mayBeBought value.
   mayBeBought: (state) ->
     not(c.Copper in state.current.inPlay)
+}
+
+makeCard "Harvest", action, {
+  cost: 5
+  playEffect: (state) ->
+    unique = []
+    cards = state.drawCards(state.current, 4)
+    for card in cards
+      if card not in unique
+        unique.push(card)
+    state.current.coins += unique.length
+    state.log("...revealing #{cards} for $+#{unique.length}.")
+    state.current.discard = state.current.discard.concat(cards)
 }
 
 makeCard "Horse Traders", action, {

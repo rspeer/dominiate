@@ -132,6 +132,7 @@ class BasicAI
     "Smithy"
     "Merchant Ship"
     "Monument"
+    "Harvest"
     "Woodcutter"
     "Coppersmith" if state.current.countInHand("Copper") >= 2
     "Moat"
