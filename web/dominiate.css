@@ -98,6 +98,12 @@ body {
   border: 1px solid #bbb;
   left: 50%;
 }
+.player1 {
+  color: #990000;
+}
+.player2 {
+  color: #000099;
+}
 #masthead {
   background: #555;
   color: #fff;
@@ -123,6 +129,14 @@ body {
   font-size: 12pt;
   margin: 0;
 }
+#masthead a.about {
+  font-weight: bold;
+  font-size: 14px;
+  color: #fff;
+  position: absolute;
+  top: 13px;
+  right: 15px;
+}
 #layoutSeparator {
   margin-top: 550px;
 }
@@ -139,9 +153,8 @@ body {
 select {
   color: #000;
 }
-#matchResults {
-  padding: 1em;
-  float: left;
+#scores {
+  padding-top: 7px;
 }
 #logs {
   clear: both;

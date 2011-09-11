@@ -3,6 +3,12 @@ class MultiLog
     @pages = []
     this.selectPage(1)
   
+  reset: ->
+    @pages = []
+    this.selectPage(1)
+    this.updateOutput()
+    this.updatePaginator()
+  
   numPages: -> @pages.length
   
   pagesShown: ->
