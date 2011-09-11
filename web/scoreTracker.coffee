@@ -29,11 +29,12 @@ class ScoreTracker
         return @scores[i]
 
   recordGame: (state) =>
-    winners = state.getWinners()
-    for winner in winners
-      this.incrementPlayerScore(winner, 1.0 / winners.length)
-    @games += 1
-    this.updateScores()
+    if state.gameIsOver()
+      winners = state.getWinners()
+      for winner in winners
+        this.incrementPlayerScore(winner, 1.0 / winners.length)
+      @games += 1
+      this.updateScores()
 
   errorMargin: ->
     1.5 / Math.sqrt(@games)

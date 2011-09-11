@@ -614,11 +614,15 @@ makeCard 'Witch', action, {
 # -----------------
 
 # `transferCard` will move a card from one list to the end of another.
+# 
+# This sometimes happens when iterating over a list of cards, which is
+# unfortunate. The current solution is to call cleanupList, defined in
+# the state.
 transferCard = (card, fromList, toList) ->
   idx = fromList.indexOf(card)
   if idx == -1
     throw new Error("#{fromList} does not contain #{card}")
-  fromList.splice(idx, 1)
+  fromList[idx] = null
   toList.push(card)
 
 # `transferCardToTop` will move a card from one list to the front of another.
@@ -627,7 +631,7 @@ transferCardToTop = (card, fromList, toList) ->
   idx = fromList.indexOf(card)
   if idx == -1
     throw new Error("#{fromList} does not contain #{card}")
-  fromList.splice(idx, 1)
+  fromList[idx] = null
   toList.unshift(card)
 
 # Some cards give you a constant benefit, such as +cards or +actions,
