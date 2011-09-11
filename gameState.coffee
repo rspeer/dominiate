@@ -672,6 +672,7 @@ class State
     # Set a flag on the PlayerState that indicates that the player has not
     # yet revealed a Moat.
     player.moatProtected = false
+    console.log(player.hand.join())
     for card in player.hand
       if card.isReaction
         card.reactToAttack(player)
