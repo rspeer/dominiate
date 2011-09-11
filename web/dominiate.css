@@ -136,6 +136,9 @@ body {
   display: inline;
   margin-right: 1em;
 }
+select {
+  color: #000;
+}
 #matchResults {
   padding: 1em;
   float: left;
