@@ -131,22 +131,25 @@ $ ->
     multiLog.updateOutput()
     tracker.recordGame(state)
 
+  errorHandlers = []
+  errorHandlers.push (error) => multiLog.addLineToCurrent("Player 1: "+error.message)
+  errorHandlers.push (error) => multiLog.addLineToCurrent("Player 2: "+error.message)
+  errorHandler = (error) => multiLog.addLineToCurrent(error.message)
+
   $('#playButton').click (event) -> playOneGame()
 
   playOneGame = ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
-    $('.status').text('')
-    errorHandlers = []
-    errorHandlers.push (error) => multiLog.addLineToCurrent("Player 1: "+error.message)
-    errorHandlers.push (error) => multiLog.addLineToCurrent("Player 2: "+error.message)
+    compiled = compileStrategies(scripts, errorHandlers)
 
+    $('.status').text('')
     multiLog.addPage('')
     options = {
       log: log
       colonies: $('#colonies').is(':checked')
       randomizeOrder: $('#randomize').is(':checked')
     }
-    compileAndPlay(scripts, singleGameResult, errorHandlers, options)
+    playGame(compiled, options, singleGameResult)
 
   strategyElements = ['<option></option>']
   for name of strategies

@@ -2,7 +2,8 @@
 # other on the Web.
 #
 # Needs more documentation.
-compileAndPlay = (scripts, doneCallback, errorCallbacks, options) ->
+
+compileStrategies = (scripts, errorCallbacks) ->
   strategies = []
   usedNames = []
   for i in [0...scripts.length]
@@ -13,8 +14,9 @@ compileAndPlay = (scripts, doneCallback, errorCallbacks, options) ->
       usedNames.push(strategy.name)
       strategies.push(strategy)
     catch e
-      return errorCallbacks[i](e)
-  playGame(strategies, options, doneCallback)
+      errorCallbacks[i](e)
+      return null
+  return strategies
 
 makeStrategy = (changes) ->
   ai = new BasicAI()
@@ -48,4 +50,5 @@ playStep = (state, ret) ->
     state.doPlay()
     window.setZeroTimeout -> playStep(state, ret)
 
-this.compileAndPlay = compileAndPlay
+this.compileStrategies = compileStrategies
+this.playGame = playGame

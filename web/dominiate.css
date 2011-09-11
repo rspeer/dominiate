@@ -100,9 +100,11 @@ body {
 }
 .player1 {
   color: #990000;
+  font-weight: bold;
 }
 .player2 {
   color: #000099;
+  font-weight: bold;
 }
 #masthead {
   background: #555;
