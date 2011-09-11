@@ -63,13 +63,15 @@
     };
     ScoreTracker.prototype.recordGame = function(state) {
       var winner, winners, _i, _len;
-      winners = state.getWinners();
-      for (_i = 0, _len = winners.length; _i < _len; _i++) {
-        winner = winners[_i];
-        this.incrementPlayerScore(winner, 1.0 / winners.length);
+      if (state.gameIsOver()) {
+        winners = state.getWinners();
+        for (_i = 0, _len = winners.length; _i < _len; _i++) {
+          winner = winners[_i];
+          this.incrementPlayerScore(winner, 1.0 / winners.length);
+        }
+        this.games += 1;
+        return this.updateScores();
       }
-      this.games += 1;
-      return this.updateScores();
     };
     ScoreTracker.prototype.errorMargin = function() {
       return 1.5 / Math.sqrt(this.games);

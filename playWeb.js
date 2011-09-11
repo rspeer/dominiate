@@ -1,5 +1,5 @@
 (function() {
-  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, compileStrategies, count, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, shuffle, stringify, transferCard, transferCardToTop;
+  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, compileStrategies, count, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, shuffle, stringify, tidyList, transferCard, transferCardToTop, _ref;
   var __indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++) {
       if (this[i] === item) return i;
@@ -638,23 +638,20 @@
       return !(_ref = c.Copper, __indexOf.call(state.current.inPlay, _ref) >= 0);
     }
   });
-  makeCard("Harvest", action, {
-    cost: 5,
-    playEffect: function(state) {
-      var card, cards, unique, _i, _len;
-      unique = [];
-      cards = state.drawCards(state.current, 4);
-      for (_i = 0, _len = cards.length; _i < _len; _i++) {
-        card = cards[_i];
-        if (__indexOf.call(unique, card) < 0) {
-          unique.push(card);
-        }
-      }
-      state.current.coins += unique.length;
-      state.log("...revealing " + cards + " for $+" + unique.length + ".");
-      return state.current.discard = state.current.discard.concat(cards);
-    }
-  });
+  /*
+  makeCard "Harvest", action, {
+    cost: 5
+    playEffect: (state) ->
+      unique = []
+      cards = state.revealCards(state.current, 4)
+      for card in cards
+        if card not in unique
+          unique.push(card)
+      state.current.coins += unique.length
+      state.log("...revealing #{cards} for $+#{unique.length}.")
+      state.current.discard = state.current.discard.concat(cards)
+  }
+  */
   makeCard("Horse Traders", action, {
     cost: 4,
     buys: 1,
@@ -844,7 +841,7 @@
     if (idx === -1) {
       throw new Error("" + fromList + " does not contain " + card);
     }
-    fromList.splice(idx, 1);
+    fromList[idx] = null;
     return toList.push(card);
   };
   transferCardToTop = function(card, fromList, toList) {
@@ -853,7 +850,7 @@
     if (idx === -1) {
       throw new Error("" + fromList + " does not contain " + card);
     }
-    fromList.splice(idx, 1);
+    fromList[idx] = null;
     return toList.unshift(card);
   };
   applyBenefit = function(state, benefit) {
@@ -875,7 +872,7 @@
     }
   };
   if (typeof exports !== "undefined" && exports !== null) {
-    c = require('./cards').c;
+    _ref = require('./cards'), c = _ref.c, tidyList = _ref.tidyList;
   }
   PlayerState = (function() {
     function PlayerState() {}
@@ -907,11 +904,11 @@
       return this.draw.concat(this.discard.concat(this.hand.concat(this.inPlay.concat(this.duration.concat(this.mats.nativeVillage.concat(this.mats.island))))));
     };
     PlayerState.prototype.countInDeck = function(card) {
-      var card2, _i, _len, _ref;
+      var card2, _i, _len, _ref2;
       count = 0;
-      _ref = this.getDeck();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card2 = _ref[_i];
+      _ref2 = this.getDeck();
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card2 = _ref2[_i];
         if (card.toString() === card2.toString()) {
           count++;
         }
@@ -922,21 +919,21 @@
       return this.getDeck().length;
     };
     PlayerState.prototype.getVP = function(state) {
-      var card, total, _i, _len, _ref;
+      var card, total, _i, _len, _ref2;
       total = 0;
-      _ref = this.getDeck();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      _ref2 = this.getDeck();
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         total += card.getVP(state);
       }
       return total;
     };
     PlayerState.prototype.getTotalMoney = function() {
-      var card, total, _i, _len, _ref;
+      var card, total, _i, _len, _ref2;
       total = 0;
-      _ref = this.getDeck();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      _ref2 = this.getDeck();
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         total += card.coins;
       }
       return total;
@@ -951,11 +948,11 @@
       return countStr(this.inPlay, card);
     };
     PlayerState.prototype.numActionCardsInDeck = function() {
-      var card, _i, _len, _ref;
+      var card, _i, _len, _ref2;
       count = 0;
-      _ref = this.getDeck();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      _ref2 = this.getDeck();
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         if (card.isAction) {
           count += 1;
         }
@@ -966,12 +963,12 @@
       return this.numActionCardsInDeck() / this.getDeck().length;
     };
     PlayerState.prototype.menagerieDraws = function() {
-      var card, cardsToDraw, seen, _i, _len, _ref;
+      var card, cardsToDraw, seen, _i, _len, _ref2;
       seen = {};
       cardsToDraw = 3;
-      _ref = this.hand;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      _ref2 = this.hand;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         if (seen[card.name] != null) {
           cardsToDraw = 1;
           break;
@@ -981,11 +978,11 @@
       return cardsToDraw;
     };
     PlayerState.prototype.shantyTownDraws = function() {
-      var card, cardsToDraw, _i, _len, _ref;
+      var card, cardsToDraw, _i, _len, _ref2;
       cardsToDraw = 2;
-      _ref = this.hand;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      _ref2 = this.hand;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         if (card.isAction) {
           cardsToDraw = 0;
           break;
@@ -994,11 +991,11 @@
       return cardsToDraw;
     };
     PlayerState.prototype.actionBalance = function() {
-      var balance, card, _i, _len, _ref;
+      var balance, card, _i, _len, _ref2;
       balance = this.actions;
-      _ref = this.hand;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      _ref2 = this.hand;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         if (card.isAction) {
           balance += card.actions;
           balance--;
@@ -1115,22 +1112,22 @@
       return this;
     };
     State.prototype.makeSupply = function(tableau) {
-      var allCards, card, supply, _i, _len, _ref;
+      var allCards, card, supply, _i, _len, _ref2;
       allCards = this.basicSupply.concat(tableau);
       supply = {};
       for (_i = 0, _len = allCards.length; _i < _len; _i++) {
         card = allCards[_i];
-        card = (_ref = c[card]) != null ? _ref : card;
+        card = (_ref2 = c[card]) != null ? _ref2 : card;
         supply[card] = card.startingSupply(this);
       }
       return supply;
     };
     State.prototype.emptyPiles = function() {
-      var key, piles, value, _ref;
+      var key, piles, value, _ref2;
       piles = [];
-      _ref = this.supply;
-      for (key in _ref) {
-        value = _ref[key];
+      _ref2 = this.supply;
+      for (key in _ref2) {
+        value = _ref2[key];
         if (value === 0) {
           piles.push(key);
         }
@@ -1141,16 +1138,16 @@
       return this.emptyPiles().length;
     };
     State.prototype.gameIsOver = function() {
-      var emptyPiles, playerName, turns, vp, _i, _len, _ref, _ref2;
+      var emptyPiles, playerName, turns, vp, _i, _len, _ref2, _ref3;
       if (this.phase !== 'start') {
         return false;
       }
       emptyPiles = this.emptyPiles();
       if (emptyPiles.length >= this.totalPilesToEndGame() || (this.nPlayers < 5 && emptyPiles.length >= 3) || __indexOf.call(emptyPiles, 'Province') >= 0 || __indexOf.call(emptyPiles, 'Colony') >= 0) {
         this.log("Empty piles: " + emptyPiles);
-        _ref = this.getFinalStatus();
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          _ref2 = _ref[_i], playerName = _ref2[0], vp = _ref2[1], turns = _ref2[2];
+        _ref2 = this.getFinalStatus();
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          _ref3 = _ref2[_i], playerName = _ref3[0], vp = _ref3[1], turns = _ref3[2];
           this.log("" + playerName + " took " + turns + " turns and scored " + vp + " points.");
         }
         return true;
@@ -1158,22 +1155,22 @@
       return false;
     };
     State.prototype.getFinalStatus = function() {
-      var player, _i, _len, _ref, _results;
-      _ref = this.players;
+      var player, _i, _len, _ref2, _results;
+      _ref2 = this.players;
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        player = _ref[_i];
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        player = _ref2[_i];
         _results.push([player.ai.toString(), player.getVP(this), player.turnsTaken]);
       }
       return _results;
     };
     State.prototype.getWinners = function() {
-      var best, bestScore, modScore, player, score, scores, turns, _i, _len, _ref;
+      var best, bestScore, modScore, player, score, scores, turns, _i, _len, _ref2;
       scores = this.getFinalStatus();
       best = [];
       bestScore = -Infinity;
       for (_i = 0, _len = scores.length; _i < _len; _i++) {
-        _ref = scores[_i], player = _ref[0], score = _ref[1], turns = _ref[2];
+        _ref2 = scores[_i], player = _ref2[0], score = _ref2[1], turns = _ref2[2];
         modScore = score - turns / 100;
         if (modScore === bestScore) {
           best.push(player);
@@ -1186,8 +1183,8 @@
       return best;
     };
     State.prototype.countInSupply = function(card) {
-      var _ref;
-      return (_ref = this.supply[card]) != null ? _ref : 0;
+      var _ref2;
+      return (_ref2 = this.supply[card]) != null ? _ref2 : 0;
     };
     State.prototype.totalPilesToEndGame = function() {
       switch (this.nPlayers) {
@@ -1201,13 +1198,13 @@
       }
     };
     State.prototype.gainsToEndGame = function() {
-      var card, count, counts, minimum, piles, _i, _len, _ref;
+      var card, count, counts, minimum, piles, _i, _len, _ref2;
       counts = (function() {
-        var _ref, _results;
-        _ref = this.supply;
+        var _ref2, _results;
+        _ref2 = this.supply;
         _results = [];
-        for (card in _ref) {
-          count = _ref[card];
+        for (card in _ref2) {
+          count = _ref2[card];
           _results.push(count);
         }
         return _results;
@@ -1215,9 +1212,9 @@
       numericSort(counts);
       piles = this.totalPilesToEndGame();
       minimum = 0;
-      _ref = counts.slice(0, piles);
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        count = _ref[_i];
+      _ref2 = counts.slice(0, piles);
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        count = _ref2[_i];
         minimum += count;
       }
       minimum = Math.min(minimum, this.supply['Province']);
@@ -1248,24 +1245,23 @@
       }
     };
     State.prototype.doDurationPhase = function() {
-      var card, _i, _len, _ref, _results;
-      _ref = this.current.duration;
-      _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      var card, _i, _len, _ref2;
+      _ref2 = this.current.duration;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         this.log("" + this.current.ai + " resolves the duration effect of " + card + ".");
-        _results.push(card.onDuration(this));
+        card.onDuration(this);
       }
-      return _results;
+      return this.tidyList(this.current.duration);
     };
     State.prototype.doActionPhase = function() {
-      var card, idx, validActions, _i, _len, _ref, _results;
+      var card, idx, validActions, _i, _len, _ref2, _results;
       _results = [];
       while (this.current.actions > 0) {
         validActions = [null];
-        _ref = this.current.hand;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          card = _ref[_i];
+        _ref2 = this.current.hand;
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          card = _ref2[_i];
           if (card.isAction && __indexOf.call(validActions, card) < 0) {
             validActions.push(card);
           }
@@ -1288,13 +1284,13 @@
       return _results;
     };
     State.prototype.doTreasurePhase = function() {
-      var card, idx, treasure, validTreasures, _i, _len, _ref, _results;
+      var card, idx, treasure, validTreasures, _i, _len, _ref2, _results;
       _results = [];
       while (true) {
         validTreasures = [null];
-        _ref = this.current.hand;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          card = _ref[_i];
+        _ref2 = this.current.hand;
+        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+          card = _ref2[_i];
           if (card.isTreasure && __indexOf.call(validTreasures, card) < 0) {
             validTreasures.push(card);
           }
@@ -1316,16 +1312,16 @@
       return _results;
     };
     State.prototype.doBuyPhase = function() {
-      var buyable, card, cardname, choice, coinCost, count, potionCost, _ref, _ref2, _ref3, _results;
+      var buyable, card, cardname, choice, coinCost, count, potionCost, _ref2, _ref3, _ref4, _results;
       _results = [];
       while (this.current.buys > 0) {
         buyable = [null];
-        _ref = this.supply;
-        for (cardname in _ref) {
-          count = _ref[cardname];
+        _ref2 = this.supply;
+        for (cardname in _ref2) {
+          count = _ref2[cardname];
           card = c[cardname];
           if (card.mayBeBought(this) && count > 0) {
-            _ref2 = card.getCost(this), coinCost = _ref2[0], potionCost = _ref2[1];
+            _ref3 = card.getCost(this), coinCost = _ref3[0], potionCost = _ref3[1];
             if (coinCost <= this.current.coins && potionCost <= this.current.potions) {
               buyable.push(card);
             }
@@ -1337,7 +1333,7 @@
           return;
         }
         this.log("" + this.current.ai + " buys " + choice + ".");
-        _ref3 = choice.getCost(this), coinCost = _ref3[0], potionCost = _ref3[1];
+        _ref4 = choice.getCost(this), coinCost = _ref4[0], potionCost = _ref4[1];
         this.current.coins -= coinCost;
         this.current.potions -= potionCost;
         this.current.buys -= 1;
@@ -1358,6 +1354,9 @@
       while (this.current.inPlay.length > 0) {
         card = this.current.inPlay[0];
         this.current.inPlay = this.current.inPlay.slice(1);
+        if (!(card != null)) {
+          continue;
+        }
         if (card.isDuration) {
           this.current.duration.push(card);
         } else {
@@ -1366,6 +1365,7 @@
         card.onCleanup(this);
       }
       this.current.discard = this.current.discard.concat(this.current.hand);
+      this.tidyList(this.current.discard);
       this.current.hand = [];
       this.current.actions = 1;
       this.current.buys = 1;
@@ -1458,45 +1458,46 @@
       return _results;
     };
     State.prototype.attackOpponents = function(effect) {
-      var opp, _i, _len, _ref, _results;
-      _ref = this.players.slice(1);
+      var opp, _i, _len, _ref2, _results;
+      _ref2 = this.players.slice(1);
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        opp = _ref[_i];
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        opp = _ref2[_i];
         _results.push(this.attackPlayer(opp, effect));
       }
       return _results;
     };
     State.prototype.attackPlayer = function(player, effect) {
-      var card, _i, _len, _ref, _ref2;
+      var card, _i, _len, _ref2, _ref3;
       player.moatProtected = false;
-      _ref = player.hand;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
+      _ref2 = player.hand;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
         if (card.isReaction) {
           card.reactToAttack(player);
         }
       }
+      this.tidyList(player.hand);
       if (player.moatProtected) {
         return this.log("" + player.ai + " is protected by a Moat.");
-      } else if (_ref2 = c.Lighthouse, __indexOf.call(player.duration, _ref2) >= 0) {
+      } else if (_ref3 = c.Lighthouse, __indexOf.call(player.duration, _ref3) >= 0) {
         return this.log("" + player.ai + " is protected by the Lighthouse.");
       } else {
         return effect(player);
       }
     };
     State.prototype.copy = function() {
-      var key, newPlayers, newState, newSupply, player, value, _i, _len, _ref, _ref2;
+      var key, newPlayers, newState, newSupply, player, value, _i, _len, _ref2, _ref3;
       newSupply = {};
-      _ref = this.supply;
-      for (key in _ref) {
-        value = _ref[key];
+      _ref2 = this.supply;
+      for (key in _ref2) {
+        value = _ref2[key];
         newSupply[key] = value;
       }
       newPlayers = [];
-      _ref2 = this.players;
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        player = _ref2[_i];
+      _ref3 = this.players;
+      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+        player = _ref3[_i];
         newPlayers.push(player.copy());
       }
       newState = new State();
@@ -1509,6 +1510,15 @@
       newState.phase = this.phase;
       newState.logFunc = this.logFunc;
       return newState;
+    };
+    State.prototype.tidyList = function(list) {
+      var i, _ref2;
+      for (i = 0, _ref2 = list.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
+        if (!(list[i] != null)) {
+          list.splice(i, 1);
+          return this.tidyList(list);
+        }
+      }
     };
     State.prototype.log = function(obj) {
       if (this.logFunc != null) {
