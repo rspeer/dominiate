@@ -312,6 +312,9 @@
     getVP: function(state) {
       return this.vp;
     },
+    getPotion: function(state) {
+      return 0;
+    },
     mayBeBought: function(state) {
       return true;
     },
@@ -330,6 +333,7 @@
       var cardsToDraw;
       state.current.actions += this.getActions(state);
       state.current.coins += this.getCoins(state);
+      state.current.potions += this.getPotion(state);
       state.current.buys += this.getBuys(state);
       cardsToDraw = this.getCards(state);
       if (cardsToDraw > 0) {
@@ -434,6 +438,9 @@
     },
     getPotion: function(state) {
       return 1;
+    },
+    startingSupply: function(state) {
+      return 16;
     }
   });
   action = makeCard('action', basicCard, {
