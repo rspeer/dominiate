@@ -184,7 +184,7 @@
       return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Festival", "Bazaar", "Worker's Village", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", "Monument", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
+      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Festival", "Bazaar", "Worker's Village", "City", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
     };
     BasicAI.prototype.treasurePriority = function(state) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank"];
@@ -545,6 +545,29 @@
     durationCards: 0,
     durationCoins: +2
   });
+  makeCard('Adventurer', action, {
+    cost: 6,
+    playEffect: function(state) {
+      var card, drawn, treasuresDrawn;
+      treasuresDrawn = 0;
+      while (treasuresDrawn < 2) {
+        drawn = state.current.getCardsFromDeck(1);
+        if (drawn.length === 0) {
+          break;
+        }
+        card = drawn[0];
+        if (card.isTreasure) {
+          treasuresDrawn += 1;
+          state.current.hand.push(card);
+          state.log("...drawing a " + card + ".");
+        } else {
+          state.current.setAside.push(card);
+        }
+      }
+      state.current.discard = state.current.discard.concat(state.current.setAside);
+      return state.current.setAside = [];
+    }
+  });
   makeCard('Alchemist', action, {
     cost: 3,
     costPotion: 1,
@@ -595,6 +618,32 @@
     cost: 2,
     playEffect: function(state) {
       return state.allowTrash(state.current, 4);
+    }
+  });
+  makeCard('City', action, {
+    cost: 5,
+    actions: +2,
+    cards: +1,
+    getCards: function(state) {
+      if (state.numEmptyPiles() >= 1) {
+        return 2;
+      } else {
+        return 1;
+      }
+    },
+    getBuys: function(state) {
+      if (state.numEmptyPiles() >= 2) {
+        return 1;
+      } else {
+        return 0;
+      }
+    },
+    getCoins: function(state) {
+      if (state.numEmptyPiles() >= 2) {
+        return 1;
+      } else {
+        return 0;
+      }
     }
   });
   makeCard('Coppersmith', action, {
