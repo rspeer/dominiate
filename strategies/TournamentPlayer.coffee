@@ -1,0 +1,20 @@
+{
+  name: "TournamentPlayer"
+  gainPriority: (state) -> [
+    "Colony" if state.current.countInDeck("Platinum") > 0
+    "Province"
+    "Duchy" if 0 < state.gainsToEndGame() <= 2
+    "Trusty Steed"
+    "Followers"
+    "Bag of Gold"
+    "Princess"
+    "Duchy" if 0 < state.gainsToEndGame() <= 5
+    "Diadem"
+    "Estate" if 0 < state.gainsToEndGame() <= 2
+    "Platinum"
+    "Gold"
+    "Tournament"
+    "Silver"
+    "Copper" if state.gainsToEndGame() <= 3
+  ]
+}
