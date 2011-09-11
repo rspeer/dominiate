@@ -184,7 +184,7 @@
       return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Festival", "Bazaar", "Worker's Village", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Witch", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", "Monument", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
+      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Festival", "Bazaar", "Worker's Village", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", "Monument", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
     };
     BasicAI.prototype.treasurePriority = function(state) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank"];
@@ -628,6 +628,23 @@
       return vp;
     }
   });
+  makeCard("Followers", action, {
+    cost: 0,
+    isAttack: true,
+    isPrize: true,
+    mayBeBought: function(state) {
+      return false;
+    },
+    playEffect: function(state) {
+      state.gainCard(state.current, c.Estate);
+      return state.attackOpponents(function(opp) {
+        state.gainCard(opp, c.Curse);
+        if (opp.hand.length > 3) {
+          return state.requireDiscard(opp, opp.hand.length - 3);
+        }
+      });
+    }
+  });
   makeCard("Gardens", c.Estate, {
     cost: 4,
     getVP: function(state) {
@@ -696,6 +713,11 @@
         }
       });
     }
+  });
+  makeCard("Goons", c.Militia, {
+    cost: 6,
+    coins: 2,
+    buys: 1
   });
   makeCard("Moat", action, {
     cost: 2,
@@ -1333,7 +1355,7 @@
       return _results;
     };
     State.prototype.doBuyPhase = function() {
-      var buyable, card, cardname, choice, coinCost, count, potionCost, _ref2, _ref3, _ref4, _results;
+      var buyable, card, cardname, choice, coinCost, count, goonses, potionCost, _ref2, _ref3, _ref4, _results;
       _results = [];
       while (this.current.buys > 0) {
         buyable = [null];
@@ -1359,7 +1381,9 @@
         this.current.potions -= potionCost;
         this.current.buys -= 1;
         this.gainCard(this.current, choice);
-        _results.push(choice.onBuy(this));
+        choice.onBuy(this);
+        goonses = this.current.countInPlay('Goons');
+        _results.push(goonses > 0 ? (this.log("...gaining " + goonses + " VP."), this.current.chips += goonses) : void 0);
       }
       return _results;
     };
