@@ -933,9 +933,11 @@
           choices.push(c.Duchy);
         }
         choice = state.gainChoice(state.current, choices);
-        state.log("...putting the " + choice + " on top of the deck.");
-        transferCardToTop(choice, state.current.discard, state.current.draw);
-        state.tidyList(state.current.discard);
+        if (choice !== null) {
+          state.log("...putting the " + choice + " on top of the deck.");
+          transferCardToTop(choice, state.current.discard, state.current.draw);
+          state.tidyList(state.current.discard);
+        }
       }
       if (!opposingProvince) {
         state.current.coins += 1;
