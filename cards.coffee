@@ -695,9 +695,10 @@ makeCard 'Tournament', action, {
         if state.supply[c.Duchy] > 0
           choices.push(c.Duchy)
         choice = state.gainChoice(state.current, choices)
-        state.log("...putting the #{choice} on top of the deck.")
-        transferCardToTop(choice, state.current.discard, state.current.draw)
-        state.tidyList(state.current.discard)
+        if choice isnt null
+          state.log("...putting the #{choice} on top of the deck.")
+          transferCardToTop(choice, state.current.discard, state.current.draw)
+          state.tidyList(state.current.discard)
       if not opposingProvince
         state.current.coins += 1
         state.current.drawCards(1)
