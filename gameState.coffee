@@ -734,8 +734,15 @@ this.tableaux = {
   moneyOnly: []
   moneyOnlyColony: ['Platinum', 'Colony']
   all: c.allCards
-  noColony: (card for card in c.allCards if card != 'Platinum' and card != 'Colony')
 }
+
+# Define the additional tableau of everything but Platinum/Colony.
+# If there's a better way to remove items from a JS array, I'd like to know
+# what it is.
+noColony = this.tableaux.all.slice(0)
+noColony = noColony.splice(noColony.indexOf('Platinum'))
+noColony = noColony.splice(noColony.indexOf('Colony'))
+this.tableaux.noColony = noColony
 
 # Utility functions
 # -----------------
