@@ -104,6 +104,10 @@ basicCard = {
   getCoins: (state) -> this.coins
   getBuys: (state) -> this.buys
   getVP: (state) -> this.vp
+  
+  # getPotion says whether the card provides a potion. There is only one
+  # card for which this is true, which is Potion.
+  getPotion: (state) -> 0
 
   # Some cards (Grand Market) may not be bought in certain situations.
   # Use `cards.mayBeBought(state)` to define when. By default, a card may be
@@ -145,6 +149,7 @@ basicCard = {
   onPlay: (state) ->
     state.current.actions += this.getActions(state)
     state.current.coins += this.getCoins(state)
+    state.current.potions += this.getPotion(state)
     state.current.buys += this.getBuys(state)
     cardsToDraw = this.getCards(state)
     if cardsToDraw > 0
@@ -237,8 +242,7 @@ makeCard 'Potion', c.Silver, {
   playEffect:
     (state) -> state.current.potions += 1
   getPotion: (state) -> 1
-  # *TODO*: I don't actually remember how many Potions are in the stack. I
-  # should check.
+  startingSupply: (state) -> 16
 }
 
 # Vanilla cards
