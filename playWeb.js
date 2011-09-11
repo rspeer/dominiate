@@ -184,7 +184,7 @@
       return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Festival", "Bazaar", "Worker's Village", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Witch", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", "Monument", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
+      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Festival", "Bazaar", "Worker's Village", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Witch", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", "Monument", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
     };
     BasicAI.prototype.treasurePriority = function(state) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank"];
@@ -440,6 +440,7 @@
     isAction: true
   }, true);
   makeCard('Village', action, {
+    cost: 3,
     actions: 2,
     cards: 1
   });
@@ -635,6 +636,23 @@
     mayBeBought: function(state) {
       var _ref;
       return !(_ref = c.Copper, __indexOf.call(state.current.inPlay, _ref) >= 0);
+    }
+  });
+  makeCard("Harvest", action, {
+    cost: 5,
+    playEffect: function(state) {
+      var card, cards, unique, _i, _len;
+      unique = [];
+      cards = state.drawCards(state.current, 4);
+      for (_i = 0, _len = cards.length; _i < _len; _i++) {
+        card = cards[_i];
+        if (__indexOf.call(unique, card) < 0) {
+          unique.push(card);
+        }
+      }
+      state.current.coins += unique.length;
+      state.log("...revealing " + cards + " for $+" + unique.length + ".");
+      return state.current.discard = state.current.discard.concat(cards);
     }
   });
   makeCard("Horse Traders", action, {
