@@ -1,0 +1,605 @@
+<!DOCTYPE html>  <html> <head>   <title>heuristics.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="basicAI.html">                 basicAI.coffee               </a>                                           <a class="source" href="cards.html">                 cards.coffee               </a>                                           <a class="source" href="gameState.html">                 gameState.coffee               </a>                                           <a class="source" href="heuristics.html">                 heuristics.coffee               </a>                                           <a class="source" href="play.html">                 play.coffee               </a>                                           <a class="source" href="testSimulation.html">                 testSimulation.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               heuristics.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>These heuristics are intended to estimate the average effect on your hand
+state when you play the card, not to define what the card actually does.</p>
+
+<p>The values are all constants, even when the card's effect isn't, so that in
+the base case a hand can be quickly evaluated. The more sophisticated way to
+evaluate a hand, of course, is to consider the actual effect of playing the
+card, and evaluate the resulting hand, recursively. As such, it doesn't even
+matter when these values are wrong for complex actions, as long as they're
+not incredibly wrong.</p>
+
+<p>The +'s have no effect on the values, they just make some of them sound more
+natural.</p>
+
+<p>Victory cards are modeled as cards that replace their action and do nothing
+(this isn't accurate, but the things that would care about the difference --
+like Libraries -- aren't accurate either.)</p>
+
+<p>If they appeared as the default -1 action, it would imply that there was some
+benefit to having +actions with victory cards.</p>
+
+<p>"Churn" is how many more cards you get to see than you get to keep. (Think of
+what Cellar and Warehouse do, even though they're different.) This doesn't
+model the effect of cycling through your deck or stacking it; that's too hard
+to describe without describing what the card actually does in a situation.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">heuristics = </span><span class="p">{</span>
+  <span class="nv">default: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">-</span><span class="mi">1</span>   <span class="c1"># _difference_ in number of actions</span>
+    <span class="nv">attack: </span><span class="mi">0</span>     <span class="c1"># how much it hurts your opponents (negative means it helps)</span>
+    <span class="nv">nextTurn: </span><span class="mi">0</span>   <span class="c1"># estimated benefit of a duration or top-decker</span>
+    <span class="nv">buys: </span><span class="mi">0</span>       <span class="c1"># number of +buys</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">1</span>     <span class="c1"># _difference_ in cards in hand</span>
+    <span class="nv">coins: </span><span class="mi">0</span>      <span class="c1"># number of coins you get</span>
+    <span class="nv">gain: </span><span class="mi">0</span>       <span class="c1"># number of (good) cards you gain</span>
+    <span class="nv">trash: </span><span class="mi">0</span>      <span class="c1"># number of cards you can trash</span>
+    <span class="nv">chips: </span><span class="mi">0</span>      <span class="c1"># number of VP chips</span>
+  <span class="p">}</span>
+  <span class="nv">Adventurer: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">-</span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Alchemist: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Ambassador: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mf">1.5</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mf">2.5</span>
+    <span class="nv">attack: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Apothecary: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Apprentice: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Bag of Gold&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Bank: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="mi">4</span>
+  <span class="p">}</span>
+  <span class="nv">Baron: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">3</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">gain: </span><span class="mf">0.1</span>
+  <span class="p">}</span>
+  <span class="nv">Bazaar: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Bishop: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">chips: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Black Market&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">buys: </span><span class="mf">0.5</span>   <span class="c1"># you might use it as a buy</span>
+    <span class="nv">gain: </span><span class="mf">0.3</span>   <span class="c1"># you might benefit from it</span>
+  <span class="p">}</span>
+  <span class="nv">Bridge: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">3</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Bureaucrat: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mf">0.5</span>
+    <span class="nv">gain: </span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Caravan: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Cellar: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">churn: </span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="nv">Chancellor: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Chapel: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">4</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">4</span>
+  <span class="p">}</span>
+  <span class="nv">City: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.2</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mf">0.1</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mf">0.1</span>
+  <span class="p">}</span>
+  <span class="nv">Colony: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="nv">Conspirator: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">actions: </span><span class="o">-</span><span class="mf">0.6</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mf">0.6</span>
+  <span class="p">}</span>
+  <span class="nv">Contraband: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">3</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">attack: </span><span class="o">-</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Copper: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Coppersmith: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Council Room&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">3</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">attack: </span><span class="o">-</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Counting House&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="nv">Courtyard: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">churn: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Curse: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="nv">Cutpurse: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Diadem: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="nv">Duchy: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="nv">Duke: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="nv">Embargo: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Envoy: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="nv">Estate: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="nv">Expand: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Explorer: </span><span class="p">{</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Fairgrounds: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="nv">Familiar: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">2</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Farming Village&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Feast: </span><span class="p">{</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Festival: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Fishing Village&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Followers: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">4</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Forge: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">3</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">4</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Fortune Teller&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">attack: </span><span class="mf">0.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Goons: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mf">2.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">chips: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Grand Market&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Great Hall&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Hamlet: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mf">0.5</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mf">0.5</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Harem: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Herbalist: </span><span class="p">{</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Hoard: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">gain: </span><span class="mf">0.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Horn of Plenty&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Horse Traders&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">3</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">3</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Hunting Party&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Ironworks: </span><span class="p">{</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mf">0.4</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mf">0.4</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.2</span>
+  <span class="p">}</span>
+  <span class="nv">Island: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Jester: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">gain: </span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;King&#39;s Court&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Laboratory: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Library: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Lighthouse: </span><span class="p">{</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mf">1.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Loan: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">1</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Lookout: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">1</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Market: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Masquerade: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Menagerie: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Merchant Ship&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Militia: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">2</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Mine: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">1</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Mining Village&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Minion: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mf">0.5</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">1.5</span>
+    <span class="nv">churn: </span><span class="mf">1.5</span>
+    <span class="nv">coins: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Mint: </span><span class="p">{</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Moat: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Moneylender: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Monument: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Mountebank: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">2</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Native Village&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Navigator: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Nobles: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Outpost: </span><span class="p">{</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Pawn: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">-</span><span class="mf">0.5</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mf">0.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mf">0.5</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Pearl Diver&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Peddler: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Philosopher&#39;s Stone&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">4</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Pirate Ship&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">attack: </span><span class="mf">0.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="nv">Platinum: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">5</span>
+  <span class="p">}</span>
+  <span class="nv">Possession: </span><span class="p">{</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">5</span>
+  <span class="p">}</span>
+  <span class="nv">Potion: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">potions: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Princess: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">4</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Province: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="nv">Quarry: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="nv">Rabble: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Remake: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">2</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">3</span>
+    <span class="nv">gain: </span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Remodel: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Royal Seal&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="mi">2</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="nv">Saboteur: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mf">2.5</span>
+  <span class="p">}</span>
+  <span class="nv">Salvager: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Scout: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Scrying Pool&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">attack: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Sea Hag&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Secret Chamber&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">3</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Shanty Town&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Silver: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Smithy: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Smugglers: </span><span class="p">{</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Spy: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">1</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mf">0.2</span>
+  <span class="p">}</span>
+  <span class="nv">Stash: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Steward: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mf">0.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mf">0.5</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Swindler: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mf">1.5</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Tactician: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">5</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">6</span>
+  <span class="p">}</span>
+  <span class="nv">Talisman: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Thief: </span><span class="p">{</span>
+    <span class="nv">gain: </span><span class="mf">0.5</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Throne Room&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Torturer: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">2</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Tournament: </span><span class="p">{</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Trade Route&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Trading Post&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">2</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Transmute: </span><span class="p">{</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Treasure Map&quot;</span><span class="o">:</span> <span class="p">{}</span>
+  <span class="nv">Treasury: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Tribute: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="mi">0</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Trusty Steed&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mf">0.7</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.7</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mf">0.6</span>
+  <span class="p">}</span>
+  <span class="nv">University: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Upgrade: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">1</span>
+    <span class="nv">trash: </span><span class="mi">1</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Vault: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">-</span><span class="mi">1</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">churn: </span><span class="mi">2</span>
+  <span class="p">}</span>
+  <span class="nv">Venture: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mf">2.5</span>
+  <span class="p">}</span>
+  <span class="nv">Village: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Vineyard: </span><span class="p">{</span><span class="nv">actions: </span><span class="mi">0</span><span class="p">}</span>
+  <span class="s2">&quot;Walled Village&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mf">0.3</span>
+  <span class="p">}</span>
+  <span class="nv">Warehouse: </span><span class="p">{</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+    <span class="nv">churn: </span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="nv">Watchtower: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">1.5</span>
+  <span class="p">}</span>
+  <span class="nv">Wharf: </span><span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+    <span class="nv">nextTurn: </span><span class="o">+</span><span class="mi">3</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Wishing Well&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mf">0.3</span>
+    <span class="nv">actions: </span><span class="mi">0</span>
+  <span class="p">}</span>
+  <span class="nv">Witch: </span><span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">3</span>
+    <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Woodcutter: </span><span class="p">{</span>
+    <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+    <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Worker&#39;s Village&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="nv">Workshop: </span><span class="p">{</span>
+    <span class="nv">gain: </span><span class="mi">1</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;Young Witch&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nv">attack: </span><span class="mi">2</span>
+    <span class="nv">churn: </span><span class="mi">2</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

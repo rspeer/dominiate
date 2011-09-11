@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Dominiate</title>
+  <link rel="stylesheet" href="libs/bootstrap-mod.css">
+  <link rel="stylesheet" href="dominiate.css">
+</head>
+<body>
+
+<div id="masthead">
+  <h1>dominiate</h1>
+  <h2 class="tagline">A simulator for Dominion strategies.</h2>
+  <a class="about" href="http://rspeer.github.com/dominiate">About</a>
+</div>
+
+<div id="p1">
+<h2>Player 1</h2>
+<select name="loadStrategy1" id="loadStrategy1">
+</select>
+<pre id="editor-left">
+</pre>
+</div>
+
+<div id="p2">
+<h2>Player 2</h2>
+<select name="loadStrategy2" id="loadStrategy2">
+</select>
+<pre id="editor-right">
+</pre>
+</div>
+
+<div id="layoutSeparator"></div>
+<div class="container">
+  <div class="row" id="gameControls">
+    <div class="span3">
+      <a id="playMany" href="#playMany" class="btn success">
+        Play until one player dominates
+      </a>
+    </div>
+    <div class="span2">
+      <a id="playButton" href="#playButton" class="btn">
+        Play single game
+      </a>
+    </div>
+    <div class="span5">
+      <ul class="inputs-list">
+        <li>
+          <label>
+            <input type="checkbox" name="optionsCheckboxes" value="randomize"
+            id="randomize" checked="checked" />
+            <span>Randomize player order</span>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="optionsCheckboxes" value="colonies"
+            id="colonies" checked="checked" />
+            <span>Include Colony and Platinum</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+    <div class="span5" id="scores">
+    </div>
+  </div>
+</div>
+
+<div id="logs">
+  <h2>Game logs</h2>
+  <pre id="gameLog">
+  </pre>
+
+  <div id="paginator" class="pagination">
+    <ul> 
+      <li class="prev disabled"><a href="#">&larr; Previous</a></li> 
+      <li class="active"><a href="#">1</a></li> 
+      <li><a href="#">2</a></li> 
+      <li><a href="#">3</a></li> 
+      <li><a href="#">4</a></li> 
+      <li><a href="#">5</a></li> 
+      <li class="next"><a href="#">Next &rarr;</a></li> 
+    </ul> 
+  </div>
+</div>
+
+<script src="libs/ace/src/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/ace/src/theme-dawn.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/ace/src/mode-coffee.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/coffee-script.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/jquery-1.6.3.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="libs/zeroTimeout.js" type="text/javascript" charset="utf-8"></script>
+<script src="playWeb.js" type="text/javascript" charset="utf-8"></script>
+<script src="multiLog.js" type="text/javascript"></script>
+<script src="scoreTracker.js" type="text/javascript"></script>
+<script src="strategies.js" type="text/javascript"></script>
+
+<script type="text/coffeescript">
+$ = jQuery
+
+scrollToBottom = (elt) ->
+  elt.prop({ scrollTop: elt.prop("scrollHeight") })
+window.scrollToBottom = scrollToBottom
+
+$ ->
+  # Here we have all the code that hooks the game into the web page.
+  # It is organized *terribly*, I realize.
+
+  window.editors = []
+  for box in ["editor-left", "editor-right"]
+    editor = ace.edit(box)
+    editor.setTheme("ace/theme/dawn")
+      
+    JavaScriptMode = require("ace/mode/coffee").Mode;
+    editor.getSession().setMode(new JavaScriptMode())
+    
+    editor.setShowPrintMargin(false)
+    window.editors.push(editor)
+ 
+  leftEd = window.editors[0].getSession()
+  rightEd = window.editors[1].getSession()
+
+  multiLog = new MultiLog($('#gameLog'), $('#paginator'))
+  log = multiLog.addLineToEnd
+  tracker = new ScoreTracker($('#scores'))
+  window.tracker = tracker
+
+  singleGameResult = (state) =>
+    result = state.getWinners().toString() + " wins!"
+    multiLog.addLineToEnd(result)
+    multiLog.updateOutput()
+    tracker.recordGame(state)
+
+  errorHandlers = []
+  errorHandlers.push (error) => multiLog.addLineToCurrent("Player 1: "+error.message)
+  errorHandlers.push (error) => multiLog.addLineToCurrent("Player 2: "+error.message)
+  errorHandler = (error) => multiLog.addLineToCurrent(error.message)
+
+  playOneGame = ->
+    scripts = [leftEd.getValue(), rightEd.getValue()]
+    compiled = compileStrategies(scripts, errorHandlers)
+    multiLog.addPage('')
+    
+    options = {
+      log: log
+      colonies: $('#colonies').is(':checked')
+      randomizeOrder: $('#randomize').is(':checked')
+    }
+    playGame(compiled, options, singleGameResult)
+
+  playUntilDecisive = ->
+    scripts = [leftEd.getValue(), rightEd.getValue()]
+    compiled = compileStrategies(scripts, errorHandlers)
+    
+    options = {
+      log: log
+      colonies: $('#colonies').is(':checked')
+      randomizeOrder: $('#randomize').is(':checked')
+    }
+
+    playLoop = (result) ->
+      singleGameResult(result)
+      if not tracker.decisiveWinner()?
+        multiLog.addPageQuietly('')
+        nextIteration = ->
+          playGame(compiled, options, playLoop)
+        window.setTimeout(nextIteration, 1)
+
+    multiLog.addPageQuietly('')
+    playGame(compiled, options, playLoop)
+  
+  $('#playButton').click (event) -> playOneGame()
+  $('#playMany').click (event) -> playUntilDecisive()
+
+  strategyElements = ['<option></option>']
+  for name of strategies
+    strategyElements.push("<option>#{name}</option>")
+  strategyElements.sort()
+
+  $('#loadStrategy1').html(strategyElements.join(''))
+  $('#loadStrategy2').html(strategyElements.join(''))
+  $('#loadStrategy1').change =>
+    choice = $('#loadStrategy1 option:selected').text()
+    strategy = strategies[choice] ? ''
+    leftEd.setValue(strategy)
+  $('#loadStrategy2').change =>
+    choice = $('#loadStrategy2 option:selected').text()
+    strategy = strategies[choice] ? ''
+    rightEd.setValue(strategy)
+
+  $('#loadStrategy1').val('ChapelWitch').change()
+  $('#loadStrategy2').val('BankWharf').change()
+
+</script>
+
+</body>
+</html>

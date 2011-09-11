@@ -1,0 +1,555 @@
+<!DOCTYPE html>  <html> <head>   <title>cards.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="basicAI.html">                 basicAI.coffee               </a>                                           <a class="source" href="cards.html">                 cards.coffee               </a>                                           <a class="source" href="gameState.html">                 gameState.coffee               </a>                                           <a class="source" href="heuristics.html">                 heuristics.coffee               </a>                                           <a class="source" href="play.html">                 play.coffee               </a>                                           <a class="source" href="testSimulation.html">                 testSimulation.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               cards.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>Dominion cards and their effects are defined in this file.  Each card is a
+singleton, immutable object.</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-2">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-2">&#182;</a>               </div>               <p>We begin by creating the <code>c</code> object, an exported object with which one can 
+look up any card by its name.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">c = </span><span class="p">{}</span>
+<span class="k">this</span><span class="p">.</span><span class="nv">c = </span><span class="nx">c</span>
+<span class="nv">c.allCards = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-3">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-3">&#182;</a>               </div>               <h2>Defining cards</h2>
+
+<p>Many cards are defined in terms of other cards using a pattern similar to
+inheritance, except without the classes. There is no need for classes because
+there are no separate instances.
+Each Copper is a reference to the same single Copper object, for example.</p>
+
+<p>The <code>makeCard</code> function will define a new card and add it to the card list.
+<code>makeCard</code> works by copying an existing card object and applying a few new
+properties to it.</p>
+
+<p><code>name</code> is the name of the card, which will be the card's string
+representation and the key that you look it up in the card list <code>c</code> by.</p>
+
+<p>To define a card independently of any existing card, let <code>origCard</code> be the
+abstract card called <code>basicCard</code>. To define a card in terms of another card,
+let <code>origCard</code> be that card object (probably a member of <code>c</code>, such as
+<code>c.Estate</code>).</p>
+
+<p><code>props</code> are the properties of the card that differ from its parent.</p>
+
+<p><code>fake</code> is true when this should be an abstract card, not a card in the
+supply. Fake cards are simply returned, not added to <code>c</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">makeCard = </span><span class="nf">(name, origCard, props, fake) -&gt;</span>
+  <span class="nv">newCard = </span><span class="p">{}</span>
+  <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">origCard</span>
+    <span class="nx">newCard</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+  <span class="nv">newCard.name = </span><span class="nx">name</span>
+  <span class="k">for</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span> <span class="k">of</span> <span class="nx">props</span>
+    <span class="nx">newCard</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+  <span class="nv">newCard.parent = </span><span class="nx">origCard</span><span class="p">.</span><span class="nx">name</span>   <span class="c1"># for debugging</span>
+  <span class="k">if</span> <span class="o">not</span> <span class="nx">fake</span>
+    <span class="nx">c</span><span class="p">[</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="nx">newCard</span>
+    <span class="nx">c</span><span class="p">.</span><span class="nx">allCards</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">name</span><span class="p">)</span>
+  <span class="nx">newCard</span></pre></div>             </td>           </tr>                               <tr id="section-4">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-4">&#182;</a>               </div>               <h3>The basicCard object</h3>
+
+<p><code>basicCard</code> contains all the things that are true by default
+about a card, plus many useful methods that will be available on all cards.
+All other cards should have <code>basicCard</code> as an ancestor. Many of the
+properties and methods of <code>basicCard</code> are meant to be overridden in
+real cards.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">basicCard = </span><span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-5">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-5">&#182;</a>               </div>               <p>This set of boolean values defines a card's types. Cards may have any
+number of types.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">isAction: </span><span class="kc">false</span>
+  <span class="nv">isTreasure: </span><span class="kc">false</span>
+  <span class="nv">isVictory: </span><span class="kc">false</span>
+  <span class="nv">isAttack: </span><span class="kc">false</span>
+  <span class="nv">isReaction: </span><span class="kc">false</span>
+  <span class="nv">isDuration: </span><span class="kc">false</span>
+  <span class="nv">isPrize: </span><span class="kc">false</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-6">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-6">&#182;</a>               </div>               <p>The <strong>base cost</strong> of a card is defined here. To find out what a card
+<em>actually</em> costs, use the getCost() method.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">cost: </span><span class="mi">0</span>
+  <span class="nv">costPotion: </span><span class="mi">0</span></pre></div>             </td>           </tr>                               <tr id="section-7">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-7">&#182;</a>               </div>               <p>These methods may be overridden by cards whose costs vary on their own,
+particularly Peddler.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">costInCoins: </span><span class="nf">(state) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">cost</span>
+  <span class="nv">costInPotions: </span><span class="nf">(state) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">costPotion</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-8">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-8">&#182;</a>               </div>               <p>Card costs can change according to things external to the card, such as
+bridges and quarries in play. Therefore, any code that wants to know the
+actual cost of a card in a state should call <code>card.getCost(state)</code>.</p>
+
+<p>This method returns a list of two elements, which are the cost in
+coins and the cost in potions.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">getCost: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">coins = </span><span class="k">this</span><span class="p">.</span><span class="nx">costInCoins</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="nx">coins</span> <span class="o">-=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">bridges</span>
+    <span class="k">if</span> <span class="k">this</span><span class="p">.</span><span class="nx">isAction</span>
+      <span class="nx">coins</span> <span class="o">-=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">quarries</span> <span class="o">*</span> <span class="mi">2</span>
+    <span class="k">if</span> <span class="nx">coins</span> <span class="o">&lt;</span> <span class="mi">0</span>
+      <span class="nv">coins = </span><span class="mi">0</span>
+    <span class="k">return</span> <span class="p">[</span><span class="nx">coins</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">costInPotions</span><span class="p">(</span><span class="nx">state</span><span class="p">)]</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-9">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-9">&#182;</a>               </div>               <p>These properties define simple, non-variable effects of playing a card.
+They may only have constant numeric values.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">actions: </span><span class="mi">0</span>
+  <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="nv">coins: </span><span class="mi">0</span>
+  <span class="nv">buys: </span><span class="mi">0</span>
+  <span class="nv">vp: </span><span class="mi">0</span></pre></div>             </td>           </tr>                               <tr id="section-10">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-10">&#182;</a>               </div>               <p>If a card has simple effects that <em>vary</em> based on the state, define
+them by overriding these methods, which do take the state as a parameter.
+The constant properties above will be ignored in that case, but you could
+fill them in with reasonable guesses for the benefit of AI methods that
+don't want to examine the state.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">getActions: </span><span class="nf">(state) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">actions</span>
+  <span class="nv">getCards: </span><span class="nf">(state) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">cards</span>
+  <span class="nv">getCoins: </span><span class="nf">(state) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">coins</span>
+  <span class="nv">getBuys: </span><span class="nf">(state) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">buys</span>
+  <span class="nv">getVP: </span><span class="nf">(state) -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">vp</span></pre></div>             </td>           </tr>                               <tr id="section-11">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-11">&#182;</a>               </div>               <p>Some cards (Grand Market) may not be bought in certain situations.
+Use <code>cards.mayBeBought(state)</code> to define when. By default, a card may be
+bought whenever it is in the supply.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">mayBeBought: </span><span class="nf">(state) -&gt;</span> <span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-12">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-12">&#182;</a>               </div>               <p><code>card.startingSupply(state)</code> is called once for each card in the supply
+at the start of the game, to determine how many of them go into the supply.
+This is 10 by default, but some types of cards override it.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">startingSupply: </span><span class="nf">(state) -&gt;</span> <span class="mi">10</span></pre></div>             </td>           </tr>                               <tr id="section-13">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-13">&#182;</a>               </div>               <h3>Complex effects</h3>
+
+<p>More complex effects of a card can be defined using arbitrary functions
+that modify the state. These functions are no-ops in <code>basicCard</code>, and
+may be overridden by cards that need them:</p>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-14">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-14">&#182;</a>               </div>               <ul>
+<li>What happens when the card is bought?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">buyEffect: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-15">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-15">&#182;</a>               </div>               <ul>
+<li>What happens (besides the simple effects defined above) when the card is
+played?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-16">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-16">&#182;</a>               </div>               <ul>
+<li>What happens when this card is in play and another card is gained?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">gainInPlayEffect: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-17">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-17">&#182;</a>               </div>               <ul>
+<li>What happens when this card is cleaned up from play?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">cleanupEffect: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-18">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-18">&#182;</a>               </div>               <ul>
+<li>What happens when the card is in play as a Duration at the start of
+the turn?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">durationEffect: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <ul>
+<li>What happens when the card is shuffled into the draw deck?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">shuffleEffect: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <ul>
+<li>What happens when this card is in hand and an opponent plays an attack?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">attackReaction: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <ul>
+<li>What happens when this card is in hand and its owner gains a card?</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">gainReaction: </span><span class="nf">(state) -&gt;</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-22">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-22">&#182;</a>               </div>               <p>This defines everything that happens when a card is played, including
+basic effects and complex effects defined in <code>playEffect</code>. Cards
+should not override <code>onPlay</code>; they should override <code>playEffect</code> instead.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">onPlay: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getActions</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getCoins</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">buys</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getBuys</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="nv">cardsToDraw = </span><span class="k">this</span><span class="p">.</span><span class="nx">getCards</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">cardsToDraw</span> <span class="o">&gt;</span> <span class="mi">0</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">cardsToDraw</span><span class="p">)</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">playEffect</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-23">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-23">&#182;</a>               </div>               <p>Similarly, these are other ways for the game state to interact
+with the card. Cards should override the <code>Effect</code> methods, not these.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">onDuration: </span><span class="nf">(state) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">durationEffect</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+  
+  <span class="nv">onCleanup: </span><span class="nf">(state) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">cleanupEffect</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+
+  <span class="nv">onBuy: </span><span class="nf">(state) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">buyEffect</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+  
+  <span class="nv">reactToAttack: </span><span class="nf">(player) -&gt;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">attackReaction</span><span class="p">(</span><span class="nx">player</span><span class="p">)</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-24">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-24">&#182;</a>               </div>               <p>A card's string representation is its name.</p>
+
+<p>If you have a value called
+<code>card</code> that may be a string or a card object, you can ensure that it is
+a card object by looking up <code>c[card]</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">toString: </span><span class="nf">() -&gt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">name</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-25">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-25">&#182;</a>               </div>               <h2>Base cards</h2>
+
+<p>These are the cards that are not Kingdom cards. Most of them appear in every
+game; Potion, Platinum, and Colony appear in only some games.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">makeCard</span> <span class="s1">&#39;Curse&#39;</span><span class="p">,</span> <span class="nx">basicCard</span><span class="p">,</span> <span class="p">{</span></pre></div>             </td>           </tr>                               <tr id="section-26">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-26">&#182;</a>               </div>               <p>Curse is the only card with no type.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">cost: </span><span class="mi">0</span>
+  <span class="nv">vp: </span><span class="o">-</span><span class="mi">1</span>
+  <span class="nv">startingSupply: </span><span class="nf">(state) -&gt;</span>
+    <span class="k">switch</span> <span class="nx">state</span><span class="p">.</span><span class="nx">nPlayers</span>
+      <span class="k">when</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="k">then</span> <span class="mi">10</span>
+      <span class="k">when</span> <span class="mi">3</span> <span class="k">then</span> <span class="mi">20</span>
+      <span class="k">when</span> <span class="mi">4</span> <span class="k">then</span> <span class="mi">30</span>
+      <span class="k">else</span> <span class="mi">40</span>      
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-27">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-27">&#182;</a>               </div>               <p>To define victory cards, we define Estate and then derive other cards from
+it.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">makeCard</span> <span class="s1">&#39;Estate&#39;</span><span class="p">,</span> <span class="nx">basicCard</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">2</span>
+  <span class="nv">isVictory: </span><span class="kc">true</span>
+  <span class="nv">vp: </span><span class="mi">1</span>
+  <span class="nv">startingSupply: </span><span class="nf">(state) -&gt;</span>
+    <span class="k">switch</span> <span class="nx">state</span><span class="p">.</span><span class="nx">nPlayers</span>
+      <span class="k">when</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span> <span class="k">then</span> <span class="mi">8</span>
+      <span class="k">when</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span> <span class="k">then</span> <span class="mi">12</span>
+      <span class="k">else</span> <span class="mi">15</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Duchy&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">5</span><span class="p">,</span> <span class="nv">vp: </span><span class="mi">3</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Province&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">8</span><span class="p">,</span> <span class="nv">vp: </span><span class="mi">6</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Colony&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">11</span><span class="p">,</span> <span class="nv">vp: </span><span class="mi">10</span><span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-28">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-28">&#182;</a>               </div>               <p>Now we define the basic treasure cards. Our prototypical card here is
+Silver.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">makeCard</span> <span class="s1">&#39;Silver&#39;</span><span class="p">,</span> <span class="nx">basicCard</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">isTreasure: </span><span class="kc">true</span>
+  <span class="nv">coins: </span><span class="mi">2</span>
+  <span class="nv">startingSupply: </span><span class="nf">(state) -&gt;</span> <span class="mi">30</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p>Copper is actually more complex than Silver: its value can vary when modified
+by Coppersmith.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">makeCard</span> <span class="s1">&#39;Copper&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">0</span>
+  <span class="nv">coins: </span><span class="mi">1</span>
+  <span class="nv">getCoins: </span><span class="nf">(state) -&gt;</span> <span class="nx">state</span><span class="p">.</span><span class="nx">copperValue</span> <span class="o">?</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Gold&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">6</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">3</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Platinum&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">9</span><span class="p">,</span>
+  <span class="nv">coins: </span><span class="mi">5</span><span class="p">,</span>
+  <span class="nv">startingSupply: </span><span class="nf">(state) -&gt;</span> <span class="mi">12</span>
+<span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Potion&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">coins: </span><span class="mi">0</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">potions</span> <span class="o">+=</span> <span class="mi">1</span>
+  <span class="nv">getPotion: </span><span class="nf">(state) -&gt;</span> <span class="mi">1</span></pre></div>             </td>           </tr>                               <tr id="section-30">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-30">&#182;</a>               </div>               <p><em>TODO</em>: I don't actually remember how many Potions are in the stack. I
+should check.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-31">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-31">&#182;</a>               </div>               <h2>Vanilla cards</h2>
+
+<p>These cards have effects that involve no decisions, and are expressed entirely
+in +actions, +cards, +coins, +buys, and VP.</p>
+
+<p>Action cards may derive from the virtual card called <code>action</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">action = </span><span class="nx">makeCard</span> <span class="s1">&#39;action&#39;</span><span class="p">,</span> <span class="nx">basicCard</span><span class="p">,</span> <span class="p">{</span><span class="nv">isAction: </span><span class="kc">true</span><span class="p">},</span> <span class="kc">true</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Village&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span><span class="nv">actions: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">cards: </span><span class="mi">1</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s2">&quot;Worker&#39;s Village&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">actions: </span><span class="mi">2</span>
+  <span class="nv">cards: </span><span class="mi">1</span>
+  <span class="nv">buys: </span><span class="mi">1</span>
+<span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Laboratory&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">5</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">cards: </span><span class="mi">2</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Smithy&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">4</span><span class="p">,</span> <span class="nv">cards: </span><span class="mi">3</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Festival&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">5</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">buys: </span><span class="mi">1</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Woodcutter&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span><span class="nv">cost: </span><span class="mi">3</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">buys: </span><span class="mi">1</span><span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Great Hall&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">vp: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">isVictory: </span><span class="kc">true</span>
+<span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Market&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">buys: </span><span class="mi">1</span>
+<span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Bazaar&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">1</span>
+<span class="p">}</span>
+<span class="nx">makeCard</span> <span class="s1">&#39;Harem&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">6</span>
+  <span class="nv">isVictory: </span><span class="kc">true</span>
+  <span class="nv">vp: </span><span class="mi">2</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-32">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-32">&#182;</a>               </div>               <h2>Duration cards</h2>
+
+<p>These cards have additional properties, such as <code>durationActions</code>, defining
+constant effects that happen when the card is resolved as a duration card.
+The virtual card <code>duration</code> specifies how to process these effects.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">duration = </span><span class="nx">makeCard</span> <span class="s1">&#39;duration&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">durationActions: </span><span class="mi">0</span>
+  <span class="nv">durationBuys: </span><span class="mi">0</span>
+  <span class="nv">durationCoins: </span><span class="mi">0</span>
+  <span class="nv">durationCards: </span><span class="mi">0</span>
+  <span class="nv">isDuration: </span><span class="kc">true</span>
+
+  <span class="nv">durationEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">durationActions</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">buys</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">durationBuys</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">durationCoins</span>
+      <span class="k">if</span> <span class="k">this</span><span class="p">.</span><span class="nx">durationCards</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">durationCards</span><span class="p">)</span>
+<span class="p">},</span> <span class="kc">true</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Caravan&#39;</span><span class="p">,</span> <span class="nx">duration</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">cards: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="nv">durationCards: </span><span class="o">+</span><span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Fishing Village&#39;</span><span class="p">,</span> <span class="nx">duration</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="nv">actions: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="nv">durationActions: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="nv">durationCoins: </span><span class="o">+</span><span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Wharf&#39;</span><span class="p">,</span> <span class="nx">duration</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="nv">durationCards: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="nv">durationBuys: </span><span class="o">+</span><span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Merchant Ship&#39;</span><span class="p">,</span> <span class="nx">duration</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">cards: </span><span class="mi">0</span>
+  <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="nv">durationCards: </span><span class="mi">0</span>
+  <span class="nv">durationCoins: </span><span class="o">+</span><span class="mi">2</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-33">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-33">&#182;</a>               </div>               <h2>Miscellaneous cards</h2>
+
+<p>All of these cards have effects beyond what can be expressed with a
+simple formula, which are generally defined by overriding the complex
+methods such as <code>playEffect</code>.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nx">makeCard</span> <span class="s1">&#39;Alchemist&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">costPotion: </span><span class="mi">1</span>
+  <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+
+  <span class="nv">cleanupEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Potion</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span>
+        <span class="nx">transferCardToTop</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Alchemist</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Bank&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">7</span>
+  <span class="nv">getCoins: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">coins = </span><span class="mi">0</span>
+    <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span>
+      <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isTreasure</span>
+        <span class="nx">coins</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="nx">coins</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Bridge&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">coins: </span><span class="mi">1</span>
+  <span class="nv">buys: </span><span class="mi">1</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">bridges</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Cellar&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">2</span>
+  <span class="nv">actions: </span><span class="mi">1</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">startingCards = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">allowDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="nv">numDiscarded = </span><span class="nx">startingCards</span> <span class="o">-</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">numDiscarded</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Chapel&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">2</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">allowTrash</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Coppersmith&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">copperValue</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Diadem&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">0</span>
+  <span class="nv">isPrize: </span><span class="kc">true</span>
+  <span class="nv">mayBeBought: </span><span class="nf">(state) -&gt;</span> <span class="kc">false</span>
+  <span class="nv">getCoins: </span><span class="nf">(state) -&gt;</span> <span class="mi">2</span> <span class="o">+</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Duke&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">getVP: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">vp = </span><span class="mi">0</span>
+    <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">getDeck</span><span class="p">()</span>
+      <span class="k">if</span> <span class="nx">card</span> <span class="o">is</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Duchy</span>
+        <span class="nx">vp</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="nx">vp</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Gardens&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">getVP: </span><span class="nf">(state) -&gt;</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">getDeck</span><span class="p">().</span><span class="nx">length</span> <span class="err">/ 10)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Grand Market&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Market</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">6</span>
+  <span class="nv">coins: </span><span class="mi">2</span>
+  <span class="nv">actions: </span><span class="mi">1</span>
+  <span class="nv">cards: </span><span class="mi">1</span>
+  <span class="nv">buys: </span><span class="mi">1</span></pre></div>             </td>           </tr>                               <tr id="section-34">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-34">&#182;</a>               </div>               <p>Grand Market is the only card with a non-constant mayBeBought value.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">mayBeBought: </span><span class="nf">(state) -&gt;</span>
+    <span class="o">not</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Copper</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Horse Traders&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">buys: </span><span class="mi">1</span>
+  <span class="nv">coins: </span><span class="mi">3</span>
+  <span class="nv">isReaction: </span><span class="kc">true</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span> <span class="nx">state</span><span class="p">.</span><span class="nx">requireDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-35">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-35">&#182;</a>               </div>               <p>Horse Traders is not actually a duration card, but it resolves like one
+when it is set aside. There seems to be no harm in simplifying by
+putting it in the duration area.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">durationEffect:</span>
+    <span class="nf">(state) -&gt;</span> </pre></div>             </td>           </tr>                               <tr id="section-36">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-36">&#182;</a>               </div>               <p>Pick up Horse Traders and draw another card.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nx">transferCard</span><span class="p">(</span><span class="nx">c</span><span class="p">[</span><span class="s1">&#39;Horse Traders&#39;</span><span class="p">],</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">duration</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+  
+  <span class="nv">attackReaction:</span>
+    <span class="nf">(player) -&gt;</span>
+      <span class="nx">transferCard</span><span class="p">(</span><span class="nx">c</span><span class="p">[</span><span class="s1">&#39;Horse Traders&#39;</span><span class="p">],</span> <span class="nx">player</span><span class="p">.</span><span class="nx">hand</span><span class="p">,</span> <span class="nx">player</span><span class="p">.</span><span class="nx">duration</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Menagerie&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">actions: </span><span class="mi">1</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">revealHand</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">menagerieDraws</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Militia&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">coins: </span><span class="mi">2</span>
+  <span class="nv">isAttack: </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-37">&#182;</a>               </div>               <p>Militia is a straightforward example of an attack card.</p>
+
+<p>All attack effects are wrapped in the <code>state.attackOpponents</code>
+method, to give opponents a chance to play reaction cards.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+        <span class="k">if</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">3</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">requireDiscard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Moat&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">2</span>
+  <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="nv">isReaction: </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-38">&#182;</a>               </div>               <p>Revealing Moat sets a flag in the player's state, indicating
+that the player is unaffected by the attack. In this code, Moat
+is always revealed, without an AI decision.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">attackReaction:</span>
+    <span class="nf">(player) -&gt;</span> <span class="nv">player.moatProtected = </span><span class="kc">true</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Monument&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">coins: </span><span class="mi">2</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">chips</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Nobles&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">6</span>
+  <span class="nv">isVictory: </span><span class="kc">true</span>
+  <span class="nv">vp: </span><span class="mi">2</span></pre></div>             </td>           </tr>                               <tr id="section-39">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-39">&#182;</a>               </div>               <p>Nobles is an example of a card that allows a choice from multiple
+simple effects. We implement this using the <code>chooseBenefit</code> AI method,
+which is passed a list of benefit objects, one of which it will choose
+to apply to the state.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">{</span><span class="nv">actions: </span><span class="mi">2</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">cards: </span><span class="mi">3</span><span class="p">}</span>
+      <span class="p">])</span>
+      <span class="nx">applyBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">benefit</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Pawn&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">2</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">{</span><span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">buys: </span><span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">actions: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">buys: </span><span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">actions: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">1</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">buys: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">1</span><span class="p">}</span>
+      <span class="p">])</span>
+      <span class="nx">applyBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">benefit</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Peddler&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">8</span>
+  <span class="nv">actions: </span><span class="mi">1</span>
+  <span class="nv">cards: </span><span class="mi">1</span>
+  <span class="nv">coins: </span><span class="mi">1</span>
+  <span class="nv">costInCoins: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">cost = </span><span class="mi">8</span>
+    <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">phase</span> <span class="o">is</span> <span class="s1">&#39;buy&#39;</span>
+      <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span>
+        <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isAction</span>
+          <span class="nx">cost</span> <span class="o">-=</span> <span class="mi">2</span>
+          <span class="k">break</span> <span class="k">if</span> <span class="nx">cost</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+    <span class="nx">cost</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Philosopher&#39;s Stone&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">costPotion: </span><span class="mi">1</span>
+  <span class="nv">getCoins: </span><span class="nf">(state) -&gt;</span>
+    <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">((</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Princess&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">0</span>
+  <span class="nv">buys: </span><span class="mi">1</span>
+  <span class="nv">isPrize: </span><span class="kc">true</span>
+  <span class="nv">mayBeBought: </span><span class="nf">(state) -&gt;</span> <span class="kc">false</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">bridges</span> <span class="o">+=</span> <span class="mi">2</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Quarry&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">coins: </span><span class="mi">1</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">quarries</span> <span class="o">+=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Shanty Town&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">actions: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">revealHand</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">shantyTownDraws</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Steward&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">playEffect:</span>
+    <span class="nf">(state) -&gt;</span>
+      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
+        <span class="p">{</span><span class="nv">cards: </span><span class="mi">2</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">coins: </span><span class="mi">2</span><span class="p">},</span>
+        <span class="p">{</span><span class="nv">trash: </span><span class="mi">2</span><span class="p">}</span>
+      <span class="p">])</span>
+      <span class="nx">applyBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">benefit</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Warehouse&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">requireDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Witch&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">cards: </span><span class="mi">2</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span><span class="p">)</span>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <h2>Utility functions</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p><code>transferCard</code> will move a card from one list to the end of another.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCard = </span><span class="nf">(card, fromList, toList) -&gt;</span>
+  <span class="nv">idx = </span><span class="nx">fromList</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nx">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
+  <span class="nx">fromList</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="nx">toList</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p><code>transferCardToTop</code> will move a card from one list to the front of another.
+This is used to put a card on top of the deck, for example.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCardToTop = </span><span class="nf">(card, fromList, toList) -&gt;</span>
+  <span class="nv">idx = </span><span class="nx">fromList</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nx">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
+  <span class="nx">fromList</span><span class="p">.</span><span class="nx">splice</span><span class="p">(</span><span class="nx">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="nx">toList</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>Some cards give you a constant benefit, such as +cards or +actions,
+every time you play them; these benefits are defined directly on the card
+object. Other cards give you such a benefit only under certain conditions,
+and if the benefits are straightforward, we may use <code>applyBenefit</code> to make
+them happen. This takes in an object that describes the benefit, and
+applies it to the game state.</p>
+
+<p>The actions that can be performed through <code>applyBenefit</code> currently are:</p>
+
+<ul>
+<li><code>{cards: n}</code>: draw <em>n</em> cards</li>
+<li><code>{actions: n}</code>: get <em>+n</em> actions</li>
+<li><code>{buys: n}</code>: get <em>+n</em> buys</li>
+<li><code>{coins: n}</code>: get <em>+n</em> coins</li>
+<li><code>{trash: n}</code>: trash <em>n</em> cards</li>
+</ul>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">applyBenefit = </span><span class="nf">(state, benefit) -&gt;</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} chooses #{JSON.stringify(benefit)}.&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">cards</span><span class="o">?</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">cards</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">actions</span><span class="o">?</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">+=</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">actions</span>
+  <span class="k">if</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">buys</span><span class="o">?</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">buys</span> <span class="o">+=</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">buys</span>
+  <span class="k">if</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">coins</span><span class="o">?</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">coins</span>
+  <span class="k">if</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">trash</span><span class="o">?</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">requireTrash</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">benefit</span><span class="p">.</span><span class="nx">trash</span><span class="p">)</span>
+
+</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 

@@ -1,0 +1,176 @@
+.level1 {
+  position: absolute;
+  top: 50px;
+}
+.level1a {
+  position: absolute;
+  top: 57px;
+}
+.level2 {
+  position: absolute;
+  top: 85px;
+}
+.level3 {
+  margin-top: 550px;
+}
+.error {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  color: #990000;
+  background-color: #fee;
+  border: 1px solid #faa;
+  padding: 2px;
+}
+body {
+  margin-left: 5%;
+  margin-right: 5%;
+}
+#p1 h2 {
+  position: absolute;
+  top: 50px;
+  left: 5%;
+  color: #990000;
+}
+#p1 .selectLabel {
+  position: absolute;
+  top: 50px;
+  right: 62%;
+}
+#p1 select {
+  position: absolute;
+  top: 50px;
+  right: 52%;
+}
+#p1 .status {
+  position: absolute;
+  top: 57px;
+  left: 15%;
+}
+#p2 h2 {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  color: #000099;
+}
+#p2 .selectLabel {
+  position: absolute;
+  top: 50px;
+  right: 17%;
+}
+#p2 select {
+  position: absolute;
+  top: 50px;
+  right: 7%;
+}
+#p2 .status {
+  position: absolute;
+  top: 57px;
+  left: 60%;
+}
+#editor-left {
+  position: absolute;
+  top: 85px;
+  position: absolute;
+  top: 85px;
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  margin: 0;
+  position: absolute;
+  width: 45%;
+  height: 450px;
+  border: 1px solid #bbb;
+  left: 5%;
+}
+#editor-right {
+  position: absolute;
+  top: 85px;
+  position: absolute;
+  top: 85px;
+  border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  margin: 0;
+  position: absolute;
+  width: 45%;
+  height: 450px;
+  border: 1px solid #bbb;
+  left: 50%;
+}
+.player1 {
+  color: #990000;
+  font-weight: bold;
+}
+.player2 {
+  color: #000099;
+  font-weight: bold;
+}
+#masthead {
+  background: #555;
+  color: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  font-size: 80%;
+}
+#masthead h1 {
+  color: #fff4bb;
+  display: inline;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  font-weight: bold;
+  margin: 0;
+}
+#masthead h2.tagline {
+  color: #fff;
+  display: inline;
+  font-weight: normal;
+  font-size: 12pt;
+  margin: 0;
+}
+#masthead a.about {
+  font-weight: bold;
+  font-size: 14px;
+  color: #fff;
+  position: absolute;
+  top: 13px;
+  right: 15px;
+}
+#layoutSeparator {
+  margin-top: 550px;
+}
+#gameControls {
+  padding: 1em;
+}
+#gameControls input {
+  margin-left: 1em;
+}
+#gameControls label {
+  display: inline;
+  margin-right: 1em;
+}
+select {
+  color: #000;
+}
+#scores {
+  padding-top: 7px;
+}
+#logs {
+  clear: both;
+}
+#gameLog {
+  height: 400px;
+  overflow: scroll;
+  overflow-x: hidden;
+  font-family: sans-serif;
+}
+#gameOutput {
+  font-size: 14pt;
+  margin-left: 10px;
+}
+.ace_editor {
+  font-family: "Menlo", "Monaco", "Inconsolata", "Andale Mono", monospace !important;
+}
