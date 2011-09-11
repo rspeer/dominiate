@@ -1007,23 +1007,37 @@
       return balance;
     };
     PlayerState.prototype.drawCards = function(nCards) {
+      var drawn;
+      drawn = this.getCardsFromDeck(nCards);
+      this.hand = this.hand.concat(drawn);
+      return drawn;
+    };
+    PlayerState.prototype.discardFromDeck = function(nCards) {
+      var drawn;
+      drawn = this.getCardsFromDeck(nCards);
+      this.discard = this.discard.concat(drawn);
+      return drawn;
+    };
+    PlayerState.prototype.getCardsFromDeck = function(nCards) {
       var diff, drawn;
       if (this.draw.length < nCards) {
         diff = nCards - this.draw.length;
         if (this.draw.length > 0) {
           this.log("" + this.ai + " draws " + this.draw.length + " cards (" + this.draw + ").");
         }
-        this.hand = this.hand.concat(this.draw);
+        drawn = this.draw.slice(0);
         this.draw = [];
         if (this.discard.length > 0) {
           this.shuffle();
-          return this.drawCards(diff);
+          return drawn.concat(this.getCardsFromDeck(diff));
+        } else {
+          return drawn;
         }
       } else {
         drawn = this.draw.slice(0, nCards);
+        this.draw = this.draw.slice(nCards);
         this.log("" + this.ai + " draws " + nCards + " cards (" + drawn + ").");
-        this.hand = this.hand.concat(drawn);
-        return this.draw = this.draw.slice(nCards);
+        return drawn;
       }
     };
     PlayerState.prototype.doDiscard = function(card) {
@@ -1258,6 +1272,7 @@
       var card, idx, validActions, _i, _len, _ref2, _results;
       _results = [];
       while (this.current.actions > 0) {
+        this.log("Hand: " + this.current.hand);
         validActions = [null];
         _ref2 = this.current.hand;
         for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
@@ -1390,6 +1405,9 @@
     State.prototype.revealHand = function(player) {};
     State.prototype.drawCards = function(player, num) {
       return player.drawCards(num);
+    };
+    State.prototype.getCardsFromDeck = function(player, num) {
+      return player.getCardsFromDeck(num);
     };
     State.prototype.allowDiscard = function(player, num) {
       var choice, numDiscarded, validDiscards, _results;
@@ -1542,8 +1560,8 @@
     all: c.allCards
   };
   noColony = this.tableaux.all.slice(0);
-  noColony = noColony.splice(noColony.indexOf('Platinum'));
-  noColony = noColony.splice(noColony.indexOf('Colony'));
+  noColony.splice(noColony.indexOf('Platinum'), 1);
+  noColony.splice(noColony.indexOf('Colony'), 1);
   this.tableaux.noColony = noColony;
   shuffle = function(v) {
     var i, j, temp;
