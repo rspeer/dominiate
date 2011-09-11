@@ -182,22 +182,41 @@ class PlayerState
     balance
 
   drawCards: (nCards) ->
+    drawn = this.getCardsFromDeck(nCards)
+    @hand = @hand.concat(drawn)
+    return drawn
+
+  discardFromDeck: (nCards) ->
+    drawn = this.getCardsFromDeck(nCards)
+    @discard = @discard.concat(drawn)
+    return drawn
+  
+  # `getCardsFromDeck` is a sub-method of many things that need to happen
+  # with the game. It takes `nCards` cards off the deck, and then
+  # *returns* them so you can do something with them.
+  # 
+  # Code that calls `getCardsFromDeck`
+  # is responsible for making sure the cards aren't just "dropped on the
+  # floor" after that, so to speak.
+  getCardsFromDeck: (nCards) ->
     if @draw.length < nCards
       diff = nCards - @draw.length
       if @draw.length > 0
         this.log("#{@ai} draws #{@draw.length} cards (#{@draw}).")
-      @hand = @hand.concat(@draw)
+      drawn = @draw.slice(0)
       @draw = []
       if @discard.length > 0
         this.shuffle()
-        this.drawCards(diff)
+        return drawn.concat(this.getCardsFromDeck(diff))
+      else
+        return drawn
         
     else
       drawn = @draw[0...nCards]
-      this.log("#{@ai} draws #{nCards} cards (#{drawn}).")
-      @hand = @hand.concat(drawn)
       @draw = @draw[nCards...]
-
+      this.log("#{@ai} draws #{nCards} cards (#{drawn}).")
+      return drawn
+  
   doDiscard: (card) ->
     idx = @hand.indexOf(card)
     if idx == -1
@@ -439,6 +458,7 @@ class State
   # that it doesn't want to play an action.
   doActionPhase: () ->
     while @current.actions > 0
+      this.log("Hand: #{@current.hand}")
       validActions = [null]
 
       # Determine the set of unique actions that may be played.
@@ -607,6 +627,14 @@ class State
   # to decide where to put the Stash.
   drawCards: (player, num) ->
     player.drawCards(num)
+
+  # `getCardsFromDeck` is superficially similar to `drawCards`, but it does
+  # not put the cards into the hand. Any code that calls it needs to determine
+  # what happens to those cards (otherwise they'll be trashed!) This is useful
+  # for effects that say "draw *n* cards, do something based on them, and
+  # discard them".
+  getCardsFromDeck: (player, num) ->
+    player.getCardsFromDeck(num)
 
   # `allowDiscard` allows a player to discard 0 through `num` cards.
   allowDiscard: (player, num) ->
