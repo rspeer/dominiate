@@ -411,11 +411,25 @@ makeCard "Duke", c.Estate, {
     vp
 }
 
+makeCard "Followers", action, {
+  cost: 0
+  isAttack: true
+  isPrize: true
+  mayBeBought: (state) -> false
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Estate)
+    state.attackOpponents (opp) ->
+      state.gainCard(opp, c.Curse)
+      if opp.hand.length > 3
+        state.requireDiscard(opp, opp.hand.length - 3)
+}
+
 makeCard "Gardens", c.Estate, {
   cost: 4
   getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
 }
 
+# Goons: *see Militia*
 makeCard "Grand Market", c.Market, {
   cost: 6
   coins: 2
@@ -482,6 +496,16 @@ makeCard "Militia", action, {
       state.attackOpponents (opp) ->
         if opp.hand.length > 3
           state.requireDiscard(opp, opp.hand.length - 3)
+}
+
+makeCard "Goons", c.Militia, {
+  cost: 6
+  coins: 2
+  buys: 1
+
+  # The effect of Goons that causes you to gain VP on each buy is 
+  # defined in `State.doBuyPhase`. Other than that, Goons is a fancy
+  # Militia.
 }
 
 makeCard "Moat", action, {

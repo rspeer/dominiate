@@ -111,7 +111,7 @@ class PlayerState
   countInHand: (card) ->
     countStr(@hand, card)
 
-  # `countInHand(card)` counts the number of copies of a card in the discard
+  # `countInDiscard(card)` counts the number of copies of a card in the discard
   # pile.
   countInDiscard: (card) ->
     countStr(@discard, card)
@@ -540,6 +540,12 @@ class State
       # Gain the card and deal with the effects.
       this.gainCard(@current, choice)
       choice.onBuy(this)
+
+      # Gain victory for each Goons in play.
+      goonses = @current.countInPlay('Goons')
+      if goonses > 0
+        this.log("...gaining #{goonses} VP.")
+        @current.chips += goonses
   
   # Handle all the things that happen at the end of the turn.
   doCleanupPhase: () ->

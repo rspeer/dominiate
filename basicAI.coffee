@@ -122,7 +122,9 @@ class BasicAI
     "Cellar"
     "Shanty Town" if state.current.actions == 1
     "Nobles"
+    "Followers"
     "Witch"
+    "Goons"
     "Wharf"
     "Militia"
     "Princess"
