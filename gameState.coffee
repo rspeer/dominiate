@@ -184,11 +184,13 @@ class PlayerState
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
     @hand = @hand.concat(drawn)
+    this.log("#{@ai} draws #{drawn.length} cards (#{drawn}).")
     return drawn
 
   discardFromDeck: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
     @discard = @discard.concat(drawn)
+    this.log("#{@ai} draws and discards #{drawn.length} cards (#{drawn}).")
     return drawn
   
   # `getCardsFromDeck` is a sub-method of many things that need to happen
@@ -201,8 +203,6 @@ class PlayerState
   getCardsFromDeck: (nCards) ->
     if @draw.length < nCards
       diff = nCards - @draw.length
-      if @draw.length > 0
-        this.log("#{@ai} draws #{@draw.length} cards (#{@draw}).")
       drawn = @draw.slice(0)
       @draw = []
       if @discard.length > 0
@@ -214,7 +214,6 @@ class PlayerState
     else
       drawn = @draw[0...nCards]
       @draw = @draw[nCards...]
-      this.log("#{@ai} draws #{nCards} cards (#{drawn}).")
       return drawn
   
   doDiscard: (card) ->
@@ -625,8 +624,16 @@ class State
   # An improved version would pass the state in case the player shuffles,
   # and has Stash in the deck, and wants to use information from the state
   # to decide where to put the Stash.
+  # 
+  # The drawn cards will be returned.
   drawCards: (player, num) ->
     player.drawCards(num)
+  
+  # `discardFromDeck` puts *num* cards from the top of the deck directly
+  # in the discard pile. It returns the set of cards, for the benefit of
+  # actions that do something based on which cards were discarded.
+  discardFromDeck: (player, num) ->
+    player.discardFromDeck(num)
 
   # `getCardsFromDeck` is superficially similar to `drawCards`, but it does
   # not put the cards into the hand. Any code that calls it needs to determine
@@ -784,8 +791,8 @@ this.tableaux = {
 # If there's a better way to remove items from a JS array, I'd like to know
 # what it is.
 noColony = this.tableaux.all.slice(0)
-noColony = noColony.splice(noColony.indexOf('Platinum'))
-noColony = noColony.splice(noColony.indexOf('Colony'))
+noColony.splice(noColony.indexOf('Platinum'), 1)
+noColony.splice(noColony.indexOf('Colony'), 1)
 this.tableaux.noColony = noColony
 
 # Utility functions

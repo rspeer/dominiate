@@ -36,8 +36,6 @@ playGame = (strategies, options, ret) ->
     tableau = tableaux.all
   else
     tableau = tableaux.noColony
-  if options.log?
-    options.log("Cards in supply: #{tableau.join(', ')}")
   if options.randomizeOrder
     shuffle(ais)
   

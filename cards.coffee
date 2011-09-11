@@ -423,20 +423,17 @@ makeCard "Grand Market", c.Market, {
     not(c.Copper in state.current.inPlay)
 }
 
-###
 makeCard "Harvest", action, {
   cost: 5
   playEffect: (state) ->
     unique = []
-    cards = state.revealCards(state.current, 4)
+    cards = state.discardFromDeck(state.current, 4)
     for card in cards
       if card not in unique
         unique.push(card)
     state.current.coins += unique.length
-    state.log("...revealing #{cards} for $+#{unique.length}.")
-    state.current.discard = state.current.discard.concat(cards)
+    state.log("...gaining $+#{unique.length}.")
 }
-###
 
 makeCard "Horse Traders", action, {
   cost: 4
