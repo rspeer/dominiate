@@ -395,6 +395,20 @@ makeCard 'Bank', c.Silver, {
     coins
 }
 
+makeCard 'Baron', action, {
+  cost: 4
+  buys: 1
+  playEffect: (state) ->
+    discardEstate = no
+    if c.Estate in state.current.hand
+      discardEstate = state.current.ai.chooseBaronDiscard(state)
+    if discardEstate
+      state.current.doDiscard(c.Estate)
+      state.current.coins += 4
+    else
+      state.gainCard(state.current. c.Estate)
+}
+
 makeCard 'Bridge', action, {
   cost: 4
   coins: 1

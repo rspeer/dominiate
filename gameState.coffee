@@ -220,6 +220,7 @@ class PlayerState
     if card not in @hand
       this.warn("#{@ai} has no #{card} to discard")
       return
+    this.log("#{@ai} discards #{card}.")
     @hand.remove(card)
     @discard.push(card)
   
@@ -666,7 +667,6 @@ class State
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
       return if choice is null
-      this.log("#{player.ai} discards #{choice}.")
       numDiscarded++
       player.doDiscard(choice)
   

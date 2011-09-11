@@ -137,6 +137,7 @@ class BasicAI
     "Coppersmith" if state.current.countInHand("Copper") >= 3
     "Smithy"
     "Merchant Ship"
+    "Baron" if state.current.countInHand("Estate") >= 1
     "Monument"
     "Adventurer"
     "Harvest"
@@ -186,6 +187,12 @@ class BasicAI
     "Silver"
   ]
 
+  # The question here is: do you want to discard an Estate for +$4, rather
+  # than gain an Estate? And the answer is yes.
+  chooseBaronDiscard: (state) -> yes
+  
+  # When presented with a card with simple but variable benefits, this is
+  # the default way for an AI to decide which benefit it wants.
   chooseBenefit: (state, choices) -> 
     buyValue = 1
     cardValue = 2
