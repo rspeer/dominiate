@@ -102,7 +102,7 @@ class BasicAI
   
   actionPriority: (state) -> [
     "Menagerie" if state.current.menagerieDraws() == 3
-    "Shanty Town" if state.current.shantyTownDraws() == 2
+    "Shanty Town" if state.current.shantyTownDraws(true) == 2
     "Trusty Steed"
     "Festival"
     "Bazaar"
@@ -118,6 +118,7 @@ class BasicAI
     "Peddler"
     "Great Hall"
     "Smithy" if state.current.actions > 1
+    "Conspirator" if state.current.inPlay.length >= 2
     "Pawn"
     "Warehouse"
     "Menagerie"
@@ -144,6 +145,7 @@ class BasicAI
     "Harvest"
     "Woodcutter"
     "Coppersmith" if state.current.countInHand("Copper") >= 2
+    "Conspirator"
     "Moat"
     "Chapel"
     "Coppersmith"

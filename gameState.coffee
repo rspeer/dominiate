@@ -139,6 +139,9 @@ class PlayerState
   
   # `menagerieDraws()` is the number of cards the player would draw upon
   # playing a Menagerie: either 1 or 3.
+  # 
+  # *TODO*: allow for a hypothetical version where it's okay to have another
+  # Menagerie.
   menagerieDraws: () ->
     seen = {}
     cardsToDraw = 3
@@ -149,14 +152,21 @@ class PlayerState
       seen[card.name] = true
     cardsToDraw
 
-  # `shantyTownDraws()` is the number of cards the player would draw upon
+  # `shantyTownDraws()` is the number of cards the player draws upon
   # playing a Shanty town: either 0 or 2.
-  shantyTownDraws: () ->
+  #
+  # Set `hypothetical` to `true` if deciding whether to play a Shanty Town
+  # (because it won't be in your hand anymore when you do).
+  shantyTownDraws: (hypothetical = false) ->
     cardsToDraw = 2
+    skippedShanty = false
     for card in @hand
       if card.isAction
-        cardsToDraw = 0
-        break
+        if hypothetical and not skippedShanty
+          skippedShanty = true
+        else
+          cardsToDraw = 0
+          break
     cardsToDraw
   
   # `actionBalance()` is a complex method meant to be used by AIs in

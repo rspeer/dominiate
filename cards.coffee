@@ -418,6 +418,18 @@ makeCard 'Bridge', action, {
       state.bridges += 1
 }
 
+###
+# not defining this yet; involves implementing a possibly-important but
+# very boring decision
+makeCard 'Bureaucrat', action, {
+  cost: 4
+  isAttack: true
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      
+}
+###
+
 makeCard 'Cellar', action, {
   cost: 2
   actions: 1
@@ -454,6 +466,22 @@ makeCard 'City', action, {
   
   getCoins: (state) ->
     if state.numEmptyPiles() >= 2
+      1
+    else
+      0
+}
+
+makeCard 'Conspirator', action, {
+  cost: 4
+  coins: 2
+  # don't count Duration cards because they're not "played this turn"
+  getActions: (state) ->
+    if state.current.inPlay.length >= 3
+      1
+    else
+      0
+  getCards: (state) ->
+    if state.current.inPlay.length >= 3
       1
     else
       0

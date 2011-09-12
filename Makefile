@@ -17,3 +17,4 @@ doc:
 web-deploy: web-coffee web-strategies css doc
 	cp -av web/* gh-pages/
 	cp -av docs/* gh-pages/docs/
+	cd gh-pages; make

@@ -327,6 +327,20 @@ aside depending on their type.</p>             </td>             <td class="code
     <span class="nx">coins</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Baron&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">buys: </span><span class="mi">1</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">discardEstate = </span><span class="kc">no</span>
+    <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span>
+      <span class="nv">discardEstate = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBaronDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">discardEstate</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">doDiscard</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="mi">4</span>
+    <span class="k">else</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Bridge&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">4</span>
   <span class="nv">coins: </span><span class="mi">1</span>
@@ -476,17 +490,29 @@ method, to give opponents a chance to play reaction cards.</p>             </td>
           <span class="nx">state</span><span class="p">.</span><span class="nx">requireDiscard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">3</span><span class="p">)</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s2">&quot;Mountebank&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">coins: </span><span class="mi">2</span>
+  <span class="nv">isAttack: </span><span class="kc">true</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+      <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span> <span class="k">in</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">hand</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <p>Discarding a Curse against Mountebank is automatic.</p>             </td>             <td class="code">               <div class="highlight"><pre>        <span class="nx">opp</span><span class="p">.</span><span class="nx">doDiscard</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Copper</span><span class="p">)</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s2">&quot;Goons&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Militia</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">6</span>
   <span class="nv">coins: </span><span class="mi">2</span>
-  <span class="nv">buys: </span><span class="mi">1</span></pre></div>             </td>           </tr>                               <tr id="section-40">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-40">&#182;</a>               </div>               <p>The effect of Goons that causes you to gain VP on each buy is 
+  <span class="nv">buys: </span><span class="mi">1</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>The effect of Goons that causes you to gain VP on each buy is 
 defined in <code>State.doBuyPhase</code>. Other than that, Goons is a fancy
 Militia.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">}</span>
 
 <span class="nx">makeCard</span> <span class="s2">&quot;Moat&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">2</span>
   <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
-  <span class="nv">isReaction: </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-41">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-41">&#182;</a>               </div>               <p>Revealing Moat sets a flag in the player's state, indicating
+  <span class="nv">isReaction: </span><span class="kc">true</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p>Revealing Moat sets a flag in the player's state, indicating
 that the player is unaffected by the attack. In this code, Moat
 is always revealed, without an AI decision.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">attackReaction:</span>
     <span class="nf">(player) -&gt;</span> <span class="nv">player.moatProtected = </span><span class="kc">true</span>
@@ -503,7 +529,7 @@ is always revealed, without an AI decision.</p>             </td>             <t
 <span class="nx">makeCard</span> <span class="s1">&#39;Nobles&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">6</span>
   <span class="nv">isVictory: </span><span class="kc">true</span>
-  <span class="nv">vp: </span><span class="mi">2</span></pre></div>             </td>           </tr>                               <tr id="section-42">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-42">&#182;</a>               </div>               <p>Nobles is an example of a card that allows a choice from multiple
+  <span class="nv">vp: </span><span class="mi">2</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>Nobles is an example of a card that allows a choice from multiple
 simple effects. We implement this using the <code>chooseBenefit</code> AI method,
 which is passed a list of benefit objects, one of which it will choose
 to apply to the state.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">playEffect:</span>
@@ -594,7 +620,7 @@ to apply to the state.</p>             </td>             <td class="code">      
   <span class="nv">cost: </span><span class="mi">4</span>
   <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
   <span class="nv">playEffect:</span>
-    <span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-43">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-43">&#182;</a>               </div>               <p>All Provinces are automatically revealed.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">opposingProvince = </span><span class="kc">false</span>
+    <span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-44">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-44">&#182;</a>               </div>               <p>All Provinces are automatically revealed.</p>             </td>             <td class="code">               <div class="highlight"><pre>      <span class="nv">opposingProvince = </span><span class="kc">false</span>
       <span class="k">for</span> <span class="nx">opp</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">players</span><span class="p">[</span><span class="mi">1</span><span class="p">...]</span>
         <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Province</span> <span class="k">in</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">hand</span>
           <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{opp.ai} reveals a Province.&quot;</span><span class="p">)</span>
@@ -641,7 +667,7 @@ to apply to the state.</p>             </td>             <td class="code">      
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
       <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span><span class="p">)</span>
-<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-44">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-44">&#182;</a>               </div>               <h2>Utility functions</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-45">&#182;</a>               </div>               <p><code>transferCard</code> will move a card from one list to the end of another.</p>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-45">&#182;</a>               </div>               <h2>Utility functions</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-46">&#182;</a>               </div>               <p><code>transferCard</code> will move a card from one list to the end of another.</p>
 
 <p>This sometimes happens when iterating over a list of cards, which is
 unfortunate. The current solution is to call cleanupList, defined in
@@ -650,13 +676,13 @@ the state.</p>             </td>             <td class="code">               <di
   <span class="k">if</span> <span class="nx">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
   <span class="nx">fromList</span><span class="p">[</span><span class="nx">idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">null</span>
-  <span class="nx">toList</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-46">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-46">&#182;</a>               </div>               <p><code>transferCardToTop</code> will move a card from one list to the front of another.
+  <span class="nx">toList</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-47">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-47">&#182;</a>               </div>               <p><code>transferCardToTop</code> will move a card from one list to the front of another.
 This is used to put a card on top of the deck, for example.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCardToTop = </span><span class="nf">(card, fromList, toList) -&gt;</span>
   <span class="nv">idx = </span><span class="nx">fromList</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
   <span class="k">if</span> <span class="nx">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
   <span class="nx">fromList</span><span class="p">[</span><span class="nx">idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">null</span>
-  <span class="nx">toList</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-47">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-47">&#182;</a>               </div>               <p>Some cards give you a constant benefit, such as +cards or +actions,
+  <span class="nx">toList</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-48">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-48">&#182;</a>               </div>               <p>Some cards give you a constant benefit, such as +cards or +actions,
 every time you play them; these benefits are defined directly on the card
 object. Other cards give you such a benefit only under certain conditions,
 and if the benefits are straightforward, we may use <code>applyBenefit</code> to make
