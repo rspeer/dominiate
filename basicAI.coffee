@@ -168,6 +168,7 @@ class BasicAI
     "Copper"
     "Potion"
     "Bank"
+    "Horn of Plenty" if state.current.numUniqueCardsInPlay() >= 2
   ]
   
   discardPriority: (state) -> [

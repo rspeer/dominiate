@@ -562,6 +562,20 @@ makeCard "Harvest", action, {
     state.log("...gaining +$#{unique.length}.")
 }
 
+makeCard 'Horn of Plenty', c.Silver, {
+  cost: 5
+  coins: 0
+  playEffect: (state) -> 
+    limit = state.current.numUniqueCardsInPlay()
+    choices = []
+    for cardName of state.supply
+      card = c[cardName]
+      [coins, potions] = card.getCost(state)
+      if potions == 0 and coins <= limit
+        choices.push(card)
+    state.gainOneOf(state.current, choices)
+}
+
 makeCard "Horse Traders", action, {
   cost: 4
   buys: 1

@@ -190,6 +190,16 @@ class PlayerState
         if card.actions == 0
           balance -= card.cards * this.getActionDensity()
     balance
+  
+  numUniqueCardsInPlay: () ->
+    unique = []
+    cards = @inPlay.concat(@duration)
+    for card in cards
+      if card not in unique
+        unique.push(card)
+    return unique.length
+
+  #### Methods that modify the PlayerState
 
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
