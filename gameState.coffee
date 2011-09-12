@@ -790,8 +790,9 @@ class State
     newState.players = newPlayers
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
-    newState.bridges = @bridges
     newState.tradeRouteMat = @tradeRouteMat
+    newState.tradeRouteValue = @tradeRouteValue
+    newState.bridges = @bridges
     newState.quarries = @quarries
     newState.copperValue = @copperValue
     newState.phase = @phase
