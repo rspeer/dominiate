@@ -688,7 +688,6 @@ class State
       validDiscards = player.hand.slice(0)
       return if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
-      this.log("#{player.ai} discards #{choice}.")
       numDiscarded++
       player.doDiscard(choice)
   
@@ -715,9 +714,9 @@ class State
       numTrashed++
       player.doTrash(choice)
   
-  # `gainChoice` gives the player a choice of cards to gain. Include
+  # `gainOneOf` gives the player a choice of cards to gain. Include
   # `null` if gaining nothing is an option.
-  gainChoice: (player, options) ->
+  gainOneOf: (player, options) ->
     choice = player.ai.chooseGain(this, options)
     return null if choice is null
     this.gainCard(player, choice)

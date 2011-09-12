@@ -97,7 +97,10 @@ entire deck.</p>             </td>             <td class="code">               <
 representing the proportion of actions in the deck.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">getActionDensity: </span><span class="nf">() -&gt;</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">numActionCardsInDeck</span><span class="p">()</span> <span class="o">/</span> <span class="k">this</span><span class="p">.</span><span class="nx">getDeck</span><span class="p">().</span><span class="nx">length</span>
   </pre></div>             </td>           </tr>                               <tr id="section-19">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-19">&#182;</a>               </div>               <p><code>menagerieDraws()</code> is the number of cards the player would draw upon
-playing a Menagerie: either 1 or 3.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">menagerieDraws: </span><span class="nf">() -&gt;</span>
+playing a Menagerie: either 1 or 3.</p>
+
+<p><em>TODO</em>: allow for a hypothetical version where it's okay to have another
+Menagerie.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">menagerieDraws: </span><span class="nf">() -&gt;</span>
     <span class="nv">seen = </span><span class="p">{}</span>
     <span class="nv">cardsToDraw = </span><span class="mi">3</span>
     <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">@hand</span>
@@ -105,13 +108,20 @@ playing a Menagerie: either 1 or 3.</p>             </td>             <td class=
         <span class="nv">cardsToDraw = </span><span class="mi">1</span>
         <span class="k">break</span>
       <span class="nx">seen</span><span class="p">[</span><span class="nx">card</span><span class="p">.</span><span class="nx">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">true</span>
-    <span class="nx">cardsToDraw</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p><code>shantyTownDraws()</code> is the number of cards the player would draw upon
-playing a Shanty town: either 0 or 2.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">shantyTownDraws: </span><span class="nf">() -&gt;</span>
+    <span class="nx">cardsToDraw</span></pre></div>             </td>           </tr>                               <tr id="section-20">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-20">&#182;</a>               </div>               <p><code>shantyTownDraws()</code> is the number of cards the player draws upon
+playing a Shanty town: either 0 or 2.</p>
+
+<p>Set <code>hypothetical</code> to <code>true</code> if deciding whether to play a Shanty Town
+(because it won't be in your hand anymore when you do).</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">shantyTownDraws: </span><span class="nf">(hypothetical = false) -&gt;</span>
     <span class="nv">cardsToDraw = </span><span class="mi">2</span>
+    <span class="nv">skippedShanty = </span><span class="kc">false</span>
     <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">@hand</span>
       <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isAction</span>
-        <span class="nv">cardsToDraw = </span><span class="mi">0</span>
-        <span class="k">break</span>
+        <span class="k">if</span> <span class="nx">hypothetical</span> <span class="o">and</span> <span class="o">not</span> <span class="nx">skippedShanty</span>
+          <span class="nv">skippedShanty = </span><span class="kc">true</span>
+        <span class="k">else</span>
+          <span class="nv">cardsToDraw = </span><span class="mi">0</span>
+          <span class="k">break</span>
     <span class="nx">cardsToDraw</span>
   </pre></div>             </td>           </tr>                               <tr id="section-21">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-21">&#182;</a>               </div>               <p><code>actionBalance()</code> is a complex method meant to be used by AIs in
 deciding whether they want +actions or +cards, for example.</p>

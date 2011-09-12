@@ -494,6 +494,15 @@ makeCard 'Coppersmith', action, {
       state.copperValue += 1
 }
 
+makeCard 'Council Room', action, {
+  cost: 5
+  cards: 4
+  buys: 1
+  playEffect: (state) ->
+    for opp in state.players[1...]
+      state.drawCards(opp, 1)
+}
+
 makeCard 'Diadem', c.Silver, {
   cost: 0
   isPrize: true
@@ -750,7 +759,7 @@ makeCard 'Tournament', action, {
         choices = state.prizes
         if state.supply[c.Duchy] > 0
           choices.push(c.Duchy)
-        choice = state.gainChoice(state.current, choices)
+        choice = state.gainOneOf(state.current, choices)
         if choice isnt null
           state.log("...putting the #{choice} on top of the deck.")
           transferCardToTop(choice, state.current.discard, state.current.draw)
@@ -774,6 +783,20 @@ makeCard "Trusty Steed", c["Bag of Gold"], {
     applyBenefit(state, benefit)
 }
 
+makeCard 'University', action, {
+  cost: 2
+  costPotion: 1
+  actions: 2
+  playEffect: (state) ->
+    choices = []
+    for cardName of state.supply
+      card = c[cardName]
+      [coins, potions] = card.getCost(state)
+      if potions == 0 and coins <= 5 and card.isAction
+        choices.push(card)
+    state.gainOneOf(state.current, choices)
+}
+
 makeCard 'Warehouse', action, {
   cost: 3
   playEffect: (state) ->
@@ -787,6 +810,18 @@ makeCard 'Witch', action, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       state.gainCard(opp, c.Curse)
+}
+
+makeCard 'Workshop', action, {
+  cost: 4
+  playEffect: (state) ->
+    choices = []
+    for cardName of state.supply
+      card = c[cardName]
+      [coins, potions] = card.getCost(state)
+      if potions == 0 and coins <= 4
+        choices.push(card)
+    state.gainOneOf(state.current, choices)
 }
 
 # Utility functions

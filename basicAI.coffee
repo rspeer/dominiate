@@ -105,10 +105,12 @@ class BasicAI
     "Shanty Town" if state.current.shantyTownDraws(true) == 2
     "Trusty Steed"
     "Festival"
+    "University"
     "Bazaar"
     "Worker's Village"
     "City"
     "Village"
+    "Bag of Gold"
     "Grand Market"
     "Alchemist"
     "Laboratory"
@@ -138,6 +140,7 @@ class BasicAI
     "Horse Traders"
     "Coppersmith" if state.current.countInHand("Copper") >= 3
     "Smithy"
+    "Council Room"
     "Merchant Ship"
     "Baron" if state.current.countInHand("Estate") >= 1
     "Monument"
@@ -148,6 +151,7 @@ class BasicAI
     "Conspirator"
     "Moat"
     "Chapel"
+    "Workshop"
     "Coppersmith"
     "Shanty Town"
     null
