@@ -642,7 +642,7 @@ class State
         @prizes.remove(card)
       else
         @supply[card] -= 1
-      if @supply["Trade Route"]? and card.isVictory and not in @tradeRouteMat
+      if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
         @tradeRouteValue = +1
     else
