@@ -763,7 +763,6 @@ makeCard 'Tournament', action, {
         if choice isnt null
           state.log("...putting the #{choice} on top of the deck.")
           transferCardToTop(choice, state.current.discard, state.current.draw)
-          state.tidyList(state.current.discard)
       if not opposingProvince
         state.current.coins += 1
         state.current.drawCards(1)
@@ -833,19 +832,17 @@ makeCard 'Workshop', action, {
 # unfortunate. The current solution is to call cleanupList, defined in
 # the state.
 transferCard = (card, fromList, toList) ->
-  idx = fromList.indexOf(card)
-  if idx == -1
+  if card not in fromList
     throw new Error("#{fromList} does not contain #{card}")
-  fromList[idx] = null
+  fromList.remove(card)
   toList.push(card)
 
 # `transferCardToTop` will move a card from one list to the front of another.
 # This is used to put a card on top of the deck, for example.
 transferCardToTop = (card, fromList, toList) ->
-  idx = fromList.indexOf(card)
-  if idx == -1
+  if card not in fromList
     throw new Error("#{fromList} does not contain #{card}")
-  fromList[idx] = null
+  fromList.remove(card)
   toList.unshift(card)
 
 # Some cards give you a constant benefit, such as +cards or +actions,

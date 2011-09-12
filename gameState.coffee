@@ -1,7 +1,7 @@
 # Many modules begin with this "indecisive import" pattern. It's messy
 # but it gets the job done, and it's explained at the bottom of this
 # documentation.
-{c, tidyList} = require './cards' if exports?
+{c} = require './cards' if exports?
 
 # The PlayerState class
 # ---------------------  
@@ -456,10 +456,11 @@ class State
   # effects. At the start of the turn, check all of these cards and run their
   # `onDuration` method.
   doDurationPhase: () ->
-    for card in @current.duration
+    # iterate backwards because cards might move
+    for i in [@current.duration.length-1...-1]
+      card = @current.duration[i]
       this.log("#{@current.ai} resolves the duration effect of #{card}.")
       card.onDuration(this)
-    this.tidyList(@current.duration)
   
   # Perform the action phase. Ask the AI repeatedly which action to play,
   # until there are no more action cards to play or there are no
@@ -573,8 +574,6 @@ class State
     while @current.inPlay.length > 0
       card = @current.inPlay[0]
       @current.inPlay = @current.inPlay[1...]
-      # Skip over gaps. This is the same reason `tidyList` exists.
-      continue if not card?
       # Put duration cards by default in the duration area, and other cards
       # in play in the discard pile.
       if card.isDuration
@@ -587,7 +586,6 @@ class State
 
     # Discard the remaining cards in hand.
     @current.discard = @current.discard.concat(@current.hand)
-    this.tidyList(@current.discard)
     @current.hand = []
 
     # Reset things for the next turn.
@@ -741,14 +739,13 @@ class State
     # Set a flag on the PlayerState that indicates that the player has not
     # yet revealed a Moat.
     player.moatProtected = false
-    for card in player.hand
+    
+    # Iterate backwards because we might be removing things from the list
+    for i in [player.hand.length-1...-1]
+      card = player.hand[i]
       if card.isReaction
         card.reactToAttack(player)
     
-    # If cards left the hand as a result of this, account for the new,
-    # smaller hand.
-    this.tidyList(player.hand)
-
     # If the player has revealed a Moat, or has Lighthouse in the duration
     # area, the attack is averted. Otherwise, it happens.
     if player.moatProtected
@@ -787,14 +784,6 @@ class State
     newState.logFunc = @logFunc
     newState
 
-  # Remove missing values from a list.
-  tidyList: (list) ->
-    for i in [0...list.length]
-      if not list[i]?
-        list.splice(i, 1)
-        # now start over because we just broke our iterator
-        return this.tidyList(list)
-
   # Games can provide output using the `log` function.
   log: (obj) ->
     if this.logFunc?
@@ -820,7 +809,7 @@ this.tableaux = {
 # How to remove something from a JavaScript array. Modifies the list and
 # returns the 0 or 1 removed elements.
 Array.prototype.remove = (elt) ->
-  idx = this.indexOf(elt)
+  idx = this.lastIndexOf(elt)
   if idx != -1
     this.splice(idx, 1)
   else
