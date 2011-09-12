@@ -34,17 +34,18 @@
 <div id="layoutSeparator"></div>
 <div class="container">
   <div class="row" id="gameControls">
-    <div class="span3">
+    <div class="span4">
       <a id="playMany" href="#playMany" class="btn success">
-        Play until one player dominates
+        Play until winner is clear
       </a>
-    </div>
-    <div class="span2">
       <a id="playButton" href="#playButton" class="btn">
-        Play single game
+        Single game
+      </a>
+      <a id="play100" href="#play100" class="btn">
+        100 games
       </a>
     </div>
-    <div class="span5">
+    <div class="span4">
       <ul class="inputs-list">
         <li>
           <label>
@@ -149,7 +150,7 @@ $ ->
     }
     playGame(compiled, options, singleGameResult)
 
-  playUntilDecisive = ->
+  playUntil = (condition) ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
     compiled = compileStrategies(scripts, errorHandlers)
     
@@ -161,7 +162,7 @@ $ ->
 
     playLoop = (result) ->
       singleGameResult(result)
-      if not tracker.decisiveWinner()?
+      if not condition()
         multiLog.addPageQuietly('')
         nextIteration = ->
           playGame(compiled, options, playLoop)
@@ -170,8 +171,14 @@ $ ->
     multiLog.addPageQuietly('')
     playGame(compiled, options, playLoop)
   
+  playUntilDecisive = -> playUntil(tracker.decisiveWinner)
+  play100 = ->
+    target = tracker.games + 100
+    playUntil(-> tracker.games >= target)
+
   $('#playButton').click (event) -> playOneGame()
   $('#playMany').click (event) -> playUntilDecisive()
+  $('#play100').click (event) -> play100()
 
   strategyElements = ['<option></option>']
   for name of strategies

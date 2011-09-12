@@ -4,6 +4,8 @@
   ScoreTracker = (function() {
     function ScoreTracker(scoreElt) {
       this.scoreElt = scoreElt;
+      this.decisiveWinner = __bind(this.decisiveWinner, this);
+      this.updateScores = __bind(this.updateScores, this);
       this.recordGame = __bind(this.recordGame, this);
       this.games = 0;
       this.players = [];

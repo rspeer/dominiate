@@ -39,12 +39,12 @@ class ScoreTracker
   errorMargin: ->
     1.5 / Math.sqrt(@games)
 
-  updateScores: ->
+  updateScores: =>
     @proportions = (score / @games for score in @scores)
     if @scoreElt?
       this.updateScoresOnPage()
   
-  decisiveWinner: ->
+  decisiveWinner: =>
     for i in [0...@players.length]
       if @proportions[i] - this.errorMargin() > 1 / @scores.length
         return @players[i]

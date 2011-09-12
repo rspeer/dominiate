@@ -155,6 +155,9 @@ body {
 select {
   color: #000;
 }
+.btn {
+  margin-top: 2px;
+}
 #scores {
   padding-top: 7px;
 }
