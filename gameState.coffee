@@ -316,6 +316,8 @@ class State
     @current = @players[0]
     @supply = this.makeSupply(tableau)
     @prizes = [c["Bag of Gold"], c.Diadem, c.Followers, c.Princess, c["Trusty Steed"]]
+    @tradeRouteMat = []
+    @tradeRouteValue = 0
 
     @bridges = 0
     @quarries = 0
@@ -640,6 +642,9 @@ class State
         @prizes.remove(card)
       else
         @supply[card] -= 1
+      if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
+        @tradeRouteMat.push(card)
+        @tradeRouteValue = +1
     else
       this.log("There is no #{card} to gain.")
     # TODO: handle gain reactions
@@ -785,6 +790,8 @@ class State
     newState.players = newPlayers
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
+    newState.tradeRouteMat = @tradeRouteMat
+    newState.tradeRouteValue = @tradeRouteValue
     newState.bridges = @bridges
     newState.quarries = @quarries
     newState.copperValue = @copperValue
