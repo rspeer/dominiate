@@ -317,6 +317,7 @@ class State
     @supply = this.makeSupply(tableau)
     @prizes = [c["Bag of Gold"], c.Diadem, c.Followers, c.Princess, c["Trusty Steed"]]
     @tradeRouteMat = []
+    @tradeRouteValue = 0
 
     @bridges = 0
     @quarries = 0
@@ -424,13 +425,6 @@ class State
     if @supply['Colony']?
       minimum = Math.min(minimum, @supply['Colony'])
     minimum
-        
-  # 'tradeRouteValue()' returns the current value of the Trade Route by
-  # counting the number of cards in the @tradeRouteMat pool.
-  tradeRouteValue: () ->
-    value = @tradeRouteMat.length
-    this.log("Trade Route value = $#{value}.")
-    value
   
   #### Playing a turn
   #
@@ -650,6 +644,7 @@ class State
         @supply[card] -= 1
       if @supply["Trade Route"]? and card.isVictory and not in @tradeRouteMat
         @tradeRouteMat.push(card)
+        @tradeRouteValue = +1
     else
       this.log("There is no #{card} to gain.")
     # TODO: handle gain reactions
