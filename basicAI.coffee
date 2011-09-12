@@ -122,6 +122,7 @@ class BasicAI
     "Smithy" if state.current.actions > 1
     "Conspirator" if state.current.inPlay.length >= 2
     "Pawn"
+    "Lighthouse"
     "Warehouse"
     "Menagerie"
     "Tournament"  # should be above cards that might discard a Province

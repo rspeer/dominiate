@@ -310,7 +310,6 @@ makeCard 'Caravan', duration, {
 
 makeCard 'Fishing Village', duration, {
   cost: 3
-  cards: 0
   coins: +1
   actions: +2
   durationActions: +1
@@ -327,10 +326,17 @@ makeCard 'Wharf', duration, {
 
 makeCard 'Merchant Ship', duration, {
   cost: 5
-  cards: 0
   coins: +2
-  durationCards: 0
   durationCoins: +2
+}
+
+makeCard 'Lighthouse', duration, {
+  cost: 2
+  actions: +1
+  coins: +1
+  durationCoins: +1
+
+  # The protecting effect is defined in gameState.
 }
 
 # Miscellaneous cards
