@@ -419,6 +419,15 @@ very boring decision</p>             </td>             <td class="code">        
       <span class="nx">state</span><span class="p">.</span><span class="nx">copperValue</span> <span class="o">+=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Council Room&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">cards: </span><span class="mi">4</span>
+  <span class="nv">buys: </span><span class="mi">1</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="k">for</span> <span class="nx">opp</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">players</span><span class="p">[</span><span class="mi">1</span><span class="p">...]</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Diadem&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">0</span>
   <span class="nv">isPrize: </span><span class="kc">true</span>
@@ -651,11 +660,10 @@ to apply to the state.</p>             </td>             <td class="code">      
         <span class="nv">choices = </span><span class="nx">state</span><span class="p">.</span><span class="nx">prizes</span>
         <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">supply</span><span class="p">[</span><span class="nx">c</span><span class="p">.</span><span class="nx">Duchy</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
           <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Duchy</span><span class="p">)</span>
-        <span class="nv">choice = </span><span class="nx">state</span><span class="p">.</span><span class="nx">gainChoice</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
+        <span class="nv">choice = </span><span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
         <span class="k">if</span> <span class="nx">choice</span> <span class="o">isnt</span> <span class="kc">null</span>
           <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...putting the #{choice} on top of the deck.&quot;</span><span class="p">)</span>
           <span class="nx">transferCardToTop</span><span class="p">(</span><span class="nx">choice</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
-          <span class="nx">state</span><span class="p">.</span><span class="nx">tidyList</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">)</span>
       <span class="k">if</span> <span class="o">not</span> <span class="nx">opposingProvince</span>
         <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -675,6 +683,20 @@ to apply to the state.</p>             </td>             <td class="code">      
     <span class="nx">applyBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">benefit</span><span class="p">)</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;University&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">2</span>
+  <span class="nv">costPotion: </span><span class="mi">1</span>
+  <span class="nv">actions: </span><span class="mi">2</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">choices = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">cardName</span> <span class="k">of</span> <span class="nx">state</span><span class="p">.</span><span class="nx">supply</span>
+      <span class="nv">card = </span><span class="nx">c</span><span class="p">[</span><span class="nx">cardName</span><span class="p">]</span>
+      <span class="p">[</span><span class="nx">coins</span><span class="p">,</span> <span class="nx">potions</span><span class="p">]</span> <span class="o">=</span> <span class="nx">card</span><span class="p">.</span><span class="nx">getCost</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nx">potions</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">and</span> <span class="nx">coins</span> <span class="o">&lt;=</span> <span class="mi">5</span> <span class="o">and</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isAction</span>
+        <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Warehouse&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">3</span>
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
@@ -688,21 +710,31 @@ to apply to the state.</p>             </td>             <td class="code">      
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
       <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Workshop&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">choices = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">cardName</span> <span class="k">of</span> <span class="nx">state</span><span class="p">.</span><span class="nx">supply</span>
+      <span class="nv">card = </span><span class="nx">c</span><span class="p">[</span><span class="nx">cardName</span><span class="p">]</span>
+      <span class="p">[</span><span class="nx">coins</span><span class="p">,</span> <span class="nx">potions</span><span class="p">]</span> <span class="o">=</span> <span class="nx">card</span><span class="p">.</span><span class="nx">getCost</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nx">potions</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">and</span> <span class="nx">coins</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+        <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
 <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-48">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-48">&#182;</a>               </div>               <h2>Utility functions</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-49">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-49">&#182;</a>               </div>               <p><code>transferCard</code> will move a card from one list to the end of another.</p>
 
 <p>This sometimes happens when iterating over a list of cards, which is
 unfortunate. The current solution is to call cleanupList, defined in
 the state.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCard = </span><span class="nf">(card, fromList, toList) -&gt;</span>
-  <span class="nv">idx = </span><span class="nx">fromList</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
-  <span class="k">if</span> <span class="nx">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+  <span class="k">if</span> <span class="nx">card</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">fromList</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
-  <span class="nx">fromList</span><span class="p">[</span><span class="nx">idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">null</span>
+  <span class="nx">fromList</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
   <span class="nx">toList</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-50">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-50">&#182;</a>               </div>               <p><code>transferCardToTop</code> will move a card from one list to the front of another.
 This is used to put a card on top of the deck, for example.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCardToTop = </span><span class="nf">(card, fromList, toList) -&gt;</span>
-  <span class="nv">idx = </span><span class="nx">fromList</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
-  <span class="k">if</span> <span class="nx">idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+  <span class="k">if</span> <span class="nx">card</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">fromList</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
-  <span class="nx">fromList</span><span class="p">[</span><span class="nx">idx</span><span class="p">]</span> <span class="o">=</span> <span class="kc">null</span>
+  <span class="nx">fromList</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
   <span class="nx">toList</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-51">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-51">&#182;</a>               </div>               <p>Some cards give you a constant benefit, such as +cards or +actions,
 every time you play them; these benefits are defined directly on the card
 object. Other cards give you such a benefit only under certain conditions,
