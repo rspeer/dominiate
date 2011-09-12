@@ -866,9 +866,9 @@ makeCard 'Workshop', action, {
 
 # `transferCard` will move a card from one list to the end of another.
 # 
-# This sometimes happens when iterating over a list of cards, which is
-# unfortunate. The current solution is to call cleanupList, defined in
-# the state.
+# If you are doing something to each card in a list which might result in
+# that card being moved somewhere else, you *must* iterate over the list
+# backwards. Otherwise you'll run off the end of the list.
 transferCard = (card, fromList, toList) ->
   if card not in fromList
     throw new Error("#{fromList} does not contain #{card}")
