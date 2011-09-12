@@ -184,7 +184,7 @@
       return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws() === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "Bazaar", "Worker's Village", "City", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, "Pawn", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Mountebank", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
+      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "Bazaar", "Worker's Village", "City", "Village", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, state.current.inPlay.length >= 2 ? "Conspirator" : void 0, "Pawn", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Mountebank", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", "Moat", "Chapel", "Coppersmith", "Shanty Town", null];
     };
     BasicAI.prototype.treasurePriority = function(state) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank"];
@@ -636,6 +636,17 @@
       return state.bridges += 1;
     }
   });
+  /*
+  # not defining this yet; involves implementing a possibly-important but
+  # very boring decision
+  makeCard 'Bureaucrat', action, {
+    cost: 4
+    isAttack: true
+    playEffect: (state) ->
+      state.attackOpponents (opp) ->
+        
+  }
+  */
   makeCard('Cellar', action, {
     cost: 2,
     actions: 1,
@@ -673,6 +684,24 @@
     },
     getCoins: function(state) {
       if (state.numEmptyPiles() >= 2) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+  });
+  makeCard('Conspirator', action, {
+    cost: 4,
+    coins: 2,
+    getActions: function(state) {
+      if (state.current.inPlay.length >= 3) {
+        return 1;
+      } else {
+        return 0;
+      }
+    },
+    getCards: function(state) {
+      if (state.current.inPlay.length >= 3) {
         return 1;
       } else {
         return 0;
@@ -1175,15 +1204,23 @@
       }
       return cardsToDraw;
     };
-    PlayerState.prototype.shantyTownDraws = function() {
-      var card, cardsToDraw, _i, _len, _ref2;
+    PlayerState.prototype.shantyTownDraws = function(hypothetical) {
+      var card, cardsToDraw, skippedShanty, _i, _len, _ref2;
+      if (hypothetical == null) {
+        hypothetical = false;
+      }
       cardsToDraw = 2;
+      skippedShanty = false;
       _ref2 = this.hand;
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
         card = _ref2[_i];
         if (card.isAction) {
-          cardsToDraw = 0;
-          break;
+          if (hypothetical && !skippedShanty) {
+            skippedShanty = true;
+          } else {
+            cardsToDraw = 0;
+            break;
+          }
         }
       }
       return cardsToDraw;
