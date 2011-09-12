@@ -4,8 +4,8 @@
     "Colony" if state.current.countInDeck("Platinum") > 0
     "Province"
     "Duchy" if 0 < state.gainsToEndGame() <= 2
-    "Trusty Steed"
     "Followers"
+    "Trusty Steed"
     "Bag of Gold"
     "Princess"
     "Duchy" if 0 < state.gainsToEndGame() <= 5
