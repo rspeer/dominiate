@@ -782,6 +782,13 @@ makeCard 'Tournament', action, {
         state.current.drawCards(1)
 }
 
+makeCard "Trade Route", action {
+  buys: 1
+  trash: 1
+  getCoins: (state) ->
+    state.tradeRouteValue
+}
+
 makeCard "Trusty Steed", c["Bag of Gold"], {
   actions: 0
   playEffect: (state) ->
