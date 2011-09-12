@@ -591,7 +591,7 @@
       return false;
     },
     playEffect: function(state) {
-      state.current.gainCard(c.Gold);
+      state.gainCard(state.current, c.Gold);
       state.log("...putting the Gold on top of the deck.");
       return transferCardToTop(c.Gold, state.current.discard, state.current.draw);
     }
