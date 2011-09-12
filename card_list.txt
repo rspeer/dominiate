@@ -1,4 +1,4 @@
-Cards that are done (64)
+Cards that are done (65)
 ========================
 Adventurer
 Alchemist
@@ -24,6 +24,7 @@ Estate
 Fairgrounds
 Festival
 Fishing Village
+Gardens
 Goons
 Grand Market
 Great Hall

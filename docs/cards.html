@@ -759,9 +759,9 @@ to apply to the state.</p>             </td>             <td class="code">      
     <span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
 <span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-50">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-50">&#182;</a>               </div>               <h2>Utility functions</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-51">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-51">&#182;</a>               </div>               <p><code>transferCard</code> will move a card from one list to the end of another.</p>
 
-<p>This sometimes happens when iterating over a list of cards, which is
-unfortunate. The current solution is to call cleanupList, defined in
-the state.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCard = </span><span class="nf">(card, fromList, toList) -&gt;</span>
+<p>If you are doing something to each card in a list which might result in
+that card being moved somewhere else, you <em>must</em> iterate over the list
+backwards. Otherwise you'll run off the end of the list.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCard = </span><span class="nf">(card, fromList, toList) -&gt;</span>
   <span class="k">if</span> <span class="nx">card</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">fromList</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
   <span class="nx">fromList</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
