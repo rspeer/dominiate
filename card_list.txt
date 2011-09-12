@@ -1,4 +1,4 @@
-Cards that are done (63)
+Cards that are done (64)
 ========================
 Adventurer
 Alchemist
@@ -24,7 +24,6 @@ Estate
 Fairgrounds
 Festival
 Fishing Village
-Followers
 Goons
 Grand Market
 Great Hall
@@ -45,6 +44,7 @@ Nobles
 Pawn
 Peddler
 Philosopher's Stone
+Platinum
 Potion
 Princess
 Province
@@ -57,6 +57,7 @@ Tournament
 Trade Route
 Trusty Steed
 University
+Village
 Warehouse
 Wharf
 Witch
@@ -64,7 +65,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (76)
+Cards that still need to be coded (75)
 ======================================
 Ambassador
 Apothecary
@@ -84,6 +85,7 @@ Explorer
 Familiar
 Farming Village
 Feast
+Followers
 Forge
 Fortune Teller
 Hamlet
@@ -107,7 +109,6 @@ Navigator
 Outpost
 Pearl Diver
 Pirate Ship
-Platinum
 Possession (will require entirely new kinds of AI decisions)
 Rabble
 Remake
@@ -136,7 +137,6 @@ Tribute
 Upgrade
 Vault
 Venture
-Village
 Vineyard
 Walled Village
 Watchtower
