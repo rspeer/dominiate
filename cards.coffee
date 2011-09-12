@@ -380,7 +380,7 @@ makeCard 'Bag of Gold', action, {
   mayBeBought: (state) -> false
 
   playEffect: (state) ->
-    state.current.gainCard(c.Gold)
+    state.gainCard(state.current, c.Gold)
     state.log("...putting the Gold on top of the deck.")
     transferCardToTop(c.Gold, state.current.discard, state.current.draw)
 }
