@@ -103,6 +103,7 @@ assign a numerical value to each choice.</p>             </td>             <td c
     <span class="s2">&quot;Smithy&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">&gt;</span> <span class="mi">1</span>
     <span class="s2">&quot;Conspirator&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;=</span> <span class="mi">2</span>
     <span class="s2">&quot;Pawn&quot;</span>
+    <span class="s2">&quot;Lighthouse&quot;</span>
     <span class="s2">&quot;Warehouse&quot;</span>
     <span class="s2">&quot;Menagerie&quot;</span>
     <span class="s2">&quot;Tournament&quot;</span>  <span class="c1"># should be above cards that might discard a Province</span>
@@ -132,6 +133,7 @@ assign a numerical value to each choice.</p>             </td>             <td c
     <span class="s2">&quot;Conspirator&quot;</span>
     <span class="s2">&quot;Moat&quot;</span>
     <span class="s2">&quot;Chapel&quot;</span>
+    <span class="s2">&quot;Trade Route&quot;</span> <span class="c1"># probably needs a condition on it</span>
     <span class="s2">&quot;Workshop&quot;</span>
     <span class="s2">&quot;Coppersmith&quot;</span>
     <span class="s2">&quot;Shanty Town&quot;</span>
@@ -149,6 +151,7 @@ assign a numerical value to each choice.</p>             </td>             <td c
     <span class="s2">&quot;Copper&quot;</span>
     <span class="s2">&quot;Potion&quot;</span>
     <span class="s2">&quot;Bank&quot;</span>
+    <span class="s2">&quot;Horn of Plenty&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">numUniqueCardsInPlay</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">2</span>
   <span class="p">]</span>
   
   <span class="nv">discardPriority: </span><span class="nf">(state) -&gt;</span> <span class="p">[</span>
