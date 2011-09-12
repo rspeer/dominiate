@@ -320,6 +320,7 @@ class State
     @bridges = 0
     @quarries = 0
     @copperValue = 1
+    @tradeRouteValue = 0
     @phase = 'start'
     return this
   
