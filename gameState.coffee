@@ -248,6 +248,7 @@ class PlayerState
     if card not in @hand
       this.warn("#{@ai} has no #{card} to trash")
       return
+    this.log("#{@ai} trashes #{card}.")
     @hand.remove(card)
   
   shuffle: () ->
@@ -644,7 +645,7 @@ class State
         @supply[card] -= 1
       if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
-        @tradeRouteValue = +1
+        @tradeRouteValue += 1
     else
       this.log("There is no #{card} to gain.")
     # TODO: handle gain reactions
@@ -713,7 +714,6 @@ class State
       valid.push(null)
       choice = player.ai.chooseTrash(this, valid)
       return if choice is null
-      this.log("#{player.ai} trashes #{choice}.")
       numTrashed++
       player.doTrash(choice)
   
@@ -723,7 +723,6 @@ class State
       valid = player.hand.slice(0)
       return if valid.length == 0
       choice = player.ai.chooseTrash(this, valid)
-      this.log("#{player.ai} trashes #{choice}.")
       numTrashed++
       player.doTrash(choice)
   

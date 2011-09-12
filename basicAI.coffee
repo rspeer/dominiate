@@ -152,6 +152,7 @@ class BasicAI
     "Conspirator"
     "Moat"
     "Chapel"
+    "Trade Route" # probably needs a condition on it
     "Workshop"
     "Coppersmith"
     "Shanty Town"

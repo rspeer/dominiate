@@ -93,6 +93,7 @@ basicCard = {
   coins: 0
   buys: 0
   vp: 0
+  trash: 0        # if the card requires trashing for no further effect
 
   # If a card has simple effects that *vary* based on the state, define
   # them by overriding these methods, which do take the state as a parameter.
@@ -103,6 +104,7 @@ basicCard = {
   getCards: (state) -> this.cards
   getCoins: (state) -> this.coins
   getBuys: (state) -> this.buys
+  getTrash: (state) -> this.trash
   getVP: (state) -> this.vp
   
   # getPotion says whether the card provides a potion. There is only one
@@ -154,8 +156,11 @@ basicCard = {
     state.current.potions += this.getPotion(state)
     state.current.buys += this.getBuys(state)
     cardsToDraw = this.getCards(state)
+    cardsToTrash = this.getTrash(state)
     if cardsToDraw > 0
       state.drawCards(state.current, cardsToDraw)
+    if cardsToTrash > 0
+      state.requireTrash(state.current, cardsToTrash)
     this.playEffect(state)
   
   # Similarly, these are other ways for the game state to interact
@@ -793,7 +798,8 @@ makeCard 'Tournament', action, {
         state.current.drawCards(1)
 }
 
-makeCard "Trade Route", action {
+makeCard "Trade Route", action, {
+  cost: 3
   buys: 1
   trash: 1
   getCoins: (state) ->
