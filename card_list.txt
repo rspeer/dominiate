@@ -1,0 +1,145 @@
+Cards that are done (63)
+========================
+Adventurer
+Alchemist
+Bag of Gold
+Bank
+Baron
+Bazaar
+Bridge
+Caravan
+Cellar
+Chapel
+City
+Colony
+Conspirator
+Copper
+Coppersmith
+Council Room
+Curse
+Diadem
+Duchy
+Duke
+Estate
+Fairgrounds
+Festival
+Fishing Village
+Followers
+Goons
+Grand Market
+Great Hall
+Harem
+Hoard
+Horn of Plenty
+Horse Traders
+Laboratory
+Lighthouse
+Market
+Menagerie
+Merchant Ship
+Militia
+Moat
+Monument
+Mountebank
+Nobles
+Pawn
+Peddler
+Philosopher's Stone
+Potion
+Princess
+Province
+Quarry
+Shanty Town
+Silver
+Smithy
+Steward
+Tournament
+Trade Route
+Trusty Steed
+University
+Warehouse
+Wharf
+Witch
+Woodcutter
+Worker's Village
+Workshop
+
+Cards that still need to be coded (76)
+======================================
+Ambassador
+Apothecary
+Apprentice
+Bishop
+Black Market
+Bureaucrat
+Chancellor
+Contraband
+Counting House
+Courtyard
+Cutpurse
+Embargo
+Envoy
+Expand
+Explorer
+Familiar
+Farming Village
+Feast
+Forge
+Fortune Teller
+Hamlet
+Herbalist
+Hunting Party
+Ironworks
+Island
+Jester
+King's Court
+Library
+Loan
+Lookout
+Masquerade
+Mine
+Mining Village
+Minion
+Mint
+Moneylender
+Native Village
+Navigator
+Outpost
+Pearl Diver
+Pirate Ship
+Platinum
+Possession (will require entirely new kinds of AI decisions)
+Rabble
+Remake
+Remodel
+Royal Seal
+Saboteur
+Salvager
+Scout
+Scrying Pool
+Sea Hag
+Secret Chamber
+Smugglers
+Spy
+Stash
+Swindler
+Tactician
+Talisman
+Thief
+Throne Room
+Torturer
+Trading Post
+Transmute
+Treasure Map
+Treasury
+Tribute
+Upgrade
+Vault
+Venture
+Village
+Vineyard
+Walled Village
+Watchtower
+Wishing Well
+Young Witch
+
