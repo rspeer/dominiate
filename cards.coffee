@@ -126,6 +126,8 @@ basicCard = {
 
   # - What happens when the card is bought?
   buyEffect: (state) ->
+  # - What happens when the card is gained?
+  gainEffect: (state) ->
   # - What happens (besides the simple effects defined above) when the card is
   #   played?
   playEffect: (state) ->
@@ -167,6 +169,9 @@ basicCard = {
   onBuy: (state) ->
     this.buyEffect(state)
   
+  onGain: (state) ->
+    this.gainEffect(state)
+  
   reactToAttack: (player) ->
     this.attackReaction(player)
   
@@ -205,7 +210,7 @@ makeCard 'Estate', basicCard, {
     switch state.nPlayers
       when 1, 2 then 8
       when 3, 4 then 12
-      else 15
+      else 15  
 }
 
 makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
