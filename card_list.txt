@@ -1,7 +1,8 @@
-Cards that are done (65)
+Cards that are done (67)
 ========================
 Adventurer
 Alchemist
+Ambassador
 Bag of Gold
 Bank
 Baron
@@ -24,6 +25,7 @@ Estate
 Fairgrounds
 Festival
 Fishing Village
+Followers
 Gardens
 Goons
 Grand Market
@@ -66,9 +68,8 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (75)
+Cards that still need to be coded (73)
 ======================================
-Ambassador
 Apothecary
 Apprentice
 Bishop
@@ -86,7 +87,6 @@ Explorer
 Familiar
 Farming Village
 Feast
-Followers
 Forge
 Fortune Teller
 Hamlet

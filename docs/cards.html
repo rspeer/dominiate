@@ -403,7 +403,7 @@ very boring decision</p>             </td>             <td class="code">        
   <span class="nv">actions: </span><span class="mi">1</span>
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
     <span class="nv">startingCards = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span>
-    <span class="nx">state</span><span class="p">.</span><span class="nx">allowDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">allowDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="kc">Infinity</span><span class="p">)</span>
     <span class="nv">numDiscarded = </span><span class="nx">startingCards</span> <span class="o">-</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">numDiscarded</span><span class="p">)</span>
 <span class="p">}</span>

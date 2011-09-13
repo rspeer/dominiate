@@ -483,7 +483,7 @@ makeCard 'Cellar', action, {
   actions: 1
   playEffect: (state) ->
     startingCards = state.current.hand.length
-    state.allowDiscard(state.current, 1000)
+    state.allowDiscard(state.current, Infinity)
     numDiscarded = startingCards - state.current.hand.length
     state.drawCards(state.current, numDiscarded)
 }
