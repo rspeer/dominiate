@@ -31,8 +31,8 @@ class BasicAI
         bestIndex = index
         bestChoice = choice
     if bestChoice is null and null not in choices
-      # either no choices are available, or this AI is being forced
-      # to make a decision it's not prepared for
+      # Either no choices are available, or this AI is being forced
+      # to make a decision it's not prepared for.
       return choices[0] ? null
     return bestChoice
 
@@ -57,7 +57,8 @@ class BasicAI
       # to make a decision it's not prepared for.
       return choices[0] ? null
     return bestChoice
-
+  
+  #### Common decisions
   # When an AI is asked to make a choice, it has two ways of doing so that
   # we support: to rank the possible choices in a preference order, or to
   # assign a numerical value to each choice.
@@ -86,6 +87,21 @@ class BasicAI
       this.chooseValue(state, choices, this.trashValue)
     else
       this.choosePriority(state, choices, this.trashPriority)
+
+  #### Decisions for specific action cards
+  #
+  # `chooseAmbassador` chooses from a list of two-item arrays of
+  # [card, quantity], selecting the card to ambassador and the number to
+  # return to the supply.
+  chooseAmbassador: (state, choices) ->
+    if this.ambassadorValue?
+      this.chooseValue(state, choices, this.ambassadorValue)
+    else
+      this.choosePriority(state, choices, this.ambassadorPriority)
+
+  # The question for Baron is: do you want to discard an Estate for +$4, rather
+  # than gain an Estate? And the answer is yes.
+  chooseBaronDiscard: (state) -> yes
 
   # The default buying strategy is Big Money Ultimate.
   gainPriority: (state) -> [
@@ -150,12 +166,15 @@ class BasicAI
     "Woodcutter"
     "Coppersmith" if state.current.countInHand("Copper") >= 2
     "Conspirator"
+    # Play an Ambassador if our hand has something we'd want to discard.
+    "Ambassador" if state.current.ai.wantsToTrash(state)
+    "Chapel" if state.current.ai.wantsToTrash(state)
     "Moat"
-    "Chapel"
-    "Trade Route" # probably needs a condition on it
+    "Trade Route" if state.current.ai.wantsToTrash(state)
     "Workshop"
     "Coppersmith"
     "Shanty Town"
+    "Chapel"
     null
   ]
   
@@ -175,8 +194,8 @@ class BasicAI
   
   discardPriority: (state) -> [
     "Colony"
-    "Province"
     "Duchy"
+    "Province"  # Provinces are occasionally useful in hand
     "Curse"
     "Estate"
     "Copper"
@@ -197,10 +216,6 @@ class BasicAI
     "Silver"
   ]
 
-  # The question here is: do you want to discard an Estate for +$4, rather
-  # than gain an Estate? And the answer is yes.
-  chooseBaronDiscard: (state) -> yes
-  
   # When presented with a card with simple but variable benefits, this is
   # the default way for an AI to decide which benefit it wants.
   chooseBenefit: (state, choices) -> 
@@ -239,6 +254,37 @@ class BasicAI
         best = choice
         bestValue = value
     best
+  
+  # Choose a card to Ambassador and how many of it to return.
+  #
+  # These choices may look odd: remember that choices are evaluated as strings.
+  # So if we return lists, they won't match any of the choices. We need to
+  # return their joined string versions.
+  #
+  # This is a moderately acceptable way to deal with the fact that, in
+  # JavaScript, lists are never really "equal" to other lists anyway.
+  ambassadorPriority: (state) ->
+    # Useful shorthand:
+    my = state.current
+    [
+      "Curse,2"
+      "Curse,1"
+      "Curse,0"
+      "Estate,2"
+      "Estate,1"
+      # Make sure we have at least $5 in the deck, including if we buy a Silver.
+      "Copper,2" if my.getTreasureInHand() < 3 and my.getTotalMoney() >= 5
+      "Copper,2" if my.getTreasureInHand() >= 5
+      "Copper,2" if my.getTreasureInHand() == 3 and my.getTotalMoney() >= 7
+      "Copper,1" if my.getTreasureInHand() < 3 and my.getTotalMoney() >= 4
+      "Copper,1" if my.getTreasureInHand() >= 4
+      "Estate,0"
+      "Copper,0"
+    ]
+
+  #### Informational methods
+  wantsToTrash: (state) ->
+    this.chooseTrash(state, [null].concat(state.current.hand)) isnt null
 
   toString: () -> this.name
 this.BasicAI = BasicAI

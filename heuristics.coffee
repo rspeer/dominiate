@@ -1,6 +1,9 @@
 # These heuristics are intended to estimate the average effect on your hand
 # state when you play the card, not to define what the card actually does.
 #
+# NOTE: This is not used anywhere yet. I thought it would be useful as a base
+# case for code that analyzes a game tree.
+#
 # The values are all constants, even when the card's effect isn't, so that in
 # the base case a hand can be quickly evaluated. The more sophisticated way to
 # evaluate a hand, of course, is to consider the actual effect of playing the

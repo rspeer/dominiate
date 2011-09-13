@@ -389,6 +389,38 @@ makeCard 'Alchemist', action, {
         transferCardToTop(c.Alchemist, state.current.discard, state.current.draw)
 }
 
+makeCard 'Ambassador', action, {
+  cost: 3
+
+  playEffect: (state) ->
+    # Determine the cards and quantities that can be ambassadored
+    counts = {}
+    for card in state.current.hand
+      counts[card] ?= 0
+      counts[card] += 1
+    choices = []
+    for card, count of counts
+      if count >= 2
+        choices.push [card, 2]
+      if count >= 1
+        choices.push [card, 1]
+      choices.push [card, 0]
+
+    choice = state.current.ai.chooseAmbassador(state, choices)
+
+    if choice isnt null
+      [cardName, quantity] = choice
+      card = c[cardName]
+      state.log("...choosing to return #{quantity} #{cardName}.")
+      for i in [0...quantity]
+        state.current.doTrash(card)
+      # Return it to the supply, if it had a slot in the supply to begin with
+      if state.supply[card]?
+        state.supply[card] += quantity
+      state.attackOpponents (opp) ->
+        state.gainCard(opp, card)
+}
+
 makeCard 'Bag of Gold', action, {
   cost: 0
   actions: +1

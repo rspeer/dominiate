@@ -107,6 +107,18 @@ class PlayerState
       total += card.coins
     total
   
+  # `getTreasureInHand()` adds up the value of the treasure in the player's
+  # hand. Banks and Ventures and such will be inaccurate.
+  #
+  # A `getMoneyInHand(state)` method that counted playable action cards would
+  # be great, but I'm skipping it for now because it's difficult to get right.
+  getTreasureInHand: () ->
+    total = 0
+    for card in this.hand
+      if card.isTreasure
+        total += card.coins
+    total    
+  
   # `countInHand(card)` counts the number of copies of a card in hand.
   countInHand: (card) ->
     countStr(@hand, card)
