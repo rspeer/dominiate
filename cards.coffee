@@ -867,7 +867,7 @@ makeCard "Trade Route", action, {
     state.tradeRouteValue
 }
 
-makeCard 'Treasure Map', action {
+makeCard 'Treasure Map', action, {
   cost: 4
 
   playEffect: (state) ->
@@ -875,17 +875,22 @@ makeCard 'Treasure Map', action {
 
     if c['Treasure Map'] in state.current.inPlay
       state.current.inPlay.remove(c['Treasure Map'])
+      state.log("...trashing the Treasure Map.")
       trashedMaps += 1
 
     if c['Treasure Map'] in state.current.hand
-      doTrash(c['Treasure Map'])
+      state.current.doTrash(c['Treasure Map'])
+      state.log("...and trashing another Treasure Map.")
       trashedMaps += 1
 
     if trashedMaps == 2
+      numGolds = 0
       for num in [1..4]
-        state.gainCard(state.current, c.Gold, true)        
-        transferCardToTop(c.Gold, state.current.discard, state.current.draw)
-      state.log("…gaining 4 Golds, putting them on top of the deck.")      
+        if state.countInSupply(c.Gold) > 0
+          state.gainCard(state.current, c.Gold, true)        
+          transferCardToTop(c.Gold, state.current.discard, state.current.draw)
+          numGolds += 1
+      state.log("…gaining #{numGolds} Golds, putting them on top of the deck.")      
 }
 
 makeCard "Trusty Steed", c["Bag of Gold"], {
