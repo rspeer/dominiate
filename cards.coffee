@@ -536,6 +536,17 @@ makeCard "Duke", c.Estate, {
     vp
 }
 
+makeCard 'Familiar', action, {
+  cost: 3
+  costPotion: 1
+  actions: +1
+  cards: +1
+  isAttack: true
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      state.gainCard(opp, c.Curse)
+}
+
 makeCard "Followers", action, {
   cost: 0
   isAttack: true
@@ -614,6 +625,25 @@ makeCard "Horse Traders", action, {
       transferCard(c['Horse Traders'], player.hand, player.duration)
 }
 
+makeCard 'Ironworks', action, {
+  cost: 4
+  playEffect: (state) ->
+    choices = []
+    for cardName of state.supply
+      card = c[cardName]
+      [coins, potions] = card.getCost(state)
+      if potions == 0 and coins <= 4
+        choices.push(card)
+    gained = state.gainOneOf(state.current, choices)
+    
+    if gained.isAction
+      state.current.actions += 1
+    if gained.isTreasure
+      state.current.coins += 1
+    if gained.isVictory
+      state.current.drawCards(1)
+}
+
 makeCard "Menagerie", action, {
   cost: 3
   actions: 1
@@ -637,20 +667,6 @@ makeCard "Militia", action, {
           state.requireDiscard(opp, opp.hand.length - 3)
 }
 
-makeCard "Mountebank", action, {
-  cost: 5
-  coins: 2
-  isAttack: true
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      if c.Curse in opp.hand
-        # Discarding a Curse against Mountebank is automatic.
-        opp.doDiscard(c.Curse)
-      else
-        state.gainCard(opp, c.Copper)
-        state.gainCard(opp, c.Curse)
-}
-
 makeCard "Goons", c.Militia, {
   cost: 6
   coins: 2
@@ -672,12 +688,35 @@ makeCard "Moat", action, {
     (player) -> player.moatProtected = true
 }
 
+makeCard 'Moneylender', action {
+  cost: 4
+
+  playEffect: (state) ->
+    if c.Copper in state.current.hand
+      state.current.doTrash(c.Copper)
+      state.current.coins += 3
+}
+
 makeCard "Monument", action, {
   cost: 4
   coins: 2
   playEffect:
     (state) ->
       state.current.chips += 1
+}
+
+makeCard "Mountebank", action, {
+  cost: 5
+  coins: 2
+  isAttack: true
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      if c.Curse in opp.hand
+        # Discarding a Curse against Mountebank is automatic.
+        opp.doDiscard(c.Curse)
+      else
+        state.gainCard(opp, c.Copper)
+        state.gainCard(opp, c.Curse)
 }
 
 makeCard 'Nobles', action, {
@@ -850,7 +889,7 @@ makeCard 'Witch', action, {
 }
 
 makeCard 'Workshop', action, {
-  cost: 4
+  cost: 3
   playEffect: (state) ->
     choices = []
     for cardName of state.supply
