@@ -1,4 +1,4 @@
-Cards that are done (65)
+Cards that are done (68)
 ========================
 Adventurer
 Alchemist
@@ -22,6 +22,7 @@ Duchy
 Duke
 Estate
 Fairgrounds
+Familiar
 Festival
 Fishing Village
 Gardens
@@ -32,6 +33,7 @@ Harem
 Hoard
 Horn of Plenty
 Horse Traders
+Ironworks
 Laboratory
 Lighthouse
 Market
@@ -40,6 +42,7 @@ Merchant Ship
 Militia
 Moat
 Monument
+Moneylender
 Mountebank
 Nobles
 Pawn
@@ -66,7 +69,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (75)
+Cards that still need to be coded (73)
 ======================================
 Ambassador
 Apothecary
@@ -83,16 +86,15 @@ Embargo
 Envoy
 Expand
 Explorer
-Familiar
 Farming Village
 Feast
 Followers
 Forge
 Fortune Teller
+Golem
 Hamlet
 Herbalist
 Hunting Party
-Ironworks
 Island
 Jester
 King's Court
@@ -104,7 +106,6 @@ Mine
 Mining Village
 Minion
 Mint
-Moneylender
 Native Village
 Navigator
 Outpost
