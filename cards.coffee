@@ -568,6 +568,27 @@ makeCard "Duke", c.Estate, {
     vp
 }
 
+makeCard 'Farming Village', action, {
+  cost: 4
+  actions: 2
+  
+  playEffect: (state) ->
+    cardsDrawn = 0;
+    while cardsDrawn < 1
+      drawn = state.current.getCardsFromDeck(1)
+      if drawn.length == 0
+        break
+      card = drawn[0]
+      if card.isAction or card.isTreasure
+        cardsDrawn += 1
+        state.current.hand.push(card)
+        state.log("...drawing a #{card}.")
+      else
+        state.current.setAside.push(card)
+    state.current.discard = state.current.discard.concat(state.current.setAside)
+    state.current.setAside = []
+}
+
 makeCard "Followers", action, {
   cost: 0
   isAttack: true
@@ -644,6 +665,31 @@ makeCard "Horse Traders", action, {
   attackReaction:
     (player) ->
       transferCard(c['Horse Traders'], player.hand, player.duration)
+}
+
+makeCard 'Hunting Party', action, {
+  cost: 5
+  actions: 1
+  cards: 1
+
+  playEffect: (state) ->
+    state.revealHand(state.current)
+    cardsDrawn = 0;
+    while cardsDrawn < 1
+      drawn = state.current.getCardsFromDeck(1)
+      if drawn.length == 0
+        break
+      card = drawn[0]
+      state.log("...revealing a #{card}")
+
+      if card not in state.current.hand
+        cardsDrawn += 1
+        state.current.hand.push(card)
+        state.log("...drawing a #{card}.")
+      else
+        state.current.setAside.push(card)
+    state.current.discard = state.current.discard.concat(state.current.setAside)
+    state.current.setAside = []
 }
 
 makeCard "Menagerie", action, {
@@ -785,6 +831,21 @@ makeCard 'Quarry', c.Silver, {
       state.quarries += 1
 }
 
+makeCard 'Sea Hag', action, {
+  cost: 4
+  isAttack: true
+  
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      state.discardFromDeck(opp, 1)
+
+      # If no Curses are left to gain, we don't want a Curse to be
+      # fished out of the opponent's discard pile
+      if state.supply[c.Curse] > 0
+        state.gainCard(opp, c.Curse)
+        transferCardToTop(c.Curse, opp.discard, opp.draw)
+}
+
 makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
@@ -838,6 +899,27 @@ makeCard "Trade Route", action, {
     state.tradeRouteValue
 }
 
+makeCard 'Treasure Map', action, {
+  cost: 4
+
+  playEffect: (state) ->
+    trashedMaps = 0
+
+    if c['Treasure Map'] in state.current.inPlay
+      state.current.inPlay.remove(c['Treasure Map'])
+      trashedMaps += 1
+
+    if c['Treasure Map'] in state.current.hand
+      doTrash(c['Treasure Map'])
+      trashedMaps += 1
+
+    if trashedMaps == 2
+      for num in [1..4]
+        state.gainCard(state.current, c.Gold, true)        
+        transferCardToTop(c.Gold, state.current.discard, state.current.draw)
+      state.log("…gaining 4 Golds, putting them on top of the deck.")      
+}
+
 makeCard "Trusty Steed", c["Bag of Gold"], {
   actions: 0
   playEffect: (state) ->
@@ -864,6 +946,12 @@ makeCard 'University', action, {
       if potions == 0 and coins <= 5 and card.isAction
         choices.push(card)
     state.gainOneOf(state.current, choices)
+}
+
+makeCard 'Vineyard', c.Estate, {
+  cost: 0
+  costPotion: 1
+  getVP: (state) -> Math.floor(state.current.numActionCardsInDeck() / 3)
 }
 
 makeCard 'Warehouse', action, {

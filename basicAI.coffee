@@ -122,12 +122,14 @@ class BasicAI
     "Trusty Steed"
     "Festival"
     "University"
+    "Farming Village"
     "Bazaar"
     "Worker's Village"
     "City"
     "Village"
     "Bag of Gold"
     "Grand Market"
+    "Hunting Party"
     "Alchemist"
     "Laboratory"
     "Caravan"
@@ -137,6 +139,7 @@ class BasicAI
     "Great Hall"
     "Smithy" if state.current.actions > 1
     "Conspirator" if state.current.inPlay.length >= 2
+    "Familiar" # after other non-terminals in case non-terminal draws KC/TR
     "Pawn"
     "Lighthouse"
     "Warehouse"
@@ -145,14 +148,17 @@ class BasicAI
     "Cellar"
     "Shanty Town" if state.current.actions == 1
     "Nobles"
+    "Treasure Map" if state.current.countInHand("Treasure Map") >= 2
     "Followers"
     "Mountebank"
     "Witch"
+    "Sea Hag"
     "Goons"
     "Wharf"
     "Militia"
     "Princess"
     "Steward"
+    "Moneylender" if state.current.countInHand("Copper") >= 1
     "Bridge"
     "Horse Traders"
     "Coppersmith" if state.current.countInHand("Copper") >= 3
@@ -171,8 +177,10 @@ class BasicAI
     "Chapel" if state.current.ai.wantsToTrash(state)
     "Moat"
     "Trade Route" if state.current.ai.wantsToTrash(state)
+    "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Coppersmith"
+    "Treasure Map" if state.current.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Shanty Town"
     "Chapel"
     null
