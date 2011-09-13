@@ -1424,7 +1424,7 @@
     };
     PlayerState.prototype.getVP = function(state) {
       var card, total, _i, _len, _ref;
-      total = 0;
+      total = this.chips;
       _ref = this.getDeck();
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         card = _ref[_i];
