@@ -194,7 +194,7 @@
       return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "University", "Bazaar", "Worker's Village", "City", "Village", "Bag of Gold", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, state.current.inPlay.length >= 2 ? "Conspirator" : void 0, "Pawn", "Lighthouse", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Mountebank", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", state.current.ai.wantsToTrash(state) ? "Ambassador" : void 0, state.current.ai.wantsToTrash(state) ? "Chapel" : void 0, "Moat", state.current.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Workshop", "Coppersmith", "Shanty Town", "Chapel", null];
+      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, state.current.inPlay.length >= 2 ? "Conspirator" : void 0, "Familiar", "Pawn", "Lighthouse", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", state.current.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Sea Hag", "Goons", "Wharf", "Militia", "Princess", "Steward", state.current.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", state.current.ai.wantsToTrash(state) ? "Ambassador" : void 0, state.current.ai.wantsToTrash(state) ? "Chapel" : void 0, "Moat", state.current.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Ironworks", "Workshop", "Coppersmith", state.current.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", null];
     };
     BasicAI.prototype.treasurePriority = function(state) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank", state.current.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
@@ -825,6 +825,42 @@
       return vp;
     }
   });
+  makeCard('Farming Village', action, {
+    cost: 4,
+    actions: 2,
+    playEffect: function(state) {
+      var card, cardsDrawn, drawn;
+      cardsDrawn = 0;
+      while (cardsDrawn < 1) {
+        drawn = state.current.getCardsFromDeck(1);
+        if (drawn.length === 0) {
+          break;
+        }
+        card = drawn[0];
+        if (card.isAction || card.isTreasure) {
+          cardsDrawn += 1;
+          state.current.hand.push(card);
+          state.log("...drawing a " + card + ".");
+        } else {
+          state.current.setAside.push(card);
+        }
+      }
+      state.current.discard = state.current.discard.concat(state.current.setAside);
+      return state.current.setAside = [];
+    }
+  });
+  makeCard('Familiar', action, {
+    cost: 3,
+    costPotion: 1,
+    actions: +1,
+    cards: +1,
+    isAttack: true,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        return state.gainCard(opp, c.Curse);
+      });
+    }
+  });
   makeCard("Followers", action, {
     cost: 0,
     isAttack: true,
@@ -908,6 +944,57 @@
       return transferCard(c['Horse Traders'], player.hand, player.duration);
     }
   });
+  makeCard('Hunting Party', action, {
+    cost: 5,
+    actions: 1,
+    cards: 1,
+    playEffect: function(state) {
+      var card, cardsDrawn, drawn;
+      state.revealHand(state.current);
+      cardsDrawn = 0;
+      while (cardsDrawn < 1) {
+        drawn = state.current.getCardsFromDeck(1);
+        if (drawn.length === 0) {
+          break;
+        }
+        card = drawn[0];
+        state.log("...revealing a " + card);
+        if (__indexOf.call(state.current.hand, card) < 0) {
+          cardsDrawn += 1;
+          state.current.hand.push(card);
+          state.log("...drawing a " + card + ".");
+        } else {
+          state.current.setAside.push(card);
+        }
+      }
+      state.current.discard = state.current.discard.concat(state.current.setAside);
+      return state.current.setAside = [];
+    }
+  });
+  makeCard('Ironworks', action, {
+    cost: 4,
+    playEffect: function(state) {
+      var card, cardName, choices, coins, gained, potions, _ref;
+      choices = [];
+      for (cardName in state.supply) {
+        card = c[cardName];
+        _ref = card.getCost(state), coins = _ref[0], potions = _ref[1];
+        if (potions === 0 && coins <= 4) {
+          choices.push(card);
+        }
+      }
+      gained = state.gainOneOf(state.current, choices);
+      if (gained.isAction) {
+        state.current.actions += 1;
+      }
+      if (gained.isTreasure) {
+        state.current.coins += 1;
+      }
+      if (gained.isVictory) {
+        return state.current.drawCards(1);
+      }
+    }
+  });
   makeCard("Menagerie", action, {
     cost: 3,
     actions: 1,
@@ -928,6 +1015,36 @@
       });
     }
   });
+  makeCard("Goons", c.Militia, {
+    cost: 6,
+    coins: 2,
+    buys: 1
+  });
+  makeCard("Moat", action, {
+    cost: 2,
+    cards: +2,
+    isReaction: true,
+    attackReaction: function(player) {
+      return player.moatProtected = true;
+    }
+  });
+  makeCard('Moneylender', action, {
+    cost: 4,
+    playEffect: function(state) {
+      var _ref;
+      if (_ref = c.Copper, __indexOf.call(state.current.hand, _ref) >= 0) {
+        state.current.doTrash(c.Copper);
+        return state.current.coins += 3;
+      }
+    }
+  });
+  makeCard("Monument", action, {
+    cost: 4,
+    coins: 2,
+    playEffect: function(state) {
+      return state.current.chips += 1;
+    }
+  });
   makeCard("Mountebank", action, {
     cost: 5,
     coins: 2,
@@ -942,26 +1059,6 @@
           return state.gainCard(opp, c.Curse);
         }
       });
-    }
-  });
-  makeCard("Goons", c.Militia, {
-    cost: 6,
-    coins: 2,
-    buys: 1
-  });
-  makeCard("Moat", action, {
-    cost: 2,
-    cards: +2,
-    isReaction: true,
-    attackReaction: function(player) {
-      return player.moatProtected = true;
-    }
-  });
-  makeCard("Monument", action, {
-    cost: 4,
-    coins: 2,
-    playEffect: function(state) {
-      return state.current.chips += 1;
     }
   });
   makeCard('Nobles', action, {
@@ -1056,6 +1153,19 @@
       return state.quarries += 1;
     }
   });
+  makeCard('Sea Hag', action, {
+    cost: 4,
+    isAttack: true,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        state.discardFromDeck(opp, 1);
+        if (state.supply[c.Curse] > 0) {
+          state.gainCard(opp, c.Curse);
+          return transferCardToTop(c.Curse, opp.discard, opp.draw);
+        }
+      });
+    }
+  });
   makeCard('Shanty Town', action, {
     cost: 3,
     actions: +2,
@@ -1120,6 +1230,28 @@
       return state.tradeRouteValue;
     }
   });
+  makeCard('Treasure Map', action, {
+    cost: 4,
+    playEffect: function(state) {
+      var num, trashedMaps, _ref, _ref2;
+      trashedMaps = 0;
+      if (_ref = c['Treasure Map'], __indexOf.call(state.current.inPlay, _ref) >= 0) {
+        state.current.inPlay.remove(c['Treasure Map']);
+        trashedMaps += 1;
+      }
+      if (_ref2 = c['Treasure Map'], __indexOf.call(state.current.hand, _ref2) >= 0) {
+        state.doTrash(state.current, c['Treasure Map']);
+        trashedMaps += 1;
+      }
+      if (trashedMaps === 2) {
+        for (num = 1; num <= 4; num++) {
+          state.gainCard(state.current, c.Gold, true);
+          transferCardToTop(c.Gold, state.current.discard, state.current.draw);
+        }
+        return state.log("…gaining 4 Golds, putting them on top of the deck.");
+      }
+    }
+  });
   makeCard("Trusty Steed", c["Bag of Gold"], {
     actions: 0,
     playEffect: function(state) {
@@ -1165,6 +1297,13 @@
       return state.gainOneOf(state.current, choices);
     }
   });
+  makeCard('Vineyard', c.Estate, {
+    cost: 0,
+    costPotion: 1,
+    getVP: function(state) {
+      return Math.floor(state.current.numActionCardsInDeck() / 3);
+    }
+  });
   makeCard('Warehouse', action, {
     cost: 3,
     playEffect: function(state) {
@@ -1182,7 +1321,7 @@
     }
   });
   makeCard('Workshop', action, {
-    cost: 4,
+    cost: 3,
     playEffect: function(state) {
       var card, cardName, choices, coins, potions, _ref;
       choices = [];
