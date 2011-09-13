@@ -179,24 +179,31 @@
         return this.choosePriority(state, choices, this.trashPriority);
       }
     };
+    BasicAI.prototype.chooseAmbassador = function(state, choices) {
+      if (this.ambassadorValue != null) {
+        return this.chooseValue(state, choices, this.ambassadorValue);
+      } else {
+        return this.choosePriority(state, choices, this.ambassadorPriority);
+      }
+    };
+    BasicAI.prototype.chooseBaronDiscard = function(state) {
+      return true;
+    };
     BasicAI.prototype.gainPriority = function(state) {
       var _ref, _ref2;
       return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "University", "Bazaar", "Worker's Village", "City", "Village", "Bag of Gold", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, state.current.inPlay.length >= 2 ? "Conspirator" : void 0, "Pawn", "Lighthouse", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Mountebank", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", "Moat", "Chapel", "Trade Route", "Workshop", "Coppersmith", "Shanty Town", null];
+      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "University", "Bazaar", "Worker's Village", "City", "Village", "Bag of Gold", "Grand Market", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, state.current.inPlay.length >= 2 ? "Conspirator" : void 0, "Pawn", "Lighthouse", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", "Followers", "Mountebank", "Witch", "Goons", "Wharf", "Militia", "Princess", "Steward", "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", state.current.ai.wantsToTrash(state) ? "Ambassador" : void 0, state.current.ai.wantsToTrash(state) ? "Chapel" : void 0, "Moat", state.current.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Workshop", "Coppersmith", "Shanty Town", "Chapel", null];
     };
     BasicAI.prototype.treasurePriority = function(state) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Silver", "Quarry", "Copper", "Potion", "Bank", state.current.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
     };
     BasicAI.prototype.discardPriority = function(state) {
-      return ["Colony", "Province", "Duchy", "Curse", "Estate", "Copper", null, "Silver"];
+      return ["Colony", "Duchy", "Province", "Curse", "Estate", "Copper", null, "Silver"];
     };
     BasicAI.prototype.trashPriority = function(state) {
       return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, state.current.getTotalMoney() > 4 ? "Copper" : void 0, state.current.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0, null, "Copper", "Potion", "Estate", "Silver"];
-    };
-    BasicAI.prototype.chooseBaronDiscard = function(state) {
-      return true;
     };
     BasicAI.prototype.chooseBenefit = function(state, choices) {
       var actionBalance, actionValue, best, bestValue, buyValue, card, cardValue, choice, coinValue, trashValue, trashableCards, trashes, usableActions, value, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
@@ -238,6 +245,14 @@
         }
       }
       return best;
+    };
+    BasicAI.prototype.ambassadorPriority = function(state) {
+      var my;
+      my = state.current;
+      return ["Curse,2", "Curse,1", "Curse,0", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"];
+    };
+    BasicAI.prototype.wantsToTrash = function(state) {
+      return this.chooseTrash(state, [null].concat(state.current.hand)) !== null;
     };
     BasicAI.prototype.toString = function() {
       return this.name;
@@ -598,6 +613,47 @@
       }
     }
   });
+  makeCard('Ambassador', action, {
+    cost: 3,
+    playEffect: function(state) {
+      var card, cardName, choice, choices, count, counts, i, quantity, _i, _len, _ref, _ref2;
+      counts = {};
+      _ref = state.current.hand;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        card = _ref[_i];
+        if ((_ref2 = counts[card]) == null) {
+          counts[card] = 0;
+        }
+        counts[card] += 1;
+      }
+      choices = [];
+      for (card in counts) {
+        count = counts[card];
+        if (count >= 2) {
+          choices.push([card, 2]);
+        }
+        if (count >= 1) {
+          choices.push([card, 1]);
+        }
+        choices.push([card, 0]);
+      }
+      choice = state.current.ai.chooseAmbassador(state, choices);
+      if (choice !== null) {
+        cardName = choice[0], quantity = choice[1];
+        card = c[cardName];
+        state.log("...choosing to return " + quantity + " " + cardName + ".");
+        for (i = 0; 0 <= quantity ? i < quantity : i > quantity; 0 <= quantity ? i++ : i--) {
+          state.current.doTrash(card);
+        }
+        if (state.supply[card] != null) {
+          state.supply[card] += quantity;
+        }
+        return state.attackOpponents(function(opp) {
+          return state.gainCard(opp, card);
+        });
+      }
+    }
+  });
   makeCard('Bag of Gold', action, {
     cost: 0,
     actions: +1,
@@ -668,7 +724,7 @@
     playEffect: function(state) {
       var numDiscarded, startingCards;
       startingCards = state.current.hand.length;
-      state.allowDiscard(state.current, 1000);
+      state.allowDiscard(state.current, Infinity);
       numDiscarded = startingCards - state.current.hand.length;
       return state.drawCards(state.current, numDiscarded);
     }
@@ -1244,6 +1300,18 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         card = _ref[_i];
         total += card.coins;
+      }
+      return total;
+    };
+    PlayerState.prototype.getTreasureInHand = function() {
+      var card, total, _i, _len, _ref;
+      total = 0;
+      _ref = this.hand;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        card = _ref[_i];
+        if (card.isTreasure) {
+          total += card.coins;
+        }
       }
       return total;
     };
