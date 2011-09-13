@@ -15,6 +15,6 @@ doc:
 	docco *.coffee
 
 web-deploy: web-coffee web-strategies css doc
-	cp -av web/* gh-pages/
-	cp -av docs/* gh-pages/docs/
+	cp -a web/* gh-pages/
+	cp -a docs/* gh-pages/docs/
 	cd gh-pages; make
