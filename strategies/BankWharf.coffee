@@ -1,6 +1,7 @@
 # Play Big Money including Banks, except buy Wharf with every $5 buy.
 {
   name: 'BankWharf'
+  author: 'Geronimoo'
   gainPriority: (state) -> [
     "Colony" if state.current.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6

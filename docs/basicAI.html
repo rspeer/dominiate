@@ -99,12 +99,14 @@ than gain an Estate? And the answer is yes.</p>             </td>             <t
     <span class="s2">&quot;Trusty Steed&quot;</span>
     <span class="s2">&quot;Festival&quot;</span>
     <span class="s2">&quot;University&quot;</span>
+    <span class="s2">&quot;Farming Village&quot;</span>
     <span class="s2">&quot;Bazaar&quot;</span>
     <span class="s2">&quot;Worker&#39;s Village&quot;</span>
     <span class="s2">&quot;City&quot;</span>
     <span class="s2">&quot;Village&quot;</span>
     <span class="s2">&quot;Bag of Gold&quot;</span>
     <span class="s2">&quot;Grand Market&quot;</span>
+    <span class="s2">&quot;Hunting Party&quot;</span>
     <span class="s2">&quot;Alchemist&quot;</span>
     <span class="s2">&quot;Laboratory&quot;</span>
     <span class="s2">&quot;Caravan&quot;</span>
@@ -114,6 +116,7 @@ than gain an Estate? And the answer is yes.</p>             </td>             <t
     <span class="s2">&quot;Great Hall&quot;</span>
     <span class="s2">&quot;Smithy&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">&gt;</span> <span class="mi">1</span>
     <span class="s2">&quot;Conspirator&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+    <span class="s2">&quot;Familiar&quot;</span> <span class="c1"># after other non-terminals in case non-terminal draws KC/TR</span>
     <span class="s2">&quot;Pawn&quot;</span>
     <span class="s2">&quot;Lighthouse&quot;</span>
     <span class="s2">&quot;Warehouse&quot;</span>
@@ -122,14 +125,17 @@ than gain an Estate? And the answer is yes.</p>             </td>             <t
     <span class="s2">&quot;Cellar&quot;</span>
     <span class="s2">&quot;Shanty Town&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="s2">&quot;Nobles&quot;</span>
+    <span class="s2">&quot;Treasure Map&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInHand</span><span class="p">(</span><span class="s2">&quot;Treasure Map&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
     <span class="s2">&quot;Followers&quot;</span>
     <span class="s2">&quot;Mountebank&quot;</span>
     <span class="s2">&quot;Witch&quot;</span>
+    <span class="s2">&quot;Sea Hag&quot;</span>
     <span class="s2">&quot;Goons&quot;</span>
     <span class="s2">&quot;Wharf&quot;</span>
     <span class="s2">&quot;Militia&quot;</span>
     <span class="s2">&quot;Princess&quot;</span>
     <span class="s2">&quot;Steward&quot;</span>
+    <span class="s2">&quot;Moneylender&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInHand</span><span class="p">(</span><span class="s2">&quot;Copper&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">1</span>
     <span class="s2">&quot;Bridge&quot;</span>
     <span class="s2">&quot;Horse Traders&quot;</span>
     <span class="s2">&quot;Coppersmith&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInHand</span><span class="p">(</span><span class="s2">&quot;Copper&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span>
@@ -146,8 +152,10 @@ than gain an Estate? And the answer is yes.</p>             </td>             <t
     <span class="s2">&quot;Chapel&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">wantsToTrash</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
     <span class="s2">&quot;Moat&quot;</span>
     <span class="s2">&quot;Trade Route&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">wantsToTrash</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="s2">&quot;Ironworks&quot;</span> <span class="c1"># should have higher priority if condition can see it will gain an Action card</span>
     <span class="s2">&quot;Workshop&quot;</span>
     <span class="s2">&quot;Coppersmith&quot;</span>
+    <span class="s2">&quot;Treasure Map&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInDeck</span><span class="p">(</span><span class="s2">&quot;Gold&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span> <span class="o">and</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInDeck</span><span class="p">(</span><span class="s2">&quot;Treasure Map&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="s2">&quot;Shanty Town&quot;</span>
     <span class="s2">&quot;Chapel&quot;</span>
     <span class="kc">null</span>

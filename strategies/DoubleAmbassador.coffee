@@ -1,5 +1,6 @@
 {
-  name: 'DoubleAmbassador'
+  name: 'Double Ambassador'
+  author: 'rspeer'
   gainPriority: (state) -> [
     "Colony" if state.current.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6

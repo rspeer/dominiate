@@ -4,6 +4,7 @@
 # states of the game.
 {
   name: 'SillyAI'
+  author: 'rspeer'
 
   gainValue: (state, card) ->
     if card.name is "Copper" or card.name is "Curse"

@@ -1,5 +1,6 @@
 {
   name: "TournamentPlayer"
+  author: 'rspeer'
   gainPriority: (state) -> [
     "Colony" if state.current.countInDeck("Platinum") > 0
     "Province"
