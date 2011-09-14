@@ -1,4 +1,4 @@
-Cards that are done (70)
+Cards that are done (79)
 Adventurer
 Alchemist
 Ambassador
@@ -79,7 +79,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (70)
+Cards that still need to be coded (62)
 ======================================
 Apothecary
 Apprentice
