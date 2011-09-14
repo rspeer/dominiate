@@ -1,7 +1,7 @@
 # Many modules begin with this "indecisive import" pattern. It's messy
 # but it gets the job done, and it's explained at the bottom of this
 # documentation.
-{c} = require './cards' if exports?
+{c,transferCard,transferCardToTop} = require './cards' if exports?
 
 # The PlayerState class
 # ---------------------  
@@ -584,6 +584,17 @@ class State
   
   # Handle all the things that happen at the end of the turn.
   doCleanupPhase: () ->
+    # Clean up Walled Villages first
+    actionCardsInPlay = 0
+    for card in @current.inPlay
+      if card.isAction
+        actionCardsInPlay += 1
+
+    if actionCardsInPlay <= 2  
+      while c['Walled Village'] in @current.inPlay
+        transferCardToTop(c['Walled Village'], @current.inPlay, @current.draw)
+        this.log("#{@ai} returns a Walled Village to the top of the deck.")
+    
     # Discard old duration cards.
     @current.discard = @current.discard.concat @current.duration
     @current.duration = []

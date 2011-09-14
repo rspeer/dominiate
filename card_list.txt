@@ -1,4 +1,4 @@
-Cards that are done (70)
+Cards that are done (79)
 Adventurer
 Alchemist
 Ambassador
@@ -21,8 +21,10 @@ Diadem
 Duchy
 Duke
 Estate
+Explorer
 Fairgrounds
 Familiar
+Farming Village
 Festival
 Fishing Village
 Followers
@@ -34,6 +36,7 @@ Harem
 Hoard
 Horn of Plenty
 Horse Traders
+Hunting Party
 Ironworks
 Laboratory
 Lighthouse
@@ -54,15 +57,21 @@ Potion
 Princess
 Province
 Quarry
+Sea Hag
 Shanty Town
 Silver
 Smithy
 Steward
 Tournament
 Trade Route
+Treasure Map
+Tribute
 Trusty Steed
 University
+Venture
 Village
+Vineyard
+Walled Village
 Warehouse
 Wharf
 Witch
@@ -70,7 +79,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (70)
+Cards that still need to be coded (62)
 ======================================
 Apothecary
 Apprentice
@@ -85,15 +94,12 @@ Cutpurse
 Embargo
 Envoy
 Expand
-Explorer
-Farming Village
 Feast
 Forge
 Fortune Teller
 Golem
 Hamlet
 Herbalist
-Hunting Party
 Island
 Jester
 King's Court
@@ -119,7 +125,6 @@ Saboteur
 Salvager
 Scout
 Scrying Pool
-Sea Hag
 Secret Chamber
 Smugglers
 Spy
@@ -132,15 +137,9 @@ Throne Room
 Torturer
 Trading Post
 Transmute
-Treasure Map
 Treasury
-Tribute
 Upgrade
 Vault
-Venture
-Vineyard
-Walled Village
 Watchtower
 Wishing Well
 Young Witch
-
