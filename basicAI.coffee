@@ -110,6 +110,7 @@ class BasicAI
     "Bazaar"
     "Worker's Village"
     "City"
+    "Walled Village"
     "Village"
     "Bag of Gold"
     "Grand Market"
@@ -137,10 +138,12 @@ class BasicAI
     "Mountebank"
     "Witch"
     "Sea Hag"
+    "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
     "Goons"
     "Wharf"
     "Militia"
     "Princess"
+    "Explorer" if state.current.countInHand("Province") >= 1
     "Steward"
     "Moneylender" if state.current.countInHand("Copper") >= 1
     "Bridge"
@@ -153,6 +156,7 @@ class BasicAI
     "Monument"
     "Adventurer"
     "Harvest"
+    "Explorer"
     "Woodcutter"
     "Coppersmith" if state.current.countInHand("Copper") >= 2
     "Conspirator"
@@ -173,6 +177,7 @@ class BasicAI
     "Philosopher's Stone"
     "Gold"
     "Harem"
+    "Venture"
     "Silver"
     "Quarry"
     "Copper"
