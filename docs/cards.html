@@ -486,6 +486,24 @@ very boring decision</p>             </td>             <td class="code">        
     <span class="nx">vp</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Explorer&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">cardToGain = </span><span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span>
+
+    <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Province</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;…revealing a Province.&quot;</span><span class="p">)</span>
+      <span class="nv">cardToGain = </span><span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span>
+
+    <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">countInSupply</span><span class="p">(</span><span class="nx">cardToGain</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">cardToGain</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
+      <span class="nx">transferCard</span><span class="p">(</span><span class="nx">cardToGain</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;…and gaining a #{cardToGain}, putting it in the hand.&quot;</span><span class="p">)</span>
+    <span class="k">else</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;…but there are no #{cardToGain}s available to gain.&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Farming Village&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">4</span>
   <span class="nv">actions: </span><span class="mi">2</span>
@@ -837,17 +855,42 @@ fished out of the opponent's discard pile</p>             </td>             <td 
 
     <span class="k">if</span> <span class="nx">c</span><span class="p">[</span><span class="s1">&#39;Treasure Map&#39;</span><span class="p">]</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span>
       <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">c</span><span class="p">[</span><span class="s1">&#39;Treasure Map&#39;</span><span class="p">])</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...trashing the Treasure Map.&quot;</span><span class="p">)</span>
       <span class="nx">trashedMaps</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">if</span> <span class="nx">c</span><span class="p">[</span><span class="s1">&#39;Treasure Map&#39;</span><span class="p">]</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span>
-      <span class="nx">state</span><span class="p">.</span><span class="nx">doTrash</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">c</span><span class="p">[</span><span class="s1">&#39;Treasure Map&#39;</span><span class="p">])</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">doTrash</span><span class="p">(</span><span class="nx">c</span><span class="p">[</span><span class="s1">&#39;Treasure Map&#39;</span><span class="p">])</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...and trashing another Treasure Map.&quot;</span><span class="p">)</span>
       <span class="nx">trashedMaps</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">if</span> <span class="nx">trashedMaps</span> <span class="o">==</span> <span class="mi">2</span>
+      <span class="nv">numGolds = </span><span class="mi">0</span>
       <span class="k">for</span> <span class="nx">num</span> <span class="k">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">..</span><span class="mi">4</span><span class="p">]</span>
-        <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>        
-        <span class="nx">transferCardToTop</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
-      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;…gaining 4 Golds, putting them on top of the deck.&quot;</span><span class="p">)</span>      
+        <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">countInSupply</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>        
+          <span class="nx">transferCardToTop</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
+          <span class="nx">numGolds</span> <span class="o">+=</span> <span class="mi">1</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;…gaining #{numGolds} Golds, putting them on top of the deck.&quot;</span><span class="p">)</span>      
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Tribute&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">revealedCards = </span><span class="nx">state</span><span class="p">.</span><span class="nx">players</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">discardFromDeck</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="nv">unique = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">revealedCards</span>
+      <span class="k">if</span> <span class="nx">card</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">unique</span>
+        <span class="nx">unique</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">unique</span>
+      <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isAction</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">actions</span> <span class="o">+=</span> <span class="mi">2</span>
+      <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isTreasure</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="mi">2</span>
+      <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isVictory</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="nx">makeCard</span> <span class="s2">&quot;Trusty Steed&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">[</span><span class="s2">&quot;Bag of Gold&quot;</span><span class="p">],</span> <span class="p">{</span>
@@ -878,11 +921,42 @@ fished out of the opponent's discard pile</p>             </td>             <td 
     <span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Venture&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">coins: </span><span class="mi">1</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">treasuresDrawn = </span><span class="mi">0</span>
+    <span class="nv">foundTreasure = </span><span class="kc">null</span>
+
+    <span class="k">while</span> <span class="nx">treasuresDrawn</span> <span class="o">&lt;</span> <span class="mi">1</span>
+      <span class="nv">drawn = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">getCardsFromDeck</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nx">drawn</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="k">break</span>
+      <span class="nv">card = </span><span class="nx">drawn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isTreasure</span>
+        <span class="nx">treasuresDrawn</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nv">foundTreasure = </span><span class="nx">card</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;…drawing and playing a #{card}.&quot;</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">setAside</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+    <span class="nv">state.current.discard = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">setAside</span><span class="p">)</span>
+    <span class="nv">state.current.setAside = </span><span class="p">[]</span>
+    
+    <span class="k">if</span> <span class="nx">treasuresDrawn</span> <span class="o">==</span> <span class="mi">1</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">foundTreasure</span><span class="p">)</span>
+      <span class="nx">foundTreasure</span><span class="p">.</span><span class="nx">onPlay</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Vineyard&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Estate</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">0</span>
   <span class="nv">costPotion: </span><span class="mi">1</span>
   <span class="nv">getVP: </span><span class="nf">(state) -&gt;</span> <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">numActionCardsInDeck</span><span class="p">()</span> <span class="o">/</span> <span class="mi">3</span><span class="p">)</span>
 <span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Walled Village&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Village</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  </pre></div>             </td>           </tr>                               <tr id="section-53">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-53">&#182;</a>               </div>               <p>Clean up effect defined in <code>State.doCleanupPhase</code></p>             </td>             <td class="code">               <div class="highlight"><pre><span class="p">}</span>
 
 <span class="nx">makeCard</span> <span class="s1">&#39;Warehouse&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">3</span>
@@ -909,7 +983,7 @@ fished out of the opponent's discard pile</p>             </td>             <td 
       <span class="k">if</span> <span class="nx">potions</span> <span class="o">==</span> <span class="mi">0</span> <span class="o">and</span> <span class="nx">coins</span> <span class="o">&lt;=</span> <span class="mi">4</span>
         <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
-<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-53">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-53">&#182;</a>               </div>               <h2>Utility functions</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-54">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-54">&#182;</a>               </div>               <p><code>transferCard</code> will move a card from one list to the end of another.</p>
+<span class="p">}</span></pre></div>             </td>           </tr>                               <tr id="section-54">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-54">&#182;</a>               </div>               <h2>Utility functions</h2>             </td>             <td class="code">               <div class="highlight"><pre></pre></div>             </td>           </tr>                               <tr id="section-55">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-55">&#182;</a>               </div>               <p><code>transferCard</code> will move a card from one list to the end of another.</p>
 
 <p>If you are doing something to each card in a list which might result in
 that card being moved somewhere else, you <em>must</em> iterate over the list
@@ -917,12 +991,12 @@ backwards. Otherwise you'll run off the end of the list.</p>             </td>  
   <span class="k">if</span> <span class="nx">card</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">fromList</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
   <span class="nx">fromList</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
-  <span class="nx">toList</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-55">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-55">&#182;</a>               </div>               <p><code>transferCardToTop</code> will move a card from one list to the front of another.
+  <span class="nx">toList</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-56">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-56">&#182;</a>               </div>               <p><code>transferCardToTop</code> will move a card from one list to the front of another.
 This is used to put a card on top of the deck, for example.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">transferCardToTop = </span><span class="nf">(card, fromList, toList) -&gt;</span>
   <span class="k">if</span> <span class="nx">card</span> <span class="o">not</span> <span class="k">in</span> <span class="nx">fromList</span>
     <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;#{fromList} does not contain #{card}&quot;</span><span class="p">)</span>
   <span class="nx">fromList</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
-  <span class="nx">toList</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-56">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-56">&#182;</a>               </div>               <p>Some cards give you a constant benefit, such as +cards or +actions,
+  <span class="nx">toList</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span></pre></div>             </td>           </tr>                               <tr id="section-57">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-57">&#182;</a>               </div>               <p>Some cards give you a constant benefit, such as +cards or +actions,
 every time you play them; these benefits are defined directly on the card
 object. Other cards give you such a benefit only under certain conditions,
 and if the benefits are straightforward, we may use <code>applyBenefit</code> to make
@@ -954,6 +1028,7 @@ applies it to the game state.</p>
     <span class="k">for</span> <span class="nx">i</span> <span class="k">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">...</span><span class="mi">4</span><span class="p">]</span>
       <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">)</span>
     <span class="nv">state.current.discard = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
-    <span class="nv">state.current.draw = </span><span class="p">[]</span>
+    <span class="nv">state.current.draw = </span><span class="p">[]</span></pre></div>             </td>           </tr>                               <tr id="section-58">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-58">&#182;</a>               </div>               <p>Export functions that are needed elsewhere.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">this</span><span class="p">.</span><span class="nv">transferCard = </span><span class="nx">transferCard</span>
+<span class="k">this</span><span class="p">.</span><span class="nv">transferCardToTop = </span><span class="nx">transferCardToTop</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
