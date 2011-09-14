@@ -90,6 +90,16 @@ class PlayerState
   # `numCardsInDeck()` returns the size of the player's deck.
   numCardsInDeck: () -> this.getDeck().length
   
+  # `countCardTypeInDeck(type)` counts the number of cards of a given type
+  # in the deck. Curse is not a type for these purposes, it's a card.
+  countCardTypeInDeck: (type) ->
+    typeChecker = 'is'+type
+    count = 0
+    for card in this.getDeck()
+      if card[typeChecker]
+        count++
+    count
+
   # `getVP()` returns the number of VP the player would have if the game
   # ended now.
   getVP: (state) ->
