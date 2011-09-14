@@ -572,6 +572,17 @@ class State
   
   # Handle all the things that happen at the end of the turn.
   doCleanupPhase: () ->
+    # Clean up Walled Villages first
+    actionCardsInPlay = 0
+    for card in @current.inPlay
+      if card.isAction
+        actionCardsinPlay += 1
+
+    if actionCardsInPlay =< 2  
+      while c['Walled Village'] in @current.inPlay
+        transferCardToTop(c['Walled Village'], @current.inPlay, @current.draw)
+        state.log("#{@ai} returns a Walled Village to the top of the deck.")
+    
     # Discard old duration cards.
     @current.discard = @current.discard.concat @current.duration
     @current.duration = []
