@@ -536,6 +536,24 @@ makeCard "Duke", c.Estate, {
     vp
 }
 
+makeCard 'Explorer', action, {
+  cost: 5
+
+  playEffect: (state) ->
+    cardToGain = c.Silver
+
+    if c.Province in state.current.hand
+      state.log("…revealing a Province.")
+      cardToGain = c.Gold
+
+    if state.countInSupply(cardToGain) > 0
+      state.gainCard(state.current, cardToGain, true)
+      transferCard(cardToGain, state.current.discard, state.current.hand)
+      state.log("…and gaining a #{cardToGain}, putting it in the hand.")
+    else
+      state.log("…but there are no #{cardToGain}s available to gain.")
+}
+
 makeCard 'Farming Village', action, {
   cost: 4
   actions: 2
@@ -893,6 +911,26 @@ makeCard 'Treasure Map', action, {
       state.log("…gaining #{numGolds} Golds, putting them on top of the deck.")      
 }
 
+makeCard 'Tribute', action, {
+  cost: 5
+
+  playEffect: (state) ->
+    revealedCards = state.players[1].discardFromDeck(2)
+
+    unique = []
+    for card in revealedCards
+      if card not in unique
+        unique.push(card)
+
+    for card in unique
+      if card.isAction
+        state.current.actions += 2
+      if card.isTreasure
+        state.current.coins += 2
+      if card.isVictory
+        state.current.drawCards(2)
+}
+
 makeCard "Trusty Steed", c["Bag of Gold"], {
   actions: 0
   playEffect: (state) ->
@@ -921,10 +959,43 @@ makeCard 'University', action, {
     state.gainOneOf(state.current, choices)
 }
 
+makeCard 'Venture', c.Silver, {
+  cost: 5
+  coins: 1
+
+  playEffect: (state) ->
+    treasuresDrawn = 0
+    foundTreasure = null
+
+    while treasuresDrawn < 1
+      drawn = state.current.getCardsFromDeck(1)
+      if drawn.length == 0
+        break
+      card = drawn[0]
+      if card.isTreasure
+        treasuresDrawn += 1
+        foundTreasure = card
+        state.log("…drawing and playing a #{card}.")
+      else
+        state.current.setAside.push(card)
+    state.current.discard = state.current.discard.concat(state.current.setAside)
+    state.current.setAside = []
+    
+    if treasuresDrawn == 1
+      state.current.inPlay.push(foundTreasure)
+      foundTreasure.onPlay(state)
+}
+
 makeCard 'Vineyard', c.Estate, {
   cost: 0
   costPotion: 1
   getVP: (state) -> Math.floor(state.current.numActionCardsInDeck().length / 3)
+}
+
+makeCard 'Walled VIllage', c.Village, {
+  cost: 4
+  
+  #Clean up effect defined in `State.doCleanupPhase`
 }
 
 makeCard 'Warehouse', action, {
