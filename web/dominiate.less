@@ -41,8 +41,15 @@
     padding: 2px;
 }
 
-@darkred: #990000;
-@darkblue: #000099;
+@darkred: #900;
+@darkblue: #009;
+@lightred: #a55;
+@lightblue: #55a;
+@lightgray: #aaa;
+
+.ace_editor {
+    font-family: "Menlo", "Monaco", "Inconsolata", "Andale Mono", "Droid Sans Mono", monospace !important;
+}
 
 body {
     margin-left: 5%;
@@ -169,10 +176,6 @@ select {
     margin-top: 2px;
 }
 
-#scores {
-  padding-top: 7px;
-}
-
 #logs {
     clear: both;
 }
@@ -189,6 +192,63 @@ select {
     margin-left: 10px;
 }
 
-.ace_editor {
-    font-family: "Menlo", "Monaco", "Inconsolata", "Andale Mono", monospace !important;
+#win-o-meter {
+    position: relative;
+    background-color: @lightgray;
+    height: 20px;
+    width: 940px;
+}
+#win-o-meter-back {
+    position: absolute;
+    right: 0;
+    background-color: darken(@lightgray, 10%);
+    width: 470px;
+    height: 20px;
+    z-index: 1;
+}
+#win-p1-certain {
+    position: absolute;
+    left: 0;
+    width: 10px;
+    height: 20px;
+    background-color: @lightred;
+    z-index: 3;
+}
+#win-p2-certain {
+    position: absolute;
+    right: 0;
+    width: 10px;
+    height: 20px;
+    background-color: @lightblue;
+    z-index: 3;
+}
+#win-p1-uncertain {
+    position: absolute;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    background-color: fadeout(@lightred, 50%);
+    z-index: 2;
+}
+#win-p2-uncertain {
+    position: absolute;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    background-color: fadeout(@lightblue, 50%);
+    z-index: 2;
+}
+.score {
+    color: #fff;
+    font-size: 15px;
+    position: absolute;
+    z-index: 4;
+}
+#score-p1 {
+    .score;
+    left: 5px;
+}
+#score-p2 {
+    .score;
+    right: 5px;
 }
