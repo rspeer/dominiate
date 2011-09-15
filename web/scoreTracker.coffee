@@ -60,8 +60,8 @@ class ScoreTracker
       # If no games have been played, reset the boxes.
       $('#win-p1-certain').width(10)
       $('#win-p2-certain').width(10)
-      $('#win-p1-uncertain').width(20)
-      $('#win-p2-uncertain').width(20)
+      $('#win-p1-uncertain').width(469)
+      $('#win-p2-uncertain').width(469)
       $('#score-p1').html('')
       $('#score-p2').html('')
       return
@@ -78,8 +78,8 @@ class ScoreTracker
 
     $('#win-p1-certain').width(@elementWidth * certain1)
     $('#win-p2-certain').width(@elementWidth * certain2)
-    $('#win-p1-uncertain').width(@elementWidth * uncertain1)
-    $('#win-p2-uncertain').width(@elementWidth * uncertain2)
+    $('#win-p1-uncertain').width(@elementWidth * uncertain1 - 1)
+    $('#win-p2-uncertain').width(@elementWidth * uncertain2 - 1)
     scoreHtml = [null, null]
     for i in [0..1]
       scoreHtml[i] = """<strong>#{@players[i]}</strong>:
