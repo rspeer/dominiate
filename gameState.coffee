@@ -298,6 +298,7 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
+    other.tacticians = @tacticians
     other.ai = @ai
     other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
@@ -310,6 +311,7 @@ class PlayerState
     else
       if console?
         console.log(obj)
+
 
 # The State class
 # ---------------
@@ -643,6 +645,7 @@ class State
     @current.buys = 1
     @current.coins = 0
     @current.potions = 0
+    @current.tacticians = 0
     @copperValue = 1
     @bridges = 0
     @quarries = 0

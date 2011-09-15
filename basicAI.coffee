@@ -199,18 +199,18 @@ class BasicAI
     "Peddler"
     "Great Hall"
     "Conspirator" if my.inPlay.length >= 2
+    "Lighthouse"
     # Fourth priority: terminal card-drawers, if we have actions to spare.
     "Smithy" if my.actions > 1
+    # Fifth priority: card-cycling that might improve the hand.
     "Familiar" # after other non-terminals in case non-terminal draws KC/TR
-    "Lighthouse"
     "Pawn"
-    # Fifth priority: cards that can fix a bad hand.
     "Warehouse"
     "Cellar"
     # Sixth priority: non-terminal cards that don't succeed but at least
     # give us something.
+    "Tournament"
     "Menagerie"
-    "Tournament"  # should be above cards that might discard a Province
     "Shanty Town" if my.actions == 1
     # Seventh priority: terminals. Of course, Nobles might be a non-terminal
     # if we decide we need the actions more than the cards.
@@ -223,6 +223,8 @@ class BasicAI
     "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
     "Goons"
     "Wharf"
+    # Tactician needs a play condition, but I don't know what it would be.
+    "Tactician"
     "Militia"
     "Princess"
     "Explorer" if my.countInHand("Province") >= 1
@@ -241,7 +243,6 @@ class BasicAI
     "Explorer"
     "Woodcutter"
     "Coppersmith" if my.countInHand("Copper") >= 2
-    "Conspirator"
     # Play an Ambassador if our hand has something we'd want to discard.
     #
     # Here the AI has to refer to itself indirectly, as `my.ai`. `this`
@@ -249,6 +250,7 @@ class BasicAI
     "Ambassador" if my.ai.wantsToTrash(state)
     "Chapel" if my.ai.wantsToTrash(state)
     "Trade Route" if my.ai.wantsToTrash(state)
+    "Conspirator"
     "Moat"
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
