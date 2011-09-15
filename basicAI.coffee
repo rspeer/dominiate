@@ -407,6 +407,17 @@ class BasicAI
       if this.chooseTrash(state, [card, null]) is card
         trashableCards += 1
     return trashableCards
+  
+  #### Utility methods
+  #
+  # `copy` makes a copy of the AI. It will have the same behavior but a
+  # different name, and will not be equal to this AI.
+  copy: () ->
+    ai = new BasicAI()
+    for key, value of this
+      ai[key] = value
+    ai.name = this.name+'*'
+    ai
 
   toString: () -> this.name
 this.BasicAI = BasicAI

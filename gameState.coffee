@@ -346,6 +346,10 @@ class State
     @quarries = 0
     @copperValue = 1
     @phase = 'start'
+
+    # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
+    # indicates the state of the actual game.
+    @depth = 0
     return this
   
   # Given the tableau (the set of non-basic cards in play), construct the
@@ -833,13 +837,43 @@ class State
     newState.logFunc = @logFunc
     newState
 
+  # `hypothetical(ai)` returns a State and PlayerState that an AI can do
+  # whatever it wants to without affecting the real state:
+  #
+  # - Modifying the state will not affect the game (it is a copy, after all).
+  # - The hidden information in the state is randomized.
+  # - All the other AIs will be replaced by copies of the given AI.
+  #
+  # An AI that wants to test a hypothesis should do this:
+  #   [state, my] = state.hypothetical(this)
+  hypothetical: (ai) ->
+    state = this.copy()
+    for player in state.players
+      if player.ai isnt ai
+        player.ai = ai.copy()
+
+        # We don't know what's in their hand or their deck, so shuffle them
+        # together randomly, preserving the number of cards.
+        handSize = player.hand.length
+        combined = player.hand.concat(player.draw)
+        shuffle(combined)
+        player.hand = combined[...handSize]
+        player.draw = combined[handSize...]
+      else
+        shuffle(player.draw)
+
+    state.depth = this.depth + 1
+    state
+
   # Games can provide output using the `log` function.
   log: (obj) ->
-    if this.logFunc?
-      this.logFunc(obj)
-    else 
-      if console?
-        console.log(obj)
+    # Only log things that actually happen.
+    if @depth == 0
+      if this.logFunc?
+        this.logFunc(obj)
+      else 
+        if console?
+          console.log(obj)
 
   # A warning has a similar effect to a log message, but indicates that
   # something has gone wrong with the gameplay.
