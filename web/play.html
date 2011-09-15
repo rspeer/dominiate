@@ -84,8 +84,11 @@
           </label>
         </li>
       </ul>
-      <a id="playButton" href="#playButton" class="btn success">
+      <a id="playButton" href="#" class="btn success">
         Start playing
+      </a>
+      <a id="reset" href="#" class="btn">
+        Reset
       </a>
     </div>
   </div>
@@ -217,6 +220,9 @@ $ ->
     else if $('#playUntilDecisive').is(':checked')
       playUntil(tracker.decisiveWinner, Infinity)
     return false
+
+  $('#reset').click (event) ->
+    tracker.reset()
 
   strategyElements = ['<option></option>']
   for name of strategies
