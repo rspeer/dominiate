@@ -33,16 +33,16 @@ class PlayerState
     @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
                 c.Copper, c.Copper, c.Estate, c.Estate, c.Estate]
     
-    # For now, AIs shouldn't ask what's in a player's draw pile. This would
-    # cause the AI to cheat, by accessing information it shouldn't have.
-    #
-    # When hidden information is implemented, however, `state.current.draw`
-    # will contain a random guess about what's in the draw pile.
+    # If you want to ask what's in a player's draw pile, be sure to only do
+    # it to a *hypothetical* PlayerState that you retrieve with
+    # `state.hypothetical(ai)`. Then the draw pile will contain a random
+    # guess, as opposed to the actual hidden information.
     @draw = []
     @inPlay = []
     @duration = []
     @setAside = []
     @moatProtected = false
+    @tacticians = 0  # number of Tacticians that will go to the duration area
     @turnsTaken = 0
     
     # Set the properties passed in from the State.
@@ -848,6 +848,7 @@ class State
   #   [state, my] = state.hypothetical(this)
   hypothetical: (ai) ->
     state = this.copy()
+    my = null
     for player in state.players
       if player.ai isnt ai
         player.ai = ai.copy()
@@ -861,9 +862,10 @@ class State
         player.draw = combined[handSize...]
       else
         shuffle(player.draw)
+        my = player
 
     state.depth = this.depth + 1
-    state
+    [state, my]
 
   # Games can provide output using the `log` function.
   log: (obj) ->
