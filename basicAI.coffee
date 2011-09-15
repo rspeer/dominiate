@@ -1,28 +1,50 @@
-# utility functions
-count = (list, elt) ->
-  count = 0
-  for member in list
-    if member == elt
-      count++
-  count
-
-stringify = (obj) ->
-  if obj is null
-    return null
-  else
-    return obj.toString()
-
-# This class defines a rule-based AI, the kind that is currently popular
-# for evaluating Dominion strategies. Subclass it to define new strategies.
+# The Basic AI
+# ------------
+# This class defines a rule-based AI of the kind that is popular
+# for evaluating Dominion strategies. It can be subclassed -- or simply
+# have its methods overwritten on an instance -- to play new strategies.
+#
+# Every time the player needs to make a meaningful decision, a method called
+# `chooseX` (for some X) will be called on the AI, which can examine the game
+# state and make a decision accordingly.
+#
+# In any case that is not a simple yes/no decision, the method will be 
+# given a list of choices. It will delegate to the `xValue` method to assign a
+# value to each possible choice, and choose the one with the highest value
+# (earlier options win ties).
+#
+# If the `xValue` method does not exist (as will often be the case), it will
+# try a different method called `xPriority`, which takes in the state and
+# returns an ordered list of choices. The player will make the first valid
+# choice in that list. Priority functions are usually easier to define than
+# value functions.
+#
+# The BasicAI has a default decision function for every decision, so
+# every AI that derives from it will have *some* way to decide what to do in
+# any situation. However, when defining an AI, you will often want to override
+# some of these decision functions.
 class BasicAI
-  name: 'BasicAI'
+  name: 'Basic AI'
+  author: 'rspeer'
 
+  # Referring to `state.current` to find information about one's own state is
+  # not always safe! Some of these decisions may be made during other players'
+  # turns. In those cases, what we want is `this.myPlayer(state)`.
+  #
+  # This is passed in as an argument `my` to the decision functions, because
+  # it's convenient and it creates nice idioms such as `my.hand`.
+  myPlayer: (state) ->
+    for player in state.players
+      if player.ai is this
+        return player
+    throw new Error("#{this} is being asked to make a decision, but isn't playing the game...?")
+
+  # Given a game state, a list of possible choices, and a function
+  # that returns a preference order, make the best choice in that
+  # preference order.
   choosePriority: (state, choices, priorityfunc) ->
-    # Given a game state, a list of possible choices, and a function
-    # that returns a preference order, make the best choice in that
-    # preference order.
-
-    priority = priorityfunc(state)
+    my = this.myPlayer(state)
+    priority = priorityfunc(state, my)
     bestChoice = null
     bestIndex = null
     for choice in choices
@@ -31,57 +53,81 @@ class BasicAI
         bestIndex = index
         bestChoice = choice
     if bestChoice is null and null not in choices
-      # Either no choices are available, or this AI is being forced
-      # to make a decision it's not prepared for.
+      # The AI chose `null` when it wasn't in the list of choices.
+      # That means either no choices are available, or this AI is being
+      # forced to make a decision it's not prepared for.
+      #
+      # In that case, if there are any choices, it will arbitrarily choose
+      # the first one. If there are no choices, then choosing nothing becomes
+      # the one legal choice, so it chooses that.
       return choices[0] ? null
     return bestChoice
 
+  # Given a game state, a list of possible choices, and a function that
+  # returns a *value* for each choice, make the highest-valued choice.
+  #
+  # The null choice has value 0 when it is available, so negative-valued
+  # choices will be avoided.
   chooseValue: (state, choices, valuefunc) ->
-    # Given a game state, a list of possible choices, and a function that
-    # returns a *value* for each choice, make the highest-valued choice.
-    #
-    # The null choice has value 0 when it is available, so negative-valued
-    # choices will be avoided.
+    my = this.myPlayer(state)
     bestChoice = null
     bestValue = -Infinity
     for choice in choices
       if choice is null
         value = 0
       else
-        value = valuefunc(state, choice)
+        value = valuefunc(state, choice, my)
       if value > bestValue
         bestValue = value
         bestChoice = choice
     if bestChoice is null and null not in choices
-      # Either no choices are available, or this AI is being forced
-      # to make a decision it's not prepared for.
+      # This should only happen when there are no choices, but to be sure,
+      # we check if there is a `choices[0]` and choose it if so.
       return choices[0] ? null
     return bestChoice
   
+  # Decisions
+  # ---------
   #### Common decisions
-  # When an AI is asked to make a choice, it has two ways of doing so that
-  # we support: to rank the possible choices in a preference order, or to
-  # assign a numerical value to each choice.
+  # 
+  # These are decisions each AI has to make on most turns.
+  #
+  # These delegate to the `...Value` or `...Priority` functions, as described.
+  # You could override these functions directly, but that will probably make
+  # your AI code unnecessarily complicated.
+  #
+  # `chooseAction`: choose an action card from the hand to play.
   chooseAction: (state, choices) ->
     if this.actionValue?
       this.chooseValue(state, choices, this.actionValue)
     else
       this.choosePriority(state, choices, this.actionPriority)
+  
+  # `chooseTreasure`: choose a treasure card from the hand to play.
   chooseTreasure: (state, choices) ->
     if this.treasureValue?
       this.chooseValue(state, choices, this.treasureValue)
     else
       this.choosePriority(state, choices, this.treasurePriority)
+  
+  # `chooseGain`: choose a card to gain (possibly in the buy phase, or possibly
+  # as a card effect). The AI is allowed to assume it is the current player,
+  # so this can't be used for Saboteur.
   chooseGain: (state, choices) ->
     if this.gainValue?
       this.chooseValue(state, choices, this.gainValue)
     else
       this.choosePriority(state, choices, this.gainPriority)
+
+  # `chooseDiscard`: choose a card to discard. Discards that are ranked 
+  # higher than `null` will be discarded voluntarily on cards such as Cellar.
   chooseDiscard: (state, choices) ->
     if this.discardValue?
       this.chooseValue(state, choices, this.discardValue)
     else
       this.choosePriority(state, choices, this.discardPriority)
+  
+  # `chooseTrash`: choose a card to trash (for no further effect).
   chooseTrash: (state, choices) ->
     if this.trashValue?
       this.chooseValue(state, choices, this.trashValue)
@@ -99,13 +145,20 @@ class BasicAI
     else
       this.choosePriority(state, choices, this.ambassadorPriority)
 
-  # The question for Baron is: do you want to discard an Estate for +$4, rather
-  # than gain an Estate? And the answer is yes.
+  # The question `chooseBaronDiscard` asks is: do you want to discard an
+  # Estate for +$4, rather than gain an Estate? And the answer is almost
+  # certainly yes.
+  #
+  # An AI can replace this function directly to make a different
+  # decision.
   chooseBaronDiscard: (state) -> yes
 
-  # The default buying strategy is Big Money Ultimate.
-  gainPriority: (state) -> [
-    "Colony" if state.current.countInDeck("Platinum") > 0
+  # Default strategies
+  # ------------------
+  # The default buying strategy is a form of Big Money that has, by now,
+  # been beaten by the newer one in BigMoney.coffee.
+  gainPriority: (state, my) -> [
+    "Colony" if my.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6
     "Duchy" if 0 < state.gainsToEndGame() <= 5
     "Estate" if 0 < state.gainsToEndGame() <= 2
@@ -116,9 +169,15 @@ class BasicAI
     null
   ]
   
-  actionPriority: (state) -> [
-    "Menagerie" if state.current.menagerieDraws() == 3
-    "Shanty Town" if state.current.shantyTownDraws(true) == 2
+  # The default action-playing strategy, which aims to include a usable plan
+  # for playing every action card, so that most AIs don't need to override it.
+  actionPriority: (state, my) -> [
+    # First priority: cards that succeed if we play them now, and might
+    # not if we play them later.
+    "Menagerie" if my.menagerieDraws() == 3
+    "Shanty Town" if my.shantyTownDraws(true) == 2
+    "Tournament" if my.countInHand("Province") > 0
+    # Second priority: cards that give +2 actions.
     "Trusty Steed"
     "Festival"
     "University"
@@ -127,29 +186,36 @@ class BasicAI
     "Worker's Village"
     "City"
     "Walled Village"
+    "Fishing Village"
     "Village"
+    # Third priority: cards that give +1 action and are almost always good.
     "Bag of Gold"
     "Grand Market"
     "Hunting Party"
     "Alchemist"
     "Laboratory"
     "Caravan"
-    "Fishing Village"
     "Market"
     "Peddler"
     "Great Hall"
-    "Smithy" if state.current.actions > 1
-    "Conspirator" if state.current.inPlay.length >= 2
+    "Conspirator" if my.inPlay.length >= 2
+    # Fourth priority: terminal card-drawers, if we have actions to spare.
+    "Smithy" if my.actions > 1
     "Familiar" # after other non-terminals in case non-terminal draws KC/TR
-    "Pawn"
     "Lighthouse"
+    "Pawn"
+    # Fifth priority: cards that can fix a bad hand.
     "Warehouse"
+    "Cellar"
+    # Sixth priority: non-terminal cards that don't succeed but at least
+    # give us something.
     "Menagerie"
     "Tournament"  # should be above cards that might discard a Province
-    "Cellar"
-    "Shanty Town" if state.current.actions == 1
+    "Shanty Town" if my.actions == 1
+    # Seventh priority: terminals. Of course, Nobles might be a non-terminal
+    # if we decide we need the actions more than the cards.
     "Nobles"
-    "Treasure Map" if state.current.countInHand("Treasure Map") >= 2
+    "Treasure Map" if my.countInHand("Treasure Map") >= 2
     "Followers"
     "Mountebank"
     "Witch"
@@ -159,38 +225,53 @@ class BasicAI
     "Wharf"
     "Militia"
     "Princess"
-    "Explorer" if state.current.countInHand("Province") >= 1
+    "Explorer" if my.countInHand("Province") >= 1
     "Steward"
-    "Moneylender" if state.current.countInHand("Copper") >= 1
+    "Moneylender" if my.countInHand("Copper") >= 1
     "Bridge"
     "Horse Traders"
-    "Coppersmith" if state.current.countInHand("Copper") >= 3
+    "Coppersmith" if my.countInHand("Copper") >= 3
     "Smithy"
     "Council Room"
     "Merchant Ship"
-    "Baron" if state.current.countInHand("Estate") >= 1
+    "Baron" if my.countInHand("Estate") >= 1
     "Monument"
     "Adventurer"
     "Harvest"
     "Explorer"
     "Woodcutter"
-    "Coppersmith" if state.current.countInHand("Copper") >= 2
+    "Coppersmith" if my.countInHand("Copper") >= 2
     "Conspirator"
     # Play an Ambassador if our hand has something we'd want to discard.
-    "Ambassador" if state.current.ai.wantsToTrash(state)
-    "Chapel" if state.current.ai.wantsToTrash(state)
+    #
+    # Here the AI has to refer to itself indirectly, as `my.ai`. `this`
+    # actually has the wrong value right now because JavaScript is weird.
+    "Ambassador" if my.ai.wantsToTrash(state)
+    "Chapel" if my.ai.wantsToTrash(state)
+    "Trade Route" if my.ai.wantsToTrash(state)
     "Moat"
-    "Trade Route" if state.current.ai.wantsToTrash(state)
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Coppersmith"
-    "Treasure Map" if state.current.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
+    # Eighth priority: cards that have become useless. Maybe they'll decrease
+    # the cost of Peddler or something.
+    "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Shanty Town"
     "Chapel"
+    # At this point, we take no action if that choice is available.
     null
+    # Nope, something is forcing us to take an action.
+    #
+    # Last priority: cards that are actively harmful to play at this point,
+    # in order of increasing badness.
+    "Trade Route"
+    "Treasure Map"
+    "Ambassador"
   ]
   
-  treasurePriority: (state) -> [
+  # Most of the order of `treasurePriority` has no effect on gameplay. The
+  # important part is that Bank and Horn of Plenty are last.
+  treasurePriority: (state, my) -> [
     "Platinum"
     "Diadem"
     "Philosopher's Stone"
@@ -202,25 +283,44 @@ class BasicAI
     "Copper"
     "Potion"
     "Bank"
-    "Horn of Plenty" if state.current.numUniqueCardsInPlay() >= 2
+    "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
+    null
   ]
   
-  discardPriority: (state) -> [
+  # The default `discardPriority` is tuned for Big Money where the decisions
+  # are obvious. But many strategies would probably prefer a different
+  # priority list, especially one that knows about action cards.
+  #
+  # It doesn't understand
+  # discarding cards to make Shanty Town or Menagerie work, for example, and
+  # It doesn't recognize when dead terminal actions would be good to discard.
+  # Defining that may require a `discardValue` function.
+  discardPriority: (state, my) -> [
+    "Vineyard"
     "Colony"
     "Duchy"
+    "Gardens"
     "Province"  # Provinces are occasionally useful in hand
     "Curse"
     "Estate"
     "Copper"
-    null   # this is where discarding-for-benefit should stop
+    # The above cards are the only ones that will be discarded in Cellar.
+    null
+    # At this point, we're being forced to discard. Hopefully we can discard
+    # a Silver...
     "Silver"
+    # Nope. We've got other cards and the strategy hasn't dealt with how to
+    # discard them. Pick the first option and hope.
   ]
-
-  trashPriority: (state) -> [
+  
+  # Like the `discardPriority`, the default `trashPriority` is sufficient for
+  # Big Money but won't be able to handle tough decisions for other
+  # strategies.
+  trashPriority: (state, my) -> [
     "Curse"
     "Estate" if state.gainsToEndGame() > 4
-    "Copper" if state.current.getTotalMoney() > 4
-    "Potion" if state.current.turnsTaken >= 10
+    "Copper" if my.getTotalMoney() > 4
+    "Potion" if my.turnsTaken >= 10
     "Estate" if state.gainsToEndGame() > 2
     null
     "Copper"
@@ -229,9 +329,11 @@ class BasicAI
     "Silver"
   ]
 
-  # When presented with a card with simple but variable benefits, this is
-  # the default way for an AI to decide which benefit it wants.
-  chooseBenefit: (state, choices) -> 
+  # When presented with a card with simple but variable benefits, such as
+  # Nobles, this is the default way for an AI to decide which benefit it wants.
+  # This function should actually handle a number of common situations.
+  chooseBenefit: (state, choices) ->
+    my = this.myPlayer(state)
     buyValue = 1
     cardValue = 2
     coinValue = 3
@@ -239,7 +341,7 @@ class BasicAI
     actionValue = 10    # if we need more actions
     trashableCards = 0
 
-    actionBalance = state.current.actionBalance()
+    actionBalance = my.actionBalance()
     usableActions = Math.max(0, -actionBalance)
 
     # Draw cards if we have a surplus of actions
@@ -247,7 +349,7 @@ class BasicAI
       cardValue += actionBalance
 
     # How many cards do we want to trash?
-    for card in state.current.hand
+    for card in my.hand
       if this.chooseTrash(state, [card, null]) is card
         trashableCards += 1
     
@@ -258,7 +360,7 @@ class BasicAI
       value += coinValue * (choice.coins ? 0)
       value += buyValue * (choice.buys ? 0)
       trashes = (choice.trashes ? 0)
-      if trashes <= trashableCards
+      if trashes <= this.wantsToTrash(state)
         value += trashValue * trashes
       else
         value -= trashValue * trashes
@@ -268,17 +370,16 @@ class BasicAI
         bestValue = value
     best
   
-  # Choose a card to Ambassador and how many of it to return.
+  # `ambassadorPriority` chooses a card to Ambassador and how many of it to
+  # return.
   #
   # These choices may look odd: remember that choices are evaluated as strings.
   # So if we return lists, they won't match any of the choices. We need to
   # return their joined string versions.
   #
   # This is a moderately acceptable way to deal with the fact that, in
-  # JavaScript, lists are never really "equal" to other lists anyway.
-  ambassadorPriority: (state) ->
-    # Useful shorthand:
-    my = state.current
+  # JavaScript, lists are never "equal" to other lists anyway.
+  ambassadorPriority: (state, my) ->
     [
       "Curse,2"
       "Curse,1"
@@ -296,8 +397,34 @@ class BasicAI
     ]
 
   #### Informational methods
+  #
+  # `wantsToTrash` returns the number of cards in hand that we would trash
+  # for no benefit.
   wantsToTrash: (state) ->
-    this.chooseTrash(state, [null].concat(state.current.hand)) isnt null
+    my = this.myPlayer(state)
+    trashableCards = 0
+    for card in my.hand
+      if this.chooseTrash(state, [card, null]) is card
+        trashableCards += 1
+    return trashableCards
 
   toString: () -> this.name
 this.BasicAI = BasicAI
+
+# Utility functions
+# -----------------
+# `count` counts the number of times `elt` appears in `list`.
+count = (list, elt) ->
+  count = 0
+  for member in list
+    if member == elt
+      count++
+  count
+
+# `stringify` turns an object into a string, while handling `null` safely.
+stringify = (obj) ->
+  if obj is null
+    return null
+  else
+    return obj.toString()
+
