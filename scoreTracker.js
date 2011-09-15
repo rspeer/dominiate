@@ -2,14 +2,19 @@
   var ScoreTracker, roundPercentage;
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   ScoreTracker = (function() {
-    function ScoreTracker(scoreElt) {
-      this.scoreElt = scoreElt;
+    function ScoreTracker(scoreInHtml) {
+      this.scoreInHtml = scoreInHtml;
       this.decisiveWinner = __bind(this.decisiveWinner, this);
       this.updateScores = __bind(this.updateScores, this);
       this.recordGame = __bind(this.recordGame, this);
       this.games = 0;
       this.players = [];
       this.scores = [];
+      this.proportions = [];
+      this.elementWidth = 940;
+      if (this.scoreInHtml) {
+        this.updateScoresOnPage();
+      }
     }
     ScoreTracker.prototype.reset = function() {
       this.games = 0;
@@ -65,15 +70,13 @@
     };
     ScoreTracker.prototype.recordGame = function(state) {
       var winner, winners, _i, _len;
-      if (state.gameIsOver()) {
-        winners = state.getWinners();
-        for (_i = 0, _len = winners.length; _i < _len; _i++) {
-          winner = winners[_i];
-          this.incrementPlayerScore(winner, 1.0 / winners.length);
-        }
-        this.games += 1;
-        return this.updateScores();
+      winners = state.getWinners();
+      for (_i = 0, _len = winners.length; _i < _len; _i++) {
+        winner = winners[_i];
+        this.incrementPlayerScore(winner, 1.0 / winners.length);
       }
+      this.games += 1;
+      return this.updateScores();
     };
     ScoreTracker.prototype.errorMargin = function() {
       return 1.5 / Math.sqrt(this.games);
@@ -90,7 +93,7 @@
         }
         return _results;
       }).call(this);
-      if (this.scoreElt != null) {
+      if (this.scoreInHtml) {
         return this.updateScoresOnPage();
       }
     };
@@ -104,12 +107,41 @@
       return null;
     };
     ScoreTracker.prototype.updateScoresOnPage = function() {
-      var i, pieces, _ref;
-      pieces = [];
-      for (i = 0, _ref = this.players.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-        pieces.push("<div>\n  <span class=\"player" + (i + 1) + "\">" + this.players[i] + "</span>:\n  " + this.scores[i] + " wins (" + (roundPercentage(this.proportions[i])) + "%)\n</div>");
+      var certain1, certain2, err, i, scoreHtml, uncertain1, uncertain2;
+      if (this.games === 0) {
+        $('#win-p1-certain').width(10);
+        $('#win-p2-certain').width(10);
+        $('#win-p1-uncertain').width(20);
+        $('#win-p2-uncertain').width(20);
+        return;
       }
-      return this.scoreElt.html(pieces.join(''));
+      err = this.errorMargin();
+      certain1 = this.proportions[0] - err;
+      if (certain1 < 0) {
+        certain1 = 0;
+      }
+      certain2 = this.proportions[1] - err;
+      if (certain2 < 0) {
+        certain2 = 0;
+      }
+      uncertain1 = this.proportions[0];
+      if (uncertain1 > 1) {
+        uncertain1 = 1;
+      }
+      uncertain2 = this.proportions[1];
+      if (uncertain2 > 1) {
+        uncertain2 = 1;
+      }
+      $('#win-p1-certain').width(this.elementWidth * certain1);
+      $('#win-p2-certain').width(this.elementWidth * certain2);
+      $('#win-p1-uncertain').width(this.elementWidth * uncertain1);
+      $('#win-p2-uncertain').width(this.elementWidth * uncertain2);
+      scoreHtml = [null, null];
+      for (i = 0; i <= 1; i++) {
+        scoreHtml[i] = "<strong>" + this.players[i] + "</strong>:\n" + this.scores[i] + " wins (" + (roundPercentage(this.proportions[i])) + "%)";
+      }
+      $('#score-p1').html(scoreHtml[0]);
+      return $('#score-p2').html(scoreHtml[1]);
     };
     return ScoreTracker;
   })();

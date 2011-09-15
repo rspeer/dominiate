@@ -1,8 +1,12 @@
 class ScoreTracker
-  constructor: (@scoreElt) ->
+  constructor: (@scoreInHtml) ->
     @games = 0
     @players = []
     @scores = []
+    @proportions = []
+    @elementWidth = 940
+    if @scoreInHtml
+      this.updateScoresOnPage()
   
   reset: ->
     @games = 0
@@ -29,19 +33,19 @@ class ScoreTracker
         return @scores[i]
 
   recordGame: (state) =>
-    if state.gameIsOver()
-      winners = state.getWinners()
-      for winner in winners
-        this.incrementPlayerScore(winner, 1.0 / winners.length)
-      @games += 1
-      this.updateScores()
+    winners = state.getWinners()
+    for winner in winners
+      this.incrementPlayerScore(winner, 1.0 / winners.length)
+    @games += 1
+    this.updateScores()
 
   errorMargin: ->
+    # three standard deviations according to Z-score
     1.5 / Math.sqrt(@games)
 
   updateScores: =>
     @proportions = (score / @games for score in @scores)
-    if @scoreElt?
+    if @scoreInHtml
       this.updateScoresOnPage()
   
   decisiveWinner: =>
@@ -50,14 +54,36 @@ class ScoreTracker
         return @players[i]
     return null
 
+  # Assumes there are two players.
   updateScoresOnPage: ->
-    pieces = []
-    for i in [0...@players.length]
-      pieces.push("""<div>
-        <span class="player#{i+1}">#{@players[i]}</span>:
-        #{@scores[i]} wins (#{roundPercentage(@proportions[i])}%)
-      </div>""")
-    @scoreElt.html(pieces.join(''))
+    if @games == 0
+      # If no games have been played, reset the boxes.
+      $('#win-p1-certain').width(10)
+      $('#win-p2-certain').width(10)
+      $('#win-p1-uncertain').width(20)
+      $('#win-p2-uncertain').width(20)
+      return
+    
+    err = this.errorMargin()
+    certain1 = @proportions[0] - err
+    certain1 = 0 if certain1 < 0
+    certain2 = @proportions[1] - err
+    certain2 = 0 if certain2 < 0
+    uncertain1 = @proportions[0]
+    uncertain1 = 1 if uncertain1 > 1
+    uncertain2 = @proportions[1]
+    uncertain2 = 1 if uncertain2 > 1
+
+    $('#win-p1-certain').width(@elementWidth * certain1)
+    $('#win-p2-certain').width(@elementWidth * certain2)
+    $('#win-p1-uncertain').width(@elementWidth * uncertain1)
+    $('#win-p2-uncertain').width(@elementWidth * uncertain2)
+    scoreHtml = [null, null]
+    for i in [0..1]
+      scoreHtml[i] = """<strong>#{@players[i]}</strong>:
+        #{@scores[i]} wins (#{roundPercentage(@proportions[i])}%)"""
+    $('#score-p1').html(scoreHtml[0])
+    $('#score-p2').html(scoreHtml[1])
 
 roundPercentage = (num) ->
   (num * 100).toFixed(1)

@@ -33,17 +33,39 @@
 
 <div id="layoutSeparator"></div>
 <div class="container">
+  <div class="row">
+    <div class="span16" id="win-o-meter">
+      <div id="win-o-meter-back"></div>
+      <div id="win-p1-certain"></div>
+      <div id="win-p1-uncertain"></div>
+      <div id="win-p2-uncertain"></div>
+      <div id="win-p2-certain"></div>
+      <div id="score-p1"></div>
+      <div id="score-p2"></div>
+    </div>
+  </div>
   <div class="row" id="gameControls">
     <div class="span4">
-      <a id="playMany" href="#playMany" class="btn success">
-        Play until winner is clear
-      </a>
-      <a id="playButton" href="#playButton" class="btn">
-        Single game
-      </a>
-      <a id="play100" href="#play100" class="btn">
-        100 games
-      </a>
+      <form>
+      <ul class="inputs-list">
+        <li><label>
+          <input type="radio" name="playUntil" value="playOne" id="playOne" />
+          <span>Play a single game</span>
+        </label></li>
+        <li><label>
+          <input type="radio" name="playUntil" value="play100" id="play100" />
+          <span>Play 100 games</span>
+        </label></li>
+        <li><label>
+          <input type="radio" name="playUntil" value="play1000" id="play1000" />
+          <span>Play 1000 games</span>
+        </label></li>
+        <li><label>
+          <input type="radio" name="playUntil" value="playUntilDecisive" id="playUntilDecisive" checked="checked" />
+          <span>Play until winner is clear</span>
+        </label></li>
+      </ul>
+      </form>
     </div>
     <div class="span4">
       <ul class="inputs-list">
@@ -62,8 +84,9 @@
           </label>
         </li>
       </ul>
-    </div>
-    <div class="span5" id="scores">
+      <a id="playButton" href="#playButton" class="btn success">
+        Start playing
+      </a>
     </div>
   </div>
 </div>
@@ -137,6 +160,16 @@ $ ->
   errorHandlers.push (error) => multiLog.addLineToCurrent("Player 1: "+error.message)
   errorHandlers.push (error) => multiLog.addLineToCurrent("Player 2: "+error.message)
   errorHandler = (error) => multiLog.addLineToCurrent(error.message)
+  
+  begunPlaying = ->
+    window.playing = true
+    $('#playButton').removeClass('success').addClass('danger')
+    $('#playButton').text('Stop playing')
+  
+  donePlaying = ->
+    window.playing = false
+    $('#playButton').removeClass('danger').addClass('success')
+    $('#playButton').text('Start playing')
 
   playOneGame = ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
@@ -150,7 +183,7 @@ $ ->
     }
     playGame(compiled, options, singleGameResult)
 
-  playUntil = (condition) ->
+  playUntil = (condition, count) ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
     compiled = compileStrategies(scripts, errorHandlers)
     
@@ -159,26 +192,31 @@ $ ->
       colonies: $('#colonies').is(':checked')
       randomizeOrder: $('#randomize').is(':checked')
     }
-
+    playCount = 0
+    begunPlaying()
     playLoop = (result) ->
       singleGameResult(result)
-      if not condition()
+      if condition() or (playCount >= count) or (not window.playing)
+        donePlaying()
+      else
         multiLog.addPageQuietly('')
         nextIteration = ->
+          playCount++
           playGame(compiled, options, playLoop)
         window.setTimeout(nextIteration, 1)
 
     multiLog.addPageQuietly('')
     playGame(compiled, options, playLoop)
   
-  playUntilDecisive = -> playUntil(tracker.decisiveWinner)
-  play100 = ->
-    target = tracker.games + 100
-    playUntil(-> tracker.games >= target)
-
-  $('#playButton').click (event) -> playOneGame()
-  $('#playMany').click (event) -> playUntilDecisive()
-  $('#play100').click (event) -> play100()
+  $('#playButton').click (event) -> 
+    if window.playing
+      window.playing = false
+    else if $('#playOne').is(':checked') then playOneGame()
+    else if $('#play100').is(':checked') then playUntil((-> false), 100)
+    else if $('#play1000').is(':checked') then playUntil((-> false), 1000)
+    else if $('#playUntilDecisive').is(':checked')
+      playUntil(tracker.decisiveWinner, Infinity)
+    return false
 
   strategyElements = ['<option></option>']
   for name of strategies
