@@ -5,14 +5,14 @@ class ScoreTracker
     @scores = []
     @proportions = []
     @elementWidth = 940
-    if @scoreInHtml
-      this.updateScoresOnPage()
   
   reset: ->
     @games = 0
     @players = []
     @scores = []
     @proportions = []
+    if @scoreInHtml
+      this.updateScoresOnPage()
   
   setPlayers: (players) ->
     if players.join() != @players.join()
@@ -62,6 +62,8 @@ class ScoreTracker
       $('#win-p2-certain').width(10)
       $('#win-p1-uncertain').width(20)
       $('#win-p2-uncertain').width(20)
+      $('#score-p1').html('')
+      $('#score-p2').html('')
       return
     
     err = this.errorMargin()

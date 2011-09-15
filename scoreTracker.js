@@ -12,15 +12,15 @@
       this.scores = [];
       this.proportions = [];
       this.elementWidth = 940;
-      if (this.scoreInHtml) {
-        this.updateScoresOnPage();
-      }
     }
     ScoreTracker.prototype.reset = function() {
       this.games = 0;
       this.players = [];
       this.scores = [];
-      return this.proportions = [];
+      this.proportions = [];
+      if (this.scoreInHtml) {
+        return this.updateScoresOnPage();
+      }
     };
     ScoreTracker.prototype.setPlayers = function(players) {
       var player;
@@ -113,6 +113,8 @@
         $('#win-p2-certain').width(10);
         $('#win-p1-uncertain').width(20);
         $('#win-p2-uncertain').width(20);
+        $('#score-p1').html('');
+        $('#score-p2').html('');
         return;
       }
       err = this.errorMargin();
