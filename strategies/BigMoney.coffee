@@ -4,10 +4,10 @@
 {
   name: 'Big Money'
   author: 'WanderingWinder'
-  gainPriority: (state) -> 
+  gainPriority: (state, my) -> 
     if state.supply.Colony?
       [
-        "Colony" if state.current.getTotalMoney() > 32
+        "Colony" if my.getTotalMoney() > 32
         "Province" if state.gainsToEndGame() <= 6
         "Duchy" if state.gainsToEndGame() <= 5
         "Estate" if state.gainsToEndGame() <= 2
@@ -20,7 +20,7 @@
       ]
     else
       [
-        "Province" if state.current.getTotalMoney() > 18
+        "Province" if my.getTotalMoney() > 18
         "Duchy" if state.gainsToEndGame() <= 4
         "Estate" if state.gainsToEndGame() <= 2
         "Gold"

@@ -6,7 +6,7 @@
   name: 'SillyAI'
   author: 'rspeer'
 
-  gainValue: (state, card) ->
+  gainValue: (state, card, my) ->
     if card.name is "Copper" or card.name is "Curse"
       return -1
     else

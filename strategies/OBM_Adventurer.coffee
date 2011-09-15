@@ -2,12 +2,12 @@
 {
   name: 'OBM Adventurer'
   author: 'WanderingWinder'
-  gainPriority: (state) -> [
-    "Province" if state.current.countInDeck("Gold") > 0
+  gainPriority: (state, my) -> [
+    "Province" if my.countInDeck("Gold") > 0
     "Duchy" if state.countInSupply("Province") <= 4
     "Estate" if state.countInSupply("Province") <= 2
     "Adventurer" if state.countInSupply("Gold") > 0 \
-                 and state.current.countInDeck("Adventurer") == 0
+                 and my.countInDeck("Adventurer") == 0
     "Gold"
     "Duchy" if state.countInSupply("Province") <= 5
     "Silver"

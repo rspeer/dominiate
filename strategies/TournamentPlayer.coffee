@@ -1,8 +1,8 @@
 {
   name: "TournamentPlayer"
   author: 'rspeer'
-  gainPriority: (state) -> [
-    "Colony" if state.current.countInDeck("Platinum") > 0
+  gainPriority: (state, my) -> [
+    "Colony" if my.countInDeck("Platinum") > 0
     "Province"
     "Duchy" if 0 < state.gainsToEndGame() <= 2
     "Followers"
@@ -19,13 +19,13 @@
     "Copper" if state.gainsToEndGame() <= 3
   ]
   
-  discardPriority: (state) -> [
+  discardPriority: (state, my) -> [
     "Colony"
     "Duchy"
     "Curse"
     "Estate"
-    "Province" if state.current.countInHand("Tournament") == 0 \
-               or state.current.countInHand("Province") > 1
+    "Province" if my.countInHand("Tournament") == 0 \
+               or my.countInHand("Province") > 1
     "Copper"
     null
     "Silver"
