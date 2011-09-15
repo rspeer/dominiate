@@ -135,6 +135,9 @@ basicCard = {
   playEffect: (state) ->
   # - What happens when this card is in play and another card is gained?
   gainInPlayEffect: (state) ->
+  # - What happens when this card is in play and another card is specifically
+  #   bought?
+  buyInPlayEffect: (state) ->
   # - What happens when this card is cleaned up from play?
   cleanupEffect: (state) ->
   # - What happens when the card is in play as a Duration at the start of

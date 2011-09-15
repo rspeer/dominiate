@@ -33,7 +33,6 @@ Goons
 Grand Market
 Great Hall
 Harem
-Hoard
 Horn of Plenty
 Horse Traders
 Hunting Party
@@ -100,6 +99,7 @@ Fortune Teller
 Golem
 Hamlet
 Herbalist
+Hoard
 Island
 Jester
 King's Court
