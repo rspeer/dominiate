@@ -84,30 +84,25 @@
   };
   this.compileStrategies = compileStrategies;
   this.playGame = playGame;
-  count = function(list, elt) {
-    var member, _i, _len;
-    count = 0;
-    for (_i = 0, _len = list.length; _i < _len; _i++) {
-      member = list[_i];
-      if (member === elt) {
-        count++;
-      }
-    }
-    return count;
-  };
-  stringify = function(obj) {
-    if (obj === null) {
-      return null;
-    } else {
-      return obj.toString();
-    }
-  };
   BasicAI = (function() {
     function BasicAI() {}
-    BasicAI.prototype.name = 'BasicAI';
+    BasicAI.prototype.name = 'Basic AI';
+    BasicAI.prototype.author = 'rspeer';
+    BasicAI.prototype.myPlayer = function(state) {
+      var player, _i, _len, _ref;
+      _ref = state.players;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        player = _ref[_i];
+        if (player.ai === this) {
+          return player;
+        }
+      }
+      throw new Error("" + this + " is being asked to make a decision, but isn't playing the game...?");
+    };
     BasicAI.prototype.choosePriority = function(state, choices, priorityfunc) {
-      var bestChoice, bestIndex, choice, index, priority, _i, _len, _ref;
-      priority = priorityfunc(state);
+      var bestChoice, bestIndex, choice, index, my, priority, _i, _len, _ref;
+      my = this.myPlayer(state);
+      priority = priorityfunc(state, my);
       bestChoice = null;
       bestIndex = null;
       for (_i = 0, _len = choices.length; _i < _len; _i++) {
@@ -124,7 +119,8 @@
       return bestChoice;
     };
     BasicAI.prototype.chooseValue = function(state, choices, valuefunc) {
-      var bestChoice, bestValue, choice, value, _i, _len, _ref;
+      var bestChoice, bestValue, choice, my, value, _i, _len, _ref;
+      my = this.myPlayer(state);
       bestChoice = null;
       bestValue = -Infinity;
       for (_i = 0, _len = choices.length; _i < _len; _i++) {
@@ -132,7 +128,7 @@
         if (choice === null) {
           value = 0;
         } else {
-          value = valuefunc(state, choice);
+          value = valuefunc(state, choice, my);
         }
         if (value > bestValue) {
           bestValue = value;
@@ -189,36 +185,37 @@
     BasicAI.prototype.chooseBaronDiscard = function(state) {
       return true;
     };
-    BasicAI.prototype.gainPriority = function(state) {
+    BasicAI.prototype.gainPriority = function(state, my) {
       var _ref, _ref2;
-      return [state.current.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
+      return [my.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
-    BasicAI.prototype.actionPriority = function(state) {
-      return [state.current.menagerieDraws() === 3 ? "Menagerie" : void 0, state.current.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Fishing Village", "Market", "Peddler", "Great Hall", state.current.actions > 1 ? "Smithy" : void 0, state.current.inPlay.length >= 2 ? "Conspirator" : void 0, "Familiar", "Pawn", "Lighthouse", "Warehouse", "Menagerie", "Tournament", "Cellar", state.current.actions === 1 ? "Shanty Town" : void 0, "Nobles", state.current.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Sea Hag", "Tribute", "Goons", "Wharf", "Militia", "Princess", state.current.countInHand("Province") >= 1 ? "Explorer" : void 0, "Steward", state.current.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Bridge", "Horse Traders", state.current.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", state.current.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Explorer", "Woodcutter", state.current.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", state.current.ai.wantsToTrash(state) ? "Ambassador" : void 0, state.current.ai.wantsToTrash(state) ? "Chapel" : void 0, "Moat", state.current.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Ironworks", "Workshop", "Coppersmith", state.current.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", null];
+    BasicAI.prototype.actionPriority = function(state, my) {
+      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Great Hall", my.inPlay.length >= 2 ? "Conspirator" : void 0, my.actions > 1 ? "Smithy" : void 0, "Familiar", "Lighthouse", "Pawn", "Warehouse", "Cellar", "Menagerie", "Tournament", my.actions === 1 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Sea Hag", "Tribute", "Goons", "Wharf", "Militia", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Bridge", "Horse Traders", my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Explorer", "Woodcutter", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Moat", "Ironworks", "Workshop", "Coppersmith", my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", null, "Trade Route", "Treasure Map", "Ambassador"];
     };
-    BasicAI.prototype.treasurePriority = function(state) {
-      return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", state.current.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
+    BasicAI.prototype.treasurePriority = function(state, my) {
+      return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0, null];
     };
-    BasicAI.prototype.discardPriority = function(state) {
-      return ["Colony", "Duchy", "Province", "Curse", "Estate", "Copper", null, "Silver"];
+    BasicAI.prototype.discardPriority = function(state, my) {
+      return ["Vineyard", "Colony", "Duchy", "Gardens", "Province", "Curse", "Estate", "Copper", null, "Silver"];
     };
-    BasicAI.prototype.trashPriority = function(state) {
-      return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, state.current.getTotalMoney() > 4 ? "Copper" : void 0, state.current.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0, null, "Copper", "Potion", "Estate", "Silver"];
+    BasicAI.prototype.trashPriority = function(state, my) {
+      return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, my.getTotalMoney() > 4 ? "Copper" : void 0, my.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0, null, "Copper", "Potion", "Estate", "Silver"];
     };
     BasicAI.prototype.chooseBenefit = function(state, choices) {
-      var actionBalance, actionValue, best, bestValue, buyValue, card, cardValue, choice, coinValue, trashValue, trashableCards, trashes, usableActions, value, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
+      var actionBalance, actionValue, best, bestValue, buyValue, card, cardValue, choice, coinValue, my, trashValue, trashableCards, trashes, usableActions, value, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
+      my = this.myPlayer(state);
       buyValue = 1;
       cardValue = 2;
       coinValue = 3;
       trashValue = 4;
       actionValue = 10;
       trashableCards = 0;
-      actionBalance = state.current.actionBalance();
+      actionBalance = my.actionBalance();
       usableActions = Math.max(0, -actionBalance);
       if (actionBalance >= 1) {
         cardValue += actionBalance;
       }
-      _ref = state.current.hand;
+      _ref = my.hand;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         card = _ref[_i];
         if (this.chooseTrash(state, [card, null]) === card) {
@@ -233,7 +230,7 @@
         value += coinValue * ((_ref3 = choice.coins) != null ? _ref3 : 0);
         value += buyValue * ((_ref4 = choice.buys) != null ? _ref4 : 0);
         trashes = (_ref5 = choice.trashes) != null ? _ref5 : 0;
-        if (trashes <= trashableCards) {
+        if (trashes <= this.wantsToTrash(state)) {
           value += trashValue * trashes;
         } else {
           value -= trashValue * trashes;
@@ -246,13 +243,21 @@
       }
       return best;
     };
-    BasicAI.prototype.ambassadorPriority = function(state) {
-      var my;
-      my = state.current;
+    BasicAI.prototype.ambassadorPriority = function(state, my) {
       return ["Curse,2", "Curse,1", "Curse,0", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"];
     };
     BasicAI.prototype.wantsToTrash = function(state) {
-      return this.chooseTrash(state, [null].concat(state.current.hand)) !== null;
+      var card, my, trashableCards, _i, _len, _ref;
+      my = this.myPlayer(state);
+      trashableCards = 0;
+      _ref = my.hand;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        card = _ref[_i];
+        if (this.chooseTrash(state, [card, null]) === card) {
+          trashableCards += 1;
+        }
+      }
+      return trashableCards;
     };
     BasicAI.prototype.toString = function() {
       return this.name;
@@ -260,6 +265,24 @@
     return BasicAI;
   })();
   this.BasicAI = BasicAI;
+  count = function(list, elt) {
+    var member, _i, _len;
+    count = 0;
+    for (_i = 0, _len = list.length; _i < _len; _i++) {
+      member = list[_i];
+      if (member === elt) {
+        count++;
+      }
+    }
+    return count;
+  };
+  stringify = function(obj) {
+    if (obj === null) {
+      return null;
+    } else {
+      return obj.toString();
+    }
+  };
   c = {};
   this.c = c;
   c.allCards = [];
