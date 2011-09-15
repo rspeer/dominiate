@@ -180,14 +180,14 @@ select {
 }
 #win-o-meter {
   position: relative;
-  background-color: #aaaaaa;
+  background-color: #000;
   height: 20px;
   width: 940px;
 }
 #win-o-meter-back {
   position: absolute;
   right: 0;
-  background-color: #919191;
+  background-color: #333;
   width: 470px;
   height: 20px;
   z-index: 1;
@@ -197,7 +197,7 @@ select {
   left: 0;
   width: 10px;
   height: 20px;
-  background-color: #aa5555;
+  background-color: #ee4444;
   z-index: 3;
 }
 #win-p2-certain {
@@ -205,23 +205,23 @@ select {
   right: 0;
   width: 10px;
   height: 20px;
-  background-color: #5555aa;
+  background-color: #5555ff;
   z-index: 3;
 }
 #win-p1-uncertain {
   position: absolute;
   left: 0;
-  width: 20px;
+  width: 469px;
   height: 20px;
-  background-color: rgba(170, 85, 85, 0.5);
+  background-color: rgba(238, 68, 68, 0.5);
   z-index: 2;
 }
 #win-p2-uncertain {
   position: absolute;
   right: 0;
-  width: 20px;
+  width: 469px;
   height: 20px;
-  background-color: rgba(85, 85, 170, 0.5);
+  background-color: rgba(85, 85, 255, 0.5);
   z-index: 2;
 }
 .score {

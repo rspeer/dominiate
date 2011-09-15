@@ -43,8 +43,8 @@
 
 @darkred: #900;
 @darkblue: #009;
-@lightred: #a55;
-@lightblue: #55a;
+@lightred: #e44;
+@lightblue: #55f;
 @lightgray: #aaa;
 
 .ace_editor {
@@ -199,14 +199,14 @@ select {
 
 #win-o-meter {
     position: relative;
-    background-color: @lightgray;
+    background-color: #000;
     height: 20px;
     width: 940px;
 }
 #win-o-meter-back {
     position: absolute;
     right: 0;
-    background-color: darken(@lightgray, 10%);
+    background-color: #333;
     width: 470px;
     height: 20px;
     z-index: 1;
@@ -230,7 +230,7 @@ select {
 #win-p1-uncertain {
     position: absolute;
     left: 0;
-    width: 20px;
+    width: 469px;
     height: 20px;
     background-color: fadeout(@lightred, 50%);
     z-index: 2;
@@ -238,7 +238,7 @@ select {
 #win-p2-uncertain {
     position: absolute;
     right: 0;
-    width: 20px;
+    width: 469px;
     height: 20px;
     background-color: fadeout(@lightblue, 50%);
     z-index: 2;

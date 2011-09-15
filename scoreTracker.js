@@ -111,8 +111,8 @@
       if (this.games === 0) {
         $('#win-p1-certain').width(10);
         $('#win-p2-certain').width(10);
-        $('#win-p1-uncertain').width(20);
-        $('#win-p2-uncertain').width(20);
+        $('#win-p1-uncertain').width(469);
+        $('#win-p2-uncertain').width(469);
         $('#score-p1').html('');
         $('#score-p2').html('');
         return;
@@ -136,8 +136,8 @@
       }
       $('#win-p1-certain').width(this.elementWidth * certain1);
       $('#win-p2-certain').width(this.elementWidth * certain2);
-      $('#win-p1-uncertain').width(this.elementWidth * uncertain1);
-      $('#win-p2-uncertain').width(this.elementWidth * uncertain2);
+      $('#win-p1-uncertain').width(this.elementWidth * uncertain1 - 1);
+      $('#win-p2-uncertain').width(this.elementWidth * uncertain2 - 1);
       scoreHtml = [null, null];
       for (i = 0; i <= 1; i++) {
         scoreHtml[i] = "<strong>" + this.players[i] + "</strong>:\n" + this.scores[i] + " wins (" + (roundPercentage(this.proportions[i])) + "%)";

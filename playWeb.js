@@ -370,6 +370,7 @@
     gainEffect: function(state) {},
     playEffect: function(state) {},
     gainInPlayEffect: function(state) {},
+    buyInPlayEffect: function(state) {},
     cleanupEffect: function(state) {},
     durationEffect: function(state) {},
     shuffleEffect: function(state) {},
