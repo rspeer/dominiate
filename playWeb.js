@@ -1,5 +1,5 @@
 (function() {
-  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, compileStrategies, count, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, shuffle, stringify, transferCard, transferCardToTop, _ref;
+  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, shuffle, stringify, transferCard, transferCardToTop, _ref;
   var __indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++) {
       if (this[i] === item) return i;
@@ -138,6 +138,9 @@
       if (bestChoice === null && __indexOf.call(choices, null) < 0) {
         return (_ref = choices[0]) != null ? _ref : null;
       }
+      if (bestChoice === void 0) {
+        throw new Error("undefined choice from " + choices);
+      }
       return bestChoice;
     };
     BasicAI.prototype.chooseAction = function(state, choices) {
@@ -185,12 +188,21 @@
     BasicAI.prototype.chooseBaronDiscard = function(state) {
       return true;
     };
+    BasicAI.prototype.chooseWish = function(state, choices) {
+      if (this.wishValue != null) {
+        return this.chooseValue(state, choices, this.wishValue);
+      } else if (this.wishPriority != null) {
+        return this.choosePriority(state, choices, this.wishPriority);
+      } else {
+        return this.chooseValue(state, choices, this.wishValueDefault);
+      }
+    };
     BasicAI.prototype.gainPriority = function(state, my) {
       var _ref, _ref2;
       return [my.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
     };
     BasicAI.prototype.actionPriority = function(state, my) {
-      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Great Hall", my.inPlay.length >= 2 ? "Conspirator" : void 0, my.actions > 1 ? "Smithy" : void 0, "Familiar", "Lighthouse", "Pawn", "Warehouse", "Cellar", "Menagerie", "Tournament", my.actions === 1 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Sea Hag", "Tribute", "Goons", "Wharf", "Militia", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Bridge", "Horse Traders", my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Explorer", "Woodcutter", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, "Conspirator", my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Moat", "Ironworks", "Workshop", "Coppersmith", my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", null, "Trade Route", "Treasure Map", "Ambassador"];
+      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Great Hall", "Wishing Well", "Lighthouse", my.actions > 1 ? "Smithy" : void 0, "Familiar", "Pawn", "Warehouse", "Cellar", "Tournament", "Menagerie", my.actions === 1 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Militia", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Bridge", "Horse Traders", my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, "Smithy", "Council Room", "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Explorer", "Woodcutter", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Conspirator", "Moat", "Ironworks", "Workshop", "Coppersmith", my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", null, "Trade Route", "Treasure Map", "Ambassador"];
     };
     BasicAI.prototype.treasurePriority = function(state, my) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0, null];
@@ -246,6 +258,14 @@
     BasicAI.prototype.ambassadorPriority = function(state, my) {
       return ["Curse,2", "Curse,1", "Curse,0", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"];
     };
+    BasicAI.prototype.wishValueDefault = function(state, card, my) {
+      var pile;
+      pile = my.draw;
+      if (pile.length === 0) {
+        pile = my.discard;
+      }
+      return countInList(pile, card);
+    };
     BasicAI.prototype.wantsToTrash = function(state) {
       var card, my, trashableCards, _i, _len, _ref;
       my = this.myPlayer(state);
@@ -259,14 +279,24 @@
       }
       return trashableCards;
     };
+    BasicAI.prototype.copy = function() {
+      var ai, key, value;
+      ai = new BasicAI();
+      for (key in this) {
+        value = this[key];
+        ai[key] = value;
+      }
+      ai.name = this.name + '*';
+      return ai;
+    };
     BasicAI.prototype.toString = function() {
       return this.name;
     };
     return BasicAI;
   })();
   this.BasicAI = BasicAI;
-  count = function(list, elt) {
-    var member, _i, _len;
+  countInList = function(list, elt) {
+    var count, member, _i, _len;
     count = 0;
     for (_i = 0, _len = list.length; _i < _len; _i++) {
       member = list[_i];
@@ -601,6 +631,30 @@
     actions: +1,
     coins: +1,
     durationCoins: +1
+  });
+  makeCard('Tactician', duration, {
+    cost: 5,
+    durationActions: +1,
+    durationBuys: +1,
+    durationCards: +5,
+    playEffect: function(state) {
+      var cardsInHand;
+      cardsInHand = state.current.hand.length;
+      if (cardsInHand > 0) {
+        state.log("...discarding the whole hand.");
+        state.current.tacticians++;
+        state.current.discard = state.current.discard.concat(state.current.hand);
+        return state.current.hand = [];
+      }
+    },
+    cleanupEffect: function(state) {
+      if (state.current.tacticians > 0) {
+        return state.current.tacticians--;
+      } else {
+        state.log("" + state.current.ai + " discards an inactive Tactician.");
+        return transferCard(c.Tactician, state.current.duration, state.current.discard);
+      }
+    }
   });
   makeCard('Adventurer', action, {
     cost: 6,
@@ -1417,6 +1471,35 @@
       return state.requireDiscard(state.current, 3);
     }
   });
+  makeCard('Wishing Well', action, {
+    cost: 3,
+    cards: 1,
+    actions: 1,
+    playEffect: function(state) {
+      var card, cardName, choices, drawn, wish, _i, _len, _ref;
+      choices = [];
+      _ref = c.allCards;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        cardName = _ref[_i];
+        choices.push(c[cardName]);
+      }
+      wish = state.current.ai.chooseWish(state, choices);
+      state.log("...wishing for a " + wish + ".");
+      drawn = state.current.getCardsFromDeck(1);
+      if (drawn.length > 0) {
+        card = drawn[0];
+        if (card === wish) {
+          state.log("...revealing a " + card + " and keeping it.");
+          return state.current.hand.push(card);
+        } else {
+          state.log("...revealing a " + card + " and discarding it.");
+          return state.current.discard.push(card);
+        }
+      } else {
+        return state.log("...drawing nothing.");
+      }
+    }
+  });
   makeCard('Witch', action, {
     cost: 5,
     cards: 2,
@@ -1506,6 +1589,7 @@
       this.duration = [];
       this.setAside = [];
       this.moatProtected = false;
+      this.tacticians = 0;
       this.turnsTaken = 0;
       this.ai = ai;
       this.logFunc = logFunc;
@@ -1516,7 +1600,7 @@
       return this.draw.concat(this.discard.concat(this.hand.concat(this.inPlay.concat(this.duration.concat(this.mats.nativeVillage.concat(this.mats.island))))));
     };
     PlayerState.prototype.countInDeck = function(card) {
-      var card2, _i, _len, _ref2;
+      var card2, count, _i, _len, _ref2;
       count = 0;
       _ref2 = this.getDeck();
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
@@ -1531,7 +1615,7 @@
       return this.getDeck().length;
     };
     PlayerState.prototype.countCardTypeInDeck = function(type) {
-      var card, typeChecker, _i, _len, _ref2;
+      var card, count, typeChecker, _i, _len, _ref2;
       typeChecker = 'is' + type;
       count = 0;
       _ref2 = this.getDeck();
@@ -1585,7 +1669,7 @@
       return countStr(this.inPlay, card);
     };
     PlayerState.prototype.numActionCardsInDeck = function() {
-      var card, _i, _len, _ref2;
+      var card, count, _i, _len, _ref2;
       count = 0;
       _ref2 = this.getDeck();
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
@@ -1737,6 +1821,7 @@
       other.duration = this.duration.slice(0);
       other.setAside = this.setAside.slice(0);
       other.moatProtected = this.moatProtected;
+      other.tacticians = this.tacticians;
       other.ai = this.ai;
       other.logFunc = this.logFunc;
       other.turnsTaken = this.turnsTaken;
@@ -1779,6 +1864,7 @@
       this.quarries = 0;
       this.copperValue = 1;
       this.phase = 'start';
+      this.depth = 0;
       return this;
     };
     State.prototype.makeSupply = function(tableau) {
@@ -2052,6 +2138,7 @@
       this.current.buys = 1;
       this.current.coins = 0;
       this.current.potions = 0;
+      this.current.tacticians = 0;
       this.copperValue = 1;
       this.bridges = 0;
       this.quarries = 0;
@@ -2219,12 +2306,36 @@
       newState.logFunc = this.logFunc;
       return newState;
     };
+    State.prototype.hypothetical = function(ai) {
+      var combined, handSize, my, player, state, _i, _len, _ref2;
+      state = this.copy();
+      my = null;
+      _ref2 = state.players;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        player = _ref2[_i];
+        if (player.ai !== ai) {
+          player.ai = ai.copy();
+          handSize = player.hand.length;
+          combined = player.hand.concat(player.draw);
+          shuffle(combined);
+          player.hand = combined.slice(0, handSize);
+          player.draw = combined.slice(handSize);
+        } else {
+          shuffle(player.draw);
+          my = player;
+        }
+      }
+      state.depth = this.depth + 1;
+      return [state, my];
+    };
     State.prototype.log = function(obj) {
-      if (this.logFunc != null) {
-        return this.logFunc(obj);
-      } else {
-        if (typeof console !== "undefined" && console !== null) {
-          return console.log(obj);
+      if (this.depth === 0) {
+        if (this.logFunc != null) {
+          return this.logFunc(obj);
+        } else {
+          if (typeof console !== "undefined" && console !== null) {
+            return console.log(obj);
+          }
         }
       }
     };
@@ -2266,7 +2377,7 @@
     return v;
   };
   countStr = function(list, elt) {
-    var member, _i, _len;
+    var count, member, _i, _len;
     count = 0;
     for (_i = 0, _len = list.length; _i < _len; _i++) {
       member = list[_i];
