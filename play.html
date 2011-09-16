@@ -159,10 +159,7 @@ $ ->
     multiLog.updateOutput()
     tracker.recordGame(state)
 
-  errorHandlers = []
-  errorHandlers.push (error) => multiLog.addLineToCurrent("Player 1: "+error.message)
-  errorHandlers.push (error) => multiLog.addLineToCurrent("Player 2: "+error.message)
-  errorHandler = (error) => multiLog.addLineToCurrent(error.message)
+  errorHandler = (error) => alert(error.message)
   
   begunPlaying = ->
     window.playing = true
@@ -173,10 +170,12 @@ $ ->
     window.playing = false
     $('#playButton').removeClass('danger').addClass('success')
     $('#playButton').text('Start playing')
+  window.donePlaying = donePlaying
 
   playOneGame = ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
-    compiled = compileStrategies(scripts, errorHandlers)
+    compiled = compileStrategies(scripts, errorHandler)
+    return if not compiled
     multiLog.addPage('')
     
     options = {
@@ -188,7 +187,8 @@ $ ->
 
   playUntil = (condition, count) ->
     scripts = [leftEd.getValue(), rightEd.getValue()]
-    compiled = compileStrategies(scripts, errorHandlers)
+    compiled = compileStrategies(scripts, errorHandler)
+    return if not compiled
     
     options = {
       log: log
@@ -226,17 +226,18 @@ $ ->
 
   strategyElements = ['<option></option>']
   for name of strategies
-    strategyElements.push("<option>#{name}</option>")
+    visibleName = name.replace('_', ' ')
+    strategyElements.push("<option value='#{name}'>#{visibleName}</option>")
   strategyElements.sort()
 
   $('#loadStrategy1').html(strategyElements.join(''))
   $('#loadStrategy2').html(strategyElements.join(''))
   $('#loadStrategy1').change =>
-    choice = $('#loadStrategy1 option:selected').text()
+    choice = $('#loadStrategy1 option:selected')[0].value
     strategy = strategies[choice] ? ''
     leftEd.setValue(strategy)
   $('#loadStrategy2').change =>
-    choice = $('#loadStrategy2 option:selected').text()
+    choice = $('#loadStrategy2 option:selected')[0].value
     strategy = strategies[choice] ? ''
     rightEd.setValue(strategy)
 

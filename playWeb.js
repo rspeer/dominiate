@@ -6,7 +6,7 @@
     }
     return -1;
   };
-  compileStrategies = function(scripts, errorCallbacks) {
+  compileStrategies = function(scripts, errorHandler) {
     var i, strategies, strategy, usedNames, _ref, _ref2;
     strategies = [];
     usedNames = [];
@@ -21,7 +21,7 @@
         usedNames.push(strategy.name);
         strategies.push(strategy);
       } catch (e) {
-        errorCallbacks[i](e);
+        errorHandler(e);
         return null;
       }
     }
@@ -69,17 +69,24 @@
       ret = options.log;
     }
     return window.setZeroTimeout(function() {
-      return playStep(state, ret);
+      return playStep(state, options, ret);
     });
   };
-  playStep = function(state, ret) {
+  playStep = function(state, options, ret) {
+    var errorHandler, _ref;
     if (state.gameIsOver()) {
       return ret(state);
     } else {
-      state.doPlay();
-      return window.setZeroTimeout(function() {
-        return playStep(state, ret);
-      });
+      try {
+        state.doPlay();
+        return window.setZeroTimeout(function() {
+          return playStep(state, options, ret);
+        });
+      } catch (err) {
+        errorHandler = (_ref = options.errorHandler) != null ? _ref : typeof alert !== "undefined" && alert !== null ? alert : console.log;
+        errorHandler(err.message);
+        return window.donePlaying();
+      }
     }
   };
   this.compileStrategies = compileStrategies;
@@ -1646,6 +1653,9 @@
         total += card.coins;
       }
       return total;
+    };
+    PlayerState.prototype.getAvailableMoney = function() {
+      return this.coins + this.getTreasureInHand();
     };
     PlayerState.prototype.getTreasureInHand = function() {
       var card, total, _i, _len, _ref2;
