@@ -84,6 +84,8 @@ class BasicAI
       # This should only happen when there are no choices, but to be sure,
       # we check if there is a `choices[0]` and choose it if so.
       return choices[0] ? null
+    if bestChoice is undefined
+      throw new Error("undefined choice from #{choices}")
     return bestChoice
   
   # Decisions
@@ -152,6 +154,15 @@ class BasicAI
   # An AI can replace this function directly to make a different
   # decision.
   chooseBaronDiscard: (state) -> yes
+  
+  # `chooseWish` asks which card to wish for using the Wishing Well.
+  chooseWish: (state, choices) ->
+    if this.wishValue?
+      this.chooseValue(state, choices, this.wishValue)
+    else if this.wishPriority?
+      this.choosePriority(state, choices, this.wishPriority)
+    else
+      this.chooseValue(state, choices, this.wishValueDefault)
 
   # Default strategies
   # ------------------
@@ -197,8 +208,9 @@ class BasicAI
     "Caravan"
     "Market"
     "Peddler"
-    "Great Hall"
     "Conspirator" if my.inPlay.length >= 2
+    "Great Hall"
+    "Wishing Well"
     "Lighthouse"
     # Fourth priority: terminal card-drawers, if we have actions to spare.
     "Smithy" if my.actions > 1
@@ -398,6 +410,18 @@ class BasicAI
       "Copper,0"
     ]
 
+  # `wishValueDefault()` prefers to wish for the card its draw pile contains
+  # the most of.
+  #
+  # The fact that this doesn't make a hypothetical copy is a shortcut. We are
+  # technically "peeking" at the deck, but we don't use any information except
+  # the count of each card, which would be the same in any hypothetical version.
+  wishValueDefault: (state, card, my) ->
+    pile = my.draw
+    if pile.length == 0
+      pile = my.discard
+    return countInList(pile, card)
+
   #### Informational methods
   #
   # `wantsToTrash` returns the number of cards in hand that we would trash
@@ -427,7 +451,7 @@ this.BasicAI = BasicAI
 # Utility functions
 # -----------------
 # `count` counts the number of times `elt` appears in `list`.
-count = (list, elt) ->
+countInList = (list, elt) ->
   count = 0
   for member in list
     if member == elt

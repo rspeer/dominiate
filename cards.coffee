@@ -1105,6 +1105,30 @@ makeCard 'Warehouse', action, {
     state.requireDiscard(state.current, 3)
 }
 
+makeCard 'Wishing Well', action, {
+  cost: 3
+  cards: 1
+  actions: 1
+  playEffect: (state) ->
+    choices = []
+    for cardName in c.allCards
+      choices.push(c[cardName])
+      
+    wish = state.current.ai.chooseWish(state, choices)
+    state.log("...wishing for a #{wish}.")
+    drawn = state.current.getCardsFromDeck(1)
+    if drawn.length > 0
+      card = drawn[0]
+      if card is wish
+        state.log("...revealing a #{card} and keeping it.")
+        state.current.hand.push(card)
+      else
+        state.log("...revealing a #{card} and discarding it.")
+        state.current.discard.push(card)
+    else
+      state.log("...drawing nothing.")
+}
+
 makeCard 'Witch', action, {
   cost: 5
   cards: 2
