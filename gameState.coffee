@@ -116,6 +116,12 @@ class PlayerState
     for card in this.getDeck()
       total += card.coins
     total
+
+  # `getAvailableMoney()` counts the money the player might have upon playing
+  # all treasure in hand. Banks, Ventures, and such are counted inaccurately
+  # so far.
+  getAvailableMoney: () ->
+    this.coins + this.getTreasureInHand()
   
   # `getTreasureInHand()` adds up the value of the treasure in the player's
   # hand. Banks and Ventures and such will be inaccurate.
