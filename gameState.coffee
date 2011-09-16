@@ -692,9 +692,12 @@ class State
       if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
         @tradeRouteValue += 1
+      for i in [player.hand.length-1...-1]
+        reactCard = player.hand[i]
+        if reactCard.isReaction
+          reactCard.reactToGain(player)
     else
       this.log("There is no #{card} to gain.")
-    # TODO: handle gain reactions
   
   # Effects of an action could cause players to reveal their hand.
   # So far, nothing happens as a result, but in the future, AIs might

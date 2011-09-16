@@ -183,6 +183,9 @@ basicCard = {
   reactToAttack: (player) ->
     this.attackReaction(player)
   
+  reactToGain: (player, card) ->
+    this.gainReaction(player, card)
+  
   # A card's string representation is its name.
   #
   # If you have a value called
