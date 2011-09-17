@@ -1,4 +1,4 @@
-Cards that are done (81)
+Cards that are done (83)
 ========================
 Adventurer
 Alchemist
@@ -57,6 +57,7 @@ Potion
 Princess
 Province
 Quarry
+Royal Seal
 Sea Hag
 Shanty Town
 Silver
@@ -75,6 +76,7 @@ Village
 Vineyard
 Walled Village
 Warehouse
+Watchtower
 Wharf
 Wishing Well
 Witch
@@ -82,7 +84,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (61)
+Cards that still need to be coded (59)
 ======================================
 Apothecary
 Apprentice
@@ -124,7 +126,6 @@ Possession (will require entirely new kinds of AI decisions)
 Rabble
 Remake
 Remodel
-Royal Seal
 Saboteur
 Salvager
 Scout
@@ -142,5 +143,4 @@ Transmute
 Treasury
 Upgrade
 Vault
-Watchtower
 Young Witch
