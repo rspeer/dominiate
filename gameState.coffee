@@ -631,6 +631,11 @@ class State
       # Gain the card and deal with the effects.
       this.gainCard(@current, choice, 'discard', true)
       choice.onBuy(this)
+      
+      # Handle cards such as Talisman that respond to cards being bought.
+      for i in [@current.inPlay.length-1...-1]
+        cardInPlay = @current.inPlay[i]
+        cardInPlay.buyInPlayEffect(this, card)
 
       # Gain victory for each Goons in play.
       goonses = @current.countInPlay('Goons')
@@ -728,11 +733,18 @@ class State
       if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
         @tradeRouteValue += 1
+      
+      # Handle cards such as Royal Seal that respond to gains while they are
+      # in play.
+      for i in [player.inPlay.length-1...-1]
+        cardInPlay = player.inPlay[i]
+        cardInPlay.gainInPlayEffect(this, card)
+      
+      # Handle cards such as Watchtower that react to gains as a Reaction card.
       for i in [player.hand.length-1...-1]
         reactCard = player.hand[i]
         if reactCard.isReaction
           reactCard.reactToGain(this, player, card)
-          break if @gainLocation == 'trash'
     else
       this.log("There is no #{card} to gain.")
   
@@ -769,48 +781,52 @@ class State
 
   # `allowDiscard` allows a player to discard 0 through `num` cards.
   allowDiscard: (player, num) ->
-    numDiscarded = 0
-    while numDiscarded < num
+    discarded = []
+    while discarded.length < num
       # In `allowDiscard`, valid discards are the entire hand, plus `null`
       # to stop discarding.
       validDiscards = player.hand.slice(0)
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
-      return if choice is null
-      numDiscarded++
+      return discarded if choice is null
+      discarded.push(choice)
       player.doDiscard(choice)
+    return discarded
   
   # `requireDiscard` requires the player to discard exactly `num` cards,
   # except that it stops if the player has 0 cards in hand.
   requireDiscard: (player, num) ->
-    numDiscarded = 0
-    while numDiscarded < num
+    discarded = []
+    while discarded.length < num
       validDiscards = player.hand.slice(0)
-      return if validDiscards.length == 0
+      return discarded if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
-      numDiscarded++
+      discarded.push(choice)
       player.doDiscard(choice)
+    return discarded
   
   # `allowTrash` and `requireTrash` are similar to `allowDiscard` and
   # `requireDiscard`.
   allowTrash: (player, num) ->
-    numTrashed = 0
-    while numTrashed < num
+    trashed = []
+    while trashed.length < num
       valid = player.hand.slice(0)
       valid.push(null)
       choice = player.ai.chooseTrash(this, valid)
-      return if choice is null
-      numTrashed++
+      return trashed if choice is null
+      trashed.push(choice)
       player.doTrash(choice)
+    return trashed
   
   requireTrash: (player, num) ->
-    numTrashed = 0
-    while numTrashed < num
+    trashed = []
+    while trashed.length < num
       valid = player.hand.slice(0)
-      return if valid.length == 0
+      return trashed if valid.length == 0
       choice = player.ai.chooseTrash(this, valid)
-      numTrashed++
+      trashed.push(choice)
       player.doTrash(choice)
+    return trashed
   
   # `gainOneOf` gives the player a choice of cards to gain. Include
   # `null` if gaining nothing is an option.
