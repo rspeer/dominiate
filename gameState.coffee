@@ -116,6 +116,12 @@ class PlayerState
     for card in this.getDeck()
       total += card.coins
     total
+
+  # `getAvailableMoney()` counts the money the player might have upon playing
+  # all treasure in hand. Banks, Ventures, and such are counted inaccurately
+  # so far.
+  getAvailableMoney: () ->
+    this.coins + this.getTreasureInHand()
   
   # `getTreasureInHand()` adds up the value of the treasure in the player's
   # hand. Banks and Ventures and such will be inaccurate.
@@ -686,9 +692,12 @@ class State
       if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
         @tradeRouteValue += 1
+      for i in [player.hand.length-1...-1]
+        reactCard = player.hand[i]
+        if reactCard.isReaction
+          reactCard.reactToGain(player)
     else
       this.log("There is no #{card} to gain.")
-    # TODO: handle gain reactions
   
   # Effects of an action could cause players to reveal their hand.
   # So far, nothing happens as a result, but in the future, AIs might

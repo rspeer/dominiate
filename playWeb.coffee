@@ -3,7 +3,7 @@
 #
 # Needs more documentation.
 
-compileStrategies = (scripts, errorCallbacks) ->
+compileStrategies = (scripts, errorHandler) ->
   strategies = []
   usedNames = []
   for i in [0...scripts.length]
@@ -14,7 +14,7 @@ compileStrategies = (scripts, errorCallbacks) ->
       usedNames.push(strategy.name)
       strategies.push(strategy)
     catch e
-      errorCallbacks[i](e)
+      errorHandler(e)
       return null
   return strategies
 
@@ -41,14 +41,19 @@ playGame = (strategies, options, ret) ->
   
   state = new State().initialize(ais, tableau, options.log)
   ret ?= options.log
-  window.setZeroTimeout -> playStep(state, ret)
+  window.setZeroTimeout -> playStep(state, options, ret)
 
-playStep = (state, ret) ->
+playStep = (state, options, ret) ->
   if state.gameIsOver()
     ret(state)
   else
-    state.doPlay()
-    window.setZeroTimeout -> playStep(state, ret)
+    try
+      state.doPlay()
+      window.setZeroTimeout -> playStep(state, options, ret)
+    catch err
+      errorHandler = options.errorHandler ? (alert ? console.log)
+      errorHandler(err.message)
+      window.donePlaying()
 
 this.compileStrategies = compileStrategies
 this.playGame = playGame
