@@ -183,8 +183,8 @@ basicCard = {
   reactToAttack: (state, player) ->
     this.attackReaction(state, player)
   
-  reactToGain: (state, player, card, inHand) ->
-    this.gainReaction(state, player, card, inHand)
+  reactToGain: (state, player, card) ->
+    this.gainReaction(state, player, card)
   
   # A card's string representation is its name.
   #
@@ -611,8 +611,7 @@ makeCard 'Explorer', action, {
       cardToGain = c.Gold
 
     if state.countInSupply(cardToGain) > 0
-      state.gainCard(state.current, cardToGain, true, true)
-      transferCard(cardToGain, state.current.discard, state.current.hand)
+      state.gainCard(state.current, cardToGain, 'hand', true)
       state.log("…and gaining a #{cardToGain}, putting it in the hand.")
     else
       state.log("…but there are no #{cardToGain}s available to gain.")
@@ -931,8 +930,7 @@ makeCard 'Sea Hag', action, {
       # If no Curses are left to gain, we don't want a Curse to be
       # fished out of the opponent's discard pile
       if state.supply[c.Curse] > 0
-        state.gainCard(opp, c.Curse)
-        transferCardToTop(c.Curse, opp.discard, opp.draw)
+        state.gainCard(opp, c.Curse, 'draw')
 }
 
 makeCard 'Shanty Town', action, {
@@ -971,10 +969,9 @@ makeCard 'Tournament', action, {
         choices = state.prizes
         if state.supply[c.Duchy] > 0
           choices.push(c.Duchy)
-        choice = state.gainOneOf(state.current, choices)
+        choice = state.gainOneOf(state.current, choices, 'deck')
         if choice isnt null
           state.log("...putting the #{choice} on top of the deck.")
-          transferCardToTop(choice, state.current.discard, state.current.draw)
       if not opposingProvince
         state.current.coins += 1
         state.current.drawCards(1)
@@ -991,8 +988,7 @@ makeCard "Trading Post", action, {
   cost: 5
   playEffect: (state) ->
     state.requireTrash(state.current, 2)
-    state.gainCard(state.current, c.Silver, inHand=true)
-    transferCard(c.Silver, state.current.discard, state.current.hand)
+    state.gainCard(state.current, c.Silver, 'hand')
     state.log("...gaining a Silver in hand.")    
 }
 
@@ -1016,8 +1012,7 @@ makeCard 'Treasure Map', action, {
       numGolds = 0
       for num in [1..4]
         if state.countInSupply(c.Gold) > 0
-          state.gainCard(state.current, c.Gold, true)        
-          transferCardToTop(c.Gold, state.current.discard, state.current.draw)
+          state.gainCard(state.current, c.Gold, 'draw')
           numGolds += 1
       state.log("…gaining #{numGolds} Golds, putting them on top of the deck.")      
 }
@@ -1125,11 +1120,8 @@ makeCard 'Watchtower', action, {
     if handLength < 6
       state.drawCards(state.current, 6 - handLength)
   
-  gainReaction: (state, player, card, inHand) ->
-    if inHand
-      source = player.hand
-    else
-      source = player.discard
+  gainReaction: (state, player, card) ->
+    source = player[player.gainLocation]
 
     # Determine if the player wants to trash the card. If so, use the
     # Watchtower to do so.
@@ -1137,8 +1129,11 @@ makeCard 'Watchtower', action, {
       # trash the card
       state.log("#{player.ai} reveals a Watchtower and trashes the #{card}.")
       source.remove(card)
+      # Note that the gained card now has no location; it's in the trash.
+      player.gainLocation = 'trash'
     else if player.ai.chooseToGainOnDeck(state, card)
       state.log("#{player.ai} reveals a Watchtower and puts the #{card} on the deck.")
+      player.gainLocation = 'draw'
       transferCardToTop(card, source, player.draw)
 }
 

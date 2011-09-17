@@ -629,7 +629,7 @@ class State
       @current.buys -= 1
 
       # Gain the card and deal with the effects.
-      this.gainCard(@current, choice, true)
+      this.gainCard(@current, choice, 'discard', true)
       choice.onBuy(this)
 
       # Gain victory for each Goons in play.
@@ -714,12 +714,13 @@ class State
   #
   # `suppressMessage` is true when this happens as the direct result of a
   # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
-  gainCard: (player, card, suppressMessage=false, inHand=false) ->
-    this.log("IN HAND:") if inHand
+  gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
     if card in @prizes or @supply[card] > 0
       if not suppressMessage
         this.log("#{player.ai} gains #{card}.")
-      player.discard.push(card)
+      player.gainLocation = gainLocation
+      location = player[player.gainLocation]
+      location.unshift(card)
       if card in @prizes
         @prizes.remove(card)
       else
@@ -730,8 +731,8 @@ class State
       for i in [player.hand.length-1...-1]
         reactCard = player.hand[i]
         if reactCard.isReaction
-          reactCard.reactToGain(this, player, card, inHand)
-          break
+          reactCard.reactToGain(this, player, card)
+          break if @gainLocation == 'trash'
     else
       this.log("There is no #{card} to gain.")
   
@@ -813,10 +814,10 @@ class State
   
   # `gainOneOf` gives the player a choice of cards to gain. Include
   # `null` if gaining nothing is an option.
-  gainOneOf: (player, options) ->
+  gainOneOf: (player, options, location='discard') ->
     choice = player.ai.chooseGain(this, options)
     return null if choice is null
-    this.gainCard(player, choice)
+    this.gainCard(player, choice, location)
     return choice
   
   # `attackOpponents` takes in a function of one argument, and applies
