@@ -1133,7 +1133,7 @@ makeCard 'Watchtower', action, {
 
     # Determine if the player wants to trash the card. If so, use the
     # Watchtower to do so.
-    if player.ai.chooseTrash(state, [card, null]) is null
+    if player.ai.chooseTrash(state, [card, null]) is card
       # trash the card
       state.log("#{player.ai} reveals a Watchtower and trashes the #{card}.")
       source.remove(card)
