@@ -511,6 +511,7 @@ buy. Nobody wants to read "X buys Y. X gains Y." all the time.</p>             <
         <span class="nv">reactCard = </span><span class="nx">player</span><span class="p">.</span><span class="nx">hand</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
         <span class="k">if</span> <span class="nx">reactCard</span><span class="p">.</span><span class="nx">isReaction</span>
           <span class="nx">reactCard</span><span class="p">.</span><span class="nx">reactToGain</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">player</span><span class="p">,</span> <span class="nx">card</span><span class="p">,</span> <span class="nx">inHand</span><span class="p">)</span>
+          <span class="k">break</span>
     <span class="k">else</span>
       <span class="k">this</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;There is no #{card} to gain.&quot;</span><span class="p">)</span>
   </pre></div>             </td>           </tr>                               <tr id="section-80">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-80">&#182;</a>               </div>               <p>Effects of an action could cause players to reveal their hand.

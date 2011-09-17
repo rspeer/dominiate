@@ -2228,7 +2228,10 @@
         _results = [];
         for (i = _ref2 = player.hand.length - 1; _ref2 <= -1 ? i < -1 : i > -1; _ref2 <= -1 ? i++ : i--) {
           reactCard = player.hand[i];
-          _results.push(reactCard.isReaction ? reactCard.reactToGain(this, player, card, inHand) : void 0);
+          if (reactCard.isReaction) {
+            reactCard.reactToGain(this, player, card, inHand);
+            break;
+          }
         }
         return _results;
       } else {
