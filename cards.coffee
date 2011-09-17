@@ -1140,7 +1140,6 @@ makeCard 'Watchtower', action, {
     else if player.ai.chooseToGainOnDeck(state, card)
       state.log("#{player.ai} reveals a Watchtower and puts the #{card} on the deck.")
       transferCardToTop(card, source, player.draw)
-    else
 }
 
 makeCard 'Wishing Well', action, {

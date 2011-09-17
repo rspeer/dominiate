@@ -411,6 +411,8 @@ class BasicAI
       "Curse,2"
       "Curse,1"
       "Curse,0"
+      # Handle a silly case:
+      "Ambassador,2"
       "Estate,2"
       "Estate,1"
       # Make sure we have at least $5 in the deck, including if we buy a Silver.
