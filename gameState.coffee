@@ -93,6 +93,8 @@ class PlayerState
   
   # `getCurrentAction()` returns the action being resolved that is on the
   # top of the stack.
+  getCurrentAction: () ->
+    @actionStack[@actionStack.length - 1]
 
   # `countInDeck(card)` counts the number of copies of a card in the deck.
   # The card may be specified either by name or as a card object.
