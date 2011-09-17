@@ -164,6 +164,12 @@ class BasicAI
     else
       this.chooseValue(state, choices, this.wishValueDefault)
 
+  # `chooseToGainOnDeck` takes in a card that is being gained, and decides
+  # if it wants it on the deck instead of the discard pile, returning a
+  # yes/no answer.
+  chooseToGainOnDeck: (state, card) ->
+    return (card.isAction or card.isTreasure)
+
   # Default strategies
   # ------------------
   # The default buying strategy is a form of Big Money that has, by now,
@@ -260,6 +266,7 @@ class BasicAI
     # Here the AI has to refer to itself indirectly, as `my.ai`. `this`
     # actually has the wrong value right now because JavaScript is weird.
     "Ambassador" if my.ai.wantsToTrash(state)
+    "Trading Post" if my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2
     "Chapel" if my.ai.wantsToTrash(state)
     "Trade Route" if my.ai.wantsToTrash(state)
     "Conspirator"

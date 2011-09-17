@@ -980,9 +980,17 @@ makeCard 'Tournament', action, {
 makeCard "Trade Route", action, {
   cost: 3
   buys: 1
-  trash: 1
   getCoins: (state) ->
     state.tradeRouteValue
+}
+
+makeCard "Trading Post", action, {
+  cost: 5
+  playEffect: (state) ->
+    state.requireTrash(state.current, 2)
+    state.gainCard(state.current, c.Silver)
+    transferCard(c.Silver, state.current.discard, state.current.hand)
+    state.log("...gaining a Silver in hand.")    
 }
 
 makeCard 'Treasure Map', action, {
@@ -1103,6 +1111,24 @@ makeCard 'Warehouse', action, {
   playEffect: (state) ->
     state.drawCards(state.current, 3)
     state.requireDiscard(state.current, 3)
+}
+
+makeCard 'Watchtower', action, {
+  cost: 3
+  isReaction: true
+  playEffect: (state) ->
+    handLength = state.current.hand.length
+    if handLength < 6
+      state.drawCards(state.current, 6 - handLength)
+  gainReaction: (state, player, card) ->
+    # Determine if the player wants to trash the card. If so, use the
+    # Watchtower to do so.
+    if player.ai.chooseTrash(state, [card, null])
+      # trash the card
+      state.log("#{player.ai} reveals a Watchtower and trashes the #{card}.")
+      player.discard.remove(card)
+    else if player.ai.chooseToGainOnDeck(card)
+      transferCardToTop(card, player.discard, player.deck)
 }
 
 makeCard 'Wishing Well', action, {

@@ -1,4 +1,5 @@
-Cards that are done (79)
+Cards that are done (81)
+========================
 Adventurer
 Alchemist
 Ambassador
@@ -61,8 +62,10 @@ Shanty Town
 Silver
 Smithy
 Steward
+Tactician
 Tournament
 Trade Route
+Trading Post
 Treasure Map
 Tribute
 Trusty Steed
@@ -73,12 +76,13 @@ Vineyard
 Walled Village
 Warehouse
 Wharf
+Wishing Well
 Witch
 Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (62)
+Cards that still need to be coded (61)
 ======================================
 Apothecary
 Apprentice
@@ -130,16 +134,13 @@ Smugglers
 Spy
 Stash
 Swindler
-Tactician
 Talisman
 Thief
 Throne Room
 Torturer
-Trading Post
 Transmute
 Treasury
 Upgrade
 Vault
 Watchtower
-Wishing Well
 Young Witch
