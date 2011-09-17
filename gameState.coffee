@@ -697,6 +697,7 @@ class State
         reactCard = player.hand[i]
         if reactCard.isReaction
           reactCard.reactToGain(this, player, card, inHand)
+          break
     else
       this.log("There is no #{card} to gain.")
   
