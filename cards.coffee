@@ -914,9 +914,20 @@ makeCard 'Princess', action, {
 makeCard 'Quarry', c.Silver, {
   cost: 4
   coins: 1
-  playEffect:
-    (state) ->
-      state.quarries += 1
+  playEffect: (state) -> state.quarries += 1
+}
+
+makeCard 'Royal Seal', c.Silver, {
+  cost: 5
+
+  gainInPlayEffect: (state, card) ->
+    player = state.current
+    return if player.gainLocation == 'trash'
+    source = player[player.gainLocation]
+    if player.ai.chooseToGainOnDeck(state, card)
+      state.log("...putting the #{card} on top of the deck.")
+      player.gainLocation = 'draw'
+      transferCardToTop(card, source, player.draw)
 }
 
 makeCard 'Sea Hag', action, {

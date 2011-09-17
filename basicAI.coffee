@@ -303,6 +303,7 @@ class BasicAI
     "Diadem"
     "Philosopher's Stone"
     "Gold"
+    "Royal Seal"
     "Harem"
     "Venture"
     "Silver"
