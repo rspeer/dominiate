@@ -44,6 +44,19 @@ class PlayerState
     @moatProtected = false
     @tacticians = 0  # number of Tacticians that will go to the duration area
     @turnsTaken = 0
+
+    # To stack various card effects, we'll have to keep track of the location
+    # of the card we're playing and the card we're gaining. For example, if
+    # you have two Feasts in hand and you Throne Room a Feast, you don't
+    # trash *both* Feasts -- you trash one and then do nothing, based on the
+    # fact that *that particular* Feast is already in the trash.
+    @playLocation = 'inPlay'
+    @gainLocation = 'discard'
+    
+    # The `actionStack` is not a physical location for cards to be in; it's
+    # a computational list of what actions are in play but not yet resolved.
+    # This becomes particularly important with King's Courts.
+    @actionStack = []
     
     # Set the properties passed in from the State.
     @ai = ai
@@ -78,6 +91,9 @@ class PlayerState
   getDeck: () ->
     @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @mats.nativeVillage.concat @mats.island
   
+  # `getCurrentAction()` returns the action being resolved that is on the
+  # top of the stack.
+
   # `countInDeck(card)` counts the number of copies of a card in the deck.
   # The card may be specified either by name or as a card object.
   countInDeck: (card) ->
@@ -304,6 +320,9 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
+    other.playLocation = @playLocation
+    other.gainLocation = @gainLocation
+    other.actionStack = @actionStack.slice(0)
     other.tacticians = @tacticians
     other.ai = @ai
     other.logFunc = @logFunc
@@ -525,19 +544,30 @@ class State
       # Ask the AI for its choice.
       action = @current.ai.chooseAction(this, validActions)
       return if action is null
-      this.log("#{@current.ai} plays #{action}.")
-
       # Remove the action from the hand and put it in the play area.
       if action not in @current.hand
         this.warn("#{@current.ai} chose an invalid action.")
         return
-      @current.hand.remove(action)
-      @current.inPlay.push(action)
+      this.playAction(action)
+  
+  # The current player plays an action from the hand, and performs the effect
+  # of the action.
+  playAction: (action) ->
+    this.log("#{@current.ai} plays #{action}.")
 
-      # Subtract 1 from the action count, perform the action, and go back
-      # to the start of the loop.
-      @current.actions -= 1
-      action.onPlay(this)
+    # Subtract 1 from the action count and perform the action.
+    @current.hand.remove(action)
+    @current.inPlay.push(action)
+    @current.playLocation = 'inPlay'
+    @current.actions -= 1
+    this.resolveAction(action)
+    
+  # Another event that causes actions to be played, such as Throne Room,
+  # should skip straight to `resolveAction`.
+  resolveAction: (action) ->
+    @current.actionStack.push(action)
+    action.onPlay(this)
+    @current.actionStack.pop()
   
   # The "treasure phase" is a concept introduced in Prosperity. After playing
   # actions, you play any number of treasures in some order. This loop
@@ -562,9 +592,13 @@ class State
       if treasure not in @current.hand
         this.warn("#{@current.ai} chose an invalid treasure")
         return
-      @current.hand.remove(treasure)
-      @current.inPlay.push(treasure)
-      treasure.onPlay(this)
+      this.playTreasure(treasure)
+  
+  playTreasure: (treasure) ->
+    @current.hand.remove(treasure)
+    @current.inPlay.push(treasure)
+    @current.playLocation = 'inPlay'
+    treasure.onPlay(this)
   
   # Ask the AI what to buy. Repeat until the player has no buys left or
   # the AI chooses to buy nothing.

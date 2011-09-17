@@ -701,7 +701,7 @@ makeCard 'Horn of Plenty', c.Silver, {
     for cardName of state.supply
       card = c[cardName]
       [coins, potions] = card.getCost(state)
-      if potions == 0 and coins <= limit
+      if state.supply[cardName] > 0 and potions == 0 and coins <= limit
         choices.push(card)
     state.gainOneOf(state.current, choices)
 }
