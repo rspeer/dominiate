@@ -714,7 +714,8 @@ class State
   #
   # `suppressMessage` is true when this happens as the direct result of a
   # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
-  gainCard: (player, card, suppressMessage=false) ->
+  gainCard: (player, card, suppressMessage=false, inHand=false) ->
+    this.log("IN HAND:") if inHand
     if card in @prizes or @supply[card] > 0
       if not suppressMessage
         this.log("#{player.ai} gains #{card}.")
@@ -729,7 +730,8 @@ class State
       for i in [player.hand.length-1...-1]
         reactCard = player.hand[i]
         if reactCard.isReaction
-          reactCard.reactToGain(player)
+          reactCard.reactToGain(this, player, card, inHand)
+          break
     else
       this.log("There is no #{card} to gain.")
   
@@ -841,7 +843,7 @@ class State
     for i in [player.hand.length-1...-1]
       card = player.hand[i]
       if card.isReaction
-        card.reactToAttack(player)
+        card.reactToAttack(this, player)
     
     # If the player has revealed a Moat, or has Lighthouse in the duration
     # area, the attack is averted. Otherwise, it happens.

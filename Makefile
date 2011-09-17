@@ -15,7 +15,7 @@ doc:
 	docco *.coffee
 
 web-deploy: web-coffee web-strategies css doc
+	cd gh-pages; git reset --hard origin/gh-pages
 	cp -a web/* gh-pages/
 	cp -a docs/* gh-pages/docs/
-	cd gh-pages; git reset --hard origin/gh-pages
 	cd gh-pages; make
