@@ -220,6 +220,7 @@ class BasicAI
     "Lighthouse"
     # Fourth priority: terminal card-drawers, if we have actions to spare.
     "Smithy" if my.actions > 1
+    "Watchtower" if my.actions > 1 and my.hand.length <= 4
     # Fifth priority: card-cycling that might improve the hand.
     "Familiar" # after other non-terminals in case non-terminal draws KC/TR
     "Pawn"
@@ -251,8 +252,10 @@ class BasicAI
     "Bridge"
     "Horse Traders"
     "Coppersmith" if my.countInHand("Copper") >= 3
+    "Watchtower" if my.hand.length <= 3
     "Smithy"
     "Council Room"
+    "Watchtower" if my.hand.length <= 4
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
     "Monument"
@@ -271,9 +274,11 @@ class BasicAI
     "Trade Route" if my.ai.wantsToTrash(state)
     "Conspirator"
     "Moat"
+    "Watchtower" if my.hand.length <= 5
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Coppersmith"
+    "Watchtower" if my.hand.length <= 6
     # Eighth priority: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler or something.
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
@@ -285,6 +290,7 @@ class BasicAI
     #
     # Last priority: cards that are actively harmful to play at this point,
     # in order of increasing badness.
+    "Watchtower"
     "Trade Route"
     "Treasure Map"
     "Ambassador"

@@ -146,9 +146,9 @@ basicCard = {
   # - What happens when the card is shuffled into the draw deck?
   shuffleEffect: (state) ->
   # - What happens when this card is in hand and an opponent plays an attack?
-  attackReaction: (state) ->
+  attackReaction: (state, player) ->
   # - What happens when this card is in hand and its owner gains a card?
-  gainReaction: (state) ->
+  gainReaction: (state, player, card, gainInHand) ->
   
   # This defines everything that happens when a card is played, including
   # basic effects and complex effects defined in `playEffect`. Cards
@@ -180,11 +180,11 @@ basicCard = {
   onGain: (state) ->
     this.gainEffect(state)
   
-  reactToAttack: (player) ->
-    this.attackReaction(player)
+  reactToAttack: (state, player) ->
+    this.attackReaction(state, player)
   
-  reactToGain: (player, card) ->
-    this.gainReaction(player, card)
+  reactToGain: (state, player, card, inHand) ->
+    this.gainReaction(state, player, card, inHand)
   
   # A card's string representation is its name.
   #
@@ -611,7 +611,7 @@ makeCard 'Explorer', action, {
       cardToGain = c.Gold
 
     if state.countInSupply(cardToGain) > 0
-      state.gainCard(state.current, cardToGain, true)
+      state.gainCard(state.current, cardToGain, true, true)
       transferCard(cardToGain, state.current.discard, state.current.hand)
       state.log("…and gaining a #{cardToGain}, putting it in the hand.")
     else
@@ -724,7 +724,7 @@ makeCard "Horse Traders", action, {
       state.drawCards(state.current, 1)
   
   attackReaction:
-    (player) ->
+    (state, player) ->
       transferCard(c['Horse Traders'], player.hand, player.duration)
 }
 
@@ -813,7 +813,7 @@ makeCard "Moat", action, {
   # that the player is unaffected by the attack. In this code, Moat
   # is always revealed, without an AI decision.
   attackReaction:
-    (player) -> player.moatProtected = true
+    (state, player) -> player.moatProtected = true
 }
 
 makeCard 'Moneylender', action, {
@@ -991,7 +991,7 @@ makeCard "Trading Post", action, {
   cost: 5
   playEffect: (state) ->
     state.requireTrash(state.current, 2)
-    state.gainCard(state.current, c.Silver)
+    state.gainCard(state.current, c.Silver, inHand=true)
     transferCard(c.Silver, state.current.discard, state.current.hand)
     state.log("...gaining a Silver in hand.")    
 }
@@ -1119,19 +1119,28 @@ makeCard 'Warehouse', action, {
 makeCard 'Watchtower', action, {
   cost: 3
   isReaction: true
+  
   playEffect: (state) ->
     handLength = state.current.hand.length
     if handLength < 6
       state.drawCards(state.current, 6 - handLength)
-  gainReaction: (state, player, card) ->
+  
+  gainReaction: (state, player, card, inHand) ->
+    if inHand
+      source = player.hand
+    else
+      source = player.discard
+
     # Determine if the player wants to trash the card. If so, use the
     # Watchtower to do so.
-    if player.ai.chooseTrash(state, [card, null])
+    if player.ai.chooseTrash(state, [card, null]) is null
       # trash the card
       state.log("#{player.ai} reveals a Watchtower and trashes the #{card}.")
-      player.discard.remove(card)
-    else if player.ai.chooseToGainOnDeck(card)
-      transferCardToTop(card, player.discard, player.deck)
+      source.remove(card)
+    else if player.ai.chooseToGainOnDeck(state, card)
+      state.log("#{player.ai} reveals a Watchtower and puts the #{card} on the deck.")
+      transferCardToTop(card, source, player.draw)
+    else
 }
 
 makeCard 'Wishing Well', action, {
