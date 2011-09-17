@@ -447,8 +447,8 @@
     reactToAttack: function(state, player) {
       return this.attackReaction(state, player);
     },
-    reactToGain: function(state, player, card, inHand) {
-      return this.gainReaction(state, player, card, inHand);
+    reactToGain: function(state, player, card) {
+      return this.gainReaction(state, player, card);
     },
     toString: function() {
       return this.name;
@@ -926,8 +926,7 @@
         cardToGain = c.Gold;
       }
       if (state.countInSupply(cardToGain) > 0) {
-        state.gainCard(state.current, cardToGain, true, true);
-        transferCard(cardToGain, state.current.discard, state.current.hand);
+        state.gainCard(state.current, cardToGain, 'hand', true);
         return state.log("…and gaining a " + cardToGain + ", putting it in the hand.");
       } else {
         return state.log("…but there are no " + cardToGain + "s available to gain.");
@@ -1030,7 +1029,7 @@
       for (cardName in state.supply) {
         card = c[cardName];
         _ref = card.getCost(state), coins = _ref[0], potions = _ref[1];
-        if (potions === 0 && coins <= limit) {
+        if (state.supply[cardName] > 0 && potions === 0 && coins <= limit) {
           choices.push(card);
         }
       }
@@ -1269,8 +1268,7 @@
       return state.attackOpponents(function(opp) {
         state.discardFromDeck(opp, 1);
         if (state.supply[c.Curse] > 0) {
-          state.gainCard(opp, c.Curse);
-          return transferCardToTop(c.Curse, opp.discard, opp.draw);
+          return state.gainCard(opp, c.Curse, 'draw');
         }
       });
     }
@@ -1319,10 +1317,9 @@
         if (state.supply[c.Duchy] > 0) {
           choices.push(c.Duchy);
         }
-        choice = state.gainOneOf(state.current, choices);
+        choice = state.gainOneOf(state.current, choices, 'deck');
         if (choice !== null) {
           state.log("...putting the " + choice + " on top of the deck.");
-          transferCardToTop(choice, state.current.discard, state.current.draw);
         }
       }
       if (!opposingProvince) {
@@ -1341,10 +1338,8 @@
   makeCard("Trading Post", action, {
     cost: 5,
     playEffect: function(state) {
-      var inHand;
       state.requireTrash(state.current, 2);
-      state.gainCard(state.current, c.Silver, inHand = true);
-      transferCard(c.Silver, state.current.discard, state.current.hand);
+      state.gainCard(state.current, c.Silver, 'hand');
       return state.log("...gaining a Silver in hand.");
     }
   });
@@ -1367,8 +1362,7 @@
         numGolds = 0;
         for (num = 1; num <= 4; num++) {
           if (state.countInSupply(c.Gold) > 0) {
-            state.gainCard(state.current, c.Gold, true);
-            transferCardToTop(c.Gold, state.current.discard, state.current.draw);
+            state.gainCard(state.current, c.Gold, 'draw');
             numGolds += 1;
           }
         }
@@ -1503,18 +1497,16 @@
         return state.drawCards(state.current, 6 - handLength);
       }
     },
-    gainReaction: function(state, player, card, inHand) {
+    gainReaction: function(state, player, card) {
       var source;
-      if (inHand) {
-        source = player.hand;
-      } else {
-        source = player.discard;
-      }
+      source = player[player.gainLocation];
       if (player.ai.chooseTrash(state, [card, null]) === card) {
         state.log("" + player.ai + " reveals a Watchtower and trashes the " + card + ".");
-        return source.remove(card);
+        source.remove(card);
+        return player.gainLocation = 'trash';
       } else if (player.ai.chooseToGainOnDeck(state, card)) {
         state.log("" + player.ai + " reveals a Watchtower and puts the " + card + " on the deck.");
+        player.gainLocation = 'draw';
         return transferCardToTop(card, source, player.draw);
       }
     }
@@ -1639,6 +1631,9 @@
       this.moatProtected = false;
       this.tacticians = 0;
       this.turnsTaken = 0;
+      this.playLocation = 'inPlay';
+      this.gainLocation = 'discard';
+      this.actionStack = [];
       this.ai = ai;
       this.logFunc = logFunc;
       this.drawCards(5);
@@ -1872,6 +1867,9 @@
       other.duration = this.duration.slice(0);
       other.setAside = this.setAside.slice(0);
       other.moatProtected = this.moatProtected;
+      other.playLocation = this.playLocation;
+      other.gainLocation = this.gainLocation;
+      other.actionStack = this.actionStack.slice(0);
       other.tacticians = this.tacticians;
       other.ai = this.ai;
       other.logFunc = this.logFunc;
@@ -2077,17 +2075,26 @@
         if (action === null) {
           return;
         }
-        this.log("" + this.current.ai + " plays " + action + ".");
         if (__indexOf.call(this.current.hand, action) < 0) {
           this.warn("" + this.current.ai + " chose an invalid action.");
           return;
         }
-        this.current.hand.remove(action);
-        this.current.inPlay.push(action);
-        this.current.actions -= 1;
-        _results.push(action.onPlay(this));
+        _results.push(this.playAction(action));
       }
       return _results;
+    };
+    State.prototype.playAction = function(action) {
+      this.log("" + this.current.ai + " plays " + action + ".");
+      this.current.hand.remove(action);
+      this.current.inPlay.push(action);
+      this.current.playLocation = 'inPlay';
+      this.current.actions -= 1;
+      return this.resolveAction(action);
+    };
+    State.prototype.resolveAction = function(action) {
+      this.current.actionStack.push(action);
+      action.onPlay(this);
+      return this.current.actionStack.pop();
     };
     State.prototype.doTreasurePhase = function() {
       var card, idx, treasure, validTreasures, _i, _len, _ref2, _results;
@@ -2111,11 +2118,15 @@
           this.warn("" + this.current.ai + " chose an invalid treasure");
           return;
         }
-        this.current.hand.remove(treasure);
-        this.current.inPlay.push(treasure);
-        _results.push(treasure.onPlay(this));
+        _results.push(this.playTreasure(treasure));
       }
       return _results;
+    };
+    State.prototype.playTreasure = function(treasure) {
+      this.current.hand.remove(treasure);
+      this.current.inPlay.push(treasure);
+      this.current.playLocation = 'inPlay';
+      return treasure.onPlay(this);
     };
     State.prototype.doBuyPhase = function() {
       var buyable, card, cardname, choice, coinCost, count, goonses, potionCost, _ref2, _ref3, _ref4, _results;
@@ -2143,7 +2154,7 @@
         this.current.coins -= coinCost;
         this.current.potions -= potionCost;
         this.current.buys -= 1;
-        this.gainCard(this.current, choice, true);
+        this.gainCard(this.current, choice, 'discard', true);
         choice.onBuy(this);
         goonses = this.current.countInPlay('Goons');
         _results.push(goonses > 0 ? (this.log("...gaining " + goonses + " VP."), this.current.chips += goonses) : void 0);
@@ -2200,22 +2211,21 @@
       this.current = this.players[0];
       return this.phase = 'start';
     };
-    State.prototype.gainCard = function(player, card, suppressMessage, inHand) {
-      var i, reactCard, _ref2, _results;
+    State.prototype.gainCard = function(player, card, gainLocation, suppressMessage) {
+      var i, location, reactCard, _ref2, _results;
+      if (gainLocation == null) {
+        gainLocation = 'discard';
+      }
       if (suppressMessage == null) {
         suppressMessage = false;
-      }
-      if (inHand == null) {
-        inHand = false;
-      }
-      if (inHand) {
-        this.log("IN HAND:");
       }
       if (__indexOf.call(this.prizes, card) >= 0 || this.supply[card] > 0) {
         if (!suppressMessage) {
           this.log("" + player.ai + " gains " + card + ".");
         }
-        player.discard.push(card);
+        player.gainLocation = gainLocation;
+        location = player[player.gainLocation];
+        location.unshift(card);
         if (__indexOf.call(this.prizes, card) >= 0) {
           this.prizes.remove(card);
         } else {
@@ -2229,8 +2239,10 @@
         for (i = _ref2 = player.hand.length - 1; _ref2 <= -1 ? i < -1 : i > -1; _ref2 <= -1 ? i++ : i--) {
           reactCard = player.hand[i];
           if (reactCard.isReaction) {
-            reactCard.reactToGain(this, player, card, inHand);
-            break;
+            reactCard.reactToGain(this, player, card);
+            if (this.gainLocation === 'trash') {
+              break;
+            }
           }
         }
         return _results;
@@ -2310,13 +2322,16 @@
       }
       return _results;
     };
-    State.prototype.gainOneOf = function(player, options) {
+    State.prototype.gainOneOf = function(player, options, location) {
       var choice;
+      if (location == null) {
+        location = 'discard';
+      }
       choice = player.ai.chooseGain(this, options);
       if (choice === null) {
         return null;
       }
-      this.gainCard(player, choice);
+      this.gainCard(player, choice, location);
       return choice;
     };
     State.prototype.attackOpponents = function(effect) {
