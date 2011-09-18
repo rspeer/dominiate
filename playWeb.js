@@ -106,122 +106,90 @@
       }
       throw new Error("" + this + " is being asked to make a decision, but isn't playing the game...?");
     };
-    BasicAI.prototype.choosePriority = function(state, choices, priorityfunc) {
-      var bestChoice, bestIndex, choice, index, my, priority, _i, _len, _ref;
+    BasicAI.prototype.chooseByPriorityAndValue = function(state, choices, priorityfunc, valuefunc) {
+      var bestChoice, bestValue, choice, choiceSet, my, preference, priority, value, _i, _j, _k, _len, _len2, _len3;
       my = this.myPlayer(state);
-      priority = priorityfunc(state, my);
-      bestChoice = null;
-      bestIndex = null;
-      for (_i = 0, _len = choices.length; _i < _len; _i++) {
-        choice = choices[_i];
-        index = priority.indexOf(stringify(choice));
-        if (index !== -1 && (bestIndex === null || index < bestIndex)) {
-          bestIndex = index;
-          bestChoice = choice;
+      if (choices.length === 0) {
+        return null;
+      }
+      if (priorityfunc != null) {
+        choiceSet = {};
+        for (_i = 0, _len = choices.length; _i < _len; _i++) {
+          choice = choices[_i];
+          choiceSet[choice] = choice;
+        }
+        priority = priorityfunc(state, my);
+        for (_j = 0, _len2 = priority.length; _j < _len2; _j++) {
+          preference = priority[_j];
+          if (choiceSet[preference] != null) {
+            return choiceSet[preference];
+          }
         }
       }
-      if (bestChoice === null && __indexOf.call(choices, null) < 0) {
-        return (_ref = choices[0]) != null ? _ref : null;
+      if (valuefunc != null) {
+        bestChoice = null;
+        bestValue = -Infinity;
+        for (_k = 0, _len3 = choices.length; _k < _len3; _k++) {
+          choice = choices[_k];
+          if (choice === null) {
+            value = 0;
+          } else {
+            value = valuefunc(state, choice, my);
+          }
+          if (value > bestValue) {
+            bestValue = value;
+            bestChoice = choice;
+          }
+        }
+        if (__indexOf.call(choices, bestChoice) >= 0) {
+          return bestChoice;
+        }
       }
-      return bestChoice;
+      if (__indexOf.call(choices, null) >= 0) {
+        return null;
+      }
+      state.warn("" + this + " has no idea what to choose from " + choices);
+      return choices[0];
     };
-    BasicAI.prototype.chooseValue = function(state, choices, valuefunc) {
-      var bestChoice, bestValue, choice, my, value, _i, _len, _ref;
-      my = this.myPlayer(state);
-      bestChoice = null;
-      bestValue = -Infinity;
-      for (_i = 0, _len = choices.length; _i < _len; _i++) {
-        choice = choices[_i];
-        if (choice === null) {
-          value = 0;
-        } else {
-          value = valuefunc(state, choice, my);
-        }
-        if (value > bestValue) {
-          bestValue = value;
-          bestChoice = choice;
-        }
-      }
-      if (bestChoice === null && __indexOf.call(choices, null) < 0) {
-        return (_ref = choices[0]) != null ? _ref : null;
-      }
-      if (bestChoice === void 0) {
-        throw new Error("undefined choice from " + choices);
-      }
-      return bestChoice;
+    BasicAI.prototype.choose = function(type, state, choices) {
+      var priorityfunc, valuefunc;
+      priorityfunc = this[type + 'Priority'];
+      valuefunc = this[type + 'Value'];
+      return this.chooseByPriorityAndValue(state, choices, priorityfunc, valuefunc);
     };
     BasicAI.prototype.chooseAction = function(state, choices) {
-      if (this.actionValue != null) {
-        return this.chooseValue(state, choices, this.actionValue);
-      } else {
-        return this.choosePriority(state, choices, this.actionPriority);
-      }
+      return this.choose('action', state, choices);
     };
     BasicAI.prototype.chooseTreasure = function(state, choices) {
-      if (this.treasureValue != null) {
-        return this.chooseValue(state, choices, this.treasureValue);
-      } else {
-        return this.choosePriority(state, choices, this.treasurePriority);
-      }
+      return this.choose('treasure', state, choices);
     };
     BasicAI.prototype.chooseGain = function(state, choices) {
-      if (this.gainValue != null) {
-        return this.chooseValue(state, choices, this.gainValue);
-      } else {
-        return this.choosePriority(state, choices, this.gainPriority);
-      }
+      return this.choose('gain', state, choices);
     };
     BasicAI.prototype.chooseDiscard = function(state, choices) {
-      if (this.discardValue != null) {
-        return this.chooseValue(state, choices, this.discardValue);
-      } else {
-        return this.choosePriority(state, choices, this.discardPriority);
-      }
+      return this.choose('discard', state, choices);
     };
     BasicAI.prototype.chooseTrash = function(state, choices) {
-      if (this.trashValue != null) {
-        return this.chooseValue(state, choices, this.trashValue);
-      } else {
-        return this.choosePriority(state, choices, this.trashPriority);
-      }
-    };
-    BasicAI.prototype.chooseAmbassador = function(state, choices) {
-      if (this.ambassadorValue != null) {
-        return this.chooseValue(state, choices, this.ambassadorValue);
-      } else {
-        return this.choosePriority(state, choices, this.ambassadorPriority);
-      }
-    };
-    BasicAI.prototype.chooseBaronDiscard = function(state) {
-      return true;
-    };
-    BasicAI.prototype.chooseWish = function(state, choices) {
-      if (this.wishValue != null) {
-        return this.chooseValue(state, choices, this.wishValue);
-      } else if (this.wishPriority != null) {
-        return this.choosePriority(state, choices, this.wishPriority);
-      } else {
-        return this.chooseValue(state, choices, this.wishValueDefault);
-      }
-    };
-    BasicAI.prototype.chooseToGainOnDeck = function(state, card) {
-      return card.isAction || card.isTreasure;
+      return this.choose('trash', state, choices);
     };
     BasicAI.prototype.gainPriority = function(state, my) {
       var _ref, _ref2;
-      return [my.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0, null];
+      return [my.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0];
     };
     BasicAI.prototype.actionPriority = function(state, my) {
       return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Great Hall", "Wishing Well", "Lighthouse", my.actions > 1 ? "Smithy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, "Familiar", "Pawn", "Warehouse", "Cellar", "Tournament", "Menagerie", my.actions === 1 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Militia", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Bridge", "Horse Traders", my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, my.hand.length <= 3 ? "Watchtower" : void 0, "Smithy", "Council Room", my.hand.length <= 4 ? "Watchtower" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Explorer", "Woodcutter", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2 ? "Trading Post" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, "Conspirator", "Moat", my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", "Coppersmith", my.hand.length <= 6 ? "Watchtower" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador"];
     };
     BasicAI.prototype.treasurePriority = function(state, my) {
-      return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0, null];
+      return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Royal Seal", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0, null];
     };
     BasicAI.prototype.discardPriority = function(state, my) {
-      return ["Vineyard", "Colony", "Duchy", "Gardens", "Province", "Curse", "Estate", "Copper", null, "Silver"];
+      return ["Vineyard", "Colony", "Duchy", "Gardens", "Province", "Curse", "Estate", "Copper"];
     };
     BasicAI.prototype.trashPriority = function(state, my) {
-      return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, my.getTotalMoney() > 4 ? "Copper" : void 0, my.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0, null, "Copper", "Potion", "Estate", "Silver"];
+      return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, my.getTotalMoney() > 4 ? "Copper" : void 0, my.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0];
+    };
+    BasicAI.prototype.trashValue = function(state, my, card) {
+      return 0 - card.vp - card.cost;
     };
     BasicAI.prototype.chooseBenefit = function(state, choices) {
       var actionBalance, actionValue, best, bestValue, buyValue, card, cardValue, choice, coinValue, my, trashValue, trashableCards, trashes, usableActions, value, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
@@ -268,13 +236,20 @@
     BasicAI.prototype.ambassadorPriority = function(state, my) {
       return ["Curse,2", "Curse,1", "Curse,0", "Ambassador,2", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"];
     };
-    BasicAI.prototype.wishValueDefault = function(state, card, my) {
+    BasicAI.prototype.wishValue = function(state, card, my) {
       var pile;
       pile = my.draw;
       if (pile.length === 0) {
         pile = my.discard;
       }
       return countInList(pile, card);
+    };
+    BasicAI.prototype.gainOnDeckValue = function(state, card) {
+      if (card.isAction || card.isTreasure) {
+        return 1;
+      } else {
+        return -1;
+      }
     };
     BasicAI.prototype.wantsToTrash = function(state) {
       var card, my, trashableCards, _i, _len, _ref;
@@ -409,8 +384,8 @@
     buyEffect: function(state) {},
     gainEffect: function(state) {},
     playEffect: function(state) {},
-    gainInPlayEffect: function(state) {},
-    buyInPlayEffect: function(state) {},
+    gainInPlayEffect: function(state, card) {},
+    buyInPlayEffect: function(state, card) {},
     cleanupEffect: function(state) {},
     durationEffect: function(state) {},
     shuffleEffect: function(state) {},
@@ -728,7 +703,7 @@
         }
         choices.push([card, 0]);
       }
-      choice = state.current.ai.chooseAmbassador(state, choices);
+      choice = state.current.ai.choose('ambassador', state, choices);
       if (choice !== null) {
         cardName = choice[0], quantity = choice[1];
         card = c[cardName];
@@ -780,7 +755,7 @@
       var discardEstate, _ref;
       discardEstate = false;
       if (_ref = c.Estate, __indexOf.call(state.current.hand, _ref) >= 0) {
-        discardEstate = state.current.ai.chooseBaronDiscard(state);
+        discardEstate = state.current.ai.choose('baronDiscard', state, [true, false]);
       }
       if (discardEstate) {
         state.current.doDiscard(c.Estate);
@@ -1261,6 +1236,22 @@
       return state.quarries += 1;
     }
   });
+  makeCard('Royal Seal', c.Silver, {
+    cost: 5,
+    gainInPlayEffect: function(state, card) {
+      var player, source;
+      player = state.current;
+      if (player.gainLocation === 'trash') {
+        return;
+      }
+      source = player[player.gainLocation];
+      if (player.ai.choose('gainOnDeck', state, [card, null])) {
+        state.log("...putting the " + card + " on top of the deck.");
+        player.gainLocation = 'draw';
+        return transferCardToTop(card, source, player.draw);
+      }
+    }
+  });
   makeCard('Sea Hag', action, {
     cost: 4,
     isAttack: true,
@@ -1499,12 +1490,15 @@
     },
     gainReaction: function(state, player, card) {
       var source;
+      if (player.gainLocation === 'trash') {
+        return;
+      }
       source = player[player.gainLocation];
       if (player.ai.chooseTrash(state, [card, null]) === card) {
         state.log("" + player.ai + " reveals a Watchtower and trashes the " + card + ".");
         source.remove(card);
         return player.gainLocation = 'trash';
-      } else if (player.ai.chooseToGainOnDeck(state, card)) {
+      } else if (player.ai.choose('gainOnDeck', state, [card, null])) {
         state.log("" + player.ai + " reveals a Watchtower and puts the " + card + " on the deck.");
         player.gainLocation = 'draw';
         return transferCardToTop(card, source, player.draw);
@@ -1523,7 +1517,7 @@
         cardName = _ref[_i];
         choices.push(c[cardName]);
       }
-      wish = state.current.ai.chooseWish(state, choices);
+      wish = state.current.ai.choose('wish', state, choices);
       state.log("...wishing for a " + wish + ".");
       drawn = state.current.getCardsFromDeck(1);
       if (drawn.length > 0) {
@@ -1641,6 +1635,9 @@
     };
     PlayerState.prototype.getDeck = function() {
       return this.draw.concat(this.discard.concat(this.hand.concat(this.inPlay.concat(this.duration.concat(this.mats.nativeVillage.concat(this.mats.island))))));
+    };
+    PlayerState.prototype.getCurrentAction = function() {
+      return this.actionStack[this.actionStack.length - 1];
     };
     PlayerState.prototype.countInDeck = function(card) {
       var card2, count, _i, _len, _ref2;
@@ -2097,7 +2094,7 @@
       return this.current.actionStack.pop();
     };
     State.prototype.doTreasurePhase = function() {
-      var card, idx, treasure, validTreasures, _i, _len, _ref2, _results;
+      var card, treasure, validTreasures, _i, _len, _ref2, _results;
       _results = [];
       while (true) {
         validTreasures = [null];
@@ -2113,7 +2110,6 @@
           return;
         }
         this.log("" + this.current.ai + " plays " + treasure + ".");
-        idx = this.current.hand.indexOf(treasure);
         if (__indexOf.call(this.current.hand, treasure) < 0) {
           this.warn("" + this.current.ai + " chose an invalid treasure");
           return;
@@ -2129,7 +2125,7 @@
       return treasure.onPlay(this);
     };
     State.prototype.doBuyPhase = function() {
-      var buyable, card, cardname, choice, coinCost, count, goonses, potionCost, _ref2, _ref3, _ref4, _results;
+      var buyable, card, cardInPlay, cardname, choice, coinCost, count, goonses, i, potionCost, _ref2, _ref3, _ref4, _ref5, _results;
       _results = [];
       while (this.current.buys > 0) {
         buyable = [null];
@@ -2156,6 +2152,10 @@
         this.current.buys -= 1;
         this.gainCard(this.current, choice, 'discard', true);
         choice.onBuy(this);
+        for (i = _ref5 = this.current.inPlay.length - 1; _ref5 <= -1 ? i < -1 : i > -1; _ref5 <= -1 ? i++ : i--) {
+          cardInPlay = this.current.inPlay[i];
+          cardInPlay.buyInPlayEffect(this, card);
+        }
         goonses = this.current.countInPlay('Goons');
         _results.push(goonses > 0 ? (this.log("...gaining " + goonses + " VP."), this.current.chips += goonses) : void 0);
       }
@@ -2212,7 +2212,7 @@
       return this.phase = 'start';
     };
     State.prototype.gainCard = function(player, card, gainLocation, suppressMessage) {
-      var i, location, reactCard, _ref2, _results;
+      var cardInPlay, i, location, reactCard, _ref2, _ref3, _results;
       if (gainLocation == null) {
         gainLocation = 'discard';
       }
@@ -2235,15 +2235,14 @@
           this.tradeRouteMat.push(card);
           this.tradeRouteValue += 1;
         }
+        for (i = _ref2 = player.inPlay.length - 1; _ref2 <= -1 ? i < -1 : i > -1; _ref2 <= -1 ? i++ : i--) {
+          cardInPlay = player.inPlay[i];
+          cardInPlay.gainInPlayEffect(this, card);
+        }
         _results = [];
-        for (i = _ref2 = player.hand.length - 1; _ref2 <= -1 ? i < -1 : i > -1; _ref2 <= -1 ? i++ : i--) {
+        for (i = _ref3 = player.hand.length - 1; _ref3 <= -1 ? i < -1 : i > -1; _ref3 <= -1 ? i++ : i--) {
           reactCard = player.hand[i];
-          if (reactCard.isReaction) {
-            reactCard.reactToGain(this, player, card);
-            if (this.gainLocation === 'trash') {
-              break;
-            }
-          }
+          _results.push(reactCard.isReaction ? reactCard.reactToGain(this, player, card) : void 0);
         }
         return _results;
       } else {
@@ -2261,66 +2260,62 @@
       return player.getCardsFromDeck(num);
     };
     State.prototype.allowDiscard = function(player, num) {
-      var choice, numDiscarded, validDiscards, _results;
-      numDiscarded = 0;
-      _results = [];
-      while (numDiscarded < num) {
+      var choice, discarded, validDiscards;
+      discarded = [];
+      while (discarded.length < num) {
         validDiscards = player.hand.slice(0);
         validDiscards.push(null);
         choice = player.ai.chooseDiscard(this, validDiscards);
         if (choice === null) {
-          return;
+          return discarded;
         }
-        numDiscarded++;
-        _results.push(player.doDiscard(choice));
+        discarded.push(choice);
+        player.doDiscard(choice);
       }
-      return _results;
+      return discarded;
     };
     State.prototype.requireDiscard = function(player, num) {
-      var choice, numDiscarded, validDiscards, _results;
-      numDiscarded = 0;
-      _results = [];
-      while (numDiscarded < num) {
+      var choice, discarded, validDiscards;
+      discarded = [];
+      while (discarded.length < num) {
         validDiscards = player.hand.slice(0);
         if (validDiscards.length === 0) {
-          return;
+          return discarded;
         }
         choice = player.ai.chooseDiscard(this, validDiscards);
-        numDiscarded++;
-        _results.push(player.doDiscard(choice));
+        discarded.push(choice);
+        player.doDiscard(choice);
       }
-      return _results;
+      return discarded;
     };
     State.prototype.allowTrash = function(player, num) {
-      var choice, numTrashed, valid, _results;
-      numTrashed = 0;
-      _results = [];
-      while (numTrashed < num) {
+      var choice, trashed, valid;
+      trashed = [];
+      while (trashed.length < num) {
         valid = player.hand.slice(0);
         valid.push(null);
         choice = player.ai.chooseTrash(this, valid);
         if (choice === null) {
-          return;
+          return trashed;
         }
-        numTrashed++;
-        _results.push(player.doTrash(choice));
+        trashed.push(choice);
+        player.doTrash(choice);
       }
-      return _results;
+      return trashed;
     };
     State.prototype.requireTrash = function(player, num) {
-      var choice, numTrashed, valid, _results;
-      numTrashed = 0;
-      _results = [];
-      while (numTrashed < num) {
+      var choice, trashed, valid;
+      trashed = [];
+      while (trashed.length < num) {
         valid = player.hand.slice(0);
         if (valid.length === 0) {
-          return;
+          return trashed;
         }
         choice = player.ai.chooseTrash(this, valid);
-        numTrashed++;
-        _results.push(player.doTrash(choice));
+        trashed.push(choice);
+        player.doTrash(choice);
       }
-      return _results;
+      return trashed;
     };
     State.prototype.gainOneOf = function(player, options, location) {
       var choice;
