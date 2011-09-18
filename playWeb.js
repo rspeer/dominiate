@@ -1308,7 +1308,7 @@
         if (state.supply[c.Duchy] > 0) {
           choices.push(c.Duchy);
         }
-        choice = state.gainOneOf(state.current, choices, 'deck');
+        choice = state.gainOneOf(state.current, choices, 'draw');
         if (choice !== null) {
           state.log("...putting the " + choice + " on top of the deck.");
         }
