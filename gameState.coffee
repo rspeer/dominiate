@@ -590,7 +590,6 @@ class State
       this.log("#{@current.ai} plays #{treasure}.")
 
       # Remove the treasure from the hand and put it in the play area.
-      idx = @current.hand.indexOf(treasure)
       if treasure not in @current.hand
         this.warn("#{@current.ai} chose an invalid treasure")
         return

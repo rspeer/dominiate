@@ -438,7 +438,7 @@ makeCard 'Ambassador', action, {
         choices.push [card, 1]
       choices.push [card, 0]
 
-    choice = state.current.ai.chooseAmbassador(state, choices)
+    choice = state.current.ai.choose('ambassador', state, choices)
 
     if choice isnt null
       [cardName, quantity] = choice
@@ -481,7 +481,7 @@ makeCard 'Baron', action, {
   playEffect: (state) ->
     discardEstate = no
     if c.Estate in state.current.hand
-      discardEstate = state.current.ai.chooseBaronDiscard(state)
+      discardEstate = state.current.ai.choose('baronDiscard', state, [yes, no])
     if discardEstate
       state.current.doDiscard(c.Estate)
       state.current.coins += 4
@@ -924,7 +924,7 @@ makeCard 'Royal Seal', c.Silver, {
     player = state.current
     return if player.gainLocation == 'trash'
     source = player[player.gainLocation]
-    if player.ai.chooseToGainOnDeck(state, card)
+    if player.ai.choose('gainOnDeck', state, [card, null])
       state.log("...putting the #{card} on top of the deck.")
       player.gainLocation = 'draw'
       transferCardToTop(card, source, player.draw)
@@ -1143,7 +1143,7 @@ makeCard 'Watchtower', action, {
       source.remove(card)
       # Note that the gained card now has no location; it's in the trash.
       player.gainLocation = 'trash'
-    else if player.ai.chooseToGainOnDeck(state, card)
+    else if player.ai.choose('gainOnDeck', state, [card, null])
       state.log("#{player.ai} reveals a Watchtower and puts the #{card} on the deck.")
       player.gainLocation = 'draw'
       transferCardToTop(card, source, player.draw)
@@ -1158,7 +1158,7 @@ makeCard 'Wishing Well', action, {
     for cardName in c.allCards
       choices.push(c[cardName])
       
-    wish = state.current.ai.chooseWish(state, choices)
+    wish = state.current.ai.choose('wish', state, choices)
     state.log("...wishing for a #{wish}.")
     drawn = state.current.getCardsFromDeck(1)
     if drawn.length > 0

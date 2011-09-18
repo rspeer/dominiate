@@ -39,136 +39,107 @@ class BasicAI
         return player
     throw new Error("#{this} is being asked to make a decision, but isn't playing the game...?")
 
-  # Given a game state, a list of possible choices, and a function
-  # that returns a preference order, make the best choice in that
-  # preference order.
-  choosePriority: (state, choices, priorityfunc) ->
-    my = this.myPlayer(state)
-    priority = priorityfunc(state, my)
-    bestChoice = null
-    bestIndex = null
-    for choice in choices
-      index = priority.indexOf(stringify(choice))
-      if index != -1 and (bestIndex is null or index < bestIndex)
-        bestIndex = index
-        bestChoice = choice
-    if bestChoice is null and null not in choices
-      # The AI chose `null` when it wasn't in the list of choices.
-      # That means either no choices are available, or this AI is being
-      # forced to make a decision it's not prepared for.
-      #
-      # In that case, if there are any choices, it will arbitrarily choose
-      # the first one. If there are no choices, then choosing nothing becomes
-      # the one legal choice, so it chooses that.
-      return choices[0] ? null
-    return bestChoice
-
-  # Given a game state, a list of possible choices, and a function that
-  # returns a *value* for each choice, make the highest-valued choice.
+  # Decision-making machinery
+  # -------------------------
+  # Make the AI's preferred choice, first by checking its explicit priority
+  # list. If no valid choices are on the list, ask the value function instead.
   #
-  # The null choice has value 0 when it is available, so negative-valued
-  # choices will be avoided.
-  chooseValue: (state, choices, valuefunc) ->
+  # The priority function returns an ordered list of choices it will want to
+  # make when they are available. If 'null' is on the priority list, that
+  # represents an explicit preference to choose "none of the above" when it's
+  # an option.
+  #
+  # The value list assigns a numerical value to every possible choice. 'null'
+  # automatically has a value of 0. Here you can represent actions you will
+  # only take when forced to, by giving them negative values.
+  #
+  # If a choice should be made entirely using the value function, make the
+  # priority function return an empty list.
+  #
+  # This function replaces two older functions called `choosePriority` and
+  # `chooseValue`.
+  chooseByPriorityAndValue: (state, choices, priorityfunc, valuefunc) ->
     my = this.myPlayer(state)
-    bestChoice = null
-    bestValue = -Infinity
-    for choice in choices
-      if choice is null
-        value = 0
-      else
-        value = valuefunc(state, choice, my)
-      if value > bestValue
-        bestValue = value
-        bestChoice = choice
-    if bestChoice is null and null not in choices
-      # This should only happen when there are no choices, but to be sure,
-      # we check if there is a `choices[0]` and choose it if so.
-      return choices[0] ? null
-    if bestChoice is undefined
-      throw new Error("undefined choice from #{choices}")
-    return bestChoice
+    
+    # Are there no choices? We follow the rule that makes the null choice
+    # available in that situation, and choose it.
+    if choices.length == 0
+      return null
+
+    # First, try the priority function. If the priority function reaches
+    # the end of its list, it is treated as "none of the above".
+    if priorityfunc?
+      # Construct an object with the choices as keys, so we can look them
+      # up quickly.
+      choiceSet = {}
+      for choice in choices
+        choiceSet[choice] = choice
+      
+      # Get the priority list.
+      priority = priorityfunc(state, my)
+
+      # Now look up all the preferences in that list. The moment we encounter
+      # a valid choice, we can return it.
+      for preference in priority
+        if choiceSet[preference]?
+          return choiceSet[preference]
   
-  # Decisions
-  # ---------
-  #### Common decisions
+    # The priority list doesn't want any of these choices (perhaps because
+    # it doesn't exist). Now try the value list.
+    if valuefunc?
+      bestChoice = null
+      bestValue = -Infinity
+    
+      for choice in choices
+        if choice is null
+          value = 0
+        else
+          value = valuefunc(state, choice, my)
+        if value > bestValue
+          bestValue = value
+          bestChoice = choice
+      
+      # If we got a valid choice, return it.
+      if bestChoice in choices
+        return bestChoice
+    
+    # If we get here, the AI probably wants to choose none of the above.
+    if null in choices
+      return null
+    
+    # Hmm. None of the above isn't an option, and neither the priority list nor
+    # the value list gave us anything. First complain about it, then make an
+    # arbitrary choice.
+    state.warn("#{this} has no idea what to choose from #{choices}")
+    return choices[0]
+ 
+  # The top-level "choose" function takes a decision type, the current state,
+  # and a list of choices. It delegates to other functions with the appropriate
+  # names automatically: for example, if the type is 'foo', the AI will check
+  # its fooValue and fooPriority functions.
+  choose: (type, state, choices) ->
+    # Get the priority and value functions. If one doesn't exist, that's okay,
+    # we'll pass on the 'undefined' value and chooseByPriorityAndValue will
+    # know what to do.
+    priorityfunc = this[type+'Priority']
+    valuefunc = this[type+'Value']
+    this.chooseByPriorityAndValue(state, choices, priorityfunc, valuefunc)
+  
+  #### Backwards-compatible choices
   # 
-  # These are decisions each AI has to make on most turns.
-  #
-  # These delegate to the `...Value` or `...Priority` functions, as described.
-  # You could override these functions directly, but that will probably make
-  # your AI code unnecessarily complicated.
-  #
-  # `chooseAction`: choose an action card from the hand to play.
-  chooseAction: (state, choices) ->
-    if this.actionValue?
-      this.chooseValue(state, choices, this.actionValue)
-    else
-      this.choosePriority(state, choices, this.actionPriority)
-  
-  # `chooseTreasure`: choose a treasure card from the hand to play.
-  chooseTreasure: (state, choices) ->
-    if this.treasureValue?
-      this.chooseValue(state, choices, this.treasureValue)
-    else
-      this.choosePriority(state, choices, this.treasurePriority)
-  
-  # `chooseGain`: choose a card to gain (possibly in the buy phase, or possibly
-  # as a card effect). The AI is allowed to assume it is the current player,
-  # so this can't be used for Saboteur.
-  chooseGain: (state, choices) ->
-    if this.gainValue?
-      this.chooseValue(state, choices, this.gainValue)
-    else
-      this.choosePriority(state, choices, this.gainPriority)
-
-  # `chooseDiscard`: choose a card to discard. Discards that are ranked 
-  # higher than `null` will be discarded voluntarily on cards such as Cellar.
-  chooseDiscard: (state, choices) ->
-    if this.discardValue?
-      this.chooseValue(state, choices, this.discardValue)
-    else
-      this.choosePriority(state, choices, this.discardPriority)
-  
-  # `chooseTrash`: choose a card to trash (for no further effect).
-  chooseTrash: (state, choices) ->
-    if this.trashValue?
-      this.chooseValue(state, choices, this.trashValue)
-    else
-      this.choosePriority(state, choices, this.trashPriority)
-
-  #### Decisions for specific action cards
-  #
-  # `chooseAmbassador` chooses from a list of two-item arrays of
-  # [card, quantity], selecting the card to ambassador and the number to
-  # return to the supply.
-  chooseAmbassador: (state, choices) ->
-    if this.ambassadorValue?
-      this.chooseValue(state, choices, this.ambassadorValue)
-    else
-      this.choosePriority(state, choices, this.ambassadorPriority)
-
-  # The question `chooseBaronDiscard` asks is: do you want to discard an
-  # Estate for +$4, rather than gain an Estate? And the answer is almost
-  # certainly yes.
-  #
-  # An AI can replace this function directly to make a different
-  # decision.
-  chooseBaronDiscard: (state) -> yes
-  
-  # `chooseWish` asks which card to wish for using the Wishing Well.
-  chooseWish: (state, choices) ->
-    if this.wishValue?
-      this.chooseValue(state, choices, this.wishValue)
-    else if this.wishPriority?
-      this.choosePriority(state, choices, this.wishPriority)
-    else
-      this.chooseValue(state, choices, this.wishValueDefault)
+  # To avoid having to rewrite all the code at once, we support these functions
+  # that pass `chooseAction` onto `choose('action')`, and so on.
+  chooseAction: (state, choices) -> this.choose('action', state, choices)
+  chooseTreasure: (state, choices) -> this.choose('treasure', state, choices)
+  chooseGain: (state, choices) -> this.choose('gain', state, choices)
+  chooseDiscard: (state, choices) -> this.choose('discard', state, choices)
+  chooseTrash: (state, choices) -> this.choose('trash', state, choices)
 
   # `chooseToGainOnDeck` takes in a card that is being gained, and decides
   # if it wants it on the deck instead of the discard pile, returning a
   # yes/no answer.
-  chooseToGainOnDeck: (state, card) ->
-    return (card.isAction or card.isTreasure)
+  # `chooseImprove` is like `chooseTrash`, but for actions that trash one
+  # card and (possibly) gain a better one. 
 
   # Default strategies
   # ------------------
@@ -183,7 +154,6 @@ class BasicAI
     "Gold"
     "Silver"
     "Copper" if state.gainsToEndGame() <= 3
-    null
   ]
   
   # The default action-playing strategy, which aims to include a usable plan
@@ -332,14 +302,9 @@ class BasicAI
     "Curse"
     "Estate"
     "Copper"
-    # The above cards are the only ones that will be discarded in Cellar.
-    null
-    # At this point, we're being forced to discard. Hopefully we can discard
-    # a Silver...
-    "Silver"
-    # Nope. We've got other cards and the strategy hasn't dealt with how to
-    # discard them. Pick the first option and hope.
   ]
+
+  # TODO: discardValue function
   
   # Like the `discardPriority`, the default `trashPriority` is sufficient for
   # Big Money but won't be able to handle tough decisions for other
@@ -350,16 +315,18 @@ class BasicAI
     "Copper" if my.getTotalMoney() > 4
     "Potion" if my.turnsTaken >= 10
     "Estate" if state.gainsToEndGame() > 2
-    null
-    "Copper"
-    "Potion"
-    "Estate"
-    "Silver"
   ]
+
+  # If we have to trash a card we don't want to, assign a value to each card.
+  # By default, we want to trash the card with the lowest (cost + VP).
+  trashValue: (state, my, card) ->
+    0 - card.vp - card.cost
 
   # When presented with a card with simple but variable benefits, such as
   # Nobles, this is the default way for an AI to decide which benefit it wants.
   # This function should actually handle a number of common situations.
+  #
+  # TODO: rewrite this as a `benefitValue` function.
   chooseBenefit: (state, choices) ->
     my = this.myPlayer(state)
     buyValue = 1
@@ -426,17 +393,25 @@ class BasicAI
       "Copper,0"
     ]
 
-  # `wishValueDefault()` prefers to wish for the card its draw pile contains
+  # `wishValue` prefers to wish for the card its draw pile contains
   # the most of.
   #
   # The fact that this doesn't make a hypothetical copy is a shortcut. We are
   # technically "peeking" at the deck, but we don't use any information except
   # the count of each card, which would be the same in any hypothetical version.
-  wishValueDefault: (state, card, my) ->
+  wishValue: (state, card, my) ->
     pile = my.draw
     if pile.length == 0
       pile = my.discard
     return countInList(pile, card)
+  
+  # Prefer to gain action and treasure cards on the deck. Give other cards
+  # a value of -1 so that `null` is a better choice.
+  gainOnDeckValue: (state, card) ->
+    if (card.isAction or card.isTreasure)
+      1
+    else
+      -1
 
   #### Informational methods
   #

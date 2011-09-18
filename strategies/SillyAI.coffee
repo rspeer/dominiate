@@ -6,6 +6,7 @@
   name: 'SillyAI'
   author: 'rspeer'
 
+  gainPriority: (state, my) -> []
   gainValue: (state, card, my) ->
     if card.name is "Copper" or card.name is "Curse"
       return -1
