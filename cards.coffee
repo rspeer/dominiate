@@ -980,7 +980,7 @@ makeCard 'Tournament', action, {
         choices = state.prizes
         if state.supply[c.Duchy] > 0
           choices.push(c.Duchy)
-        choice = state.gainOneOf(state.current, choices, 'deck')
+        choice = state.gainOneOf(state.current, choices, 'draw')
         if choice isnt null
           state.log("...putting the #{choice} on top of the deck.")
       if not opposingProvince
