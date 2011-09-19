@@ -468,6 +468,8 @@ class State
   # buys/gains that would have to be used by an opponent who is determined to
   # end the game. A low number means the game is probably ending soon.
   gainsToEndGame: () ->
+    if @cache.gainsToEndGame?
+      return @cache.gainsToEndGame
     counts = (count for card, count of @supply)
     numericSort(counts)
     # First, add up the smallest 3 (or 4) piles.
@@ -480,6 +482,9 @@ class State
     minimum = Math.min(minimum, @supply['Province'])
     if @supply['Colony']?
       minimum = Math.min(minimum, @supply['Colony'])
+
+    # Cache the result; apparently it's expensive to compute.
+    @cache.gainsToEndGame = minimum
     minimum
   
   #### Playing a turn
@@ -721,6 +726,7 @@ class State
   # `suppressMessage` is true when this happens as the direct result of a
   # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
+    delete @cache.gainsToEndGame
     if card in @prizes or @supply[card] > 0
       if not suppressMessage
         this.log("#{player.ai} gains #{card}.")
