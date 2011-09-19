@@ -2071,6 +2071,9 @@
     };
     State.prototype.gainsToEndGame = function() {
       var card, count, counts, minimum, piles, _i, _len, _ref2;
+      if (this.cache.gainsToEndGame != null) {
+        return this.cache.gainsToEndGame;
+      }
       counts = (function() {
         var _ref2, _results;
         _ref2 = this.supply;
@@ -2093,6 +2096,7 @@
       if (this.supply['Colony'] != null) {
         minimum = Math.min(minimum, this.supply['Colony']);
       }
+      this.cache.gainsToEndGame = minimum;
       return minimum;
     };
     State.prototype.doPlay = function() {
@@ -2289,6 +2293,7 @@
       if (suppressMessage == null) {
         suppressMessage = false;
       }
+      delete this.cache.gainsToEndGame;
       if (__indexOf.call(this.prizes, card) >= 0 || this.supply[card] > 0) {
         if (!suppressMessage) {
           this.log("" + player.ai + " gains " + card + ".");
