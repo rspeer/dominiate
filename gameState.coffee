@@ -375,6 +375,7 @@ class State
     @quarries = 0
     @copperValue = 1
     @phase = 'start'
+    @cache = {}
 
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
@@ -904,6 +905,7 @@ class State
     newState.quarries = @quarries
     newState.copperValue = @copperValue
     newState.phase = @phase
+    newState.cache = @cache
 
     # If something overrode the log function, make sure that's preserved.
     newState.logFunc = @logFunc
