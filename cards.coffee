@@ -707,8 +707,8 @@ makeCard 'Horn of Plenty', c.Silver, {
 
 makeCard "Horse Traders", action, {
   cost: 4
-  buys: 1
-  coins: 3
+  buys: +1
+  coins: +3
   isReaction: true
   playEffect:
     (state) -> state.requireDiscard(state.current, 2)
@@ -729,8 +729,8 @@ makeCard "Horse Traders", action, {
 
 makeCard 'Hunting Party', action, {
   cost: 5
-  actions: 1
-  cards: 1
+  actions: +1
+  cards: +1
 
   playEffect: (state) ->
     state.revealHand(state.current)
@@ -771,9 +771,33 @@ makeCard 'Ironworks', action, {
       state.current.drawCards(1)
 }
 
+makeCard "Masquerade", action, {
+  cost: 3
+  cards: +2
+
+  playEffect: (state) ->
+    # Get everyone's choice of cards to pass.
+    passed = []
+    for player in state.players
+      cardToPass = player.ai.choose('trash', state, player.hand)
+      passed.push(cardToPass)
+
+    # Pass the cards.
+    for i in [0...state.nPlayers]
+      player = state.players[i]
+      nextPlayer = state.players[(i + 1) % state.nPlayers]
+      cardToPass = passed[i]
+      state.log("#{player.ai} passes #{cardToPass}.")
+      if cardToPass isnt null
+        transferCard(cardToPass, player.hand, nextPlayer.hand)
+
+    # Allow the Masquerade player to trash a card.
+    state.allowTrash(state.current, 1)
+}
+
 makeCard "Menagerie", action, {
   cost: 3
-  actions: 1
+  actions: +1
   playEffect: (state) ->
     state.revealHand(state.current)
     state.drawCards(state.current, state.current.menagerieDraws())
@@ -781,7 +805,7 @@ makeCard "Menagerie", action, {
 
 makeCard "Militia", action, {
   cost: 4
-  coins: 2
+  coins: +2
   isAttack: true
   # Militia is a straightforward example of an attack card.
   #
@@ -796,8 +820,8 @@ makeCard "Militia", action, {
 
 makeCard "Goons", c.Militia, {
   cost: 6
-  coins: 2
-  buys: 1
+  coins: +2
+  buys: +1
 
   # The effect of Goons that causes you to gain VP on each buy is 
   # defined in `State.doBuyPhase`. Other than that, Goons is a fancy

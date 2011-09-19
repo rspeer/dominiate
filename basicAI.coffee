@@ -111,6 +111,8 @@ class BasicAI
     # the value list gave us anything. First complain about it, then make an
     # arbitrary choice.
     state.warn("#{this} has no idea what to choose from #{choices}")
+    state.warn("priorityfunc = #{priorityfunc}")
+    state.warn("valuefunc = #{valuefunc}")
     return choices[0]
  
   # The top-level "choose" function takes a decision type, the current state,
@@ -214,6 +216,7 @@ class BasicAI
     "Wharf"
     # Tactician needs a play condition, but I don't know what it would be.
     "Tactician"
+    "Masquerade"
     "Militia"
     "Princess"
     "Explorer" if my.countInHand("Province") >= 1
@@ -291,7 +294,7 @@ class BasicAI
   #
   # It doesn't understand
   # discarding cards to make Shanty Town or Menagerie work, for example, and
-  # It doesn't recognize when dead terminal actions would be good to discard.
+  # it doesn't recognize when dead terminal actions would be good to discard.
   # Defining that may require a `discardValue` function.
   discardPriority: (state, my) -> [
     "Vineyard"
@@ -301,8 +304,15 @@ class BasicAI
     "Province"  # Provinces are occasionally useful in hand
     "Curse"
     "Estate"
-    "Copper"
   ]
+
+  discardValue: (state, card, my) ->
+    # If we can discard excess actions, do so. Otherwise, discard the cheapest
+    # card. Victory cards would already have been discarded by discardPriority.
+    if card.actions == 0 and my.actionBalance() < 0
+      1
+    else
+      0 - card.cost
 
   # TODO: discardValue function
   
@@ -319,7 +329,7 @@ class BasicAI
 
   # If we have to trash a card we don't want to, assign a value to each card.
   # By default, we want to trash the card with the lowest (cost + VP).
-  trashValue: (state, my, card) ->
+  trashValue: (state, card, my) ->
     0 - card.vp - card.cost
 
   # When presented with a card with simple but variable benefits, such as
@@ -392,6 +402,10 @@ class BasicAI
       "Estate,0"
       "Copper,0"
     ]
+  
+  # The question here is: do you want to discard an Estate using a Baron?
+  # And the answer is yes.
+  baronDiscardValue: (state, choice, my) -> 1 
 
   # `wishValue` prefers to wish for the card its draw pile contains
   # the most of.
@@ -407,12 +421,12 @@ class BasicAI
   
   # Prefer to gain action and treasure cards on the deck. Give other cards
   # a value of -1 so that `null` is a better choice.
-  gainOnDeckValue: (state, card) ->
+  gainOnDeckValue: (state, card, my) ->
     if (card.isAction or card.isTreasure)
       1
     else
       -1
-
+  
   #### Informational methods
   #
   # `wantsToTrash` returns the number of cards in hand that we would trash
