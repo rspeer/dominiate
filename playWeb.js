@@ -1980,6 +1980,7 @@
       this.quarries = 0;
       this.copperValue = 1;
       this.phase = 'start';
+      this.cache = {};
       this.depth = 0;
       return this;
     };
@@ -2455,6 +2456,7 @@
       newState.quarries = this.quarries;
       newState.copperValue = this.copperValue;
       newState.phase = this.phase;
+      newState.cache = this.cache;
       newState.logFunc = this.logFunc;
       return newState;
     };

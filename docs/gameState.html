@@ -290,7 +290,8 @@ and Potion have to be listed explicitly.</li>
     <span class="vi">@bridges = </span><span class="mi">0</span>
     <span class="vi">@quarries = </span><span class="mi">0</span>
     <span class="vi">@copperValue = </span><span class="mi">1</span>
-    <span class="vi">@phase = </span><span class="s1">&#39;start&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-37">&#182;</a>               </div>               <p>The <code>depth</code> indicates how deep into hypothetical situations we are. A depth of 0
+    <span class="vi">@phase = </span><span class="s1">&#39;start&#39;</span>
+    <span class="vi">@cache = </span><span class="p">{}</span></pre></div>             </td>           </tr>                               <tr id="section-37">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-37">&#182;</a>               </div>               <p>The <code>depth</code> indicates how deep into hypothetical situations we are. A depth of 0
 indicates the state of the actual game.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="vi">@depth = </span><span class="mi">0</span>
     <span class="k">return</span> <span class="k">this</span>
   </pre></div>             </td>           </tr>                               <tr id="section-38">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-38">&#182;</a>               </div>               <p>Given the tableau (the set of non-basic cards in play), construct the
@@ -666,7 +667,8 @@ breaking the game. But this isn't implemented yet, so make this a TODO.</p>     
     <span class="nv">newState.bridges = </span><span class="nx">@bridges</span>
     <span class="nv">newState.quarries = </span><span class="nx">@quarries</span>
     <span class="nv">newState.copperValue = </span><span class="nx">@copperValue</span>
-    <span class="nv">newState.phase = </span><span class="nx">@phase</span></pre></div>             </td>           </tr>                               <tr id="section-104">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-104">&#182;</a>               </div>               <p>If something overrode the log function, make sure that's preserved.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">newState.logFunc = </span><span class="nx">@logFunc</span>
+    <span class="nv">newState.phase = </span><span class="nx">@phase</span>
+    <span class="nv">newState.cache = </span><span class="nx">@cache</span></pre></div>             </td>           </tr>                               <tr id="section-104">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-104">&#182;</a>               </div>               <p>If something overrode the log function, make sure that's preserved.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">newState.logFunc = </span><span class="nx">@logFunc</span>
     <span class="nx">newState</span></pre></div>             </td>           </tr>                               <tr id="section-105">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-105">&#182;</a>               </div>               <p><code>hypothetical(ai)</code> returns a State and PlayerState that an AI can do
 whatever it wants to without affecting the real state:</p>
 
