@@ -81,6 +81,8 @@ class BasicAI
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
       for preference in priority
+        if preference is null and null in choices
+          return null
         if choiceSet[preference]?
           return choiceSet[preference]
   
@@ -111,8 +113,6 @@ class BasicAI
     # the value list gave us anything. First complain about it, then make an
     # arbitrary choice.
     state.warn("#{this} has no idea what to choose from #{choices}")
-    state.warn("priorityfunc = #{priorityfunc}")
-    state.warn("valuefunc = #{valuefunc}")
     return choices[0]
  
   # The top-level "choose" function takes a decision type, the current state,
@@ -245,6 +245,7 @@ class BasicAI
     "Trading Post" if my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2
     "Chapel" if my.ai.wantsToTrash(state)
     "Trade Route" if my.ai.wantsToTrash(state)
+    "Mint" if my.ai.choose('mint', state, my.hand)
     "Conspirator"
     "Moat"
     "Watchtower" if my.hand.length <= 5
@@ -285,8 +286,14 @@ class BasicAI
     "Potion"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
-    null
   ]
+
+  mintValue: (state, card, my) -> 
+    # Mint anything but coppers. Otherwise, go mostly by the card's base cost.
+    # Diadems are comparable to the cost-5 treasures.
+    if card is 'Diadem'
+      return 4
+    return card.cost - 1
   
   # The default `discardPriority` is tuned for Big Money where the decisions
   # are obvious. But many strategies would probably prefer a different
@@ -325,6 +332,7 @@ class BasicAI
     "Copper" if my.getTotalMoney() > 4
     "Potion" if my.turnsTaken >= 10
     "Estate" if state.gainsToEndGame() > 2
+    null
   ]
 
   # If we have to trash a card we don't want to, assign a value to each card.

@@ -818,6 +818,25 @@ makeCard "Militia", action, {
           state.requireDiscard(opp, opp.hand.length - 3)
 }
 
+makeCard "Mint", action, {
+  cost: 5
+  buyEffect: (state) ->
+    inPlay = state.current.inPlay
+    for i in [inPlay.length-1...-1]
+      if inPlay[i].isTreasure
+        state.log("...trashing a #{inPlay[i]}.")
+        inPlay.splice(i, 1)
+
+  playEffect: (state) ->
+    treasures = []
+    for card in state.current.hand
+      if card.isTreasure
+        treasures.push(card)
+    choice = state.current.ai.choose('mint', state, treasures)
+    if choice isnt null
+      state.gainCard(state.current, choice)
+}
+
 makeCard "Goons", c.Militia, {
   cost: 6
   coins: +2

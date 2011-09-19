@@ -655,7 +655,7 @@ class State
     if actionCardsInPlay <= 2  
       while c['Walled Village'] in @current.inPlay
         transferCardToTop(c['Walled Village'], @current.inPlay, @current.draw)
-        this.log("#{@ai} returns a Walled Village to the top of the deck.")
+        this.log("#{@current.ai} returns a Walled Village to the top of the deck.")
     
     # Discard old duration cards.
     @current.discard = @current.discard.concat @current.duration
