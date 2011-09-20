@@ -93,7 +93,7 @@ class BasicAI
       bestValue = -Infinity
     
       for choice in choices
-        if choice is null
+        if (choice is null) or (choice is no)
           value = 0
         else
           value = valuefunc(state, choice, my)
@@ -236,6 +236,7 @@ class BasicAI
     "Harvest"
     "Explorer"
     "Woodcutter"
+    "Chancellor"
     "Coppersmith" if my.countInHand("Copper") >= 2
     # Play an Ambassador if our hand has something we'd want to discard.
     #
@@ -413,7 +414,7 @@ class BasicAI
   
   # The question here is: do you want to discard an Estate using a Baron?
   # And the answer is yes.
-  baronDiscardValue: (state, choice, my) -> 1 
+  baronDiscardPriority: (state, my) -> [yes]
 
   # `wishValue` prefers to wish for the card its draw pile contains
   # the most of.
@@ -435,6 +436,23 @@ class BasicAI
     else
       -1
   
+  # How much does the AI want to discard its deck right now (for Chancellor)?
+  # Here, we decide to reshuffle (returning a reshuffleValue over 0) when most
+  # of the non-Action, non-Treasure cards are in the draw pile, or when there
+  # are no such cards in the deck.
+  reshuffleValue: (state, choice, my) ->
+    junkToDraw = 0
+    totalJunk = 0
+    for card in my.draw
+      if not (card.isAction or card.isTreasure)
+        junkToDraw++
+    for card in my.getDeck()
+      if not (card.isAction or card.isTreasure)
+        totalJunk++
+    return 1 if (totalJunk == 0)
+    proportion = junkToDraw/totalJunk
+    return (proportion - 0.5)
+
   #### Informational methods
   #
   # `wantsToTrash` returns the number of cards in hand that we would trash
@@ -447,6 +465,7 @@ class BasicAI
         trashableCards += 1
     return trashableCards
   
+
   #### Utility methods
   #
   # `copy` makes a copy of the AI. It will have the same behavior but a

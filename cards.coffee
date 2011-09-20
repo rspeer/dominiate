@@ -520,6 +520,20 @@ makeCard 'Cellar', action, {
     state.drawCards(state.current, numDiscarded)
 }
 
+makeCard 'Chancellor', action, {
+  cost: 3
+  coins: +2
+
+  playEffect: (state) ->
+    player = state.current
+    # The AI has the option of reshuffling. Ask directly if it'll take it.
+    if player.ai.choose('reshuffle', state, [yes, no])
+      state.log("...putting the draw pile into the discard pile.")
+      draw = player.draw.slice(0)
+      player.draw = []
+      player.discard = player.discard.concat(draw)
+}
+
 makeCard 'Chapel', action, {
   cost: 2
   playEffect:
