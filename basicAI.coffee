@@ -210,6 +210,7 @@ class BasicAI
     "Followers"
     "Mountebank"
     "Witch"
+    "Torturer"
     "Sea Hag"
     "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
     "Goons"
@@ -453,6 +454,17 @@ class BasicAI
     proportion = junkToDraw/totalJunk
     return (proportion - 0.5)
 
+  # Choose to discard or to gain a curse when attacked by Torturer.
+  torturerPriority: (state, my) -> [
+    'curse' if state.countInSupply("Curse") == 0
+    'discard' if my.ai.wantsToDiscard(state) >= 2
+    'discard' if my.hand.length <= 1
+    'curse' if my.trashingInHand() > 0
+    'curse' if my.hand.length <= 3
+    'discard'
+    'curse'
+  ]
+
   #### Informational methods
   #
   # `wantsToTrash` returns the number of cards in hand that we would trash
@@ -465,6 +477,15 @@ class BasicAI
         trashableCards += 1
     return trashableCards
   
+  # `wantsToDiscard` returns the number of cards in hand that we would
+  # freely discard.
+  wantsToDiscard: (state) ->
+    my = this.myPlayer(state)
+    discardableCards = 0
+    for card in my.hand
+      if this.chooseDiscard(state, [card, null]) is card
+        discardableCards += 1
+    return discardableCards
 
   #### Utility methods
   #

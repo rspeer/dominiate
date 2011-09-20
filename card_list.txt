@@ -1,4 +1,4 @@
-Cards that are done (83)
+Cards that are done (86)
 ========================
 Adventurer
 Alchemist
@@ -10,6 +10,7 @@ Bazaar
 Bridge
 Caravan
 Cellar
+Chancellor
 Chapel
 City
 Colony
@@ -41,6 +42,7 @@ Ironworks
 Laboratory
 Lighthouse
 Market
+Masquerade
 Menagerie
 Merchant Ship
 Militia
@@ -64,6 +66,7 @@ Silver
 Smithy
 Steward
 Tactician
+Torturer
 Tournament
 Trade Route
 Trading Post
@@ -84,14 +87,13 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (59)
+Cards that still need to be coded (55)
 ======================================
 Apothecary
 Apprentice
 Bishop
 Black Market
 Bureaucrat
-Chancellor
 Contraband
 Counting House
 Courtyard
@@ -112,7 +114,6 @@ King's Court
 Library
 Loan
 Lookout
-Masquerade
 Mine
 Mining Village
 Minion
@@ -138,7 +139,6 @@ Swindler
 Talisman
 Thief
 Throne Room
-Torturer
 Transmute
 Treasury
 Upgrade

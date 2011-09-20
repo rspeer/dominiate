@@ -236,6 +236,21 @@ class PlayerState
         if card.actions == 0
           balance -= card.cards * this.getActionDensity()
     balance
+
+  # What is the trashing power of this hand?
+  trashingInHand: () ->
+    trash = 0
+    for card in this.hand
+      # Count actions that simply trash a constant number of cards from hand.
+      trash += card.trash
+      # Add other trashers, including the trash-on-gain power of Watchtower.
+      trash += 2 if card is c.Steward
+      trash += 2 if card is c['Trading Post']
+      trash += 4 if card is c.Chapel
+      trash += 1 if card is c.Masquerade
+      trash += 2 if card is c.Ambassador
+      trash += 1 if card is c.Watchtower
+    return trash
   
   numUniqueCardsInPlay: () ->
     unique = []

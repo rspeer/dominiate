@@ -1045,6 +1045,17 @@ makeCard 'Tournament', action, {
         state.current.drawCards(1)
 }
 
+makeCard 'Torturer', action, {
+  cost: 5
+  cards: +3
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      if opp.ai.choose('torturer', state, ['curse', 'discard']) == 'curse'
+        state.gainCard(opp, c.Curse)
+      else
+        state.requireDiscard(opp, 2)
+}
+
 makeCard "Trade Route", action, {
   cost: 3
   buys: 1
