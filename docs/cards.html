@@ -920,6 +920,17 @@ fished out of the opponent's discard pile</p>             </td>             <td 
         <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Torturer&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">cards: </span><span class="o">+</span><span class="mi">3</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+      <span class="k">if</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;torturer&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;curse&#39;</span><span class="p">,</span> <span class="s1">&#39;discard&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="s1">&#39;curse&#39;</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">requireDiscard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s2">&quot;Trade Route&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">3</span>
   <span class="nv">buys: </span><span class="mi">1</span>

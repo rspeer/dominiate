@@ -1144,6 +1144,22 @@ makeCard 'University', action, {
     state.gainOneOf(state.current, choices)
 }
 
+makeCard 'Vault', action, {
+  cost: 5
+  cards: +2
+
+  playEffect: (state) ->
+    discarded = state.allowDiscard(state.current, Infinity)
+    state.log("...getting +$#{discarded.length} from the Vault.")
+    state.current.coins += discarded.length
+
+    for opp in state.players[1...]
+      if opp.ai.wantsToDiscard(state) >= 2
+        discarded = state.requireDiscard(opp, 2)
+        if discarded.length == 2
+          state.drawCards(opp, 1)
+}
+
 makeCard 'Venture', c.Silver, {
   cost: 5
   coins: 1

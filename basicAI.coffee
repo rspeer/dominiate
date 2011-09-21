@@ -218,6 +218,7 @@ class BasicAI
     # Tactician needs a play condition, but I don't know what it would be.
     "Tactician"
     "Masquerade"
+    "Vault"
     "Militia"
     "Princess"
     "Explorer" if my.countInHand("Province") >= 1
