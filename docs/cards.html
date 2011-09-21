@@ -1019,6 +1019,22 @@ fished out of the opponent's discard pile</p>             </td>             <td 
     <span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Vault&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">cards: </span><span class="o">+</span><span class="mi">2</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">discarded = </span><span class="nx">state</span><span class="p">.</span><span class="nx">allowDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="kc">Infinity</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...getting +$#{discarded.length} from the Vault.&quot;</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="nx">discarded</span><span class="p">.</span><span class="nx">length</span>
+
+    <span class="k">for</span> <span class="nx">opp</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">players</span><span class="p">[</span><span class="mi">1</span><span class="p">...]</span>
+      <span class="k">if</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">wantsToDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+        <span class="nv">discarded = </span><span class="nx">state</span><span class="p">.</span><span class="nx">requireDiscard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">discarded</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">2</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Venture&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">5</span>
   <span class="nv">coins: </span><span class="mi">1</span>
