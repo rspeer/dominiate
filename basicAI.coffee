@@ -114,6 +114,25 @@ class BasicAI
     # arbitrary choice.
     state.warn("#{this} has no idea what to choose from #{choices}")
     return choices[0]
+  
+  # Sometimes we need to compare choices in a strictly numeric way. This takes
+  # a particular choice for a particular choice type, and gets its numeric value.
+  # If the value comes from a priority list, it will be 1000 - (index in list).
+  #
+  # So, for example, the default choiceToValue of discarding a Colony is 999, while
+  # the choiceToValue of discarding an extra terminal is 1.
+  choiceToValue: (type, state, choice) ->
+    return 0 if choice is null
+    my = this.myPlayer(state)
+    priorityfunc = this[type+'Priority']
+    valuefunc = this[type+'Value']
+    priority = this.priority(state, my)
+
+    index = priority.indexOf(stringify(choice))
+    if index != -1
+      return (priority.length - index) * 100
+    else
+      return valuefunc(state, choice, my)
  
   # The top-level "choose" function takes a decision type, the current state,
   # and a list of choices. It delegates to other functions with the appropriate
@@ -136,12 +155,6 @@ class BasicAI
   chooseGain: (state, choices) -> this.choose('gain', state, choices)
   chooseDiscard: (state, choices) -> this.choose('discard', state, choices)
   chooseTrash: (state, choices) -> this.choose('trash', state, choices)
-
-  # `chooseToGainOnDeck` takes in a card that is being gained, and decides
-  # if it wants it on the deck instead of the discard pile, returning a
-  # yes/no answer.
-  # `chooseImprove` is like `chooseTrash`, but for actions that trash one
-  # card and (possibly) gain a better one. 
 
   # Default strategies
   # ------------------
@@ -191,13 +204,16 @@ class BasicAI
     "Wishing Well"
     "Lighthouse"
     # Fourth priority: terminal card-drawers, if we have actions to spare.
+    "Library" if my.actions > 1 and my.hand.length <= 4
     "Smithy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
+    "Library" if my.actions > 1 and my.hand.length <= 5
     # Fifth priority: card-cycling that might improve the hand.
     "Familiar" # after other non-terminals in case non-terminal draws KC/TR
     "Pawn"
     "Warehouse"
     "Cellar"
+    "Library" if my.actions > 1 and my.hand.length <= 6
     # Sixth priority: non-terminal cards that don't succeed but at least
     # give us something.
     "Tournament"
@@ -221,15 +237,18 @@ class BasicAI
     "Vault"
     "Militia"
     "Princess"
+    "Library" if my.hand.length <= 3
     "Explorer" if my.countInHand("Province") >= 1
-    "Steward"
-    "Moneylender" if my.countInHand("Copper") >= 1
     "Bridge"
     "Horse Traders"
+    "Steward"
+    "Moneylender" if my.countInHand("Copper") >= 1
     "Coppersmith" if my.countInHand("Copper") >= 3
+    "Library" if my.hand.length <= 4
     "Watchtower" if my.hand.length <= 3
     "Smithy"
     "Council Room"
+    "Library" if my.hand.length <= 5
     "Watchtower" if my.hand.length <= 4
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
@@ -251,16 +270,19 @@ class BasicAI
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Conspirator"
     "Moat"
+    "Library" if my.hand.length <= 6
     "Watchtower" if my.hand.length <= 5
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Coppersmith"
+    "Library" if my.hand.length <= 7
     "Watchtower" if my.hand.length <= 6
     # Eighth priority: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler or something.
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Shanty Town"
     "Chapel"
+    "Library"
     # At this point, we take no action if that choice is available.
     null
     # Nope, something is forcing us to take an action.
@@ -280,6 +302,7 @@ class BasicAI
     "Diadem"
     "Philosopher's Stone"
     "Gold"
+    "Hoard"
     "Royal Seal"
     "Harem"
     "Venture"
@@ -414,6 +437,15 @@ class BasicAI
       "Copper,0"
     ]
   
+  # improveCardValue measures the benefit of choices on Remodel, Upgrade,
+  # and so on, where you exchange one card for a better one.
+  # 
+  # So here's a really basic thing that might work.
+  improveCardValue: (state, my, improvement) ->
+    [oldCard, newCard] = improvement
+    return this.choiceToValue('trash', state, oldCard) + \
+           this.choiceToValue('gain', state, newCard)
+  
   # The question here is: do you want to discard an Estate using a Baron?
   # And the answer is yes.
   baronDiscardPriority: (state, my) -> [yes]
@@ -464,6 +496,13 @@ class BasicAI
     'curse' if my.hand.length <= 3
     'discard'
     'curse'
+  ]
+
+  librarySetAsideValue: (state, card, my) -> [
+    if my.actions == 0 and card.isAction
+      1
+    else
+      -1
   ]
 
   #### Informational methods

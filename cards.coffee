@@ -705,6 +705,13 @@ makeCard "Harvest", action, {
     state.log("...gaining +$#{unique.length}.")
 }
 
+makeCard 'Hoard', c.Silver, {
+  cost: 6
+  gainInPlayEffect: (state, card) ->
+    if card.isVictory
+      state.gainCard(state.current, c.Gold)
+}
+
 makeCard 'Horn of Plenty', c.Silver, {
   cost: 5
   coins: 0
@@ -783,6 +790,34 @@ makeCard 'Ironworks', action, {
       state.current.coins += 1
     if gained.isVictory
       state.current.drawCards(1)
+}
+
+makeCard 'Library', action, {
+  cost: 5
+
+  playEffect: (state) ->
+    player = state.current
+    while player.hand.length < 7
+      drawn = player.getCardsFromDeck(1)
+
+      # If nothing was drawn, the deck and discard pile are empty.
+      break if drawn.length == 0
+
+      card = drawn[0]
+      if card.isAction
+        # Assume the times the AI wants to set the card aside are the times it
+        # is on the discard priority list or has a positive discard value.
+        if player.ai.choose('discard', state, [card, null])
+          state.log("#{player.ai} sets aside a #{card}.")
+          player.setAside.push(card)
+        else
+          state.log("#{player.ai} draws a #{card}.")
+          player.hand.push(card)
+    
+    # Discard the set-aside cards.
+    player.discard = player.discard.concat(player.setAside)
+    player.setAside = []
+
 }
 
 makeCard "Masquerade", action, {

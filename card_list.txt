@@ -1,4 +1,4 @@
-Cards that are done (86)
+Cards that are done (89)
 ========================
 Adventurer
 Alchemist
@@ -35,11 +35,13 @@ Goons
 Grand Market
 Great Hall
 Harem
+Hoard
 Horn of Plenty
 Horse Traders
 Hunting Party
 Ironworks
 Laboratory
+Library
 Lighthouse
 Market
 Masquerade
@@ -74,6 +76,7 @@ Treasure Map
 Tribute
 Trusty Steed
 University
+Vault
 Venture
 Village
 Vineyard
@@ -87,7 +90,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (55)
+Cards that still need to be coded (52)
 ======================================
 Apothecary
 Apprentice
@@ -107,11 +110,9 @@ Fortune Teller
 Golem
 Hamlet
 Herbalist
-Hoard
 Island
 Jester
 King's Court
-Library
 Loan
 Lookout
 Mine
@@ -142,5 +143,4 @@ Throne Room
 Transmute
 Treasury
 Upgrade
-Vault
 Young Witch
