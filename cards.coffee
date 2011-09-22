@@ -665,6 +665,8 @@ makeCard 'Familiar', action, {
 
 makeCard "Followers", action, {
   cost: 0
+  cards: +2
+  
   isAttack: true
   isPrize: true
   mayBeBought: (state) -> false
