@@ -1043,6 +1043,7 @@
   });
   makeCard("Followers", action, {
     cost: 0,
+    cards: +2,
     isAttack: true,
     isPrize: true,
     mayBeBought: function(state) {
