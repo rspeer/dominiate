@@ -126,7 +126,7 @@ class BasicAI
     my = this.myPlayer(state)
     priorityfunc = this[type+'Priority']
     valuefunc = this[type+'Value']
-    priority = this.priority(state, my)
+    priority = priorityfunc(state, my)
 
     index = priority.indexOf(stringify(choice))
     if index != -1
@@ -235,14 +235,17 @@ class BasicAI
     "Tactician"
     "Masquerade"
     "Vault"
-    "Militia"
     "Princess"
-    "Library" if my.hand.length <= 3
     "Explorer" if my.countInHand("Province") >= 1
+    "Library" if my.hand.length <= 3
+    "Expand"
+    "Remodel"
+    "Militia"
     "Bridge"
     "Horse Traders"
     "Steward"
     "Moneylender" if my.countInHand("Copper") >= 1
+    "Mine"
     "Coppersmith" if my.countInHand("Copper") >= 3
     "Library" if my.hand.length <= 4
     "Watchtower" if my.hand.length <= 3
@@ -253,6 +256,7 @@ class BasicAI
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
     "Monument"
+    "Remake"   # has a low priority so it'll mostly be played early in the game
     "Adventurer"
     "Harvest"
     "Explorer"
@@ -437,14 +441,27 @@ class BasicAI
       "Copper,0"
     ]
   
-  # improveCardValue measures the benefit of choices on Remodel, Upgrade,
+  # Taking into account gain priorities, gain values, trash priorities, and
+  # trash values, how much do we like having this card in our deck overall?
+  cardInDeckValue: (state, card, my) ->
+    endgamePower = 1
+    
+    # Are we in the late game? If so, we care much more about getting cards
+    # at the top of our priority order.
+    if state.gainsToEndGame() <= 5
+      endgamePower = 3
+
+    return -(this.choiceToValue('trash', state, card)) + \
+           Math.pow(this.choiceToValue('gain', state, card), endgamePower)
+
+  # upgradeValue measures the benefit of choices on Remodel, Upgrade,
   # and so on, where you exchange one card for a better one.
   # 
   # So here's a really basic thing that might work.
-  improveCardValue: (state, my, improvement) ->
-    [oldCard, newCard] = improvement
-    return this.choiceToValue('trash', state, oldCard) + \
-           this.choiceToValue('gain', state, newCard)
+  upgradeValue: (state, choice, my) ->
+    [oldCard, newCard] = choice
+    return my.ai.cardInDeckValue(state, newCard, my) - \
+           my.ai.cardInDeckValue(state, oldCard, my)
   
   # The question here is: do you want to discard an Estate using a Baron?
   # And the answer is yes.

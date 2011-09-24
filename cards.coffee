@@ -381,6 +381,88 @@ makeCard 'Tactician', duration, {
       transferCard(c.Tactician, state.current.duration, state.current.discard)
 }
 
+# Trash-for-gain cards
+# --------------------
+# This section describes the actions where you trash one card to gain another.
+# I refer to this in general as "upgrading", which is not meant to be specific
+# to the card Upgrade.
+# 
+# The prototype on which we base these cards is Remodel. Most of the other
+# cards are variants that simply change the filter for which upgrades are
+# possible.
+makeCard 'Remodel', action, {
+  cost: 4
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 >= potions2) and (coins1 + 2 >= coins2)
+
+  playEffect: (state) ->
+    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
+    choice = state.current.ai.choose('upgrade', state, choices)
+    if choice isnt null
+      [oldCard, newCard] = choice
+      state.current.doTrash(oldCard)
+      state.gainCard(state.current, newCard)
+}
+
+makeCard 'Expand', c.Remodel, {
+  cost: 7
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 >= potions2) and (coins1 + 3 >= coins2)
+}
+
+makeCard 'Upgrade', c.Remodel, {
+  cost: 5
+  actions: +1
+  cards: +1
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 == potions2) and (coins1 + 1 == coins2)
+}
+
+makeCard 'Remake', c.Remodel, {
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 == potions2) and (coins1 + 1 == coins2)
+
+  playEffect: (state) ->
+    for i in [1..2]
+      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
+      choice = state.current.ai.choose('upgrade', state, choices)
+      if choice isnt null
+        [oldCard, newCard] = choice
+        state.current.doTrash(oldCard)
+        state.gainCard(state.current, newCard)  
+}
+
+makeCard 'Mine', c.Remodel, {
+  cost: 5
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 >= potions2) and (coins1 + 3 >= coins2) \
+       and oldCard.isTreasure and newCard.isTreasure
+  
+  # Modify the Remodel playEffect so that it gains the card in hand.
+  playEffect: (state) ->
+    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
+    choice = state.current.ai.choose('upgrade', state, choices)
+    if choice isnt null
+      [oldCard, newCard] = choice
+      state.current.doTrash(oldCard)
+      state.gainCard(state.current, newCard, 'hand')
+}
+
+
 # Miscellaneous cards
 # -------------------
 # All of these cards have effects beyond what can be expressed with a
@@ -1351,6 +1433,8 @@ transferCardToTop = (card, fromList, toList) ->
 # - `{coins: n}`: get *+n* coins
 # - `{trash: n}`: trash *n* cards
 # - `{horseEffect: yes}`: gain 4 Silvers and discard your draw pile
+#
+# The basic AI has no rule in it that chooses `horseEffect`.
 applyBenefit = (state, benefit) ->
   state.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
   if benefit.cards?
@@ -1368,6 +1452,26 @@ applyBenefit = (state, benefit) ->
       state.gainCard(state.current, c.Silver)
     state.current.discard = state.current.discard.concat(state.current.draw)
     state.current.draw = []
+
+# `upgradeChoices` is a helper function to get a list of choices for
+# Remodel and similar "upgrading" cards. In addition to the game state, it
+# takes in:
+# 
+# - `cards`: a list of cards that may be improved, which is usually the cards
+#   in hand; duplicates are fine.
+# - `filter`: a function of (oldCard, newCard) that describes whether the
+#   improvement is allowed.
+upgradeChoices = (state, cards, filter) ->
+  used = []
+  choices = []
+  for card in cards
+    if card not in used
+      used.push(card)
+      for cardname2 of state.supply
+        card2 = c[cardname2]
+        if filter(state, card, card2) and state.supply[card2] > 0
+          choices.push([card, card2])
+  return choices
 
 # Export functions that are needed elsewhere.
 this.transferCard = transferCard
