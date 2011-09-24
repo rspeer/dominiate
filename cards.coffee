@@ -535,6 +535,32 @@ makeCard 'Ambassador', action, {
         state.gainCard(opp, card)
 }
 
+makeCard 'Apothecary', action, {
+  cost: 2
+  costPotion: 1
+  cards: +1
+  actions: +1
+
+  playEffect: (state) ->
+    drawn = state.getCardsFromDeck(state.current, 4)
+
+    # Sort the cards into coppers and potions, which go to the hand,
+    # and others, which go temporarily to the setAside pile.
+    state.log("...drawing #{drawn}.")
+    for card in drawn
+      if card is c.Copper or card is c.Potion
+        state.current.hand.push(card)
+        state.log("...putting #{card} in the hand.")
+      else
+        state.current.setAside.push(card)
+    
+    if state.current.setAside.length > 0
+      order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current)
+      state.log("...putting #{order} back on the deck.")
+      state.current.draw = order.concat(state.current.draw)
+      state.current.setAside = []
+}
+
 makeCard 'Bag of Gold', action, {
   cost: 0
   actions: +1
@@ -1104,6 +1130,29 @@ makeCard 'Royal Seal', c.Silver, {
       state.log("...putting the #{card} on top of the deck.")
       player.gainLocation = 'draw'
       transferCardToTop(card, source, player.draw)
+}
+
+makeCard 'Scout', action, {
+  cost: 4
+  actions: +1
+
+  playEffect: (state) ->
+    drawn = state.getCardsFromDeck(state.current, 4)
+    state.log("...drawing #{drawn}.")
+
+    # Implemented approximately the same way as Apothecary.
+    for card in drawn
+      if card.isVictory
+        state.current.hand.push(card)
+        state.log("...putting #{card} in the hand.")
+      else
+        state.current.setAside.push(card)
+    
+    if state.current.setAside.length > 0
+      order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current)
+      state.log("...putting #{order} back on the deck.")
+      state.current.draw = order.concat(state.current.draw)
+      state.current.setAside = []
 }
 
 makeCard 'Sea Hag', action, {

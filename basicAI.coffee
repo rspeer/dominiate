@@ -191,7 +191,10 @@ class BasicAI
     "Fishing Village"
     "Village"
     # Third priority: cards that give +1 action and are almost always good.
+    # Cards that stack the deck come first.
     "Bag of Gold"
+    "Apothecary"
+    "Scout"
     "Grand Market"
     "Hunting Party"
     "Alchemist"
@@ -317,6 +320,23 @@ class BasicAI
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
+
+  # `chooseOrderOnDeck` handles situations where multiple cards are returned
+  # to the deck, such as Scout and Apothecary.
+  #
+  # This decision doesn't fit into the xPriority / xValue framework, as there
+  # are a number of mostly indistinguishable choices. Instead of listing all
+  # the permutations of cards as choices, we just list the cards to arrange.
+  #
+  # The default decision is to put the cards with the lowest discard value on
+  # top.
+  chooseOrderOnDeck: (state, cards, my) ->
+    sorter = (card1, card2) ->
+      my.ai.choiceToValue('discard', state, card1)\
+      - my.ai.choiceToValue('discard', state, card2)
+    
+    choice = cards.slice(0)
+    return choice.sort(sorter)
 
   mintValue: (state, card, my) -> 
     # Mint anything but coppers. Otherwise, go mostly by the card's base cost.

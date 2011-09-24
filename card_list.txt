@@ -3,6 +3,7 @@ Cards that are done (94)
 Adventurer
 Alchemist
 Ambassador
+Apothecary
 Bag of Gold
 Bank
 Baron
@@ -95,9 +96,8 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (49)
+Cards that still need to be coded (47)
 ======================================
-Apothecary
 Apprentice
 Bishop
 Black Market
