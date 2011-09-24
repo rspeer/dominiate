@@ -43,14 +43,23 @@ specified names and play them against each other. For example:
 
 Building the Web app
 --------------------
-The Web version of Dominiate is built using CoffeeScript and Less CSS. You'll
-need to follow the instructions above to set up CoffeeScript. You should also
-install Less CSS with `sudo npm-g install less`.
+The Web version of Dominiate is built using CoffeeScript and Less CSS.
+
+**On a reasonable UNIX computer** (including Linux and Mac OS):
+Follow the instructions above to set up CoffeeScript. You should also install
+Less CSS with `sudo npm-g install less`.
 
 Then, type `make` to build the JavaScript and CSS files that will be used
 on the Web.
 
 Do not edit the computer-written JavaScript directly! That way lies madness.
+
+**On Windows**: you can now compile the CoffeeScript files on Windows, using an
+included CoffeeScript compiler, `windows/coffee.exe`. (Being an .exe file
+downloaded from the Internet, you of course run this at your own risk.)
+
+Running `windows/compile.bat` should do the Right Thing, but I haven't tested
+it. See `windows/README` for more information.
 
 Roadmap
 -------

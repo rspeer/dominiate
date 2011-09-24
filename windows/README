@@ -1,0 +1,32 @@
+This directory contains files that should help you develop Dominiate on
+Windows. Here's the general procedure:
+
+- Edit the *.coffee files however you want (using a good editor such as
+  Notepad++)
+- Run "compile.bat" from this folder, which will compile them into web\playWeb.js
+- Assuming that worked, open web\play.html in Firefox or Chrome and test it
+  out.
+
+I haven't tested this yet. Someone who uses Windows should.
+
+Credits
+-------
+This code uses the CoffeeScript Compiler for Windows by Alexey Lebedev, a
+modified version of Jeremy Ashkenas' original CoffeeScript compiler:
+
+https://github.com/alisey/CoffeeScript-Compiler-for-Windows/
+
+Jeremy Ashkenas' code is freely redistributable under the MIT license. I have
+no idea about the license for Alexey's version, but I'll assume until further
+notice that it's the same.
+
+Warning
+-------
+Strictly speaking, I have no idea what's in the .exe file I'm asking you to
+run. Its source code on GitHub appears reasonable, but I can't guarantee that
+that source actually compiles to that .exe.
+
+In short, if Alexey Lebedev turns out to be evil, you're letting him own your
+computer. I don't think people who make CoffeeScript accessible to more people
+are likely to be evil. But you never know.
+

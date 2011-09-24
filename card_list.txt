@@ -1,5 +1,5 @@
-Cards that are done (99)
-========================
+Cards that are done (100)
+=========================
 Adventurer
 Alchemist
 Ambassador
@@ -38,6 +38,7 @@ Goons
 Grand Market
 Great Hall
 Harem
+Herbalist
 Hoard
 Horn of Plenty
 Horse Traders
@@ -100,9 +101,8 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (42)
+Cards that still need to be coded (41)
 ======================================
-Cards marked with ! should be easy to do, given code that already exists.
 
 Easy cards
 ----------
@@ -113,7 +113,6 @@ Cutpurse
 Feast
 Fortune Teller
 Golem
-Herbalist
 Loan
 Pearl Diver
 Rabble
