@@ -723,14 +723,32 @@ and others, which go temporarily to the setAside pile.</p>             </td>    
     <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...gaining +$#{unique.length}.&quot;</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="nx">makeCard</span> <span class="s1">&#39;Hoard&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+<span class="nx">makeCard</span> <span class="s2">&quot;Herbalist&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">2</span>
+  <span class="nv">buys: </span><span class="o">+</span><span class="mi">1</span>
+  <span class="nv">coins: </span><span class="o">+</span><span class="mi">1</span>
+
+  <span class="nv">cleanupEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">choices = </span><span class="p">[]</span>
+    <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span>
+      <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isTreasure</span>
+        <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+    <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="kc">null</span><span class="p">)</span>
+    <span class="nv">choice = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;herbalist&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nx">choice</span> <span class="o">isnt</span> <span class="kc">null</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} uses Herbalist to put #{choice} back on the deck.&quot;</span><span class="p">)</span>
+      <span class="nx">transferCardToTop</span><span class="p">(</span><span class="nx">choice</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
+      
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s2">&quot;Hoard&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">6</span>
   <span class="nv">gainInPlayEffect: </span><span class="nf">(state, card) -&gt;</span>
     <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isVictory</span>
       <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="nx">makeCard</span> <span class="s1">&#39;Horn of Plenty&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
+<span class="nx">makeCard</span> <span class="s2">&quot;Horn of Plenty&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">5</span>
   <span class="nv">coins: </span><span class="mi">0</span>
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span> 

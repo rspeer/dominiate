@@ -822,14 +822,32 @@ makeCard "Harvest", action, {
     state.log("...gaining +$#{unique.length}.")
 }
 
-makeCard 'Hoard', c.Silver, {
+makeCard "Herbalist", action, {
+  cost: 2
+  buys: +1
+  coins: +1
+
+  cleanupEffect: (state) ->
+    choices = []
+    for card in state.current.inPlay
+      if card.isTreasure
+        choices.push(card)
+    choices.push(null)
+    choice = state.current.ai.choose('herbalist', state, choices)
+    if choice isnt null
+      state.log("#{state.current.ai} uses Herbalist to put #{choice} back on the deck.")
+      transferCardToTop(choice, state.current.inPlay, state.current.draw)
+      
+}
+
+makeCard "Hoard", c.Silver, {
   cost: 6
   gainInPlayEffect: (state, card) ->
     if card.isVictory
       state.gainCard(state.current, c.Gold)
 }
 
-makeCard 'Horn of Plenty', c.Silver, {
+makeCard "Horn of Plenty", c.Silver, {
   cost: 5
   coins: 0
   playEffect: (state) -> 

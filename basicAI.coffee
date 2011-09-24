@@ -283,6 +283,7 @@ class BasicAI
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Bureaucrat"
     "Conspirator" if my.actions < 2
+    "Herbalist"
     "Moat"
     "Library" if my.hand.length <= 6
     "Watchtower" if my.hand.length <= 5
@@ -381,12 +382,20 @@ class BasicAI
     else
       0 - card.cost
   
-  # Putting a card back on the deck uses the same preference order as
+  # Putting a card back on the deck (from hand) uses the same preference order as
   # discarding.
   putOnDeckPriority: (state, my) =>
     this.discardPriority(state, my)
 
-  putOnDeckValue: (state, card, my) => this.discardValue(state, card, my)
+  putOnDeckValue: (state, card, my) =>
+    this.discardValue(state, card, my)
+  
+  # The `herbalist` decision puts a treasure card back on the deck. It sounds
+  # the same as `putOnDeck`, but it's for a different
+  # situation -- the card is coming from in play, not from your hand. So
+  # actually we use the `mintValue` by default.
+  herbalistValue: (state, card, my) =>
+    this.mintValue(state, card, my)
 
   # Like the `discardPriority`, the default `trashPriority` is sufficient for
   # Big Money but won't be able to handle tough decisions for other
