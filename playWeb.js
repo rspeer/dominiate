@@ -1,5 +1,5 @@
 (function() {
-  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, shuffle, stringify, transferCard, transferCardToTop, _ref;
+  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, shuffle, stringify, transferCard, transferCardToTop, upgradeChoices, _ref;
   var __indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++) {
       if (this[i] === item) return i;
@@ -162,7 +162,7 @@
       my = this.myPlayer(state);
       priorityfunc = this[type + 'Priority'];
       valuefunc = this[type + 'Value'];
-      priority = this.priority(state, my);
+      priority = priorityfunc(state, my);
       index = priority.indexOf(stringify(choice));
       if (index !== -1) {
         return (priority.length - index) * 100;
@@ -196,7 +196,7 @@
       return [my.countInDeck("Platinum") > 0 ? "Colony" : void 0, state.countInSupply("Colony") <= 6 ? "Province" : void 0, (0 < (_ref = state.gainsToEndGame()) && _ref <= 5) ? "Duchy" : void 0, (0 < (_ref2 = state.gainsToEndGame()) && _ref2 <= 2) ? "Estate" : void 0, "Platinum", "Gold", "Silver", state.gainsToEndGame() <= 3 ? "Copper" : void 0];
     };
     BasicAI.prototype.actionPriority = function(state, my) {
-      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Great Hall", "Wishing Well", "Lighthouse", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, "Familiar", "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, "Tournament", "Menagerie", my.actions === 1 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Torturer", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Militia", "Princess", my.hand.length <= 3 ? "Library" : void 0, my.countInHand("Province") >= 1 ? "Explorer" : void 0, "Bridge", "Horse Traders", "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, my.hand.length <= 3 ? "Watchtower" : void 0, "Smithy", "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Adventurer", "Harvest", "Explorer", "Woodcutter", "Chancellor", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2 ? "Trading Post" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Conspirator", "Moat", my.hand.length <= 6 ? "Library" : void 0, my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", "Coppersmith", my.hand.length <= 7 ? "Library" : void 0, my.hand.length <= 6 ? "Watchtower" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", "Library", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador"];
+      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Bag of Gold", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Great Hall", "Wishing Well", "Lighthouse", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, "Familiar", "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, "Tournament", "Menagerie", my.actions === 1 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Torturer", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, my.hand.length <= 3 ? "Library" : void 0, "Expand", "Remodel", "Militia", "Bridge", "Horse Traders", "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Mine", my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, my.hand.length <= 3 ? "Watchtower" : void 0, "Smithy", "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Remake", "Adventurer", "Harvest", "Explorer", "Woodcutter", "Chancellor", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2 ? "Trading Post" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Conspirator", "Moat", my.hand.length <= 6 ? "Library" : void 0, my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", "Coppersmith", my.hand.length <= 7 ? "Library" : void 0, my.hand.length <= 6 ? "Watchtower" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", "Library", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador"];
     };
     BasicAI.prototype.treasurePriority = function(state, my) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Hoard", "Royal Seal", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
@@ -268,10 +268,18 @@
     BasicAI.prototype.ambassadorPriority = function(state, my) {
       return ["Curse,2", "Curse,1", "Curse,0", "Ambassador,2", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"];
     };
-    BasicAI.prototype.improveCardValue = function(state, my, improvement) {
+    BasicAI.prototype.cardInDeckValue = function(state, card, my) {
+      var endgamePower;
+      endgamePower = 1;
+      if (state.gainsToEndGame() <= 5) {
+        endgamePower = 3;
+      }
+      return -(this.choiceToValue('trash', state, card)) + Math.pow(this.choiceToValue('gain', state, card), endgamePower);
+    };
+    BasicAI.prototype.upgradeValue = function(state, choice, my) {
       var newCard, oldCard;
-      oldCard = improvement[0], newCard = improvement[1];
-      return this.choiceToValue('trash', state, oldCard) + this.choiceToValue('gain', state, newCard);
+      oldCard = choice[0], newCard = choice[1];
+      return my.ai.cardInDeckValue(state, newCard, my) - my.ai.cardInDeckValue(state, oldCard, my);
     };
     BasicAI.prototype.baronDiscardPriority = function(state, my) {
       return [true];
@@ -724,6 +732,82 @@
       } else {
         state.log("" + state.current.ai + " discards an inactive Tactician.");
         return transferCard(c.Tactician, state.current.duration, state.current.discard);
+      }
+    }
+  });
+  makeCard('Remodel', action, {
+    cost: 4,
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 >= potions2) && (coins1 + 2 >= coins2);
+    },
+    playEffect: function(state) {
+      var choice, choices, newCard, oldCard;
+      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
+      choice = state.current.ai.choose('upgrade', state, choices);
+      if (choice !== null) {
+        oldCard = choice[0], newCard = choice[1];
+        state.current.doTrash(oldCard);
+        return state.gainCard(state.current, newCard);
+      }
+    }
+  });
+  makeCard('Expand', c.Remodel, {
+    cost: 7,
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 >= potions2) && (coins1 + 3 >= coins2);
+    }
+  });
+  makeCard('Upgrade', c.Remodel, {
+    cost: 5,
+    actions: +1,
+    cards: +1,
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 === potions2) && (coins1 + 1 === coins2);
+    }
+  });
+  makeCard('Remake', c.Remodel, {
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 === potions2) && (coins1 + 1 === coins2);
+    },
+    playEffect: function(state) {
+      var choice, choices, i, newCard, oldCard, _results;
+      _results = [];
+      for (i = 1; i <= 2; i++) {
+        choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
+        choice = state.current.ai.choose('upgrade', state, choices);
+        _results.push(choice !== null ? ((oldCard = choice[0], newCard = choice[1], choice), state.current.doTrash(oldCard), state.gainCard(state.current, newCard)) : void 0);
+      }
+      return _results;
+    }
+  });
+  makeCard('Mine', c.Remodel, {
+    cost: 5,
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 >= potions2) && (coins1 + 3 >= coins2) && oldCard.isTreasure && newCard.isTreasure;
+    },
+    playEffect: function(state) {
+      var choice, choices, newCard, oldCard;
+      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
+      choice = state.current.ai.choose('upgrade', state, choices);
+      if (choice !== null) {
+        oldCard = choice[0], newCard = choice[1];
+        state.current.doTrash(oldCard);
+        return state.gainCard(state.current, newCard, 'hand');
       }
     }
   });
@@ -1809,6 +1893,24 @@
       state.current.discard = state.current.discard.concat(state.current.draw);
       return state.current.draw = [];
     }
+  };
+  upgradeChoices = function(state, cards, filter) {
+    var card, card2, cardname2, choices, used, _i, _len;
+    used = [];
+    choices = [];
+    for (_i = 0, _len = cards.length; _i < _len; _i++) {
+      card = cards[_i];
+      if (__indexOf.call(used, card) < 0) {
+        used.push(card);
+        for (cardname2 in state.supply) {
+          card2 = c[cardname2];
+          if (filter(state, card, card2) && state.supply[card2] > 0) {
+            choices.push([card, card2]);
+          }
+        }
+      }
+    }
+    return choices;
   };
   this.transferCard = transferCard;
   this.transferCardToTop = transferCardToTop;
