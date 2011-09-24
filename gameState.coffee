@@ -236,7 +236,7 @@ class PlayerState
         if card.actions == 0
           balance -= card.cards * this.getActionDensity()
     balance
-
+  
   # What is the trashing power of this hand?
   trashingInHand: () ->
     trash = 0

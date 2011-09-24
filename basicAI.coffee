@@ -377,7 +377,7 @@ class BasicAI
   discardValue: (state, card, my) =>
     # If we can discard excess actions, do so. Otherwise, discard the cheapest
     # cards. Victory cards would already have been discarded by discardPriority.
-    if card.actions == 0 and my.actionBalance() < 0
+    if (card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0)
       20 - card.cost
     else
       0 - card.cost
