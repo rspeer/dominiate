@@ -184,7 +184,12 @@ class BasicAI
     "Menagerie" if my.menagerieDraws() == 3
     "Shanty Town" if my.shantyTownDraws(true) == 2
     "Tournament" if my.countInHand("Province") > 0
-    # Second priority: cards that give +2 actions.
+    # Second priority: cards that stack the deck.
+    "Lookout" if state.gainsToEndGame() >= 5 or state.cardInfo.Curse in my.draw
+    "Bag of Gold"
+    "Apothecary"
+    "Scout"
+    # Third priority: cards that give +2 actions.
     "Trusty Steed"
     "Festival"
     "University"
@@ -195,11 +200,7 @@ class BasicAI
     "Walled Village"
     "Fishing Village"
     "Village"
-    # Third priority: cards that give +1 action and are almost always good.
-    # Cards that stack the deck come first.
-    "Bag of Gold"
-    "Apothecary"
-    "Scout"
+    # Fourth priority: cards that give +1 action and are almost always good.
     "Grand Market"
     "Hunting Party"
     "Alchemist"
@@ -211,18 +212,18 @@ class BasicAI
     "Great Hall"
     "Wishing Well"
     "Lighthouse"
-    # Fourth priority: terminal card-drawers, if we have actions to spare.
+    # Fifth priority: terminal card-drawers, if we have actions to spare.
     "Library" if my.actions > 1 and my.hand.length <= 4
     "Smithy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
-    # Fifth priority: card-cycling that might improve the hand.
+    # Sixth priority: card-cycling that might improve the hand.
     "Familiar" # after other non-terminals in case non-terminal draws KC/TR
     "Pawn"
     "Warehouse"
     "Cellar"
     "Library" if my.actions > 1 and my.hand.length <= 6
-    # Sixth priority: non-terminal cards that don't succeed but at least
+    # Seventh priority: non-terminal cards that don't succeed but at least
     # give us something.
     "Tournament"
     "Menagerie"

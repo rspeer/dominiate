@@ -1,4 +1,4 @@
-Cards that are done (98)
+Cards that are done (99)
 ========================
 Adventurer
 Alchemist
@@ -46,6 +46,7 @@ Ironworks
 Laboratory
 Library
 Lighthouse
+Lookout
 Market
 Masquerade
 Menagerie
@@ -99,50 +100,63 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (43)
+Cards that still need to be coded (42)
 ======================================
 Cards marked with ! should be easy to do, given code that already exists.
 
+Easy cards
+----------
+The code to make these cards work already mostly exists.
+
+Counting House
+Cutpurse
+Feast
+Fortune Teller
+Golem
+Herbalist
+Loan
+Pearl Diver
+Rabble
+Saboteur
+Talisman
+Thief
+Treasury
+
+Not-so-easy cards
+-----------------
+These generally require some decision-making code that doesn't exist yet.
+
 Apprentice
 Bishop
-Black Market
 Contraband
-Counting House!
 Courtyard
-Cutpurse!
 Embargo
 Envoy
-Feast!
 Forge
-Fortune Teller!
-Golem!
 Hamlet
-Herbalist!
 Island
 Jester
-King's Court
-Loan!
-Lookout!
 Mining Village
 Minion
 Native Village
-Navigator (probably requires hand evaluation)
-Outpost
-Pearl Diver!
 Pirate Ship
-Possession (will require entirely new kinds of AI decisions)
-Rabble!
-Saboteur!
 Salvager
 Scrying Pool
-Secret Chamber
-Smugglers
+Smugglers (requires more state)
 Spy
-Stash
 Swindler
-Talisman!
-Thief!
-Throne Room
 Transmute
-Treasury!
-Young Witch
+
+Difficult cards
+---------------
+In estimated order of difficulty:
+
+King's Court
+Throne Room
+Secret Chamber (avoid infinite loops)
+Young Witch (requires a well-defined Bane card)
+Stash (requires a decision mid-shuffle)
+Black Market (requires a more coherent definition of the Supply)
+Navigator (probably requires a function for evaluating a hand)
+Outpost (requires more state, with weird edge cases)
+Possession (will require entirely new kinds of AI decisions)

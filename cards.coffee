@@ -937,6 +937,32 @@ makeCard 'Library', action, {
 
 }
 
+makeCard "Lookout", action, {
+  cost: 3
+  actions: +1
+
+  playEffect: (state) ->
+    drawn = state.getCardsFromDeck(state.current, 3)
+    state.log("...drawing #{drawn}.")
+    state.current.setAside = drawn
+    trash = state.current.ai.choose('trash', state, drawn)
+    if trash isnt null
+      # Trash the card, with the side effect of removing it from the choice
+      # list.
+      state.log("...trashing #{trash}.")
+      state.current.setAside.remove(trash)
+    
+    discard = state.current.ai.choose('discard', state, drawn)
+    if discard isnt null
+      transferCard(discard, state.current.setAside, state.current.discard)
+      state.log("...discarding #{discard}.")
+    
+    # Put the remaining card back on the deck.
+    state.log("...putting #{drawn} back on the deck.")
+    state.current.draw = state.current.setAside.concat(state.current.draw)
+    state.current.setAside = []
+}
+
 makeCard "Masquerade", action, {
   cost: 3
   cards: +2
@@ -1426,8 +1452,8 @@ makeCard 'Wishing Well', action, {
         state.log("...revealing a #{card} and keeping it.")
         state.current.hand.push(card)
       else
-        state.log("...revealing a #{card} and discarding it.")
-        state.current.discard.push(card)
+        state.log("...revealing a #{card} and putting it back.")
+        state.current.draw.unshift(card)
     else
       state.log("...drawing nothing.")
 }
