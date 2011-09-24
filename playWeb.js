@@ -231,7 +231,7 @@
       return ["Vineyard", "Colony", "Duke", "Duchy", "Gardens", "Province", "Curse", "Estate"];
     };
     BasicAI.prototype.discardValue = function(state, card, my) {
-      if (card.actions === 0 && my.actionBalance() < 0) {
+      if ((card.actions === 0 && my.actionBalance() <= 0) || (my.actions === 0)) {
         return 20 - card.cost;
       } else {
         return 0 - card.cost;
@@ -950,9 +950,8 @@
       return false;
     },
     playEffect: function(state) {
-      state.gainCard(state.current, c.Gold);
-      state.log("...putting the Gold on top of the deck.");
-      return transferCardToTop(c.Gold, state.current.discard, state.current.draw);
+      state.gainCard(state.current, c.Gold, 'draw');
+      return state.log("...putting the Gold on top of the deck.");
     }
   });
   makeCard('Bank', c.Silver, {
