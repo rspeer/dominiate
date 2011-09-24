@@ -1,4 +1,4 @@
-Cards that are done (89)
+Cards that are done (94)
 ========================
 Adventurer
 Alchemist
@@ -23,6 +23,7 @@ Diadem
 Duchy
 Duke
 Estate
+Expand
 Explorer
 Fairgrounds
 Familiar
@@ -48,6 +49,7 @@ Masquerade
 Menagerie
 Merchant Ship
 Militia
+Mine
 Moat
 Monument
 Moneylender
@@ -61,6 +63,8 @@ Potion
 Princess
 Province
 Quarry
+Remake
+Remodel
 Royal Seal
 Sea Hag
 Shanty Town
@@ -76,6 +80,7 @@ Treasure Map
 Tribute
 Trusty Steed
 University
+Upgrade
 Vault
 Venture
 Village
@@ -90,7 +95,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (52)
+Cards that still need to be coded (49)
 ======================================
 Apothecary
 Apprentice
@@ -103,7 +108,6 @@ Courtyard
 Cutpurse
 Embargo
 Envoy
-Expand
 Feast
 Forge
 Fortune Teller
@@ -115,7 +119,6 @@ Jester
 King's Court
 Loan
 Lookout
-Mine
 Mining Village
 Minion
 Mint
@@ -126,8 +129,6 @@ Pearl Diver
 Pirate Ship
 Possession (will require entirely new kinds of AI decisions)
 Rabble
-Remake
-Remodel
 Saboteur
 Salvager
 Scout
@@ -142,5 +143,4 @@ Thief
 Throne Room
 Transmute
 Treasury
-Upgrade
 Young Witch
