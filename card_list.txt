@@ -1,4 +1,4 @@
-Cards that are done (94)
+Cards that are done (98)
 ========================
 Adventurer
 Alchemist
@@ -9,6 +9,7 @@ Bank
 Baron
 Bazaar
 Bridge
+Bureaucrat
 Caravan
 Cellar
 Chancellor
@@ -51,6 +52,7 @@ Menagerie
 Merchant Ship
 Militia
 Mine
+Mint
 Moat
 Monument
 Moneylender
@@ -67,6 +69,7 @@ Quarry
 Remake
 Remodel
 Royal Seal
+Scout
 Sea Hag
 Shanty Town
 Silver
@@ -96,51 +99,50 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (47)
+Cards that still need to be coded (43)
 ======================================
+Cards marked with ! should be easy to do, given code that already exists.
+
 Apprentice
 Bishop
 Black Market
-Bureaucrat
 Contraband
-Counting House
+Counting House!
 Courtyard
-Cutpurse
+Cutpurse!
 Embargo
 Envoy
-Feast
+Feast!
 Forge
-Fortune Teller
-Golem
+Fortune Teller!
+Golem!
 Hamlet
-Herbalist
+Herbalist!
 Island
 Jester
 King's Court
-Loan
-Lookout
+Loan!
+Lookout!
 Mining Village
 Minion
-Mint
 Native Village
-Navigator
+Navigator (probably requires hand evaluation)
 Outpost
-Pearl Diver
+Pearl Diver!
 Pirate Ship
 Possession (will require entirely new kinds of AI decisions)
-Rabble
-Saboteur
+Rabble!
+Saboteur!
 Salvager
-Scout
 Scrying Pool
 Secret Chamber
 Smugglers
 Spy
 Stash
 Swindler
-Talisman
-Thief
+Talisman!
+Thief!
 Throne Room
 Transmute
-Treasury
+Treasury!
 Young Witch

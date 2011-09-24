@@ -126,13 +126,18 @@ class BasicAI
     my = this.myPlayer(state)
     priorityfunc = this[type+'Priority']
     valuefunc = this[type+'Value']
-    priority = priorityfunc(state, my)
+    if priorityfunc?
+      priority = priorityfunc(state, my)
+    else
+      priority = []
 
     index = priority.indexOf(stringify(choice))
     if index != -1
       return (priority.length - index) * 100
-    else
+    else if valuefunc?
       return valuefunc(state, choice, my)
+    else
+      return 0
  
   # The top-level "choose" function takes a decision type, the current state,
   # and a list of choices. It delegates to other functions with the appropriate
@@ -221,7 +226,7 @@ class BasicAI
     # give us something.
     "Tournament"
     "Menagerie"
-    "Shanty Town" if my.actions == 1
+    "Shanty Town" if my.actions < 2
     # Seventh priority: terminals. Of course, Nobles might be a non-terminal
     # if we decide we need the actions more than the cards.
     "Nobles"
@@ -275,7 +280,8 @@ class BasicAI
     "Chapel" if my.ai.wantsToTrash(state)
     "Trade Route" if my.ai.wantsToTrash(state)
     "Mint" if my.ai.choose('mint', state, my.hand)
-    "Conspirator"
+    "Bureaucrat"
+    "Conspirator" if my.actions < 2
     "Moat"
     "Library" if my.hand.length <= 6
     "Watchtower" if my.hand.length <= 5
@@ -285,11 +291,13 @@ class BasicAI
     "Library" if my.hand.length <= 7
     "Watchtower" if my.hand.length <= 6
     # Eighth priority: cards that have become useless. Maybe they'll decrease
-    # the cost of Peddler or something.
+    # the cost of Peddler, trigger Conspirator, or something.
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Shanty Town"
     "Chapel"
     "Library"
+    # Ninth priority: Conspirator when +actions remain.
+    "Conspirator"
     # At this point, we take no action if that choice is available.
     null
     # Nope, something is forcing us to take an action.
@@ -356,6 +364,7 @@ class BasicAI
   discardPriority: (state, my) -> [
     "Vineyard"
     "Colony"
+    "Duke"
     "Duchy"
     "Gardens"
     "Province"  # Provinces are occasionally useful in hand
@@ -363,16 +372,21 @@ class BasicAI
     "Estate"
   ]
 
-  discardValue: (state, card, my) ->
+  discardValue: (state, card, my) =>
     # If we can discard excess actions, do so. Otherwise, discard the cheapest
-    # card. Victory cards would already have been discarded by discardPriority.
+    # cards. Victory cards would already have been discarded by discardPriority.
     if card.actions == 0 and my.actionBalance() < 0
-      1
+      20 - card.cost
     else
       0 - card.cost
-
-  # TODO: discardValue function
   
+  # Putting a card back on the deck uses the same preference order as
+  # discarding.
+  putOnDeckPriority: (state, my) =>
+    this.discardPriority(state, my)
+
+  putOnDeckValue: (state, card, my) => this.discardValue(state, card, my)
+
   # Like the `discardPriority`, the default `trashPriority` is sufficient for
   # Big Money but won't be able to handle tough decisions for other
   # strategies.

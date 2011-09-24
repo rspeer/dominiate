@@ -606,17 +606,24 @@ makeCard 'Bridge', action, {
       state.bridges += 1
 }
 
-###
-# not defining this yet; involves implementing a possibly-important but
-# very boring decision
 makeCard 'Bureaucrat', action, {
   cost: 4
   isAttack: true
   playEffect: (state) ->
     state.attackOpponents (opp) ->
+      victory = []
+      for card in opp.hand
+        if card.isVictory
+          victory.push(card)
+      if victory.length == 0
+        state.revealHand(opp)
+        state.log("#{opp.ai} reveals a hand with no Victory cards.")
+      else
+        choice = opp.ai.choose('putOnDeck', state, victory)
+        transferCardToTop(choice, opp.hand, opp.draw)
+        state.log("#{opp.ai} returns #{choice} to the top of the deck.")
       
 }
-###
 
 makeCard 'Cellar', action, {
   cost: 2
