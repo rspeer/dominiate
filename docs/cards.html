@@ -478,9 +478,8 @@ and others, which go temporarily to the setAside pile.</p>             </td>    
   <span class="nv">mayBeBought: </span><span class="nf">(state) -&gt;</span> <span class="kc">false</span>
 
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
-    <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">,</span> <span class="s1">&#39;draw&#39;</span><span class="p">)</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...putting the Gold on top of the deck.&quot;</span><span class="p">)</span>
-    <span class="nx">transferCardToTop</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Gold</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="nx">makeCard</span> <span class="s1">&#39;Bank&#39;</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Silver</span><span class="p">,</span> <span class="p">{</span>
