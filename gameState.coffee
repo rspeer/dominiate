@@ -312,6 +312,14 @@ class PlayerState
     this.log("#{@ai} trashes #{card}.")
     @hand.remove(card)
   
+  doPutOnDeck: (card) ->
+    if card not in @hand
+      this.warn("#{@ai} has no #{card} to put on deck.")
+      return
+    this.log("#{@ai} puts #{card} on deck.")
+    @hand.remove(card)
+    @draw.push(card)
+  
   shuffle: () ->
     this.log("(#{@ai} shuffles.)")
     if @draw.length > 0

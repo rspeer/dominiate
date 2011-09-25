@@ -21,6 +21,7 @@ Copper
 Coppersmith
 Council Room
 Counting House
+Courtyard
 Curse
 Diadem
 Duchy
@@ -113,6 +114,7 @@ Cutpurse
 Feast
 Fortune Teller
 Golem
+Ghost Ship
 Loan
 Pearl Diver
 Rabble
@@ -128,7 +130,6 @@ These generally require some decision-making code that doesn't exist yet.
 Apprentice
 Bishop
 Contraband
-Courtyard
 Embargo
 Envoy
 Forge
