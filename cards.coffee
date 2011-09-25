@@ -711,6 +711,15 @@ makeCard 'Council Room', action, {
       state.drawCards(opp, 1)
 }
 
+makeCard 'Counting House', action, {
+  cost: 5
+  playEffect: (state) ->
+    coppersFromDiscard = (card for card in state.current.discard when card==c.Copper)
+    state.current.discard = (card for card in state.current.discard when card!=c.Copper)
+    Array::push.apply state.current.hand, coppersFromDiscard
+    state.log("#{state.current.ai} puts " + coppersFromDiscard.length + " Coppers into his hand.");
+}
+
 makeCard 'Diadem', c.Silver, {
   cost: 0
   isPrize: true
