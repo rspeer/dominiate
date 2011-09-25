@@ -657,7 +657,7 @@ class State
       # Handle cards such as Talisman that respond to cards being bought.
       for i in [@current.inPlay.length-1...-1]
         cardInPlay = @current.inPlay[i]
-        cardInPlay.buyInPlayEffect(this, card)
+        cardInPlay.buyInPlayEffect(this, choice)
 
       # Gain victory for each Goons in play.
       goonses = @current.countInPlay('Goons')
@@ -775,7 +775,7 @@ class State
   # So far, nothing happens as a result, but in the future, AIs might
   # be able to take advantage of the information.
   revealHand: (player) ->
-  
+    this.log("#{player.ai} reveals the hand (#{player.hand}).")
   # `drawCards` causes the player to draw `num` cards.
   #
   # This currently passes through directly to the PlayerState, without
