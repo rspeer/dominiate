@@ -216,6 +216,7 @@ class BasicAI
     "Lighthouse"
     # Fifth priority: terminal card-drawers, if we have actions to spare.
     "Library" if my.actions > 1 and my.hand.length <= 4
+    "Rabble" if my.actions > 1
     "Smithy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
@@ -260,8 +261,9 @@ class BasicAI
     "Mine"
     "Coppersmith" if my.countInHand("Copper") >= 3
     "Library" if my.hand.length <= 4
-    "Watchtower" if my.hand.length <= 3
+    "Rabble"
     "Smithy"
+    "Watchtower" if my.hand.length <= 3
     "Council Room"
     "Library" if my.hand.length <= 5
     "Watchtower" if my.hand.length <= 4
@@ -297,7 +299,6 @@ class BasicAI
     "Workshop"
     "Coppersmith"
     "Library" if my.hand.length <= 7
-    "Watchtower" if my.hand.length <= 6
     # Eighth priority: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler, trigger Conspirator, or something.
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1

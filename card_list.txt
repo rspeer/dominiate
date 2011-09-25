@@ -1,4 +1,4 @@
-Cards that are done (102)
+Cards that are done (105)
 =========================
 Adventurer
 Alchemist
@@ -106,7 +106,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (40)
+Cards that still need to be coded (37)
 ======================================
 
 Easy cards

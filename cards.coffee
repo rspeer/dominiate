@@ -1205,6 +1205,29 @@ makeCard 'Quarry', c.Silver, {
   playEffect: (state) -> state.quarries += 1
 }
 
+makeCard 'Rabble', action, {
+  cost: 5
+  cards: +3
+  isAttack: true
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      drawn = opp.getCardsFromDeck(3)
+      state.log("#{opp.ai} draws #{drawn}.")
+
+      for card in drawn
+        if card.isTreasure or card.isAction
+          state.current.discard.push(card)
+          state.log("...discarding #{card}.")
+        else
+          state.current.setAside.push(card)
+      
+      if state.current.setAside.length > 0
+        order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current)
+        state.log("...putting #{order} back on the deck.")
+        state.current.draw = order.concat(state.current.draw)
+        state.current.setAside = []
+}
+
 makeCard 'Royal Seal', c.Silver, {
   cost: 5
 
