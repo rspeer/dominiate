@@ -271,6 +271,7 @@ class BasicAI
     "Explorer"
     "Woodcutter"
     "Chancellor"
+    "Counting House"
     "Coppersmith" if my.countInHand("Copper") >= 2
     # Play an Ambassador if our hand has something we'd want to discard.
     #
