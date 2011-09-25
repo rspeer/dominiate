@@ -217,6 +217,7 @@ class BasicAI
     "Smithy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
+    "Courtyard" if my.actions > 1 and my.hand.lenth <= 3
     # Sixth priority: card-cycling that might improve the hand.
     "Familiar" # after other non-terminals in case non-terminal draws KC/TR
     "Pawn"
@@ -262,6 +263,7 @@ class BasicAI
     "Council Room"
     "Library" if my.hand.length <= 5
     "Watchtower" if my.hand.length <= 4
+    "Courtyard" if my.hand.length > 0
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
     "Monument"
@@ -271,7 +273,9 @@ class BasicAI
     "Explorer"
     "Woodcutter"
     "Chancellor"
+    "Counting House"
     "Coppersmith" if my.countInHand("Copper") >= 2
+    "Outpost" if state.extraturn == false
     # Play an Ambassador if our hand has something we'd want to discard.
     #
     # Here the AI has to refer to itself indirectly, as `my.ai`. `this`

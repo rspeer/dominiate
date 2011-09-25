@@ -20,6 +20,8 @@ Conspirator
 Copper
 Coppersmith
 Council Room
+Counting House
+Courtyard
 Curse
 Diadem
 Duchy
@@ -60,6 +62,7 @@ Monument
 Moneylender
 Mountebank
 Nobles
+Outpost
 Pawn
 Peddler
 Philosopher's Stone
@@ -108,11 +111,11 @@ Easy cards
 ----------
 The code to make these cards work already mostly exists.
 
-Counting House
 Cutpurse
 Feast
 Fortune Teller
 Golem
+Ghost Ship
 Loan
 Pearl Diver
 Rabble
@@ -128,7 +131,6 @@ These generally require some decision-making code that doesn't exist yet.
 Apprentice
 Bishop
 Contraband
-Courtyard
 Embargo
 Envoy
 Forge
@@ -157,5 +159,4 @@ Young Witch (requires a well-defined Bane card)
 Stash (requires a decision mid-shuffle)
 Black Market (requires a more coherent definition of the Supply)
 Navigator (probably requires a function for evaluating a hand)
-Outpost (requires more state, with weird edge cases)
 Possession (will require entirely new kinds of AI decisions)

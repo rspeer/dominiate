@@ -355,6 +355,11 @@ makeCard 'Lighthouse', duration, {
   # The protecting effect is defined in gameState.
 }
 
+makeCard 'Outpost', duration, {
+  cost: 5
+  #effect implemented by gameState
+} 
+
 makeCard 'Tactician', duration, {
   cost: 5
   durationActions: +1
@@ -710,6 +715,24 @@ makeCard 'Council Room', action, {
     for opp in state.players[1...]
       state.drawCards(opp, 1)
 }
+
+makeCard 'Counting House', action, {
+  cost: 5
+  playEffect: (state) ->
+    coppersFromDiscard = (card for card in state.current.discard when card==c.Copper)
+    state.current.discard = (card for card in state.current.discard when card!=c.Copper)
+    Array::push.apply state.current.hand, coppersFromDiscard
+    state.log("#{state.current.ai} puts " + coppersFromDiscard.length + " Coppers into his hand.")
+}
+
+makeCard 'Courtyard', action, {
+  cost: 2
+  cards: 3
+  playEffect: (state) ->
+    card = state.current.ai.choose('putOnDeck', state, state.current.hand)
+    state.current.doPutOnDeck(card)
+}
+
 
 makeCard 'Diadem', c.Silver, {
   cost: 0
@@ -1269,7 +1292,7 @@ makeCard 'Torturer', action, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       if opp.ai.choose('torturer', state, ['curse', 'discard']) == 'curse'
-        state.gainCard(opp, c.Curse)
+        state.gainCard(opp, c.Curse, 'hand')
       else
         state.requireDiscard(opp, 2)
 }
