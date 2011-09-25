@@ -355,6 +355,11 @@ makeCard 'Lighthouse', duration, {
   # The protecting effect is defined in gameState.
 }
 
+makeCard 'Outpost', duration, {
+  cost: 5
+  #effect implemented by gameState
+} 
+
 makeCard 'Tactician', duration, {
   cost: 5
   durationActions: +1

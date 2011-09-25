@@ -275,6 +275,7 @@ class BasicAI
     "Chancellor"
     "Counting House"
     "Coppersmith" if my.countInHand("Copper") >= 2
+    "Outpost" if state.extraturn == false
     # Play an Ambassador if our hand has something we'd want to discard.
     #
     # Here the AI has to refer to itself indirectly, as `my.ai`. `this`
