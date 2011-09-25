@@ -711,6 +711,20 @@ makeCard 'Council Room', action, {
       state.drawCards(opp, 1)
 }
 
+makeCard 'Cutpurse', action, {
+  cost: 4
+  coins: +2
+  isAttack: true
+
+  playEffect: (state) ->
+      state.attackOpponents (opp) ->
+        if c.Copper in opp.hand
+          opp.doDiscard(c.Copper)
+        else
+          state.log("#{opp.ai} has no Copper in hand.")
+          state.revealHand(opp)
+}
+
 makeCard 'Diadem', c.Silver, {
   cost: 0
   isPrize: true
@@ -1312,6 +1326,27 @@ makeCard 'Treasure Map', action, {
           state.gainCard(state.current, c.Gold, 'draw')
           numGolds += 1
       state.log("…gaining #{numGolds} Golds, putting them on top of the deck.")      
+}
+
+makeCard 'Treasury', c.Market, {
+  buys: 0
+  
+  canTopDeck: yes
+
+  buyInPlayEffect: (state, card) ->
+    if card.isVictory      
+      c.Treasury.canTopDeck = no
+      
+  cleanupEffect: (state) ->    
+    if c.Treasury.canTopDeck
+      transferCardToTop(c.Treasury, state.current.discard, state.current.draw)
+      state.log("#{state.current.ai} returns a Treasury to the top of the deck.")
+    
+    
+    # canTopDeck must be reset with the last Treasury cleaned up so that the
+    # effect of buying a Victory card does not carry on to future turns
+    if c.Treasury not in state.current.inPlay
+      c.Treasury.canTopDeck = yes
 }
 
 makeCard 'Tribute', action, {
