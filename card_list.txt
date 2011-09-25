@@ -20,6 +20,7 @@ Conspirator
 Copper
 Coppersmith
 Council Room
+Counting House
 Curse
 Diadem
 Duchy
@@ -108,7 +109,6 @@ Easy cards
 ----------
 The code to make these cards work already mostly exists.
 
-Counting House
 Cutpurse
 Feast
 Fortune Teller
