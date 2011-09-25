@@ -312,6 +312,14 @@ class PlayerState
     this.log("#{@ai} trashes #{card}.")
     @hand.remove(card)
   
+  doPutOnDeck: (card) ->
+    if card not in @hand
+      this.warn("#{@ai} has no #{card} to put on deck.")
+      return
+    this.log("#{@ai} puts #{card} on deck.")
+    @hand.remove(card)
+    @draw.push(card)
+  
   shuffle: () ->
     this.log("(#{@ai} shuffles.)")
     if @draw.length > 0
@@ -391,7 +399,9 @@ class State
     @copperValue = 1
     @phase = 'start'
     @cache = {}
-
+    
+    @extraturn = false
+    
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
     @depth = 0
@@ -524,10 +534,15 @@ class State
   doPlay: () ->  
     switch @phase
       when 'start'
-        @current.turnsTaken += 1
-        this.log("\n== #{@current.ai}'s turn #{@current.turnsTaken} ==")
-        this.doDurationPhase()
-        @phase = 'action'
+        if not @extraturn
+          @current.turnsTaken += 1
+          this.log("\n== #{@current.ai}'s turn #{@current.turnsTaken} ==")
+          this.doDurationPhase()
+          @phase = 'action'
+        else
+          this.log("\n== #{@current.ai}'s turn #{@current.turnsTaken}+ ==")
+          this.doDurationPhase()
+          @phase = 'action'
       when 'action'
         this.doActionPhase()
         @phase = 'treasure'
@@ -539,7 +554,10 @@ class State
         @phase = 'cleanup'
       when 'cleanup'
         this.doCleanupPhase()
-        this.rotatePlayer()
+        if not @extraturn
+          this.rotatePlayer()
+        else
+          @phase = 'start'
   
   # `@current.duration` contains all cards that are in play with duration
   # effects. At the start of the turn, check all of these cards and run their
@@ -677,6 +695,8 @@ class State
       while c['Walled Village'] in @current.inPlay
         transferCardToTop(c['Walled Village'], @current.inPlay, @current.draw)
         this.log("#{@current.ai} returns a Walled Village to the top of the deck.")
+
+    @extraturn = not @extraturn and (c['Outpost'] in @current.inPlay)
     
     # Discard old duration cards.
     @current.discard = @current.discard.concat @current.duration
@@ -717,8 +737,16 @@ class State
     @bridges = 0
     @quarries = 0
 
-    # Finally, draw the next hand of five cards.
-    @current.drawCards(5)
+    #Announce extra turn
+    if @extraturn       
+      this.log("#{@current.ai} takes an extra turn from Outpost.")
+    
+    # Finally, draw the next hand of three/five cards.
+    if not (c.Outpost in @current.duration)
+      @current.drawCards(5)
+    else
+      @current.drawCards(3)
+
 
   # The player list is implemented so that the current player is always first
   # in the list; the list rotates after every turn.
