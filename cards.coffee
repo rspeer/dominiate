@@ -733,6 +733,19 @@ makeCard 'Courtyard', action, {
     state.current.doPutOnDeck(card)
 }
 
+makeCard 'Cutpurse', action, {
+  cost: 4
+  coins: +2
+  isAttack: true
+
+  playEffect: (state) ->
+      state.attackOpponents (opp) ->
+        if c.Copper in opp.hand
+          opp.doDiscard(c.Copper)
+        else
+          state.log("#{opp.ai} has no Copper in hand.")
+          state.revealHand(opp)
+}
 
 makeCard 'Diadem', c.Silver, {
   cost: 0
@@ -1335,6 +1348,19 @@ makeCard 'Treasure Map', action, {
           state.gainCard(state.current, c.Gold, 'draw')
           numGolds += 1
       state.log("…gaining #{numGolds} Golds, putting them on top of the deck.")      
+}
+
+makeCard 'Treasury', c.Market, {
+  buys: 0
+  
+  buyInPlayEffect: (state, card) ->
+    if card.isVictory
+      state.current.mayReturnTreasury = no
+      
+  cleanupEffect: (state) ->    
+    if state.current.mayReturnTreasury
+      transferCardToTop(c.Treasury, state.current.discard, state.current.draw)
+      state.log("#{state.current.ai} returns a Treasury to the top of the deck.")    
 }
 
 makeCard 'Tribute', action, {

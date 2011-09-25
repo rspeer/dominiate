@@ -1,4 +1,4 @@
-Cards that are done (100)
+Cards that are done (102)
 =========================
 Adventurer
 Alchemist
@@ -23,6 +23,7 @@ Council Room
 Counting House
 Courtyard
 Curse
+Cutpurse
 Diadem
 Duchy
 Duke
@@ -86,6 +87,7 @@ Tournament
 Trade Route
 Trading Post
 Treasure Map
+Treasury
 Tribute
 Trusty Steed
 University
@@ -104,14 +106,13 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (41)
+Cards that still need to be coded (40)
 ======================================
 
 Easy cards
 ----------
 The code to make these cards work already mostly exists.
 
-Cutpurse
 Feast
 Fortune Teller
 Golem
@@ -122,7 +123,6 @@ Rabble
 Saboteur
 Talisman
 Thief
-Treasury
 
 Not-so-easy cards
 -----------------
@@ -135,6 +135,7 @@ Embargo
 Envoy
 Forge
 Hamlet
+Haven
 Island
 Jester
 Mining Village

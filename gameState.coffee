@@ -1,4 +1,4 @@
-# Many modules begin with this "indecisive import" pattern. It's messy
+# Import `cards.coffee` using this "indecisive import" pattern. It's messy
 # but it gets the job done, and it's explained at the bottom of this
 # documentation.
 {c,transferCard,transferCardToTop} = require './cards' if exports?
@@ -41,8 +41,9 @@ class PlayerState
     @inPlay = []
     @duration = []
     @setAside = []
-    @moatProtected = false
+    @moatProtected = no
     @tacticians = 0  # number of Tacticians that will go to the duration area
+    @mayReturnTreasury = yes
     @turnsTaken = 0
 
     # To stack various card effects, we'll have to keep track of the location
@@ -345,6 +346,7 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
+    other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
     other.actionStack = @actionStack.slice(0)
@@ -375,7 +377,7 @@ class State
                 'Estate', 'Duchy', 'Province']
   
   # AIs can get at the `c` object that stores information about cards
-  # by looking up `state.c`.
+  # by looking up `state.cardInfo`.
   cardInfo: c
   
   # Set up the state at the start of the game. Takes these arguments:
@@ -675,7 +677,7 @@ class State
       # Handle cards such as Talisman that respond to cards being bought.
       for i in [@current.inPlay.length-1...-1]
         cardInPlay = @current.inPlay[i]
-        cardInPlay.buyInPlayEffect(this, card)
+        cardInPlay.buyInPlayEffect(this, choice)
 
       # Gain victory for each Goons in play.
       goonses = @current.countInPlay('Goons')
@@ -733,6 +735,7 @@ class State
     @current.coins = 0
     @current.potions = 0
     @current.tacticians = 0
+    @current.mayReturnTreasury = yes
     @copperValue = 1
     @bridges = 0
     @quarries = 0
@@ -803,7 +806,7 @@ class State
   # So far, nothing happens as a result, but in the future, AIs might
   # be able to take advantage of the information.
   revealHand: (player) ->
-  
+    this.log("#{player.ai} reveals the hand (#{player.hand}).")
   # `drawCards` causes the player to draw `num` cards.
   #
   # This currently passes through directly to the PlayerState, without
@@ -905,9 +908,9 @@ class State
     # The most straightforward reaction is Moat, which cancels the attack.
     # Set a flag on the PlayerState that indicates that the player has not
     # yet revealed a Moat.
-    player.moatProtected = false
+    player.moatProtected = no
     
-    # Iterate backwards because we might be removing things from the list
+    # Iterate backwards, because we might be removing things from the list.
     for i in [player.hand.length-1...-1]
       card = player.hand[i]
       if card.isReaction

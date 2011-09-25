@@ -208,7 +208,9 @@ class BasicAI
     "Caravan"
     "Market"
     "Peddler"
+    "Treasury"
     "Conspirator" if my.inPlay.length >= 2
+    "Familiar"
     "Great Hall"
     "Wishing Well"
     "Lighthouse"
@@ -219,7 +221,6 @@ class BasicAI
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and my.hand.lenth <= 3
     # Sixth priority: card-cycling that might improve the hand.
-    "Familiar" # after other non-terminals in case non-terminal draws KC/TR
     "Pawn"
     "Warehouse"
     "Cellar"
@@ -251,6 +252,7 @@ class BasicAI
     "Expand"
     "Remodel"
     "Militia"
+    "Cutpurse"
     "Bridge"
     "Horse Traders"
     "Steward"
