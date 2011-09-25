@@ -742,7 +742,7 @@ class State
       this.log("#{@current.ai} takes an extra turn from Outpost.")
     
     # Finally, draw the next hand of three/five cards.
-    if not c.Outpost in @current.duration 
+    if not (c.Outpost in @current.duration)
       @current.drawCards(5)
     else
       @current.drawCards(3)
