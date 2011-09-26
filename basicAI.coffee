@@ -338,6 +338,11 @@ class BasicAI
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
 
+  # Perhaps not the fastest way, but most fun
+  # Also perhaps redundant to chooseOrderOnDeck
+  sortByPriority: (list,state, my) =>
+    list.sort( (l) ->  (index for v, index in my.ai.actionPriority(state, my)).reduce (a,b) -> Math.min(a,b) )
+
   # `chooseOrderOnDeck` handles situations where multiple cards are returned
   # to the deck, such as Scout and Apothecary.
   #
@@ -389,9 +394,23 @@ class BasicAI
   
   # Putting a card back on the deck (from hand) uses the same preference order as
   # discarding.
-  putOnDeckPriority: (state, my) =>
-    this.discardPriority(state, my)
+   putOnDeckPriority: (state, my) -> [
+    #1) If no actions left, put back best Action
+    state.log("#{(card for card in my.hand when card?.isAction).sort( (card) -> my.ai.choiceToValue('action', state, card)) if my.countPlayableTerminals(state) == 0}")
+    state.log("#{my.countPlayableTerminals(state)}")
+    (card for card in my.hand when card?.isAction).sort( (card) -> my.ai.choiceToValue('action', state, card) )  if my.countPlayableTerminals(state) == 0
+    
+    #2) If not enough actions left, put back best Terminal you can't play
+    #state.log("#{(tmp=(my.ai.choiceToValue('action', state, card) for card in my.hand where card.getActions==0))[my.countPlayableTerminals(state) ... tmp.length] if my.countPlayableTerminals(state) > 0}")
+    #(tmp=(my.ai.choiceToValue('action', state, card) for card in my.hand where card.getActions==0))[my.countPlayableTerminals(state) ... tmp.length] if my.countPlayableTerminals(state) > 0
+    
+    #(tmp=(card for card in my.ai.sortByPriority(my.hand, state, state.current) when card.getActions()==0)).sortByPriority(state)[my.countPlayableTerminals(state) ... tmp.length]
 
+    #3) Put back as much money as you can
+        
+    #4) Put back the worst card
+  ]
+  
   putOnDeckValue: (state, card, my) =>
     this.discardValue(state, card, my)
   

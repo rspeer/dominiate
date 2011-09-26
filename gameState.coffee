@@ -154,6 +154,12 @@ class PlayerState
         total += card.coins
     total    
   
+  countPlayableTerminals: (state) ->
+    if (@actions>0)
+      @actions + ( (card.getActions(state) for card in this.hand).reduce (s,t) -> s + t)
+    else 0
+    
+   
   # `countInHand(card)` counts the number of copies of a card in hand.
   countInHand: (card) ->
     countStr(@hand, card)
