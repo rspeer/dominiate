@@ -298,6 +298,7 @@ class BasicAI
     "Watchtower" if my.hand.length <= 5
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
+    "Smugglers" if state.smugglerChoices().length > 1
     "Coppersmith"
     "Library" if my.hand.length <= 7
     # Eighth priority: cards that have become useless. Maybe they'll decrease

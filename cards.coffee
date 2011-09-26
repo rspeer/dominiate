@@ -1286,6 +1286,12 @@ makeCard 'Shanty Town', action, {
     state.drawCards(state.current, state.current.shantyTownDraws())
 }
 
+makeCard 'Smugglers', action, {
+  cost: 3
+  playEffect: (state) ->
+    state.gainOneOf(state.current, state.smugglerChoices())
+}
+
 makeCard 'Steward', action, {
   cost: 3
   playEffect:

@@ -517,6 +517,17 @@ class State
     @cache.gainsToEndGame = minimum
     minimum
   
+  # `smugglerChoices` determines the set of cards that could be gained with a
+  # Smuggler.
+  smugglerChoices: () ->
+    choices = [null]
+    prevPlayer = @players[@nPlayers - 1]
+    for card in prevPlayer.gainedThisTurn
+      [coins, potions] = card.getCost(this)
+      if potions == 0 and coins <= 6
+        choices.push(card)
+    choices
+  
   #### Playing a turn
   #
   # `doPlay` performs the next step of the game, which is a particular phase
