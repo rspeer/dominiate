@@ -1,6 +1,5 @@
-# Import `cards.coffee` using this "indecisive import" pattern. It's messy
-# but it gets the job done, and it's explained at the bottom of this
-# documentation.
+# This "indecisive import" pattern is messy but it gets the job done, and it's
+# explained at the bottom of this documentation.
 {c,transferCard,transferCardToTop} = require './cards' if exports?
 
 # The PlayerState class
@@ -152,7 +151,7 @@ class PlayerState
     for card in this.hand
       if card.isTreasure
         total += card.coins
-    total    
+    total
   
   # `countInHand(card)` counts the number of copies of a card in hand.
   countInHand: (card) ->
