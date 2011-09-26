@@ -1,4 +1,4 @@
-Cards that are done (105)
+Cards that are done (106)
 =========================
 Adventurer
 Alchemist
@@ -72,6 +72,7 @@ Potion
 Princess
 Province
 Quarry
+Rabble
 Remake
 Remodel
 Royal Seal
@@ -106,7 +107,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (37)
+Cards that still need to be coded (36)
 ======================================
 
 Easy cards
@@ -119,7 +120,6 @@ Golem
 Ghost Ship
 Loan
 Pearl Diver
-Rabble
 Saboteur
 Talisman
 Thief

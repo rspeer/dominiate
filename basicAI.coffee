@@ -367,9 +367,7 @@ class BasicAI
   # priority list, especially one that knows about action cards.
   #
   # It doesn't understand
-  # discarding cards to make Shanty Town or Menagerie work, for example, and
-  # it doesn't recognize when dead terminal actions would be good to discard.
-  # Defining that may require a `discardValue` function.
+  # discarding cards to make Shanty Town or Menagerie work, for example.
   discardPriority: (state, my) -> [
     "Vineyard"
     "Colony"
@@ -404,16 +402,12 @@ class BasicAI
   herbalistValue: (state, card, my) =>
     this.mintValue(state, card, my)
 
-  # Like the `discardPriority`, the default `trashPriority` is sufficient for
-  # Big Money but won't be able to handle tough decisions for other
-  # strategies.
   trashPriority: (state, my) -> [
     "Curse"
     "Estate" if state.gainsToEndGame() > 4
     "Copper" if my.getTotalMoney() > 4
     "Potion" if my.turnsTaken >= 10
     "Estate" if state.gainsToEndGame() > 2
-    null
   ]
 
   # If we have to trash a card we don't want to, assign a value to each card.
@@ -424,46 +418,29 @@ class BasicAI
   # When presented with a card with simple but variable benefits, such as
   # Nobles, this is the default way for an AI to decide which benefit it wants.
   # This function should actually handle a number of common situations.
-  #
-  # TODO: rewrite this as a `benefitValue` function.
-  chooseBenefit: (state, choices) ->
-    my = this.myPlayer(state)
+  benefitValue: (state, choice, my) ->
     buyValue = 1
     cardValue = 2
     coinValue = 3
     trashValue = 4      # if there are cards we want to trash
     actionValue = 10    # if we need more actions
-    trashableCards = 0
 
     actionBalance = my.actionBalance()
     usableActions = Math.max(0, -actionBalance)
 
-    # Draw cards if we have a surplus of actions
     if actionBalance >= 1
       cardValue += actionBalance
-
-    # How many cards do we want to trash?
-    for card in my.hand
-      if this.chooseTrash(state, [card, null]) is card
-        trashableCards += 1
+    if my.ai.wantsToTrash(state) < (choice.trash ? 0)
+      trashValue = -4
     
-    best = null
-    bestValue = -1000
-    for choice in choices
-      value = cardValue * (choice.cards ? 0)
-      value += coinValue * (choice.coins ? 0)
-      value += buyValue * (choice.buys ? 0)
-      trashes = (choice.trashes ? 0)
-      if trashes <= this.wantsToTrash(state)
-        value += trashValue * trashes
-      else
-        value -= trashValue * trashes
-      value += actionValue * Math.min((choice.actions ? 0), usableActions)
-      if value > bestValue
-        best = choice
-        bestValue = value
-    best
-  
+    value = cardValue * (choice.cards ? 0)
+    value += coinValue * (choice.coins ? 0)
+    value += buyValue * (choice.buys ? 0)
+    value += trashValue * (choice.trash ? 0)
+    value += actionValue * Math.min((choice.actions ? 0), usableActions)
+    #state.log("Benefit: #{JSON.stringify(choice)} / Value: #{value} / wants to trash: #{my.ai.wantsToTrash(state)}")
+    value
+    
   # `ambassadorPriority` chooses a card to Ambassador and how many of it to
   # return.
   #

@@ -1140,12 +1140,12 @@ makeCard 'Nobles', action, {
   vp: 2
 
   # Nobles is an example of a card that allows a choice from multiple
-  # simple effects. We implement this using the `chooseBenefit` AI method,
+  # simple effects. We implement this using the `choose('benefit')` AI method,
   # which is passed a list of benefit objects, one of which it will choose
   # to apply to the state.
   playEffect:
     (state) ->
-      benefit = state.current.ai.chooseBenefit(state, [
+      benefit = state.current.ai.choose('benefit', state, [
         {actions: 2},
         {cards: 3}
       ])
@@ -1156,7 +1156,7 @@ makeCard 'Pawn', action, {
   cost: 2
   playEffect:
     (state) ->
-      benefit = state.current.ai.chooseBenefit(state, [
+      benefit = state.current.ai.choose('benefit', state, [
         {cards: 1, actions: 1},
         {cards: 1, buys: 1},
         {cards: 1, coins: 1},
@@ -1290,7 +1290,7 @@ makeCard 'Steward', action, {
   cost: 3
   playEffect:
     (state) ->
-      benefit = state.current.ai.chooseBenefit(state, [
+      benefit = state.current.ai.choose('benefit', state, [
         {cards: 2},
         {coins: 2},
         {trash: 2}
@@ -1409,7 +1409,7 @@ makeCard 'Tribute', action, {
 makeCard "Trusty Steed", c["Bag of Gold"], {
   actions: 0
   playEffect: (state) ->
-    benefit = state.current.ai.chooseBenefit(state, [
+    benefit = state.current.ai.choose('benefit', state, [
       {cards: 2, actions: 2},
       {cards: 2, coins: 2},
       {actions: 2, coins: 2},
