@@ -247,52 +247,32 @@
       return this.mintValue(state, card, my);
     };
     BasicAI.prototype.trashPriority = function(state, my) {
-      return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, my.getTotalMoney() > 4 ? "Copper" : void 0, my.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0, null];
+      return ["Curse", state.gainsToEndGame() > 4 ? "Estate" : void 0, my.getTotalMoney() > 4 ? "Copper" : void 0, my.turnsTaken >= 10 ? "Potion" : void 0, state.gainsToEndGame() > 2 ? "Estate" : void 0];
     };
     BasicAI.prototype.trashValue = function(state, card, my) {
       return 0 - card.vp - card.cost;
     };
-    BasicAI.prototype.chooseBenefit = function(state, choices) {
-      var actionBalance, actionValue, best, bestValue, buyValue, card, cardValue, choice, coinValue, my, trashValue, trashableCards, trashes, usableActions, value, _i, _j, _len, _len2, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
-      my = this.myPlayer(state);
+    BasicAI.prototype.benefitValue = function(state, choice, my) {
+      var actionBalance, actionValue, buyValue, cardValue, coinValue, trashValue, usableActions, value, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
       buyValue = 1;
       cardValue = 2;
       coinValue = 3;
       trashValue = 4;
       actionValue = 10;
-      trashableCards = 0;
       actionBalance = my.actionBalance();
       usableActions = Math.max(0, -actionBalance);
       if (actionBalance >= 1) {
         cardValue += actionBalance;
       }
-      _ref = my.hand;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
-        if (this.chooseTrash(state, [card, null]) === card) {
-          trashableCards += 1;
-        }
+      if (my.ai.wantsToTrash(state) < ((_ref = choice.trash) != null ? _ref : 0)) {
+        trashValue = -4;
       }
-      best = null;
-      bestValue = -1000;
-      for (_j = 0, _len2 = choices.length; _j < _len2; _j++) {
-        choice = choices[_j];
-        value = cardValue * ((_ref2 = choice.cards) != null ? _ref2 : 0);
-        value += coinValue * ((_ref3 = choice.coins) != null ? _ref3 : 0);
-        value += buyValue * ((_ref4 = choice.buys) != null ? _ref4 : 0);
-        trashes = (_ref5 = choice.trashes) != null ? _ref5 : 0;
-        if (trashes <= this.wantsToTrash(state)) {
-          value += trashValue * trashes;
-        } else {
-          value -= trashValue * trashes;
-        }
-        value += actionValue * Math.min((_ref6 = choice.actions) != null ? _ref6 : 0, usableActions);
-        if (value > bestValue) {
-          best = choice;
-          bestValue = value;
-        }
-      }
-      return best;
+      value = cardValue * ((_ref2 = choice.cards) != null ? _ref2 : 0);
+      value += coinValue * ((_ref3 = choice.coins) != null ? _ref3 : 0);
+      value += buyValue * ((_ref4 = choice.buys) != null ? _ref4 : 0);
+      value += trashValue * ((_ref5 = choice.trash) != null ? _ref5 : 0);
+      value += actionValue * Math.min((_ref6 = choice.actions) != null ? _ref6 : 0, usableActions);
+      return value;
     };
     BasicAI.prototype.ambassadorPriority = function(state, my) {
       return ["Curse,2", "Curse,1", "Curse,0", "Ambassador,2", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"];
@@ -1589,7 +1569,7 @@
     vp: 2,
     playEffect: function(state) {
       var benefit;
-      benefit = state.current.ai.chooseBenefit(state, [
+      benefit = state.current.ai.choose('benefit', state, [
         {
           actions: 2
         }, {
@@ -1603,7 +1583,7 @@
     cost: 2,
     playEffect: function(state) {
       var benefit;
-      benefit = state.current.ai.chooseBenefit(state, [
+      benefit = state.current.ai.choose('benefit', state, [
         {
           cards: 1,
           actions: 1
@@ -1766,7 +1746,7 @@
     cost: 3,
     playEffect: function(state) {
       var benefit;
-      benefit = state.current.ai.chooseBenefit(state, [
+      benefit = state.current.ai.choose('benefit', state, [
         {
           cards: 2
         }, {
@@ -1908,7 +1888,7 @@
     actions: 0,
     playEffect: function(state) {
       var benefit;
-      benefit = state.current.ai.chooseBenefit(state, [
+      benefit = state.current.ai.choose('benefit', state, [
         {
           cards: 2,
           actions: 2
