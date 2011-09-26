@@ -1139,8 +1139,14 @@ fished out of the opponent's discard pile</p>             </td>             <td 
   <span class="nv">cost: </span><span class="mi">3</span>
   <span class="nv">actions: </span><span class="o">+</span><span class="mi">2</span>
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
-    <span class="nx">state</span><span class="p">.</span><span class="nx">revealHand</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">revealHand</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">)</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">shantyTownDraws</span><span class="p">())</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Smugglers&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">smugglerChoices</span><span class="p">())</span>
 <span class="p">}</span>
 
 <span class="nx">makeCard</span> <span class="s1">&#39;Steward&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
@@ -1166,7 +1172,7 @@ fished out of the opponent's discard pile</p>             </td>             <td 
           <span class="nv">opposingProvince = </span><span class="kc">true</span>
       <span class="k">if</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Province</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span>
         <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} reveals a Province.&quot;</span><span class="p">)</span>
-        <span class="nv">choices = </span><span class="nx">state</span><span class="p">.</span><span class="nx">prizes</span>
+        <span class="nv">choices = </span><span class="nx">state</span><span class="p">.</span><span class="nx">prizes</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">supply</span><span class="p">[</span><span class="nx">c</span><span class="p">.</span><span class="nx">Duchy</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
           <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">c</span><span class="p">.</span><span class="nx">Duchy</span><span class="p">)</span>
         <span class="nv">choice = </span><span class="nx">state</span><span class="p">.</span><span class="nx">gainOneOf</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">choices</span><span class="p">,</span> <span class="s1">&#39;draw&#39;</span><span class="p">)</span>
@@ -1344,6 +1350,7 @@ fished out of the opponent's discard pile</p>             </td>             <td 
 
 <span class="nx">makeCard</span> <span class="s1">&#39;Warehouse&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">actions: </span><span class="o">+</span><span class="mi">1</span>
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
     <span class="nx">state</span><span class="p">.</span><span class="nx">requireDiscard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
