@@ -1,6 +1,5 @@
-# Import `cards.coffee` using this "indecisive import" pattern. It's messy
-# but it gets the job done, and it's explained at the bottom of this
-# documentation.
+# This "indecisive import" pattern is messy but it gets the job done, and it's
+# explained at the bottom of this documentation.
 {c,transferCard,transferCardToTop} = require './cards' if exports?
 
 # The PlayerState class
@@ -41,6 +40,7 @@ class PlayerState
     @inPlay = []
     @duration = []
     @setAside = []
+    @gainedThisTurn = []
     @moatProtected = no
     @tacticians = 0  # number of Tacticians that will go to the duration area
     @mayReturnTreasury = yes
@@ -152,7 +152,7 @@ class PlayerState
     for card in this.hand
       if card.isTreasure
         total += card.coins
-    total    
+    total
   
   countPlayableTerminals: (state) ->
     if (@actions>0)
@@ -352,6 +352,7 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
+    other.gainedThisTurn = @gainedThisTurn
     other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
@@ -406,9 +407,10 @@ class State
     @quarries = 0
     @copperValue = 1
     @phase = 'start'
+    @extraturn = false
+    
     @cache = {}
     
-    @extraturn = false
     
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
@@ -521,6 +523,17 @@ class State
     @cache.gainsToEndGame = minimum
     minimum
   
+  # `smugglerChoices` determines the set of cards that could be gained with a
+  # Smuggler.
+  smugglerChoices: () ->
+    choices = [null]
+    prevPlayer = @players[@nPlayers - 1]
+    for card in prevPlayer.gainedThisTurn
+      [coins, potions] = card.getCost(this)
+      if potions == 0 and coins <= 6
+        choices.push(card)
+    choices
+  
   #### Playing a turn
   #
   # `doPlay` performs the next step of the game, which is a particular phase
@@ -571,6 +584,14 @@ class State
   # effects. At the start of the turn, check all of these cards and run their
   # `onDuration` method.
   doDurationPhase: () ->
+    # Clear out the list of cards gained. (We clear it here because this
+    # information is actually used by Smugglers.)
+    @current.gainedThisTurn = []
+
+    if this.depth == 0 and this.debug?
+      estimatedBuys = @current.ai.pessimisticCardsGained(this)
+      this.log("#{@current.ai} plans to buy #{estimatedBuys}.")
+    
     # iterate backwards because cards might move
     for i in [@current.duration.length-1...-1]
       card = @current.duration[i]
@@ -775,21 +796,30 @@ class State
   # decreased). In this function and others like it, the `player` argument
   # is the appropriate PlayerState object to affect. This must, of course,
   # be one of the objects in the `@players` array.
-  #
-  # `suppressMessage` is true when this happens as the direct result of a
-  # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
     delete @cache.gainsToEndGame
     if card in @prizes or @supply[card] > 0
+      # Keep track of the card gained, for Smugglers.
+      if player is @current
+        player.gainedThisTurn.push(card)
+      
+      # `suppressMessage` is true when this happens as the direct result of a
+      # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
       if not suppressMessage
         this.log("#{player.ai} gains #{card}.")
+      
+      # Determine what list the card is being gained in, and add it to the
+      # front of that list; also, have the PlayerState remember it.
       player.gainLocation = gainLocation
       location = player[player.gainLocation]
       location.unshift(card)
+
+      # Remove the card from the supply or the prize list, as appropriate.
       if card in @prizes
         @prizes.remove(card)
       else
         @supply[card] -= 1
+      
       if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
         @tradeRouteValue += 1
@@ -943,24 +973,30 @@ class State
     newSupply = {}
     for key, value of @supply
       newSupply[key] = value
+    
+    newState = new State()
+    # If something overrode the log function, make sure that's preserved.
+    newState.logFunc = @logFunc
+
     newPlayers = []
     for player in @players
-      newPlayers.push(player.copy())
-    newState = new State()
-
+      playerCopy = player.copy()
+      playerCopy.logFunc = (obj) ->
+      newPlayers.push(playerCopy)
+    
     newState.players = newPlayers
+    newState.supply = newSupply
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
-    newState.tradeRouteMat = @tradeRouteMat
+    newState.tradeRouteMat = @tradeRouteMat.slice(0)
     newState.tradeRouteValue = @tradeRouteValue
     newState.bridges = @bridges
     newState.quarries = @quarries
     newState.copperValue = @copperValue
     newState.phase = @phase
-    newState.cache = @cache
+    newState.cache = {}
+    newState.prizes = @prizes.slice(0)
 
-    # If something overrode the log function, make sure that's preserved.
-    newState.logFunc = @logFunc
     newState
 
   # `hypothetical(ai)` returns a State and PlayerState that an AI can do

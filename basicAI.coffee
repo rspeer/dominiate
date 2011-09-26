@@ -222,6 +222,7 @@ class BasicAI
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and my.hand.lenth <= 3
     # Sixth priority: card-cycling that might improve the hand.
+    "Upgrade" if my.ai.wantsToTrash(state)
     "Pawn"
     "Warehouse"
     "Cellar"
@@ -297,6 +298,7 @@ class BasicAI
     "Watchtower" if my.hand.length <= 5
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
+    "Smugglers" if state.smugglerChoices().length > 1
     "Coppersmith"
     "Library" if my.hand.length <= 7
     # Eighth priority: cards that have become useless. Maybe they'll decrease
@@ -590,6 +592,45 @@ class BasicAI
       if this.chooseDiscard(state, [card, null]) is card
         discardableCards += 1
     return discardableCards
+
+  # `pessimisticMoneyInHand` establishes a minimum on how much money the
+  # player will be able to spend in this game state. It assumes the player
+  # will draw no money from the deck.
+  pessimisticMoneyInHand: (state) ->
+    # Don't recurse more than once. If we're already in a hypothetical
+    # situation, use the stupid version instead.
+    if state.depth > 0
+      return this.myPlayer(state).getAvailableMoney()
+
+    buyPhase = this.pessimisticBuyPhase(state)
+    return buyPhase.current.coins
+  
+  # Look ahead to the buy phase, assuming we draw no money from the deck.
+  #
+  # TODO: when we can handle known cards on top of the deck, take them
+  # into account.
+  pessimisticBuyPhase: (state) ->
+    if state.depth > 0
+      # A last-ditch effort to avoid recursion, by simply fast-forwarding
+      # to the next phase.
+      if state.phase == 'action'
+        state.phase = 'treasure'
+      else if state.phase == 'treasure'
+        state.phase = 'buy'
+
+    [hypothesis, hypothetically_my] = state.hypothetical(this)
+    hypothetically_my.draw = []
+    hypothetically_my.discard = []
+    
+    while hypothesis.phase != 'buy'
+      hypothesis.doPlay()
+
+    return hypothesis
+  
+  pessimisticCardsGained: (state) ->
+    newState = this.pessimisticBuyPhase(state)
+    newState.doPlay()
+    return newState.current.gainedThisTurn
 
   #### Utility methods
   #

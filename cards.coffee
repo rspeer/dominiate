@@ -1282,8 +1282,14 @@ makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
   playEffect: (state) ->
-    state.revealHand(0)
+    state.revealHand(state.current)
     state.drawCards(state.current, state.current.shantyTownDraws())
+}
+
+makeCard 'Smugglers', action, {
+  cost: 3
+  playEffect: (state) ->
+    state.gainOneOf(state.current, state.smugglerChoices())
 }
 
 makeCard 'Steward', action, {
@@ -1311,7 +1317,7 @@ makeCard 'Tournament', action, {
           opposingProvince = true
       if c.Province in state.current.hand
         state.log("#{state.current.ai} reveals a Province.")
-        choices = state.prizes
+        choices = state.prizes.slice(0)
         if state.supply[c.Duchy] > 0
           choices.push(c.Duchy)
         choice = state.gainOneOf(state.current, choices, 'draw')
@@ -1491,6 +1497,7 @@ makeCard 'Walled Village', c.Village, {
 
 makeCard 'Warehouse', action, {
   cost: 3
+  actions: +1
   playEffect: (state) ->
     state.drawCards(state.current, 3)
     state.requireDiscard(state.current, 3)
