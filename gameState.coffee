@@ -325,7 +325,7 @@ class PlayerState
       return
     this.log("#{@ai} puts #{card} on deck.")
     @hand.remove(card)
-    @draw.push(card)
+    @draw.unshift(card)
   
   shuffle: () ->
     this.log("(#{@ai} shuffles.)")
