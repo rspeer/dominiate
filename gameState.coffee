@@ -571,7 +571,7 @@ class State
     # information is actually used by Smugglers.)
     @current.gainedThisTurn = []
 
-    if this.depth == 0
+    if this.depth == 0 and this.debug?
       estimatedBuys = @current.ai.pessimisticCardsGained(this)
       this.log("#{@current.ai} plans to buy #{estimatedBuys}.")
     
