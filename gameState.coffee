@@ -572,8 +572,8 @@ class State
     @current.gainedThisTurn = []
 
     if this.depth == 0
-      estimatedMoney = @current.ai.pessimisticMoneyInHand(this)
-      this.log("#{@current.ai} plans to have at least $#{estimatedMoney}.")
+      estimatedBuys = @current.ai.pessimisticCardsGained(this)
+      this.log("#{@current.ai} plans to buy #{estimatedBuys}.")
     
     # iterate backwards because cards might move
     for i in [@current.duration.length-1...-1]
@@ -779,21 +779,30 @@ class State
   # decreased). In this function and others like it, the `player` argument
   # is the appropriate PlayerState object to affect. This must, of course,
   # be one of the objects in the `@players` array.
-  #
-  # `suppressMessage` is true when this happens as the direct result of a
-  # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
     delete @cache.gainsToEndGame
     if card in @prizes or @supply[card] > 0
+      # Keep track of the card gained, for Smugglers.
+      if player is @current
+        player.gainedThisTurn.push(card)
+      
+      # `suppressMessage` is true when this happens as the direct result of a
+      # buy. Nobody wants to read "X buys Y. X gains Y." all the time.
       if not suppressMessage
         this.log("#{player.ai} gains #{card}.")
+      
+      # Determine what list the card is being gained in, and add it to the
+      # front of that list; also, have the PlayerState remember it.
       player.gainLocation = gainLocation
       location = player[player.gainLocation]
       location.unshift(card)
+
+      # Remove the card from the supply or the prize list, as appropriate.
       if card in @prizes
         @prizes.remove(card)
       else
         @supply[card] -= 1
+      
       if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
         @tradeRouteValue += 1
@@ -959,17 +968,17 @@ class State
       newPlayers.push(playerCopy)
     
     newState.players = newPlayers
-    newState.supply = @supply
+    newState.supply = newSupply
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
-    newState.tradeRouteMat = @tradeRouteMat
+    newState.tradeRouteMat = @tradeRouteMat.slice(0)
     newState.tradeRouteValue = @tradeRouteValue
     newState.bridges = @bridges
     newState.quarries = @quarries
     newState.copperValue = @copperValue
     newState.phase = @phase
-    newState.cache = @cache
-    newState.prizes = @prizes
+    newState.cache = {}
+    newState.prizes = @prizes.slice(0)
 
     newState
 

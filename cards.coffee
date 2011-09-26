@@ -1491,6 +1491,7 @@ makeCard 'Walled Village', c.Village, {
 
 makeCard 'Warehouse', action, {
   cost: 3
+  actions: +1
   playEffect: (state) ->
     state.drawCards(state.current, 3)
     state.requireDiscard(state.current, 3)
