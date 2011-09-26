@@ -40,6 +40,7 @@ class PlayerState
     @inPlay = []
     @duration = []
     @setAside = []
+    @gainedThisTurn = []
     @moatProtected = no
     @tacticians = 0  # number of Tacticians that will go to the duration area
     @mayReturnTreasury = yes
@@ -345,6 +346,7 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
+    other.gainedThisTurn = @gainedThisTurn
     other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
@@ -399,9 +401,10 @@ class State
     @quarries = 0
     @copperValue = 1
     @phase = 'start'
+    @extraturn = false
+    
     @cache = {}
     
-    @extraturn = false
     
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
@@ -564,6 +567,14 @@ class State
   # effects. At the start of the turn, check all of these cards and run their
   # `onDuration` method.
   doDurationPhase: () ->
+    # Clear out the list of cards gained. (We clear it here because this
+    # information is actually used by Smugglers.)
+    @current.gainedThisTurn = []
+
+    if this.depth == 0
+      estimatedMoney = @current.ai.pessimisticMoneyInHand(this)
+      this.log("#{@current.ai} plans to have at least $#{estimatedMoney}.")
+    
     # iterate backwards because cards might move
     for i in [@current.duration.length-1...-1]
       card = @current.duration[i]
@@ -936,12 +947,19 @@ class State
     newSupply = {}
     for key, value of @supply
       newSupply[key] = value
+    
+    newState = new State()
+    # If something overrode the log function, make sure that's preserved.
+    newState.logFunc = @logFunc
+
     newPlayers = []
     for player in @players
-      newPlayers.push(player.copy())
-    newState = new State()
-
+      playerCopy = player.copy()
+      playerCopy.logFunc = (obj) ->
+      newPlayers.push(playerCopy)
+    
     newState.players = newPlayers
+    newState.supply = @supply
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
     newState.tradeRouteMat = @tradeRouteMat
@@ -951,9 +969,8 @@ class State
     newState.copperValue = @copperValue
     newState.phase = @phase
     newState.cache = @cache
+    newState.prizes = @prizes
 
-    # If something overrode the log function, make sure that's preserved.
-    newState.logFunc = @logFunc
     newState
 
   # `hypothetical(ai)` returns a State and PlayerState that an AI can do

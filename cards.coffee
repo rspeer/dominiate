@@ -1282,7 +1282,7 @@ makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
   playEffect: (state) ->
-    state.revealHand(0)
+    state.revealHand(state.current)
     state.drawCards(state.current, state.current.shantyTownDraws())
 }
 
@@ -1311,7 +1311,7 @@ makeCard 'Tournament', action, {
           opposingProvince = true
       if c.Province in state.current.hand
         state.log("#{state.current.ai} reveals a Province.")
-        choices = state.prizes
+        choices = state.prizes.slice(0)
         if state.supply[c.Duchy] > 0
           choices.push(c.Duchy)
         choice = state.gainOneOf(state.current, choices, 'draw')
