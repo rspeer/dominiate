@@ -419,18 +419,15 @@ class BasicAI
       coinEstimate = my.ai.pessimisticMoneyInHand(state)
       potionEstimate = my.countInHand(state.cardInfo["Potion"])
       
-      [coinTarget, potionTarget] = ([state.cardInfo[card]?.getCost(state)[0], state.cardInfo[card]?.getCost(state)[1] ] for card in my.ai.gainPriority(state, my) when ( (state.cardInfo[card]?.getCost(state)[0] <= coinEstimate) and (state.cardInfo[card]?.getCost(state)[1] <= potionEstimate )) )
+      targets = (state.cardInfo[card]?.getCost(state) for card in my.ai.gainPriority(state, my) when ( (state.cardInfo[card]?.getCost(state)[0] <= coinEstimate) and (state.cardInfo[card]?.getCost(state)[1] <= potionEstimate )) )
       
-      if coinTarget? and coinTarget.length? and coinTarget>0
-        coinTarget = coinTarget[0]
+      if targets? and targets.length? and targets.length>0
+        coinTarget   = targets[0][0]
+        potionTarget = targets[0][1]
       else 
-        coinTarget = 0
-        
-      if potionTarget? and potionTarget.length? and potionTarget.length>0
-        potionTarget = potionTarget[0]
-      else
-        potionTarget = 0
-    
+        coinTarget   = 0
+        potionTarget = 1
+      
       # Don't put last Potion back if Alchemists are in play
       #
       if (my.countInPlay(state.cardInfo["Alchemist"]) > 0)

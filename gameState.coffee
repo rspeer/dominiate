@@ -156,7 +156,7 @@ class PlayerState
   
   countPlayableTerminals: (state) ->
     if (@actions>0)
-      @actions + ( (card.getActions(state) for card in this.hand).reduce (s,t) -> s + t)
+      @actions + ( (Math.max (card.getActions(state) - 1), 0 for card in this.hand).reduce (s,t) -> s + t)
     else 0
     
    
