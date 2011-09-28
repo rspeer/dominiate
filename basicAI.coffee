@@ -575,9 +575,8 @@ class BasicAI
       -1
   ]
   
-  # Choose opponent treasure to trash; by cost is close enough approximation
-  # for how you'll want to attack with Pirate Ship, and we'll treat Diadem as 
-  # cost 5.
+  # Choose opponent treasure to trash; go by the card's base cost.
+  # Diadems are comparable to the cost-5 treasures.
   trashOppTreasureValue: (state, card, my) =>
     if card is 'Diadem'
       return 5
