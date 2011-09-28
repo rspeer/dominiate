@@ -213,6 +213,7 @@ class BasicAI
     "Great Hall"
     "Wishing Well"
     "Lighthouse"
+    "Haven"
     # Fifth priority: terminal card-drawers, if we have actions to spare.
     "Library" if my.actions > 1 and my.hand.length <= 4
     "Rabble" if my.actions > 1

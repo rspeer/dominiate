@@ -27,6 +27,7 @@ class PlayerState
       nativeVillage: []
       island: []
     }
+    @setAsideByHaven = []
     @chips = 0
     @hand = []
     @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
@@ -90,7 +91,7 @@ class PlayerState
   # `getDeck()` returns all the cards in the player's deck, even those in
   # strange places such as the Island mat.
   getDeck: () ->
-    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @mats.nativeVillage.concat @mats.island
+    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @mats.nativeVillage.concat @mats.island.concat @setAsideByHaven
   
   # `getCurrentAction()` returns the action being resolved that is on the
   # top of the stack.
@@ -343,6 +344,7 @@ class PlayerState
     other.buys = @buys
     other.coins = @coins
     other.potions = @potions
+    other.setAsideByHaven = @setAsideByHaven
     other.mats = @mats
     other.chips = @chips
     other.hand = @hand.slice(0)
