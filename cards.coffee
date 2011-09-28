@@ -255,8 +255,8 @@ makeCard 'Platinum', c.Silver, {
 makeCard 'Potion', c.Silver, {
   cost: 4
   coins: 0
-  playEffect:
-    (state) -> state.current.potions += 1
+  # Deleted playEffect. Potions where counted twice.
+  # OnPlay() already increases @current.potions via getPotion(state)
   getPotion: (state) -> 1
   startingSupply: (state) -> 16
 }
@@ -316,6 +316,29 @@ duration = makeCard 'duration', action, {
       if this.durationCards > 0
         state.drawCards(state.current, this.durationCards)
 }, true
+
+makeCard 'Haven', duration, {
+  cost: 2
+  cards: +1
+  actions: +1
+  
+  playEffect: (state) ->
+    cardInHaven = state.current.ai.choose('putOnDeck', state, state.current.hand)
+    if cardInHaven?
+      state.log("#{state.current.ai} sets aside a #{cardInHaven} with Haven")
+      transferCard(cardInHaven, state.current.hand, state.current.setAsideByHaven)
+    else
+      if state.current.hand.length==0
+        state.log("#{state.current.ai} has no cards to set aside")
+      else
+        state.log("WARNING, hand not empty but no card set aside")
+  
+  durationEffect: (state) ->
+    cardFromHaven = state.current.setAsideByHaven.pop()
+    if cardFromHaven?
+      state.log("#{state.current.ai} picks a #{cardFromHaven} from Haven")
+      state.current.hand.unshift(cardFromHaven)
+}
 
 makeCard 'Caravan', duration, {
   cost: 4

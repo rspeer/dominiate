@@ -41,6 +41,7 @@ Goons
 Grand Market
 Great Hall
 Harem
+Haven
 Herbalist
 Hoard
 Horn of Plenty
@@ -135,7 +136,6 @@ Embargo
 Envoy
 Forge
 Hamlet
-Haven
 Island
 Jester
 Mining Village
