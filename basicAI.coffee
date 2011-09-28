@@ -413,39 +413,55 @@ class BasicAI
     #    Then, ignore as many terminals as you can play this turn, return the others
     #
     else
-      # take terminals from hand
-      # and sort them by actionPriority (highest first)
-      # just take the once you can not play by the actions you have
       putBack = (card for card in my.hand when (card?.isAction and card?.getActions(state)==0))
       putBack = putBack.sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) )
       putBack = putBack[my.countPlayableTerminals(state) ... putBack.length]
     
     # 3) Put back as much money as you can
-    #    First get a pessimistic estimate of the avaiable money this turn
-    #    then find take the cost in coins of the highest priority card you can afford
-    #    then put the treasures which are not needed in 'putBack' for discardPriority, most valuable first, Potion = 2.5 Coins
-    #
-    state.log("PutBack: #{putBack}")
-    if putBack.length==0
-      coinEstimate = my.ai.pessimisticMoneyInHand(state)
-      potionEstimate = my.countInHand(state.cardInfo["Potion"])
+    if putBack.length == 0
+      # find out what you would gain if you put back worst card as in 4)
+      [hypState, hypMy] = state.hypothetical(my.ai)
+      # technically, we don't want to discard but to put back, but for pessimisticBuy this should not matter
+      dis = hypState.requireDiscard(hypMy, 1)
+      state.log("Discarded: #{dis}")
+      defaultGained = hypMy.ai.pessimisticCardsGained(hypState)
+      state.log("Defaultgain: #{defaultGained}")
       
-      targets = (state.cardInfo[card]?.getCost(state) for card in my.ai.gainPriority(state, my) when ( (state.cardInfo[card]?.getCost(state)[0] <= coinEstimate) and (state.cardInfo[card]?.getCost(state)[1] <= potionEstimate )) )
+      # determine which treasures are in hand, discard them hypothetically and test if the gains change.  When it doesn't, we can put back this card.
+      treasures = []
       
-      if targets? and targets.length? and targets.length>0
-        coinTarget   = targets[0][0]
-        potionTarget = targets[0][1]
-      else 
-        coinTarget   = 0
-        potionTarget = 1
+      for card in my.hand
+        if (card.isTreasure) and (not (card in treasures))
+          treasures.push card
+            
+      for card in treasures
+        [hypState, hypMy] = state.hypothetical(my.ai)
+        hypMy.doDiscard(card)
+        nowGained = hypMy.ai.pessimisticCardsGained(hypState)
+        state.log("card #{card}, HypGaines: #{nowGained}")
+        # test arrays on equality. Better way?
+        # changed order in gaining messes this up. Just ignore?
+        equal = true
+        if (defaultGained.length != nowGained.length)
+          equal = false
+        else 
+          for card, index in defaultGained
+            equal = (equal and (nowGained[index] == card))
+        
+        if (equal)
+          putBack.push card
+        
       
-      # Don't put last Potion back if Alchemists are in play
-      #
-      if (my.countInPlay(state.cardInfo["Alchemist"]) > 0)
-        potionTarget = Math.max potionTarget, 1
+      # sort by price. Should be improved
+      putBack.sort( (y,x) -> x.getCost(state) - y.getCost(state) )
       
-      putBack = (card for card in my.hand when (card.isTreasure and (card.getCoins(state) <= (coinEstimate - coinTarget)) and (card.getPotion(state) <= (potionEstimate - potionTarget)) ) ).sort( (b, a) -> (state.cardInfo[a].getCoins(state) + 2.5*state.cardInfo[a].getPotion(state) - state.cardInfo[b].getCoins(state) - 2.5*state.cardInfo[b].getPotion(state)) )
+      # Don't put back last Potion if Alchemists are in play
+      if my.countInPlay(state.cardInfo["Alchemist"])>0
+        if my.countInHand(state.cardInfo["Potion"]) == 1
+          putBack.remove(state.cardInfo["Potion"])
       
+      # Think about Royal Seal
+    
     # 4) Put back the worst card (take priority for discard)
     #
     if putBack.length==0
