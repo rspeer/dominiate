@@ -1167,6 +1167,41 @@ makeCard "Philosopher's Stone", c.Silver, {
     Math.floor((state.current.draw.length + state.current.discard.length) / 5)
 }
 
+makeCard 'Pirate Ship', action, {
+  cost: 4
+  isAttack: true
+
+  playEffect: (state) ->
+    choice = state.current.ai.choose('pirateShip', state, ['coins', 'attack'])
+
+    if choice is 'coins'
+      state.current.coins += state.current.mats.pirateShip
+      state.log("...getting +$#{state.current.mats.pirateShip}.")
+    
+    else if choice is 'attack'
+      state.log("...attacking the other players.")
+      attackSuccess = false
+
+      state.attackOpponents (opp) ->
+        drawn = opp.getCardsFromDeck(2)
+        state.log("...#{opp.ai} reveals #{drawn}.")
+        drawnTreasures = []
+        for card in drawn
+          if card.isTreasure
+            drawnTreasures.push(card)
+        treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
+        if treasureToTrash
+          attackSuccess = true
+          drawn.remove(treasureToTrash)
+          state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
+        state.current.discard.concat (drawn)
+        state.log("...#{opp.ai} discards #{drawn}.")
+        
+      if attackSuccess
+        state.current.mats.pirateShip += 1
+        state.log("...#{state.current.ai} takes a Coin token (#{state.current.mats.pirateShip} on the mat).")
+}
+
 makeCard 'Princess', action, {
   cost: 0
   buys: 1
