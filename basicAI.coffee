@@ -77,7 +77,6 @@ class BasicAI
       
       # Get the priority list.
       priority = priorityfunc(state, my)
-
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
       for preference in priority
@@ -214,6 +213,7 @@ class BasicAI
     "Great Hall"
     "Wishing Well"
     "Lighthouse"
+    "Haven"
     # Fifth priority: terminal card-drawers, if we have actions to spare.
     "Library" if my.actions > 1 and my.hand.length <= 4
     "Rabble" if my.actions > 1
@@ -340,6 +340,11 @@ class BasicAI
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
 
+  # Perhaps not the fastest way, but most fun
+  # Also perhaps redundant to chooseOrderOnDeck
+  sortByPriority: (list,state, my) =>
+    list.sort( (l) ->  (index for v, index in my.ai.actionPriority(state, my)).reduce (a,b) -> Math.min(a,b) )
+
   # `chooseOrderOnDeck` handles situations where multiple cards are returned
   # to the deck, such as Scout and Apothecary.
   #
@@ -389,11 +394,54 @@ class BasicAI
     else
       0 - card.cost
   
-  # Putting a card back on the deck (from hand) uses the same preference order as
-  # discarding.
-  putOnDeckPriority: (state, my) =>
-    this.discardPriority(state, my)
-
+  # Changed Priorities for putting cards back on deck.  Only works well for putting back 1 card, and for 1 buy.
+  #
+   putOnDeckPriority: (state, my) -> 
+    putBack = []
+    # 1) If no actions left, put back best Action
+    #    Take card from hand which are actions, sort them by ActionPriority
+    #
+    if my.countPlayableTerminals(state) == 0
+      putBack = (card for card in my.hand when card?.isAction).sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) 
+      
+    # 2) If not enough actions left, put back best Terminal you can't play
+    #    Take cards from hand which are Actions and Terminals, sort them by ActionPriority
+    #    Then, ignore as many terminals as you can play this turn, return the others
+    #
+    else
+      putBack = (tmp=( card for card in my.hand when (card?.isAction and card?.getActions(state)>0) ).sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) )[my.countPlayableTerminals(state) ... tmp.length]
+      
+    # 3) Put back as much money as you can
+    #    First get a pessimistic estimate of the avaiable money this turn
+    #    then find take the cost in coins of the highest priority card you can afford
+    #    then put the treasures which are not needed in 'putBack' for discardPriority, most valuable first, Potion = 2.5 Coins
+    #
+    if putBack.length==0
+      coinEstimate = my.ai.pessimisticMoneyInHand(state)
+      potionEstimate = my.countInHand(state.cardInfo["Potion"])
+      
+      targets = (state.cardInfo[card]?.getCost(state) for card in my.ai.gainPriority(state, my) when ( (state.cardInfo[card]?.getCost(state)[0] <= coinEstimate) and (state.cardInfo[card]?.getCost(state)[1] <= potionEstimate )) )
+      
+      if targets? and targets.length? and targets.length>0
+        coinTarget   = targets[0][0]
+        potionTarget = targets[0][1]
+      else 
+        coinTarget   = 0
+        potionTarget = 1
+      
+      # Don't put last Potion back if Alchemists are in play
+      #
+      if (my.countInPlay(state.cardInfo["Alchemist"]) > 0)
+        potionTarget = Math.max potionTarget, 1
+      
+      putBack = (card for card in my.hand when (card.isTreasure and (card.getCoins(state) <= (coinEstimate - coinTarget)) and (card.getPotion(state) <= (potionEstimate - potionTarget)) ) ).sort( (b, a) -> (state.cardInfo[a].getCoins(state) + 2.5*state.cardInfo[a].getPotion(state) - state.cardInfo[b].getCoins(state) - 2.5*state.cardInfo[b].getPotion(state)) )
+         
+    # 4) Put back the worst card (take priority for discard)
+    #
+    if putBack.length==0
+      putBack = (card for card in my.ai.discardPriority(state, my) when (state.cardInfo[card] in my.hand) )
+    putBack
+  
   putOnDeckValue: (state, card, my) =>
     this.discardValue(state, card, my)
   
