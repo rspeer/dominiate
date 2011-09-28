@@ -68,6 +68,7 @@ Outpost
 Pawn
 Peddler
 Philosopher's Stone
+Pirate Ship
 Platinum
 Potion
 Princess
@@ -84,6 +85,7 @@ Silver
 Smithy
 Steward
 Tactician
+Thief
 Torturer
 Tournament
 Trade Route
@@ -123,7 +125,6 @@ Loan
 Pearl Diver
 Saboteur
 Talisman
-Thief
 
 Not-so-easy cards
 -----------------
@@ -141,7 +142,6 @@ Jester
 Mining Village
 Minion
 Native Village
-Pirate Ship
 Salvager
 Scrying Pool
 Smugglers (requires more state)
