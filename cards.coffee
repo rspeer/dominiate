@@ -505,6 +505,7 @@ makeCard 'Alchemist', action, {
 
 makeCard 'Ambassador', action, {
   cost: 3
+  isAttack: true
 
   playEffect: (state) ->
     # Determine the cards and quantities that can be ambassadored
@@ -938,6 +939,23 @@ makeCard 'Ironworks', action, {
       state.current.coins += 1
     if gained.isVictory
       state.current.drawCards(1)
+}
+
+makeCard 'Jester', action, {
+  cost: 5
+  coins: +2
+  isAttack: true
+
+  playEffect: (state) ->
+    state.log("#{state.current.ai} gets +$2")
+    state.attackOpponents (opp) ->
+      card = state.discardFromDeck(opp, 1)[0]
+      if card.isVictory
+        state.gainCard(opp, c.Curse)
+      else if state.current.ai.chooseGain(state, [card, null])
+        state.gainCard(state.current, card)
+      else
+        state.gainCard(opp, card)
 }
 
 makeCard 'Library', action, {
