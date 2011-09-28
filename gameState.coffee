@@ -338,35 +338,7 @@ class PlayerState
     # TODO: add an AI decision for Stashes
 
   # Most PlayerStates are created by copying an existing one.
-  copy: () ->
-    other = new PlayerState()
-    other.actions = @actions
-    other.buys = @buys
-    other.coins = @coins
-    other.potions = @potions
-    other.setAsideByHaven = @setAsideByHaven.slice(0)
-    other.mats = {}
-    other.mats.pirateShip = @mats.pirateShip
-    other.mats.nativeVillage = @mats.nativeVillage.slice(0)
-    other.mats.island = @mats.island.slice(0)
-    other.chips = @chips
-    other.hand = @hand.slice(0)
-    other.draw = @draw.slice(0)
-    other.discard = @discard.slice(0)
-    other.inPlay = @inPlay.slice(0)
-    other.duration = @duration.slice(0)
-    other.setAside = @setAside.slice(0)
-    other.moatProtected = @moatProtected
-    other.gainedThisTurn = @gainedThisTurn
-    other.mayReturnTreasury = @mayReturnTreasury
-    other.playLocation = @playLocation
-    other.gainLocation = @gainLocation
-    other.actionStack = @actionStack.slice(0)
-    other.tacticians = @tacticians
-    other.ai = @ai
-    other.logFunc = @logFunc
-    other.turnsTaken = @turnsTaken
-    other
+  copy: () -> cloneDominionObject(this)
   
   # Games can provide output using the `log` function.
   log: (obj) ->
@@ -969,39 +941,10 @@ class State
   #### Bookkeeping
   # `copy()` makes a copy of this state that can be safely mutated
   # without affecting the original state.
-  #
-  # Ideally, the AI would be passed a copy of the state, with unknown
-  # information randomized, when it is asked to make a decision. This would
-  # allow it to try simulating the effects of various plays without actually
-  # breaking the game. But this isn't implemented yet, so make this a TODO.
   copy: () ->
-    newSupply = {}
-    for key, value of @supply
-      newSupply[key] = value
-    
-    newState = new State()
-    # If something overrode the log function, make sure that's preserved.
-    newState.logFunc = @logFunc
-
-    newPlayers = []
-    for player in @players
-      playerCopy = player.copy()
-      playerCopy.logFunc = (obj) ->
-      newPlayers.push(playerCopy)
-    
-    newState.players = newPlayers
-    newState.supply = newSupply
-    newState.current = newPlayers[0]
-    newState.nPlayers = @nPlayers
-    newState.tradeRouteMat = @tradeRouteMat.slice(0)
-    newState.tradeRouteValue = @tradeRouteValue
-    newState.bridges = @bridges
-    newState.quarries = @quarries
-    newState.copperValue = @copperValue
-    newState.phase = @phase
-    newState.cache = {}
-    newState.prizes = @prizes.slice(0)
-
+    newState = cloneDominionObject(this)
+    for player in newState.players
+      player.logFunc = (obj) ->
     newState
 
   # `hypothetical(ai)` returns a State and PlayerState that an AI can do
@@ -1077,6 +1020,21 @@ this.tableaux.noColony = noColony
 
 # Utility functions
 # -----------------
+# This customized clone function will not make unnecessary copies of
+# cards and AIs.
+cloneDominionObject = (obj) ->
+  if not obj? or typeof obj isnt 'object'
+    return obj
+
+  # Look for telltale methods showing that this is an AI or a card.
+  if obj.chooseByPriorityAndValue? or obj.costInCoins?
+    return obj
+  
+  newInstance = new obj.constructor()
+  for own key, value of obj
+    newInstance[key] = cloneDominionObject(value)
+  newInstance
+
 # General function to randomly shuffle a list.
 shuffle = (v) ->
   i = v.length
