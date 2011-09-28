@@ -344,8 +344,11 @@ class PlayerState
     other.buys = @buys
     other.coins = @coins
     other.potions = @potions
-    other.setAsideByHaven = @setAsideByHaven
-    other.mats = @mats
+    other.setAsideByHaven = @setAsideByHaven.slice(0)
+    other.mats = {}
+    other.mats.pirateShip = @mats.pirateShip
+    other.mats.nativeVillage = @mats.nativeVillage.slice(0)
+    other.mats.island = @mats.island.slice(0)
     other.chips = @chips
     other.hand = @hand.slice(0)
     other.draw = @draw.slice(0)

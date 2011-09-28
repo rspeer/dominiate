@@ -1004,11 +1004,11 @@ is always revealed, without an AI decision.</p>             </td>             <t
   <span class="nv">cost: </span><span class="mi">6</span>
   <span class="nv">isVictory: </span><span class="kc">true</span>
   <span class="nv">vp: </span><span class="mi">2</span></pre></div>             </td>           </tr>                               <tr id="section-65">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-65">&#182;</a>               </div>               <p>Nobles is an example of a card that allows a choice from multiple
-simple effects. We implement this using the <code>chooseBenefit</code> AI method,
+simple effects. We implement this using the <code>choose('benefit')</code> AI method,
 which is passed a list of benefit objects, one of which it will choose
 to apply to the state.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="nv">playEffect:</span>
     <span class="nf">(state) -&gt;</span>
-      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
+      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;benefit&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
         <span class="p">{</span><span class="nv">actions: </span><span class="mi">2</span><span class="p">},</span>
         <span class="p">{</span><span class="nv">cards: </span><span class="mi">3</span><span class="p">}</span>
       <span class="p">])</span>
@@ -1019,7 +1019,7 @@ to apply to the state.</p>             </td>             <td class="code">      
   <span class="nv">cost: </span><span class="mi">2</span>
   <span class="nv">playEffect:</span>
     <span class="nf">(state) -&gt;</span>
-      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
+      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;benefit&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
         <span class="p">{</span><span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">1</span><span class="p">},</span>
         <span class="p">{</span><span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">buys: </span><span class="mi">1</span><span class="p">},</span>
         <span class="p">{</span><span class="nv">cards: </span><span class="mi">1</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">1</span><span class="p">},</span>
@@ -1147,7 +1147,7 @@ fished out of the opponent's discard pile</p>             </td>             <td 
   <span class="nv">cost: </span><span class="mi">3</span>
   <span class="nv">playEffect:</span>
     <span class="nf">(state) -&gt;</span>
-      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
+      <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;benefit&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
         <span class="p">{</span><span class="nv">cards: </span><span class="mi">2</span><span class="p">},</span>
         <span class="p">{</span><span class="nv">coins: </span><span class="mi">2</span><span class="p">},</span>
         <span class="p">{</span><span class="nv">trash: </span><span class="mi">2</span><span class="p">}</span>
@@ -1264,7 +1264,7 @@ fished out of the opponent's discard pile</p>             </td>             <td 
 <span class="nx">makeCard</span> <span class="s2">&quot;Trusty Steed&quot;</span><span class="p">,</span> <span class="nx">c</span><span class="p">[</span><span class="s2">&quot;Bag of Gold&quot;</span><span class="p">],</span> <span class="p">{</span>
   <span class="nv">actions: </span><span class="mi">0</span>
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
-    <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
+    <span class="nv">benefit = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;benefit&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="p">[</span>
       <span class="p">{</span><span class="nv">cards: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">actions: </span><span class="mi">2</span><span class="p">},</span>
       <span class="p">{</span><span class="nv">cards: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">2</span><span class="p">},</span>
       <span class="p">{</span><span class="nv">actions: </span><span class="mi">2</span><span class="p">,</span> <span class="nv">coins: </span><span class="mi">2</span><span class="p">},</span>
