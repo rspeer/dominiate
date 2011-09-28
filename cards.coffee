@@ -1062,6 +1062,7 @@ makeCard "Militia", action, {
 makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
+    state.quarries = 0
     inPlay = state.current.inPlay
     for i in [inPlay.length-1...-1]
       if inPlay[i].isTreasure
