@@ -1212,7 +1212,7 @@ makeCard 'Pirate Ship', action, {
           attackSuccess = true
           drawn.remove(treasureToTrash)
           state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
-        state.current.discard.concat (drawn)
+        state.current.discard = state.current.discard.concat(drawn)
         state.log("...#{opp.ai} discards #{drawn}.")
         
       if attackSuccess
@@ -1326,7 +1326,7 @@ makeCard 'Thief', action, {
         if cardToGain
           state.gainCard(state.current, cardToGain, 'discard', true)
           state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
-      state.current.discard.concat (drawn)
+      state.current.discard = state.current.discard.concat(drawn)
       state.log("...#{opp.ai} discards #{drawn}.")
 }
 
