@@ -325,18 +325,18 @@ makeCard 'Haven', duration, {
   playEffect: (state) ->
     cardInHaven = state.current.ai.choose('putOnDeck', state, state.current.hand)
     if cardInHaven?
-      state.log("#{state.current.ai} sets aside a #{cardInHaven} with Haven")
+      state.log("#{state.current.ai} sets aside a #{cardInHaven} with Haven.")
       transferCard(cardInHaven, state.current.hand, state.current.setAsideByHaven)
     else
       if state.current.hand.length==0
-        state.log("#{state.current.ai} has no cards to set aside")
+        state.log("#{state.current.ai} has no cards to set aside.")
       else
-        state.log("WARNING, hand not empty but no card set aside")
+        state.warn("hand not empty but no card set aside")
   
   durationEffect: (state) ->
     cardFromHaven = state.current.setAsideByHaven.pop()
     if cardFromHaven?
-      state.log("#{state.current.ai} picks a #{cardFromHaven} from Haven")
+      state.log("#{state.current.ai} picks up a #{cardFromHaven} from Haven.")
       state.current.hand.unshift(cardFromHaven)
 }
 

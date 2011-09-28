@@ -33,6 +33,7 @@ class BasicAI
   #
   # This is passed in as an argument `my` to the decision functions, because
   # it's convenient and it creates nice idioms such as `my.hand`.
+  
   myPlayer: (state) ->
     for player in state.players
       if player.ai is this
@@ -396,7 +397,7 @@ class BasicAI
   
   # Changed Priorities for putting cards back on deck.  Only works well for putting back 1 card, and for 1 buy.
   #
-   putOnDeckPriority: (state, my) -> 
+  putOnDeckPriority: (state, my) -> 
     putBack = []
     # 1) If no actions left, put back best Action
     #    Take card from hand which are actions, sort them by ActionPriority
@@ -596,8 +597,7 @@ class BasicAI
   # Choose to attack or use available coins when playing Pirate Ship.
   # Current strategy is basically Geronimoo's attackUntil5Coins play strategy,
   # but only with Provinces--or technically, cards costing 8 or more.
-  pirateShipPriority: (state, my) ->
-  [
+  pirateShipPriority: (state, my) -> [
     'coins' if state.current.mats.pirateShip >= 5 and state.current.getAvailableMoney()+state.current.mats.pirateShip >= 8
     'attack'
   ]
@@ -681,7 +681,7 @@ class BasicAI
   #
   # `copy` makes a copy of the AI. It will have the same behavior but a
   # different name, and will not be equal to this AI.
-  copy: () ->
+  copy: () =>
     ai = new BasicAI()
     for key, value of this
       ai[key] = value
