@@ -283,6 +283,8 @@ class BasicAI
     "Chapel" if my.ai.wantsToTrash(state)
     "Trade Route" if my.ai.wantsToTrash(state)
     "Mint" if my.ai.choose('mint', state, my.hand)
+    "Pirate Ship"
+    "Thief"
     "Bureaucrat"
     "Conspirator" if my.actions < 2
     "Herbalist"
