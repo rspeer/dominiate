@@ -403,20 +403,29 @@ class BasicAI
     #    Take card from hand which are actions, sort them by ActionPriority
     #
     if my.countPlayableTerminals(state) == 0
-      putBack = (card for card in my.hand when card?.isAction).sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) 
+      # take actions from hand
+      # and sort them by actionPriority (highest first)
+      putBack = (card for card in my.hand when card?.isAction)
+      putBack = putBack.sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) 
       
     # 2) If not enough actions left, put back best Terminal you can't play
     #    Take cards from hand which are Actions and Terminals, sort them by ActionPriority
     #    Then, ignore as many terminals as you can play this turn, return the others
     #
     else
-      putBack = (tmp=( card for card in my.hand when (card?.isAction and card?.getActions(state)>0) ).sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) )[my.countPlayableTerminals(state) ... tmp.length]
-      
+      # take terminals from hand
+      # and sort them by actionPriority (highest first)
+      # just take the once you can not play by the actions you have
+      putBack = (card for card in my.hand when (card?.isAction and card?.getActions(state)==0))
+      putBack = putBack.sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) )
+      putBack = putBack[my.countPlayableTerminals(state) ... putBack.length]
+    
     # 3) Put back as much money as you can
     #    First get a pessimistic estimate of the avaiable money this turn
     #    then find take the cost in coins of the highest priority card you can afford
     #    then put the treasures which are not needed in 'putBack' for discardPriority, most valuable first, Potion = 2.5 Coins
     #
+    state.log("PutBack: #{putBack}")
     if putBack.length==0
       coinEstimate = my.ai.pessimisticMoneyInHand(state)
       potionEstimate = my.countInHand(state.cardInfo["Potion"])
@@ -436,7 +445,7 @@ class BasicAI
         potionTarget = Math.max potionTarget, 1
       
       putBack = (card for card in my.hand when (card.isTreasure and (card.getCoins(state) <= (coinEstimate - coinTarget)) and (card.getPotion(state) <= (potionEstimate - potionTarget)) ) ).sort( (b, a) -> (state.cardInfo[a].getCoins(state) + 2.5*state.cardInfo[a].getPotion(state) - state.cardInfo[b].getCoins(state) - 2.5*state.cardInfo[b].getPotion(state)) )
-         
+      
     # 4) Put back the worst card (take priority for discard)
     #
     if putBack.length==0
@@ -662,6 +671,9 @@ class BasicAI
         state.phase = 'treasure'
       else if state.phase == 'treasure'
         state.phase = 'buy'
+    
+    state.log("")
+    state.log("HYPOTHETICAL start. Ignore everything...")
 
     [hypothesis, hypothetically_my] = state.hypothetical(this)
     hypothetically_my.draw = []
@@ -670,6 +682,9 @@ class BasicAI
     while hypothesis.phase != 'buy'
       hypothesis.doPlay()
 
+    state.log("HYPOTHTICAL end. ... until here!")
+    state.log("")
+    
     return hypothesis
   
   pessimisticCardsGained: (state) ->
