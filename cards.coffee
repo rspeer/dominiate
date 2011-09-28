@@ -1288,6 +1288,30 @@ makeCard 'Steward', action, {
       applyBenefit(state, benefit)
 }
 
+makeCard 'Thief', action, {
+  cost: 4
+  isAttack: true
+
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      drawn = opp.getCardsFromDeck(2)
+      state.log("...#{opp.ai} reveals #{drawn}.")
+      drawnTreasures = []
+      for card in drawn
+        if card.isTreasure
+          drawnTreasures.push(card)
+      treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
+      if treasureToTrash
+        drawn.remove(treasureToTrash)
+        state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
+        cardToGain =  state.current.ai.chooseGain(state, [treasureToTrash, null])
+        if cardToGain
+          state.gainCard(state.current, cardToGain, 'discard', true)
+          state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
+      state.current.discard.concat (drawn)
+      state.log("...#{opp.ai} discards #{drawn}.")
+}
+
 makeCard 'Tournament', action, {
   cost: 4
   actions: +1
