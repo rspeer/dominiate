@@ -14,7 +14,7 @@ css:
 doc:
 	docco *.coffee
 
-web-deploy: web-coffee web-strategies css doc
+web-deploy: web-coffee web-strategies css
 	cd gh-pages; git pull -f origin gh-pages
 	cp -a web/* gh-pages/
 	cp -a docs/* gh-pages/docs/

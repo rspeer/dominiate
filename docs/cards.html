@@ -261,18 +261,18 @@ The virtual card <code>duration</code> specifies how to process these effects.</
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
     <span class="nv">cardInHaven = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;putOnDeck&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">)</span>
     <span class="k">if</span> <span class="nx">cardInHaven</span><span class="o">?</span>
-      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} sets aside a #{cardInHaven} with Haven&quot;</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} sets aside a #{cardInHaven} with Haven.&quot;</span><span class="p">)</span>
       <span class="nx">transferCard</span><span class="p">(</span><span class="nx">cardInHaven</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">,</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">setAsideByHaven</span><span class="p">)</span>
     <span class="k">else</span>
       <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span><span class="o">==</span><span class="mi">0</span>
-        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} has no cards to set aside&quot;</span><span class="p">)</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} has no cards to set aside.&quot;</span><span class="p">)</span>
       <span class="k">else</span>
-        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;WARNING, hand not empty but no card set aside&quot;</span><span class="p">)</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;hand not empty but no card set aside&quot;</span><span class="p">)</span>
   
   <span class="nv">durationEffect: </span><span class="nf">(state) -&gt;</span>
     <span class="nv">cardFromHaven = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">setAsideByHaven</span><span class="p">.</span><span class="nx">pop</span><span class="p">()</span>
     <span class="k">if</span> <span class="nx">cardFromHaven</span><span class="o">?</span>
-      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} picks a #{cardFromHaven} from Haven&quot;</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} picks up a #{cardFromHaven} from Haven.&quot;</span><span class="p">)</span>
       <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">unshift</span><span class="p">(</span><span class="nx">cardFromHaven</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -1073,6 +1073,41 @@ to apply to the state.</p>             </td>             <td class="code">      
     <span class="nb">Math</span><span class="p">.</span><span class="nx">floor</span><span class="p">((</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="o">/</span> <span class="mi">5</span><span class="p">)</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Pirate Ship&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">isAttack: </span><span class="kc">true</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">choice = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;pirateShip&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;coins&#39;</span><span class="p">,</span> <span class="s1">&#39;attack&#39;</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="nx">choice</span> <span class="o">is</span> <span class="s1">&#39;coins&#39;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">coins</span> <span class="o">+=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">mats</span><span class="p">.</span><span class="nx">pirateShip</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...getting +$#{state.current.mats.pirateShip}.&quot;</span><span class="p">)</span>
+    
+    <span class="k">else</span> <span class="k">if</span> <span class="nx">choice</span> <span class="o">is</span> <span class="s1">&#39;attack&#39;</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...attacking the other players.&quot;</span><span class="p">)</span>
+      <span class="nv">attackSuccess = </span><span class="kc">false</span>
+
+      <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+        <span class="nv">drawn = </span><span class="nx">opp</span><span class="p">.</span><span class="nx">getCardsFromDeck</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} reveals #{drawn}.&quot;</span><span class="p">)</span>
+        <span class="nv">drawnTreasures = </span><span class="p">[]</span>
+        <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">drawn</span>
+          <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isTreasure</span>
+            <span class="nx">drawnTreasures</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+        <span class="nv">treasureToTrash = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;trashOppTreasure&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="nx">drawnTreasures</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">treasureToTrash</span>
+          <span class="nv">attackSuccess = </span><span class="kc">true</span>
+          <span class="nx">drawn</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">treasureToTrash</span><span class="p">)</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{state.current.ai} trashes #{opp.ai}&#39;s #{treasureToTrash}.&quot;</span><span class="p">)</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span> <span class="p">(</span><span class="nx">drawn</span><span class="p">)</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} discards #{drawn}.&quot;</span><span class="p">)</span>
+        
+      <span class="k">if</span> <span class="nx">attackSuccess</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">mats</span><span class="p">.</span><span class="nx">pirateShip</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{state.current.ai} takes a Coin token (#{state.current.mats.pirateShip} on the mat).&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Princess&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">0</span>
   <span class="nv">buys: </span><span class="mi">1</span>
@@ -1180,6 +1215,30 @@ fished out of the opponent's discard pile</p>             </td>             <td 
         <span class="p">{</span><span class="nv">trash: </span><span class="mi">2</span><span class="p">}</span>
       <span class="p">])</span>
       <span class="nx">applyBenefit</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">benefit</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Thief&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">4</span>
+  <span class="nv">isAttack: </span><span class="kc">true</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+      <span class="nv">drawn = </span><span class="nx">opp</span><span class="p">.</span><span class="nx">getCardsFromDeck</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} reveals #{drawn}.&quot;</span><span class="p">)</span>
+      <span class="nv">drawnTreasures = </span><span class="p">[]</span>
+      <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">drawn</span>
+        <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isTreasure</span>
+          <span class="nx">drawnTreasures</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+      <span class="nv">treasureToTrash = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;trashOppTreasure&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="nx">drawnTreasures</span><span class="p">)</span>
+      <span class="k">if</span> <span class="nx">treasureToTrash</span>
+        <span class="nx">drawn</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">treasureToTrash</span><span class="p">)</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{state.current.ai} trashes #{opp.ai}&#39;s #{treasureToTrash}.&quot;</span><span class="p">)</span>
+        <span class="nv">cardToGain = </span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseGain</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span><span class="nx">treasureToTrash</span><span class="p">,</span> <span class="kc">null</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nx">cardToGain</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">cardToGain</span><span class="p">,</span> <span class="s1">&#39;discard&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{state.current.ai} gains the trashed #{treasureToTrash}.&quot;</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span> <span class="p">(</span><span class="nx">drawn</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} discards #{drawn}.&quot;</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="nx">makeCard</span> <span class="s1">&#39;Tournament&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
