@@ -1250,6 +1250,49 @@ makeCard 'Royal Seal', c.Silver, {
       transferCardToTop(card, source, player.draw)
 }
 
+makeCard 'Saboteur', action, {
+  cost: 5
+  isAttack: true
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 >= potions2) and (coins1-2 >= coins2)
+
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      cardsDrawn = 0;
+      while cardsDrawn < 1
+        drawn = opp.getCardsFromDeck(1)
+        if drawn.length == 0
+          if opp.setAside.length > 0
+            state.log("#{opp.ai} reveals #{opp.setAside}, but has no cards costing $3 or more in the deck.")
+          else
+            state.log("#{opp.ai} has no more cards in the deck.")
+          break
+        card = drawn[0]
+        cardCoinCost = card.getCost(state)[0]
+        if cardCoinCost >= 3
+          state.log("...#{opp.ai} reveals #{opp.setAside}, and #{card}.")
+          cardsDrawn++
+          choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
+          choices.push([card,null])
+          choice = opp.ai.choose('upgrade', state, choices)
+          drawn.remove(card)
+          state.log("...#{state.current.ai} trashes #{opp.ai}'s #{card}.")
+          if choice[1] isnt null
+            [oldCard, newCard] = choice
+            state.gainCard(opp, newCard, 'discard', true)
+            state.log("...#{opp.ai} gains #{newCard}.")
+          else
+            state.log("...#{opp.ai} gains nothing.")
+        else
+          opp.setAside.push(card)
+      state.log("...#{opp.ai} discards #{opp.setAside}")
+      opp.discard = opp.discard.concat(opp.setAside)
+      opp.setAside = []  
+}
+
 makeCard 'Scout', action, {
   cost: 4
   actions: +1
