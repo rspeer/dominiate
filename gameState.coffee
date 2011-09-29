@@ -1032,7 +1032,14 @@ class State
         my = player
 
     [state, my]
-
+  
+  # Functions for comparing, used for sorting
+  compareByActionPriority: (state, my, x, y) ->
+    my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y)
+    
+  compareByCoinCost: (state, my, x, y) ->
+    x.getCost(state)[0] - y.getCost(state)[0]
+  
   # Games can provide output using the `log` function.
   log: (obj) ->
     # Only log things that actually happen.

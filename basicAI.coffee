@@ -405,8 +405,9 @@ class BasicAI
     if my.countPlayableTerminals(state) == 0
       # take actions from hand
       # and sort them by actionPriority (highest first)
+      
       putBack = (card for card in my.hand when card?.isAction)
-      putBack = putBack.sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) 
+      putBack = putBack.sort( (y, x) -> state.compareByActionPriority(state, my, x, y) )
       
     # 2) If not enough actions left, put back best Terminal you can't play
     #    Take cards from hand which are Actions and Terminals, sort them by ActionPriority
@@ -414,7 +415,7 @@ class BasicAI
     #
     else
       putBack = (card for card in my.hand when (card?.isAction and card?.getActions(state)==0))
-      putBack = putBack.sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) )
+      putBack = putBack.sort( (y, x) -> state.compareByActionPriority(state, my, x, y) )
       putBack = putBack[my.countPlayableTerminals(state) ... putBack.length]
     
     # 3) Put back as much money as you can
@@ -450,7 +451,7 @@ class BasicAI
         
       
       # sort by cost. Should be improved
-      putBack.sort( (y,x) -> x.getCost(state)[0] - y.getCost(state)[0] )
+      putBack.sort( (y, x) -> state.compareByCoinCost(state, my, x, y) )
       
       # Don't put back last Potion if Alchemists are in play
       if my.countInPlay(state.cardInfo["Alchemist"])>0
