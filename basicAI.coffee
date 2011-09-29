@@ -423,9 +423,7 @@ class BasicAI
       [hypState, hypMy] = state.hypothetical(my.ai)
       # technically, we don't want to discard but to put back, but for pessimisticBuy this should not matter
       dis = hypState.requireDiscard(hypMy, 1)
-      state.log("Discarded: #{dis}")
       defaultGained = hypMy.ai.pessimisticCardsGained(hypState)
-      state.log("Defaultgain: #{defaultGained}")
       
       # determine which treasures are in hand, discard them hypothetically and test if the gains change.  When it doesn't, we can put back this card.
       treasures = []
@@ -434,11 +432,10 @@ class BasicAI
         if (card.isTreasure) and (not (card in treasures))
           treasures.push card
             
-      for card in treasures
+      for treasure in treasures
         [hypState, hypMy] = state.hypothetical(my.ai)
-        hypMy.doDiscard(card)
+        hypMy.doDiscard(treasure)
         nowGained = hypMy.ai.pessimisticCardsGained(hypState)
-        state.log("card #{card}, HypGaines: #{nowGained}")
         # test arrays on equality. Better way?
         # changed order in gaining messes this up. Just ignore?
         equal = true
@@ -449,18 +446,26 @@ class BasicAI
             equal = (equal and (nowGained[index] == card))
         
         if (equal)
-          putBack.push card
+          putBack.push treasure
         
       
-      # sort by price. Should be improved
-      putBack.sort( (y,x) -> x.getCost(state) - y.getCost(state) )
+      # sort by cost. Should be improved
+      putBack.sort( (y,x) -> x.getCost(state)[0] - y.getCost(state)[0] )
       
       # Don't put back last Potion if Alchemists are in play
       if my.countInPlay(state.cardInfo["Alchemist"])>0
         if my.countInHand(state.cardInfo["Potion"]) == 1
           putBack.remove(state.cardInfo["Potion"])
       
-      # Think about Royal Seal
+      # Don'tput back Royal Seal if you bought treasures or actions, assuming that you want to play them asap if you take the effort to buy them
+      onlyVictoryBought = true
+      for card in defaultGained
+        onlyVictoryBought = (onlyVictoryBought and not (card.isTreasure or card.isAction))
+        
+      if not onlyVictoryBought
+        putBack.remove(state.cardInfo["Royal Seal"])
+      
+      # Think about Loan?
     
     # 4) Put back the worst card (take priority for discard)
     #
@@ -688,19 +693,19 @@ class BasicAI
       else if state.phase == 'treasure'
         state.phase = 'buy'
     
-    state.log("")
-    state.log("HYPOTHETICAL start. Ignore everything...")
-
     [hypothesis, hypothetically_my] = state.hypothetical(this)
+    #  We need to save draw and discard before emptying and restore them before buyPhase, to be able to choose the right buys in actionPriority(state)
+    oldDraws   = hypothetically_my.draw.slice(0)
+    oldDiscard = hypothetically_my.discard.slice(0)
     hypothetically_my.draw = []
     hypothetically_my.discard = []
     
     while hypothesis.phase != 'buy'
       hypothesis.doPlay()
+      
+    hypothetically_my.draw = oldDraws
+    hypothetically_my.discard = oldDiscard
 
-    state.log("HYPOTHTICAL end. ... until here!")
-    state.log("")
-    
     return hypothesis
   
   pessimisticCardsGained: (state) ->
