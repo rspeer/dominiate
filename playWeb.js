@@ -2684,7 +2684,35 @@
       return this.discard = [];
     };
     PlayerState.prototype.copy = function() {
-      return cloneDominionObject(this);
+      var other;
+      other = new PlayerState();
+      other.actions = this.actions;
+      other.buys = this.buys;
+      other.coins = this.coins;
+      other.potions = this.potions;
+      other.setAsideByHaven = this.setAsideByHaven.slice(0);
+      other.mats = {};
+      other.mats.pirateShip = this.mats.pirateShip;
+      other.mats.nativeVillage = this.mats.nativeVillage.slice(0);
+      other.mats.island = this.mats.island.slice(0);
+      other.chips = this.chips;
+      other.hand = this.hand.slice(0);
+      other.draw = this.draw.slice(0);
+      other.discard = this.discard.slice(0);
+      other.inPlay = this.inPlay.slice(0);
+      other.duration = this.duration.slice(0);
+      other.setAside = this.setAside.slice(0);
+      other.moatProtected = this.moatProtected;
+      other.gainedThisTurn = this.gainedThisTurn.slice(0);
+      other.mayReturnTreasury = this.mayReturnTreasury;
+      other.playLocation = this.playLocation;
+      other.gainLocation = this.gainLocation;
+      other.actionStack = this.actionStack.slice(0);
+      other.tacticians = this.tacticians;
+      other.ai = this.ai;
+      other.logFunc = this.logFunc;
+      other.turnsTaken = this.turnsTaken;
+      return other;
     };
     PlayerState.prototype.log = function(obj) {
       if (this.logFunc != null) {
@@ -3221,13 +3249,35 @@
       }
     };
     State.prototype.copy = function() {
-      var newState, player, _i, _len, _ref2;
-      newState = cloneDominionObject(this);
-      _ref2 = newState.players;
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        player = _ref2[_i];
-        player.logFunc = function(obj) {};
+      var key, newPlayers, newState, newSupply, player, playerCopy, value, _i, _len, _ref2, _ref3;
+      newSupply = {};
+      _ref2 = this.supply;
+      for (key in _ref2) {
+        value = _ref2[key];
+        newSupply[key] = value;
       }
+      newState = new State();
+      newState.logFunc = this.logFunc;
+      newPlayers = [];
+      _ref3 = this.players;
+      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+        player = _ref3[_i];
+        playerCopy = player.copy();
+        playerCopy.logFunc = function(obj) {};
+        newPlayers.push(playerCopy);
+      }
+      newState.players = newPlayers;
+      newState.supply = newSupply;
+      newState.current = newPlayers[0];
+      newState.nPlayers = this.nPlayers;
+      newState.tradeRouteMat = this.tradeRouteMat.slice(0);
+      newState.tradeRouteValue = this.tradeRouteValue;
+      newState.bridges = this.bridges;
+      newState.quarries = this.quarries;
+      newState.copperValue = this.copperValue;
+      newState.phase = this.phase;
+      newState.cache = {};
+      newState.prizes = this.prizes.slice(0);
       return newState;
     };
     State.prototype.hypothetical = function(ai) {
