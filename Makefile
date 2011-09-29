@@ -4,6 +4,7 @@ web-coffee:
 	coffee -c -j web/playWeb.js playWeb.coffee basicAI.coffee cards.coffee gameState.coffee
 	coffee -c web/multiLog.coffee
 	coffee -c web/scoreTracker.coffee
+	coffee -c web/grapher.coffee
 
 web-strategies:
 	coffee compileStrategies.coffee

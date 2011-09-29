@@ -29,7 +29,8 @@ playGame = (strategies, options, ret) ->
   
   # Take note of the player names, in order, while they're
   # still in this order.
-  window.tracker.setPlayers(ai.name for ai in ais)
+  options.tracker.setPlayers(ai.name for ai in ais)
+  options.grapher.setPlayers(ai.name for ai in ais)
   
   # Handle options from the checkboxes on the page.
   if options.colonies
@@ -49,6 +50,10 @@ playStep = (state, options, ret) ->
   else
     try
       state.doPlay()
+      if state.phase == 'buy' and (not state.extraturn) and options.grapher?
+        options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins)
+      if state.phase == 'cleanup' and (not state.extraturn) and options.grapher?
+        options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state))
       window.setZeroTimeout -> playStep(state, options, ret)
     catch err
       errorHandler = options.errorHandler ? (alert ? console.log)
