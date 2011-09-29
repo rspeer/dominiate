@@ -1,7 +1,6 @@
 # This "indecisive import" pattern is messy but it gets the job done, and it's
 # explained at the bottom of this documentation.
 {c,transferCard,transferCardToTop} = require './cards' if exports?
-{BasicAI} = require './basicAI'
 
 # The PlayerState class
 # ---------------------  
