@@ -1019,9 +1019,7 @@ class State
     my = null
     for player in state.players
       if player.ai isnt ai
-        # Leave the AI alone for now; something goes weirdly wrong otherwise.
-        # Yes, this means we're technically reading their strategy.
-        #
+        player.ai = ai.copy()
         # We don't know what's in their hand or their deck, so shuffle them
         # together randomly, preserving the number of cards.
         handSize = player.hand.length
