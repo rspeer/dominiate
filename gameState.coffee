@@ -1,6 +1,7 @@
 # This "indecisive import" pattern is messy but it gets the job done, and it's
 # explained at the bottom of this documentation.
 {c,transferCard,transferCardToTop} = require './cards' if exports?
+{BasicAI} = require './basicAI'
 
 # The PlayerState class
 # ---------------------  
@@ -1015,11 +1016,13 @@ class State
   #   [state, my] = state.hypothetical(this)
   hypothetical: (ai) ->
     state = this.copy()
+    state.depth = this.depth + 1
     my = null
     for player in state.players
       if player.ai isnt ai
-        player.ai = ai.copy()
-
+        # Leave the AI alone for now; something goes weirdly wrong otherwise.
+        # Yes, this means we're technically reading their strategy.
+        #
         # We don't know what's in their hand or their deck, so shuffle them
         # together randomly, preserving the number of cards.
         handSize = player.hand.length
@@ -1031,7 +1034,6 @@ class State
         shuffle(player.draw)
         my = player
 
-    state.depth = this.depth + 1
     [state, my]
 
   # Games can provide output using the `log` function.
@@ -1077,6 +1079,19 @@ this.tableaux.noColony = noColony
 
 # Utility functions
 # -----------------
+# This customized clone function will not make unnecessary copies of
+# cards and AIs. However, it doesn't seem to work.
+cloneDominionObject = (obj) ->
+  if not obj? or typeof obj isnt 'object'
+    return obj
+
+  if (obj.gainPriority?) or (obj.costInCoins?)
+    return obj
+  newInstance = new obj.constructor()
+  for own key, value of obj
+    newInstance[key] = cloneDominionObject(value)
+  newInstance
+
 # General function to randomly shuffle a list.
 shuffle = (v) ->
   i = v.length
