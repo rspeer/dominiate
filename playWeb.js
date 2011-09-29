@@ -2378,7 +2378,6 @@
   if (typeof exports !== "undefined" && exports !== null) {
     _ref = require('./cards'), c = _ref.c, transferCard = _ref.transferCard, transferCardToTop = _ref.transferCardToTop;
   }
-  BasicAI = require('./basicAI').BasicAI;
   PlayerState = (function() {
     function PlayerState() {}
     PlayerState.prototype.initialize = function(ai, logFunc) {
