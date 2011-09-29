@@ -250,6 +250,7 @@ class BasicAI
     "Library" if my.hand.length <= 3
     "Expand"
     "Remodel"
+    "Jester"
     "Militia"
     "Cutpurse"
     "Bridge"
@@ -294,6 +295,7 @@ class BasicAI
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Coppersmith"
+    "Saboteur"
     "Library" if my.hand.length <= 7
     "Watchtower" if my.hand.length <= 6
     # Eighth priority: cards that have become useless. Maybe they'll decrease
