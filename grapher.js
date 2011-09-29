@@ -22,7 +22,7 @@
       }
     };
     Grapher.prototype.recordMoney = function(player, turn, money) {
-      var count, _base, _base2, _base3, _base4, _ref, _ref2, _ref3, _ref4;
+      var _base, _base2, _base3, _base4, _ref, _ref2, _ref3, _ref4;
       if ((_ref = (_base = this.moneyTotals)[player]) == null) {
         _base[player] = [0];
       }
@@ -32,26 +32,19 @@
       if ((_ref3 = (_base3 = this.turnCounts[player])[turn]) == null) {
         _base3[turn] = 0;
       }
-      count = ++this.turnCounts[player][turn];
+      this.turnCounts[player][turn]++;
       if ((_ref4 = (_base4 = this.moneyTotals[player])[turn]) == null) {
         _base4[turn] = 0;
       }
       return this.moneyTotals[player][turn] += money;
     };
     Grapher.prototype.recordVP = function(player, turn, vp) {
-      var count, _base, _base2, _base3, _base4, _ref, _ref2, _ref3, _ref4;
+      var _base, _base2, _ref, _ref2;
       if ((_ref = (_base = this.vpTotals)[player]) == null) {
         _base[player] = [3];
       }
-      if ((_ref2 = (_base2 = this.turnCounts)[player]) == null) {
-        _base2[player] = [];
-      }
-      if ((_ref3 = (_base3 = this.turnCounts[player])[turn]) == null) {
-        _base3[turn] = 0;
-      }
-      count = ++this.turnCounts[player][turn];
-      if ((_ref4 = (_base4 = this.vpTotals[player])[turn]) == null) {
-        _base4[turn] = 0;
+      if ((_ref2 = (_base2 = this.vpTotals[player])[turn]) == null) {
+        _base2[turn] = 0;
       }
       return this.vpTotals[player][turn] += vp;
     };

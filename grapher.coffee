@@ -22,15 +22,12 @@ class Grapher
     @moneyTotals[player] ?= [0]
     @turnCounts[player] ?= []
     @turnCounts[player][turn] ?= 0
-    count = ++@turnCounts[player][turn]
+    @turnCounts[player][turn]++
     @moneyTotals[player][turn] ?= 0
     @moneyTotals[player][turn] += money
   
   recordVP: (player, turn, vp) ->
     @vpTotals[player] ?= [3]
-    @turnCounts[player] ?= []
-    @turnCounts[player][turn] ?= 0
-    count = ++@turnCounts[player][turn]
     @vpTotals[player][turn] ?= 0
     @vpTotals[player][turn] += vp
 
