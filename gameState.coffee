@@ -357,7 +357,7 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
-    other.gainedThisTurn = @gainedThisTurn
+    other.gainedThisTurn = @gainedThisTurn.slice(0)
     other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
