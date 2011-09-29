@@ -47,7 +47,16 @@
       }
       return _results;
     })();
-    window.tracker.setPlayers((function() {
+    options.tracker.setPlayers((function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = ais.length; _i < _len; _i++) {
+        ai = ais[_i];
+        _results.push(ai.name);
+      }
+      return _results;
+    })());
+    options.grapher.setPlayers((function() {
       var _i, _len, _results;
       _results = [];
       for (_i = 0, _len = ais.length; _i < _len; _i++) {
@@ -79,6 +88,12 @@
     } else {
       try {
         state.doPlay();
+        if (state.phase === 'buy' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins);
+        }
+        if (state.phase === 'cleanup' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state));
+        }
         return window.setZeroTimeout(function() {
           return playStep(state, options, ret);
         });
@@ -3288,6 +3303,7 @@
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
         player = _ref2[_i];
         if (player.ai !== ai) {
+          player.ai = ai.copy();
           handSize = player.hand.length;
           combined = player.hand.concat(player.draw);
           shuffle(combined);
