@@ -446,6 +446,7 @@ aside depending on their type.</p>             </td>             <td class="code
 
 <span class="nx">makeCard</span> <span class="s1">&#39;Ambassador&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">3</span>
+  <span class="nv">isAttack: </span><span class="kc">true</span>
 
   <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span></pre></div>             </td>           </tr>                               <tr id="section-45">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-45">&#182;</a>               </div>               <p>Determine the cards and quantities that can be ambassadored</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="nv">counts = </span><span class="p">{}</span>
     <span class="k">for</span> <span class="nx">card</span> <span class="k">in</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span>
@@ -877,6 +878,23 @@ putting it in the duration area.</p>             </td>             <td class="co
       <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">drawCards</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="p">}</span>
 
+<span class="nx">makeCard</span> <span class="s1">&#39;Jester&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">coins: </span><span class="o">+</span><span class="mi">2</span>
+  <span class="nv">isAttack: </span><span class="kc">true</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{state.current.ai} gets +$2&quot;</span><span class="p">)</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+      <span class="nv">card = </span><span class="nx">state</span><span class="p">.</span><span class="nx">discardFromDeck</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="k">if</span> <span class="nx">card</span><span class="p">.</span><span class="nx">isVictory</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Curse</span><span class="p">)</span>
+      <span class="k">else</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">chooseGain</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="p">[</span><span class="nx">card</span><span class="p">,</span> <span class="kc">null</span><span class="p">])</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">card</span><span class="p">)</span>
+      <span class="k">else</span>
+        <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">card</span><span class="p">)</span>
+<span class="p">}</span>
+
 <span class="nx">makeCard</span> <span class="s1">&#39;Library&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">5</span>
 
@@ -960,6 +978,7 @@ method, to give opponents a chance to play reaction cards.</p>             </td>
 <span class="nx">makeCard</span> <span class="s2">&quot;Mint&quot;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
   <span class="nv">cost: </span><span class="mi">5</span>
   <span class="nv">buyEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nv">state.quarries = </span><span class="mi">0</span>
     <span class="nv">inPlay = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">inPlay</span>
     <span class="k">for</span> <span class="nx">i</span> <span class="k">in</span> <span class="p">[</span><span class="nx">inPlay</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">...</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
       <span class="k">if</span> <span class="nx">inPlay</span><span class="p">[</span><span class="nx">i</span><span class="p">].</span><span class="nx">isTreasure</span>
@@ -1100,7 +1119,7 @@ to apply to the state.</p>             </td>             <td class="code">      
           <span class="nv">attackSuccess = </span><span class="kc">true</span>
           <span class="nx">drawn</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">treasureToTrash</span><span class="p">)</span>
           <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{state.current.ai} trashes #{opp.ai}&#39;s #{treasureToTrash}.&quot;</span><span class="p">)</span>
-        <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span> <span class="p">(</span><span class="nx">drawn</span><span class="p">)</span>
+        <span class="nv">state.current.discard = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">drawn</span><span class="p">)</span>
         <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} discards #{drawn}.&quot;</span><span class="p">)</span>
         
       <span class="k">if</span> <span class="nx">attackSuccess</span>
@@ -1158,6 +1177,49 @@ to apply to the state.</p>             </td>             <td class="code">      
       <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...putting the #{card} on top of the deck.&quot;</span><span class="p">)</span>
       <span class="nv">player.gainLocation = </span><span class="s1">&#39;draw&#39;</span>
       <span class="nx">transferCardToTop</span><span class="p">(</span><span class="nx">card</span><span class="p">,</span> <span class="nx">source</span><span class="p">,</span> <span class="nx">player</span><span class="p">.</span><span class="nx">draw</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="nx">makeCard</span> <span class="s1">&#39;Saboteur&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
+  <span class="nv">cost: </span><span class="mi">5</span>
+  <span class="nv">isAttack: </span><span class="kc">true</span>
+
+  <span class="nv">upgradeFilter: </span><span class="nf">(state, oldCard, newCard) -&gt;</span>
+    <span class="p">[</span><span class="nx">coins1</span><span class="p">,</span> <span class="nx">potions1</span><span class="p">]</span> <span class="o">=</span> <span class="nx">oldCard</span><span class="p">.</span><span class="nx">getCost</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="p">[</span><span class="nx">coins2</span><span class="p">,</span> <span class="nx">potions2</span><span class="p">]</span> <span class="o">=</span> <span class="nx">newCard</span><span class="p">.</span><span class="nx">getCost</span><span class="p">(</span><span class="nx">state</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="nx">potions1</span> <span class="o">&gt;=</span> <span class="nx">potions2</span><span class="p">)</span> <span class="o">and</span> <span class="p">(</span><span class="nx">coins1</span><span class="o">-</span><span class="mi">2</span> <span class="o">&gt;=</span> <span class="nx">coins2</span><span class="p">)</span>
+
+  <span class="nv">playEffect: </span><span class="nf">(state) -&gt;</span>
+    <span class="nx">state</span><span class="p">.</span><span class="nx">attackOpponents</span> <span class="nf">(opp) -&gt;</span>
+      <span class="nv">cardsDrawn = </span><span class="mi">0</span><span class="p">;</span>
+      <span class="k">while</span> <span class="nx">cardsDrawn</span> <span class="o">&lt;</span> <span class="mi">1</span>
+        <span class="nv">drawn = </span><span class="nx">opp</span><span class="p">.</span><span class="nx">getCardsFromDeck</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nx">drawn</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
+          <span class="k">if</span> <span class="nx">opp</span><span class="p">.</span><span class="nx">setAside</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{opp.ai} reveals #{opp.setAside}, but has no cards costing $3 or more in the deck.&quot;</span><span class="p">)</span>
+          <span class="k">else</span>
+            <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;#{opp.ai} has no more cards in the deck.&quot;</span><span class="p">)</span>
+          <span class="k">break</span>
+        <span class="nv">card = </span><span class="nx">drawn</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nv">cardCoinCost = </span><span class="nx">card</span><span class="p">.</span><span class="nx">getCost</span><span class="p">(</span><span class="nx">state</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nx">cardCoinCost</span> <span class="o">&gt;=</span> <span class="mi">3</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} reveals #{opp.setAside}, and #{card}.&quot;</span><span class="p">)</span>
+          <span class="nx">cardsDrawn</span><span class="o">++</span>
+          <span class="nv">choices = </span><span class="nx">upgradeChoices</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">drawn</span><span class="p">,</span> <span class="nx">c</span><span class="p">.</span><span class="nx">Saboteur</span><span class="p">.</span><span class="nx">upgradeFilter</span><span class="p">)</span>
+          <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">([</span><span class="nx">card</span><span class="p">,</span><span class="kc">null</span><span class="p">])</span>
+          <span class="nv">choice = </span><span class="nx">opp</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">choose</span><span class="p">(</span><span class="s1">&#39;upgrade&#39;</span><span class="p">,</span> <span class="nx">state</span><span class="p">,</span> <span class="nx">choices</span><span class="p">)</span>
+          <span class="nx">drawn</span><span class="p">.</span><span class="nx">remove</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+          <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{state.current.ai} trashes #{opp.ai}&#39;s #{card}.&quot;</span><span class="p">)</span>
+          <span class="k">if</span> <span class="nx">choice</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">isnt</span> <span class="kc">null</span>
+            <span class="p">[</span><span class="nx">oldCard</span><span class="p">,</span> <span class="nx">newCard</span><span class="p">]</span> <span class="o">=</span> <span class="nx">choice</span>
+            <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">opp</span><span class="p">,</span> <span class="nx">newCard</span><span class="p">,</span> <span class="s1">&#39;discard&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
+            <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} gains #{newCard}.&quot;</span><span class="p">)</span>
+          <span class="k">else</span>
+            <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} gains nothing.&quot;</span><span class="p">)</span>
+        <span class="k">else</span>
+          <span class="nx">opp</span><span class="p">.</span><span class="nx">setAside</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">card</span><span class="p">)</span>
+      <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} discards #{opp.setAside}&quot;</span><span class="p">)</span>
+      <span class="nv">opp.discard = </span><span class="nx">opp</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">opp</span><span class="p">.</span><span class="nx">setAside</span><span class="p">)</span>
+      <span class="nv">opp.setAside = </span><span class="p">[]</span>  
 <span class="p">}</span>
 
 <span class="nx">makeCard</span> <span class="s1">&#39;Scout&#39;</span><span class="p">,</span> <span class="nx">action</span><span class="p">,</span> <span class="p">{</span>
@@ -1237,7 +1299,7 @@ fished out of the opponent's discard pile</p>             </td>             <td 
         <span class="k">if</span> <span class="nx">cardToGain</span>
           <span class="nx">state</span><span class="p">.</span><span class="nx">gainCard</span><span class="p">(</span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">,</span> <span class="nx">cardToGain</span><span class="p">,</span> <span class="s1">&#39;discard&#39;</span><span class="p">,</span> <span class="kc">true</span><span class="p">)</span>
           <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{state.current.ai} gains the trashed #{treasureToTrash}.&quot;</span><span class="p">)</span>
-      <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span> <span class="p">(</span><span class="nx">drawn</span><span class="p">)</span>
+      <span class="nv">state.current.discard = </span><span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">concat</span><span class="p">(</span><span class="nx">drawn</span><span class="p">)</span>
       <span class="nx">state</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;...#{opp.ai} discards #{drawn}.&quot;</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -1563,7 +1625,8 @@ improvement is allowed.</li>
       <span class="k">for</span> <span class="nx">cardname2</span> <span class="k">of</span> <span class="nx">state</span><span class="p">.</span><span class="nx">supply</span>
         <span class="nv">card2 = </span><span class="nx">c</span><span class="p">[</span><span class="nx">cardname2</span><span class="p">]</span>
         <span class="k">if</span> <span class="nx">filter</span><span class="p">(</span><span class="nx">state</span><span class="p">,</span> <span class="nx">card</span><span class="p">,</span> <span class="nx">card2</span><span class="p">)</span> <span class="o">and</span> <span class="nx">state</span><span class="p">.</span><span class="nx">supply</span><span class="p">[</span><span class="nx">card2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span>
-          <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">([</span><span class="nx">card</span><span class="p">,</span> <span class="nx">card2</span><span class="p">])</span>
+          <span class="k">if</span> <span class="o">not</span> <span class="nx">card2</span><span class="p">.</span><span class="nx">isPrize</span>
+            <span class="nx">choices</span><span class="p">.</span><span class="nx">push</span><span class="p">([</span><span class="nx">card</span><span class="p">,</span> <span class="nx">card2</span><span class="p">])</span>          
   <span class="k">return</span> <span class="nx">choices</span></pre></div>             </td>           </tr>                               <tr id="section-79">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-79">&#182;</a>               </div>               <p>Export functions that are needed elsewhere.</p>             </td>             <td class="code">               <div class="highlight"><pre><span class="k">this</span><span class="p">.</span><span class="nv">transferCard = </span><span class="nx">transferCard</span>
 <span class="k">this</span><span class="p">.</span><span class="nv">transferCardToTop = </span><span class="nx">transferCardToTop</span>
 
