@@ -26,7 +26,12 @@
 class BasicAI
   name: 'Basic AI'
   author: 'rspeer'
-
+  
+  # used for not calling actionPriority to often when result would not change
+  # for caching, use chacheActionPriority(state, my)
+  # use cachedActionPriority(state, my) to obtain cache
+  @cachedAP = []
+  
   # Referring to `state.current` to find information about one's own state is
   # not always safe! Some of these decisions may be made during other players'
   # turns. In those cases, what we want is `this.myPlayer(state)`.
@@ -178,10 +183,13 @@ class BasicAI
   
   # The default action-playing strategy, which aims to include a usable plan
   # for playing every action card, so that most AIs don't need to override it.
-  actionPriority: (state, my) -> [
+  actionPriority: (state, my) -> 
+    wantsToTrash = my.ai.wantsToTrash(state)
+    countInHandCopper = my.countInHand("Copper")
+    
     # First priority: cards that succeed if we play them now, and might
     # not if we play them later.
-    "Menagerie" if my.menagerieDraws() == 3
+    ["Menagerie" if my.menagerieDraws() == 3
     "Shanty Town" if my.shantyTownDraws(true) == 2
     "Tournament" if my.countInHand("Province") > 0
     # Second priority: cards that stack the deck.
@@ -223,7 +231,7 @@ class BasicAI
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and my.hand.lenth <= 3
     # Sixth priority: card-cycling that might improve the hand.
-    "Upgrade" if my.ai.wantsToTrash(state)
+    "Upgrade" if wantsToTrash
     "Pawn"
     "Warehouse"
     "Cellar"
@@ -259,9 +267,9 @@ class BasicAI
     "Bridge"
     "Horse Traders"
     "Steward"
-    "Moneylender" if my.countInHand("Copper") >= 1
+    "Moneylender" if countInHandCopper >= 1
     "Mine"
-    "Coppersmith" if my.countInHand("Copper") >= 3
+    "Coppersmith" if countInHandCopper >= 3
     "Library" if my.hand.length <= 4
     "Rabble"
     "Smithy"
@@ -280,16 +288,16 @@ class BasicAI
     "Woodcutter"
     "Chancellor"
     "Counting House"
-    "Coppersmith" if my.countInHand("Copper") >= 2
+    "Coppersmith" if countInHandCopper >= 2
     "Outpost" if state.extraturn == false
     # Play an Ambassador if our hand has something we'd want to discard.
     #
     # Here the AI has to refer to itself indirectly, as `my.ai`. `this`
     # actually has the wrong value right now because JavaScript is weird.
-    "Ambassador" if my.ai.wantsToTrash(state)
-    "Trading Post" if my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2
-    "Chapel" if my.ai.wantsToTrash(state)
-    "Trade Route" if my.ai.wantsToTrash(state)
+    "Ambassador" if wantsToTrash
+    "Trading Post" if wantsToTrash + my.countInHand("Silver") >= 2
+    "Chapel" if wantsToTrash
+    "Trade Route" if wantsToTrash
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
     "Thief"
@@ -343,10 +351,11 @@ class BasicAI
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
 
-  # Perhaps not the fastest way, but most fun
-  # Also perhaps redundant to chooseOrderOnDeck
-  sortByPriority: (list,state, my) =>
-    list.sort( (l) ->  (index for v, index in my.ai.actionPriority(state, my)).reduce (a,b) -> Math.min(a,b) )
+  cachedActionPriority: (state, my) ->
+    my.ai.cachedAP
+    
+  cacheActionPriority: (state, my) ->
+    @cachedAP = my.ai.actionPriority(state, my)
 
   # `chooseOrderOnDeck` handles situations where multiple cards are returned
   # to the deck, such as Scout and Apothecary.

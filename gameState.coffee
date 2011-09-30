@@ -1035,7 +1035,8 @@ class State
   
   # Functions for comparing, used for sorting
   compareByActionPriority: (state, my, x, y) ->
-    my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y)
+    my.ai.cacheActionPriority(state,my)
+    my.ai.choiceToValue('cachedAction', state, x) - my.ai.choiceToValue('cachedAction', state, y)
     
   compareByCoinCost: (state, my, x, y) ->
     x.getCost(state)[0] - y.getCost(state)[0]
