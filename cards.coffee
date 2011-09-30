@@ -533,6 +533,7 @@ makeCard 'Alchemist', action, {
 
 makeCard 'Ambassador', action, {
   cost: 3
+  isAttack: true
 
   playEffect: (state) ->
     # Determine the cards and quantities that can be ambassadored
@@ -985,6 +986,23 @@ makeCard 'Ironworks', action, {
       state.current.drawCards(1)
 }
 
+makeCard 'Jester', action, {
+  cost: 5
+  coins: +2
+  isAttack: true
+
+  playEffect: (state) ->
+    state.log("#{state.current.ai} gets +$2")
+    state.attackOpponents (opp) ->
+      card = state.discardFromDeck(opp, 1)[0]
+      if card.isVictory
+        state.gainCard(opp, c.Curse)
+      else if state.current.ai.chooseGain(state, [card, null])
+        state.gainCard(state.current, card)
+      else
+        state.gainCard(opp, card)
+}
+
 makeCard 'Library', action, {
   cost: 5
 
@@ -1089,6 +1107,7 @@ makeCard "Militia", action, {
 makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
+    state.quarries = 0
     inPlay = state.current.inPlay
     for i in [inPlay.length-1...-1]
       if inPlay[i].isTreasure
@@ -1239,7 +1258,7 @@ makeCard 'Pirate Ship', action, {
           attackSuccess = true
           drawn.remove(treasureToTrash)
           state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
-        state.current.discard.concat (drawn)
+        state.current.discard = state.current.discard.concat(drawn)
         state.log("...#{opp.ai} discards #{drawn}.")
         
       if attackSuccess
@@ -1297,6 +1316,49 @@ makeCard 'Royal Seal', c.Silver, {
       state.log("...putting the #{card} on top of the deck.")
       player.gainLocation = 'draw'
       transferCardToTop(card, source, player.draw)
+}
+
+makeCard 'Saboteur', action, {
+  cost: 5
+  isAttack: true
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 >= potions2) and (coins1-2 >= coins2)
+
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      cardsDrawn = 0;
+      while cardsDrawn < 1
+        drawn = opp.getCardsFromDeck(1)
+        if drawn.length == 0
+          if opp.setAside.length > 0
+            state.log("#{opp.ai} reveals #{opp.setAside}, but has no cards costing $3 or more in the deck.")
+          else
+            state.log("#{opp.ai} has no more cards in the deck.")
+          break
+        card = drawn[0]
+        cardCoinCost = card.getCost(state)[0]
+        if cardCoinCost >= 3
+          state.log("...#{opp.ai} reveals #{opp.setAside}, and #{card}.")
+          cardsDrawn++
+          choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
+          choices.push([card,null])
+          choice = opp.ai.choose('upgrade', state, choices)
+          drawn.remove(card)
+          state.log("...#{state.current.ai} trashes #{opp.ai}'s #{card}.")
+          if choice[1] isnt null
+            [oldCard, newCard] = choice
+            state.gainCard(opp, newCard, 'discard', true)
+            state.log("...#{opp.ai} gains #{newCard}.")
+          else
+            state.log("...#{opp.ai} gains nothing.")
+        else
+          opp.setAside.push(card)
+      state.log("...#{opp.ai} discards #{opp.setAside}")
+      opp.discard = opp.discard.concat(opp.setAside)
+      opp.setAside = []  
 }
 
 makeCard 'Scout', action, {
@@ -1382,7 +1444,7 @@ makeCard 'Thief', action, {
         if cardToGain
           state.gainCard(state.current, cardToGain, 'discard', true)
           state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
-      state.current.discard.concat (drawn)
+      state.current.discard = state.current.discard.concat(drawn)
       state.log("...#{opp.ai} discards #{drawn}.")
 }
 
@@ -1730,7 +1792,8 @@ upgradeChoices = (state, cards, filter) ->
       for cardname2 of state.supply
         card2 = c[cardname2]
         if filter(state, card, card2) and state.supply[card2] > 0
-          choices.push([card, card2])
+          if not card2.isPrize
+            choices.push([card, card2])          
   return choices
 
 # Export functions that are needed elsewhere.

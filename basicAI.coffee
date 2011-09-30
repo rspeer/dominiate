@@ -254,6 +254,7 @@ class BasicAI
     "Library" if my.hand.length <= 3
     "Expand"
     "Remodel"
+    "Jester"
     "Militia"
     "Cutpurse"
     "Bridge"
@@ -303,6 +304,7 @@ class BasicAI
     "Workshop"
     "Smugglers" if state.smugglerChoices().length > 1
     "Coppersmith"
+    "Saboteur"
     "Library" if my.hand.length <= 7
     # Eighth priority: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler, trigger Conspirator, or something.
