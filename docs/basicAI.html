@@ -197,6 +197,7 @@ if we decide we need the actions more than the cards.</p>             </td>     
     <span class="s2">&quot;Library&quot;</span> <span class="k">if</span> <span class="nx">my</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span> <span class="o">&lt;=</span> <span class="mi">3</span>
     <span class="s2">&quot;Expand&quot;</span>
     <span class="s2">&quot;Remodel&quot;</span>
+    <span class="s2">&quot;Jester&quot;</span>
     <span class="s2">&quot;Militia&quot;</span>
     <span class="s2">&quot;Cutpurse&quot;</span>
     <span class="s2">&quot;Bridge&quot;</span>
@@ -244,6 +245,7 @@ actually has the wrong value right now because JavaScript is weird.</p>         
     <span class="s2">&quot;Workshop&quot;</span>
     <span class="s2">&quot;Smugglers&quot;</span> <span class="k">if</span> <span class="nx">state</span><span class="p">.</span><span class="nx">smugglerChoices</span><span class="p">().</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">1</span>
     <span class="s2">&quot;Coppersmith&quot;</span>
+    <span class="s2">&quot;Saboteur&quot;</span>
     <span class="s2">&quot;Library&quot;</span> <span class="k">if</span> <span class="nx">my</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span> <span class="o">&lt;=</span> <span class="mi">7</span></pre></div>             </td>           </tr>                               <tr id="section-29">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-29">&#182;</a>               </div>               <p>Eighth priority: cards that have become useless. Maybe they'll decrease
 the cost of Peddler, trigger Conspirator, or something.</p>             </td>             <td class="code">               <div class="highlight"><pre>    <span class="s2">&quot;Treasure Map&quot;</span> <span class="k">if</span> <span class="nx">my</span><span class="p">.</span><span class="nx">countInDeck</span><span class="p">(</span><span class="s2">&quot;Gold&quot;</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span> <span class="o">and</span> <span class="nx">state</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">countInDeck</span><span class="p">(</span><span class="s2">&quot;Treasure Map&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
     <span class="s2">&quot;Shanty Town&quot;</span>

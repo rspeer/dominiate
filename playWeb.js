@@ -47,7 +47,16 @@
       }
       return _results;
     })();
-    window.tracker.setPlayers((function() {
+    options.tracker.setPlayers((function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = ais.length; _i < _len; _i++) {
+        ai = ais[_i];
+        _results.push(ai.name);
+      }
+      return _results;
+    })());
+    options.grapher.setPlayers((function() {
       var _i, _len, _results;
       _results = [];
       for (_i = 0, _len = ais.length; _i < _len; _i++) {
@@ -79,6 +88,12 @@
     } else {
       try {
         state.doPlay();
+        if (state.phase === 'buy' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins);
+        }
+        if (state.phase === 'cleanup' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state));
+        }
         return window.setZeroTimeout(function() {
           return playStep(state, options, ret);
         });
@@ -210,7 +225,7 @@
     };
     BasicAI.prototype.actionPriority = function(state, my) {
       var _ref;
-      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, state.gainsToEndGame() >= 5 || (_ref = state.cardInfo.Curse, __indexOf.call(my.draw, _ref) >= 0) ? "Lookout" : void 0, "Bag of Gold", "Apothecary", "Scout", "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Treasury", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Familiar", "Great Hall", "Wishing Well", "Lighthouse", "Haven", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Rabble" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, my.actions > 1 && my.hand.lenth <= 3 ? "Courtyard" : void 0, my.ai.wantsToTrash(state) ? "Upgrade" : void 0, "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, "Tournament", "Menagerie", my.actions < 2 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Torturer", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, my.hand.length <= 3 ? "Library" : void 0, "Expand", "Remodel", "Militia", "Cutpurse", "Bridge", "Horse Traders", "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Mine", my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, "Rabble", "Smithy", my.hand.length <= 3 ? "Watchtower" : void 0, "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, my.hand.length > 0 ? "Courtyard" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Remake", "Adventurer", "Harvest", "Explorer", "Woodcutter", "Chancellor", "Counting House", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, state.extraturn === false ? "Outpost" : void 0, my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2 ? "Trading Post" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Pirate Ship", "Thief", "Bureaucrat", my.actions < 2 ? "Conspirator" : void 0, "Herbalist", "Moat", my.hand.length <= 6 ? "Library" : void 0, my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", state.smugglerChoices().length > 1 ? "Smugglers" : void 0, "Coppersmith", my.hand.length <= 7 ? "Library" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", "Library", "Conspirator", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador"];
+      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, state.gainsToEndGame() >= 5 || (_ref = state.cardInfo.Curse, __indexOf.call(my.draw, _ref) >= 0) ? "Lookout" : void 0, "Bag of Gold", "Apothecary", "Scout", "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Treasury", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Familiar", "Great Hall", "Wishing Well", "Lighthouse", "Haven", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Rabble" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, my.actions > 1 && my.hand.lenth <= 3 ? "Courtyard" : void 0, my.ai.wantsToTrash(state) ? "Upgrade" : void 0, "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, "Tournament", "Menagerie", my.actions < 2 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Torturer", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, my.hand.length <= 3 ? "Library" : void 0, "Expand", "Remodel", "Jester", "Militia", "Cutpurse", "Bridge", "Horse Traders", "Steward", my.countInHand("Copper") >= 1 ? "Moneylender" : void 0, "Mine", my.countInHand("Copper") >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, "Rabble", "Smithy", my.hand.length <= 3 ? "Watchtower" : void 0, "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, my.hand.length > 0 ? "Courtyard" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Remake", "Adventurer", "Harvest", "Explorer", "Woodcutter", "Chancellor", "Counting House", my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, state.extraturn === false ? "Outpost" : void 0, my.ai.wantsToTrash(state) ? "Ambassador" : void 0, my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2 ? "Trading Post" : void 0, my.ai.wantsToTrash(state) ? "Chapel" : void 0, my.ai.wantsToTrash(state) ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Pirate Ship", "Thief", "Bureaucrat", my.actions < 2 ? "Conspirator" : void 0, "Herbalist", "Moat", my.hand.length <= 6 ? "Library" : void 0, my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", state.smugglerChoices().length > 1 ? "Smugglers" : void 0, "Coppersmith", "Saboteur", my.hand.length <= 7 ? "Library" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", "Library", "Conspirator", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador"];
     };
     BasicAI.prototype.treasurePriority = function(state, my) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Hoard", "Royal Seal", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
@@ -1027,6 +1042,7 @@
   });
   makeCard('Ambassador', action, {
     cost: 3,
+    isAttack: true,
     playEffect: function(state) {
       var card, cardName, choice, choices, count, counts, i, quantity, _i, _len, _ref, _ref2;
       counts = {};
@@ -1565,6 +1581,25 @@
       }
     }
   });
+  makeCard('Jester', action, {
+    cost: 5,
+    coins: +2,
+    isAttack: true,
+    playEffect: function(state) {
+      state.log("" + state.current.ai + " gets +$2");
+      return state.attackOpponents(function(opp) {
+        var card;
+        card = state.discardFromDeck(opp, 1)[0];
+        if (card.isVictory) {
+          return state.gainCard(opp, c.Curse);
+        } else if (state.current.ai.chooseGain(state, [card, null])) {
+          return state.gainCard(state.current, card);
+        } else {
+          return state.gainCard(opp, card);
+        }
+      });
+    }
+  });
   makeCard('Library', action, {
     cost: 5,
     playEffect: function(state) {
@@ -1661,6 +1696,7 @@
     cost: 5,
     buyEffect: function(state) {
       var i, inPlay, _ref, _results;
+      state.quarries = 0;
       inPlay = state.current.inPlay;
       _results = [];
       for (i = _ref = inPlay.length - 1; _ref <= -1 ? i < -1 : i > -1; _ref <= -1 ? i++ : i--) {
@@ -1833,7 +1869,7 @@
             drawn.remove(treasureToTrash);
             state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + treasureToTrash + ".");
           }
-          state.current.discard.concat(drawn);
+          state.current.discard = state.current.discard.concat(drawn);
           return state.log("..." + opp.ai + " discards " + drawn + ".");
         });
         if (attackSuccess) {
@@ -1902,6 +1938,56 @@
         player.gainLocation = 'draw';
         return transferCardToTop(card, source, player.draw);
       }
+    }
+  });
+  makeCard('Saboteur', action, {
+    cost: 5,
+    isAttack: true,
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 >= potions2) && (coins1 - 2 >= coins2);
+    },
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var card, cardCoinCost, cardsDrawn, choice, choices, drawn, newCard, oldCard;
+        cardsDrawn = 0;
+        while (cardsDrawn < 1) {
+          drawn = opp.getCardsFromDeck(1);
+          if (drawn.length === 0) {
+            if (opp.setAside.length > 0) {
+              state.log("" + opp.ai + " reveals " + opp.setAside + ", but has no cards costing $3 or more in the deck.");
+            } else {
+              state.log("" + opp.ai + " has no more cards in the deck.");
+            }
+            break;
+          }
+          card = drawn[0];
+          cardCoinCost = card.getCost(state)[0];
+          if (cardCoinCost >= 3) {
+            state.log("..." + opp.ai + " reveals " + opp.setAside + ", and " + card + ".");
+            cardsDrawn++;
+            choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter);
+            choices.push([card, null]);
+            choice = opp.ai.choose('upgrade', state, choices);
+            drawn.remove(card);
+            state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + card + ".");
+            if (choice[1] !== null) {
+              oldCard = choice[0], newCard = choice[1];
+              state.gainCard(opp, newCard, 'discard', true);
+              state.log("..." + opp.ai + " gains " + newCard + ".");
+            } else {
+              state.log("..." + opp.ai + " gains nothing.");
+            }
+          } else {
+            opp.setAside.push(card);
+          }
+        }
+        state.log("..." + opp.ai + " discards " + opp.setAside);
+        opp.discard = opp.discard.concat(opp.setAside);
+        return opp.setAside = [];
+      });
     }
   });
   makeCard('Scout', action, {
@@ -1995,7 +2081,7 @@
             state.log("..." + state.current.ai + " gains the trashed " + treasureToTrash + ".");
           }
         }
-        state.current.discard.concat(drawn);
+        state.current.discard = state.current.discard.concat(drawn);
         return state.log("..." + opp.ai + " discards " + drawn + ".");
       });
     }
@@ -2366,7 +2452,9 @@
         for (cardname2 in state.supply) {
           card2 = c[cardname2];
           if (filter(state, card, card2) && state.supply[card2] > 0) {
-            choices.push([card, card2]);
+            if (!card2.isPrize) {
+              choices.push([card, card2]);
+            }
           }
         }
       }
@@ -2378,7 +2466,6 @@
   if (typeof exports !== "undefined" && exports !== null) {
     _ref = require('./cards'), c = _ref.c, transferCard = _ref.transferCard, transferCardToTop = _ref.transferCardToTop;
   }
-  BasicAI = require('./basicAI').BasicAI;
   PlayerState = (function() {
     function PlayerState() {}
     PlayerState.prototype.initialize = function(ai, logFunc) {
@@ -2684,7 +2771,35 @@
       return this.discard = [];
     };
     PlayerState.prototype.copy = function() {
-      return cloneDominionObject(this);
+      var other;
+      other = new PlayerState();
+      other.actions = this.actions;
+      other.buys = this.buys;
+      other.coins = this.coins;
+      other.potions = this.potions;
+      other.setAsideByHaven = this.setAsideByHaven.slice(0);
+      other.mats = {};
+      other.mats.pirateShip = this.mats.pirateShip;
+      other.mats.nativeVillage = this.mats.nativeVillage.slice(0);
+      other.mats.island = this.mats.island.slice(0);
+      other.chips = this.chips;
+      other.hand = this.hand.slice(0);
+      other.draw = this.draw.slice(0);
+      other.discard = this.discard.slice(0);
+      other.inPlay = this.inPlay.slice(0);
+      other.duration = this.duration.slice(0);
+      other.setAside = this.setAside.slice(0);
+      other.moatProtected = this.moatProtected;
+      other.gainedThisTurn = this.gainedThisTurn.slice(0);
+      other.mayReturnTreasury = this.mayReturnTreasury;
+      other.playLocation = this.playLocation;
+      other.gainLocation = this.gainLocation;
+      other.actionStack = this.actionStack.slice(0);
+      other.tacticians = this.tacticians;
+      other.ai = this.ai;
+      other.logFunc = this.logFunc;
+      other.turnsTaken = this.turnsTaken;
+      return other;
     };
     PlayerState.prototype.log = function(obj) {
       if (this.logFunc != null) {
@@ -3221,13 +3336,35 @@
       }
     };
     State.prototype.copy = function() {
-      var newState, player, _i, _len, _ref2;
-      newState = cloneDominionObject(this);
-      _ref2 = newState.players;
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        player = _ref2[_i];
-        player.logFunc = function(obj) {};
+      var key, newPlayers, newState, newSupply, player, playerCopy, value, _i, _len, _ref2, _ref3;
+      newSupply = {};
+      _ref2 = this.supply;
+      for (key in _ref2) {
+        value = _ref2[key];
+        newSupply[key] = value;
       }
+      newState = new State();
+      newState.logFunc = this.logFunc;
+      newPlayers = [];
+      _ref3 = this.players;
+      for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
+        player = _ref3[_i];
+        playerCopy = player.copy();
+        playerCopy.logFunc = function(obj) {};
+        newPlayers.push(playerCopy);
+      }
+      newState.players = newPlayers;
+      newState.supply = newSupply;
+      newState.current = newPlayers[0];
+      newState.nPlayers = this.nPlayers;
+      newState.tradeRouteMat = this.tradeRouteMat.slice(0);
+      newState.tradeRouteValue = this.tradeRouteValue;
+      newState.bridges = this.bridges;
+      newState.quarries = this.quarries;
+      newState.copperValue = this.copperValue;
+      newState.phase = this.phase;
+      newState.cache = {};
+      newState.prizes = this.prizes.slice(0);
       return newState;
     };
     State.prototype.hypothetical = function(ai) {
@@ -3239,6 +3376,7 @@
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
         player = _ref2[_i];
         if (player.ai !== ai) {
+          player.ai = ai.copy();
           handSize = player.hand.length;
           combined = player.hand.concat(player.draw);
           shuffle(combined);
