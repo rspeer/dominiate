@@ -1725,7 +1725,8 @@ upgradeChoices = (state, cards, filter) ->
       for cardname2 of state.supply
         card2 = c[cardname2]
         if filter(state, card, card2) and state.supply[card2] > 0
-          choices.push([card, card2])
+          if not card2.isPrize
+            choices.push([card, card2])          
   return choices
 
 # Export functions that are needed elsewhere.
