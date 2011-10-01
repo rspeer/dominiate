@@ -588,6 +588,10 @@ class BasicAI
   # And the answer is yes.
   baronDiscardPriority: (state, my) -> [yes]
 
+  # Do you want to discard a Province to win a Tournament? The answer is
+  # *very* yes.
+  tournamentDiscardPriority: (state, my) -> [yes]
+
   # `wishValue` prefers to wish for the card its draw pile contains
   # the most of.
   #
