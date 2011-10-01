@@ -1034,6 +1034,10 @@ class State
     [state, my]
   
   # Functions for comparing, used for sorting
+  #
+  # Rob says: this is pretty AI-specific. It's also an unnecessarily complex operation,
+  # even given caching. The choices are already in order in the actionPriority; they need
+  # to be filtered, not sorted.
   compareByActionPriority: (state, my, x, y) ->
     my.ai.cacheActionPriority(state,my)
     my.ai.choiceToValue('cachedAction', state, x) - my.ai.choiceToValue('cachedAction', state, y)

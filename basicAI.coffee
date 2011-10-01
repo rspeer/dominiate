@@ -401,7 +401,7 @@ class BasicAI
   discardValue: (state, card, my) =>
     # If we can discard excess actions, do so. Otherwise, discard the cheapest
     # cards. Victory cards would already have been discarded by discardPriority.
-    if (card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0)
+    if (card.isAction and card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0)
       20 - card.cost
     else
       0 - card.cost
@@ -410,25 +410,28 @@ class BasicAI
   #
   putOnDeckPriority: (state, my) -> 
     putBack = []
-    # 1) If no actions left, put back best Action
-    #    Take card from hand which are actions, sort them by ActionPriority
+    # 1) If no actions left, put back the best Action.
+    #    Take card from hand which are actions, sort them by ActionPriority.
     #
     if my.countPlayableTerminals(state) == 0
       # take actions from hand
       # and sort them by actionPriority (highest first)
       
-      putBack = (card for card in my.hand when card?.isAction)
-      putBack = putBack.sort( (y, x) -> state.compareByActionPriority(state, my, x, y) )
+      putBackOptions = (card for card in my.hand when card.isAction)
       
-    # 2) If not enough actions left, put back best Terminal you can't play
-    #    Take cards from hand which are Actions and Terminals, sort them by ActionPriority
-    #    Then, ignore as many terminals as you can play this turn, return the others
+    # 2) If not enough actions left, put back best Terminal you can't play.
+    #    Take cards from hand which are Actions and Terminals, sort them by ActionPriority.
+    #    Then, ignore as many terminals as you can play this turn; return the others.
     #
     else
-      putBack = (card for card in my.hand when (card?.isAction and card?.getActions(state)==0))
-      putBack = putBack.sort( (y, x) -> state.compareByActionPriority(state, my, x, y) )
-      putBack = putBack[my.countPlayableTerminals(state) ... putBack.length]
+      putBackOptions = (card for card in my.hand \
+                        when (card.isAction and card.getActions(state)==0))
     
+    putBack = (card for card in my.ai.actionPriority(state, my) \
+                    when (state.cardInfo[card] in putBackOptions))
+
+    putBack = putBack[my.countPlayableTerminals(state) ... putBack.length]
+
     # 3) Put back as much money as you can
     if putBack.length == 0
       # find out what you would gain if you put back worst card as in 4)
@@ -459,7 +462,6 @@ class BasicAI
         
         if (equal)
           putBack.push treasure
-        
       
       # sort by cost. Should be improved
       putBack.sort( (y, x) -> state.compareByCoinCost(state, my, x, y) )

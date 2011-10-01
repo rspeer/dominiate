@@ -1341,7 +1341,10 @@ makeCard 'Saboteur', action, {
         card = drawn[0]
         cardCoinCost = card.getCost(state)[0]
         if cardCoinCost >= 3
-          state.log("...#{opp.ai} reveals #{opp.setAside}, and #{card}.")
+          if opp.setAside.length == 0
+            state.log("...#{opp.ai} reveals #{card}.")
+          else
+            state.log("...#{opp.ai} reveals #{opp.setAside}, and #{card}.")
           cardsDrawn++
           choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
           choices.push([card,null])
