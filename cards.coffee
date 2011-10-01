@@ -477,6 +477,67 @@ makeCard 'Mine', c.Remodel, {
       state.gainCard(state.current, newCard, 'hand')
 }
 
+# Prize cards
+# -----------
+# Because Prize cards can only be gained through Tournament, and all have
+# cost = 0, startingSupply -> 0, and mayBeBought -> false it is useful to
+# have a prototype prize. The prototype has isAction: true since 4 of the 5
+# prizes are action cards.
+
+prize = makeCard 'prize', basicCard, {
+  cost: 0
+  isPrize: true
+  isAction: true
+  mayBeBought: (state) -> false
+  startingSupply: (state) -> 0
+}, true
+
+makeCard 'Bag of Gold', prize, {
+  actions: +1 
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Gold, 'draw')
+    state.log("...putting the Gold on top of the deck.")
+}
+
+makeCard 'Diadem', prize, {
+  isAction: false
+  isTreasure: true 
+  getCoins: (state) -> 2 + state.current.actions
+}
+
+makeCard 'Followers', prize, {
+  cards: +2
+  isAttack: true
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Estate)
+    state.attackOpponents (opp) ->
+      state.gainCard(opp, c.Curse)
+      if opp.hand.length > 3
+        state.requireDiscard(opp, opp.hand.length - 3)
+}
+
+# Since there is only one Princess card, and Princess's cost
+# reduction effect has the clause "while this is in play",
+# state.princesses will never need to be greater than 1.
+makeCard 'Princess', prize, {
+  buys: 1
+  playEffect:
+    (state) ->
+      state.princesses = 1
+}
+
+makeCard 'Trusty Steed', prize, {
+  playEffect: (state) ->
+    benefit = state.current.ai.choose('benefit', state, [
+      {cards: 2, actions: 2},
+      {cards: 2, coins: 2},
+      {actions: 2, coins: 2},
+      {cards: 2, horseEffect: yes},
+      {actions: 2, horseEffect: yes},
+      {coins: 2, horseEffect: yes}
+    ])
+    applyBenefit(state, benefit)
+}
 
 # Miscellaneous cards
 # -------------------
@@ -575,17 +636,6 @@ makeCard 'Apothecary', action, {
       state.log("...putting #{order} back on the deck.")
       state.current.draw = order.concat(state.current.draw)
       state.current.setAside = []
-}
-
-makeCard 'Bag of Gold', action, {
-  cost: 0
-  actions: +1
-  isPrize: true
-  mayBeBought: (state) -> false
-
-  playEffect: (state) ->
-    state.gainCard(state.current, c.Gold, 'draw')
-    state.log("...putting the Gold on top of the deck.")
 }
 
 makeCard 'Bank', c.Silver, {
@@ -741,13 +791,6 @@ makeCard 'Cutpurse', action, {
           state.revealHand(opp)
 }
 
-makeCard 'Diadem', c.Silver, {
-  cost: 0
-  isPrize: true
-  mayBeBought: (state) -> false
-  getCoins: (state) -> 2 + state.current.actions
-}
-
 makeCard "Duke", c.Estate, {
   cost: 5
   getVP: (state) ->
@@ -805,21 +848,6 @@ makeCard 'Familiar', action, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       state.gainCard(opp, c.Curse)
-}
-
-makeCard "Followers", action, {
-  cost: 0
-  cards: +2
-  
-  isAttack: true
-  isPrize: true
-  mayBeBought: (state) -> false
-  playEffect: (state) ->
-    state.gainCard(state.current, c.Estate)
-    state.attackOpponents (opp) ->
-      state.gainCard(opp, c.Curse)
-      if opp.hand.length > 3
-        state.requireDiscard(opp, opp.hand.length - 3)
 }
 
 makeCard "Gardens", c.Estate, {
@@ -1235,20 +1263,6 @@ makeCard 'Pirate Ship', action, {
       if attackSuccess
         state.current.mats.pirateShip += 1
         state.log("...#{state.current.ai} takes a Coin token (#{state.current.mats.pirateShip} on the mat).")
-}
-
-makeCard 'Princess', action, {
-  cost: 0
-  buys: 1
-  isPrize: true
-  mayBeBought: (state) -> false
-  
-  # Since there is only one Princess and its cost reduction effect has
-  # the "while this is in play" clause, setting state.princesses to 1
-  # works.
-  playEffect:
-    (state) ->
-      state.princesses = 1
 }
 
 makeCard 'Quarry', c.Silver, {
