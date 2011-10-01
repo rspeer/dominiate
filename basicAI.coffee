@@ -26,7 +26,12 @@
 class BasicAI
   name: 'Basic AI'
   author: 'rspeer'
-
+  
+  # used for not calling actionPriority to often when result would not change
+  # for caching, use chacheActionPriority(state, my)
+  # use cachedActionPriority(state, my) to obtain cache
+  @cachedAP = []
+  
   # Referring to `state.current` to find information about one's own state is
   # not always safe! Some of these decisions may be made during other players'
   # turns. In those cases, what we want is `this.myPlayer(state)`.
@@ -178,10 +183,13 @@ class BasicAI
   
   # The default action-playing strategy, which aims to include a usable plan
   # for playing every action card, so that most AIs don't need to override it.
-  actionPriority: (state, my) -> [
+  actionPriority: (state, my) -> 
+    wantsToTrash = my.ai.wantsToTrash(state)
+    countInHandCopper = my.countInHand("Copper")
+    
     # First priority: cards that succeed if we play them now, and might
     # not if we play them later.
-    "Menagerie" if my.menagerieDraws() == 3
+    ["Menagerie" if my.menagerieDraws() == 3
     "Shanty Town" if my.shantyTownDraws(true) == 2
     "Tournament" if my.countInHand("Province") > 0
     # Second priority: cards that stack the deck.
@@ -221,9 +229,9 @@ class BasicAI
     "Smithy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
-    "Courtyard" if my.actions > 1 and my.hand.lenth <= 3
+    "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
     # Sixth priority: card-cycling that might improve the hand.
-    "Upgrade" if my.ai.wantsToTrash(state)
+    "Upgrade" if wantsToTrash
     "Pawn"
     "Warehouse"
     "Cellar"
@@ -260,9 +268,9 @@ class BasicAI
     "Bridge"
     "Horse Traders"
     "Steward"
-    "Moneylender" if my.countInHand("Copper") >= 1
+    "Moneylender" if countInHandCopper >= 1
     "Mine"
-    "Coppersmith" if my.countInHand("Copper") >= 3
+    "Coppersmith" if countInHandCopper >= 3
     "Library" if my.hand.length <= 4
     "Rabble"
     "Smithy"
@@ -270,7 +278,7 @@ class BasicAI
     "Council Room"
     "Library" if my.hand.length <= 5
     "Watchtower" if my.hand.length <= 4
-    "Courtyard" if my.hand.length > 0
+    "Courtyard" if (my.discard.length + my.draw.length) > 0
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
     "Monument"
@@ -281,16 +289,16 @@ class BasicAI
     "Woodcutter"
     "Chancellor"
     "Counting House"
-    "Coppersmith" if my.countInHand("Copper") >= 2
+    "Coppersmith" if countInHandCopper >= 2
     "Outpost" if state.extraturn == false
     # Play an Ambassador if our hand has something we'd want to discard.
     #
     # Here the AI has to refer to itself indirectly, as `my.ai`. `this`
     # actually has the wrong value right now because JavaScript is weird.
-    "Ambassador" if my.ai.wantsToTrash(state)
-    "Trading Post" if my.ai.wantsToTrash(state) + my.countInHand("Silver") >= 2
-    "Chapel" if my.ai.wantsToTrash(state)
-    "Trade Route" if my.ai.wantsToTrash(state)
+    "Ambassador" if wantsToTrash
+    "Trading Post" if wantsToTrash + my.countInHand("Silver") >= 2
+    "Chapel" if wantsToTrash
+    "Trade Route" if wantsToTrash
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
     "Thief"
@@ -345,10 +353,11 @@ class BasicAI
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
 
-  # Perhaps not the fastest way, but most fun
-  # Also perhaps redundant to chooseOrderOnDeck
-  sortByPriority: (list,state, my) =>
-    list.sort( (l) ->  (index for v, index in my.ai.actionPriority(state, my)).reduce (a,b) -> Math.min(a,b) )
+  cachedActionPriority: (state, my) ->
+    my.ai.cachedAP
+    
+  cacheActionPriority: (state, my) ->
+    @cachedAP = my.ai.actionPriority(state, my)
 
   # `chooseOrderOnDeck` handles situations where multiple cards are returned
   # to the deck, such as Scout and Apothecary.
@@ -405,40 +414,71 @@ class BasicAI
     #    Take card from hand which are actions, sort them by ActionPriority
     #
     if my.countPlayableTerminals(state) == 0
-      putBack = (card for card in my.hand when card?.isAction).sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) 
+      # take actions from hand
+      # and sort them by actionPriority (highest first)
+      
+      putBack = (card for card in my.hand when card?.isAction)
+      putBack = putBack.sort( (y, x) -> state.compareByActionPriority(state, my, x, y) )
       
     # 2) If not enough actions left, put back best Terminal you can't play
     #    Take cards from hand which are Actions and Terminals, sort them by ActionPriority
     #    Then, ignore as many terminals as you can play this turn, return the others
     #
     else
-      putBack = (tmp=( card for card in my.hand when (card?.isAction and card?.getActions(state)>0) ).sort( (y, x) -> my.ai.choiceToValue('action', state, x) - my.ai.choiceToValue('action', state, y) ) )[my.countPlayableTerminals(state) ... tmp.length]
-      
+      putBack = (card for card in my.hand when (card?.isAction and card?.getActions(state)==0))
+      putBack = putBack.sort( (y, x) -> state.compareByActionPriority(state, my, x, y) )
+      putBack = putBack[my.countPlayableTerminals(state) ... putBack.length]
+    
     # 3) Put back as much money as you can
-    #    First get a pessimistic estimate of the avaiable money this turn
-    #    then find take the cost in coins of the highest priority card you can afford
-    #    then put the treasures which are not needed in 'putBack' for discardPriority, most valuable first, Potion = 2.5 Coins
-    #
-    if putBack.length==0
-      coinEstimate = my.ai.pessimisticMoneyInHand(state)
-      potionEstimate = my.countInHand(state.cardInfo["Potion"])
+    if putBack.length == 0
+      # find out what you would gain if you put back worst card as in 4)
+      [hypState, hypMy] = state.hypothetical(my.ai)
+      # technically, we don't want to discard but to put back, but for pessimisticBuy this should not matter
+      dis = hypState.requireDiscard(hypMy, 1)
+      defaultGained = hypMy.ai.pessimisticCardsGained(hypState)
       
-      targets = (state.cardInfo[card]?.getCost(state) for card in my.ai.gainPriority(state, my) when ( (state.cardInfo[card]?.getCost(state)[0] <= coinEstimate) and (state.cardInfo[card]?.getCost(state)[1] <= potionEstimate )) )
+      # determine which treasures are in hand, discard them hypothetically and test if the gains change.  When it doesn't, we can put back this card.
+      treasures = []
       
-      if targets? and targets.length? and targets.length>0
-        coinTarget   = targets[0][0]
-        potionTarget = targets[0][1]
-      else 
-        coinTarget   = 0
-        potionTarget = 1
+      for card in my.hand
+        if (card.isTreasure) and (not (card in treasures))
+          treasures.push card
+            
+      for treasure in treasures
+        [hypState, hypMy] = state.hypothetical(my.ai)
+        hypMy.doDiscard(treasure)
+        nowGained = hypMy.ai.pessimisticCardsGained(hypState)
+        # test arrays on equality. Better way?
+        # changed order in gaining messes this up. Just ignore?
+        equal = true
+        if (defaultGained.length != nowGained.length)
+          equal = false
+        else 
+          for card, index in defaultGained
+            equal = (equal and (nowGained[index] == card))
+        
+        if (equal)
+          putBack.push treasure
+        
       
-      # Don't put last Potion back if Alchemists are in play
-      #
-      if (my.countInPlay(state.cardInfo["Alchemist"]) > 0)
-        potionTarget = Math.max potionTarget, 1
+      # sort by cost. Should be improved
+      putBack.sort( (y, x) -> state.compareByCoinCost(state, my, x, y) )
       
-      putBack = (card for card in my.hand when (card.isTreasure and (card.getCoins(state) <= (coinEstimate - coinTarget)) and (card.getPotion(state) <= (potionEstimate - potionTarget)) ) ).sort( (b, a) -> (state.cardInfo[a].getCoins(state) + 2.5*state.cardInfo[a].getPotion(state) - state.cardInfo[b].getCoins(state) - 2.5*state.cardInfo[b].getPotion(state)) )
-         
+      # Don't put back last Potion if Alchemists are in play
+      if my.countInPlay(state.cardInfo["Alchemist"])>0
+        if my.countInHand(state.cardInfo["Potion"]) == 1
+          putBack.remove(state.cardInfo["Potion"])
+      
+      # Don'tput back Royal Seal if you bought treasures or actions, assuming that you want to play them asap if you take the effort to buy them
+      onlyVictoryBought = true
+      for card in defaultGained
+        onlyVictoryBought = (onlyVictoryBought and not (card.isTreasure or card.isAction))
+        
+      if not onlyVictoryBought
+        putBack.remove(state.cardInfo["Royal Seal"])
+      
+      # Think about Loan?
+    
     # 4) Put back the worst card (take priority for discard)
     #
     if putBack.length==0
@@ -664,13 +704,19 @@ class BasicAI
         state.phase = 'treasure'
       else if state.phase == 'treasure'
         state.phase = 'buy'
-
+    
     [hypothesis, hypothetically_my] = state.hypothetical(this)
+    #  We need to save draw and discard before emptying and restore them before buyPhase, to be able to choose the right buys in actionPriority(state)
+    oldDraws   = hypothetically_my.draw.slice(0)
+    oldDiscard = hypothetically_my.discard.slice(0)
     hypothetically_my.draw = []
     hypothetically_my.discard = []
     
     while hypothesis.phase != 'buy'
       hypothesis.doPlay()
+      
+    hypothetically_my.draw = oldDraws
+    hypothetically_my.discard = oldDiscard
 
     return hypothesis
   
