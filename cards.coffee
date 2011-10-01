@@ -80,6 +80,7 @@ basicCard = {
   getCost: (state) ->
     coins = this.costInCoins(state)
     coins -= state.bridges
+    coins -= state.princesses * 2
     if this.isAction
       coins -= state.quarries * 2
     if coins < 0
@@ -208,7 +209,8 @@ makeCard 'Curse', basicCard, {
       when 1, 2 then 10
       when 3 then 20
       when 4 then 30
-      else 40      
+      when 5 then 40
+      else 50
 }
 
 # To define victory cards, we define Estate and then derive other cards from
@@ -220,12 +222,20 @@ makeCard 'Estate', basicCard, {
   startingSupply: (state) ->
     switch state.nPlayers
       when 1, 2 then 8
-      when 3, 4 then 12
-      else 15  
+      else then 12 
 }
 
 makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
-makeCard 'Province', c.Estate, {cost: 8, vp: 6}
+makeCard 'Province', c.Estate, {
+  cost: 8
+  vp: 6
+  startingSupply: (state) ->
+    switch state.nPlayers
+      when 1, 2 then 8
+      when 3, 4 then 12
+      when 5 then 15
+      else 18
+}
 makeCard 'Colony', c.Estate, {cost: 11, vp: 10}
 
 # Now we define the basic treasure cards. Our prototypical card here is
@@ -235,7 +245,7 @@ makeCard 'Silver', basicCard, {
   cost: 3
   isTreasure: true
   coins: 2
-  startingSupply: (state) -> 30
+  startingSupply: (state) -> 40
 }
 
 # Copper is actually more complex than Silver: its value can vary when modified
@@ -244,9 +254,15 @@ makeCard 'Copper', c.Silver, {
   cost: 0
   coins: 1
   getCoins: (state) -> state.copperValue ? 1
+  startingSupply: (state) -> 60
 }
 
-makeCard 'Gold', c.Silver, {cost: 6, coins: 3}
+makeCard 'Gold', c.Silver, {
+  cost: 6
+  coins: 3
+  startingSupply: (state) -> 30
+}
+
 makeCard 'Platinum', c.Silver, {
   cost: 9,
   coins: 5,
@@ -255,8 +271,7 @@ makeCard 'Platinum', c.Silver, {
 makeCard 'Potion', c.Silver, {
   cost: 4
   coins: 0
-  playEffect:
-    (state) -> state.current.potions += 1
+
   getPotion: (state) -> 1
   startingSupply: (state) -> 16
 }
@@ -1063,6 +1078,7 @@ makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
     state.quarries = 0
+    state.potions = 0
     inPlay = state.current.inPlay
     for i in [inPlay.length-1...-1]
       if inPlay[i].isTreasure
@@ -1226,9 +1242,13 @@ makeCard 'Princess', action, {
   buys: 1
   isPrize: true
   mayBeBought: (state) -> false
+  
+  # Since there is only one Princess and its cost reduction effect has
+  # the "while this is in play" clause, setting state.princesses to 1
+  # works.
   playEffect:
     (state) ->
-      state.bridges += 2
+      state.princesses = 1
 }
 
 makeCard 'Quarry', c.Silver, {
@@ -1288,7 +1308,8 @@ makeCard 'Saboteur', action, {
             state.log("...#{opp.ai} gains nothing.")
         else
           opp.setAside.push(card)
-      state.log("...#{opp.ai} discards #{opp.setAside}")
+      if opp.setAside.length > 0
+        state.log("...#{opp.ai} discards #{opp.setAside}.")
       opp.discard = opp.discard.concat(opp.setAside)
       opp.setAside = []  
 }
