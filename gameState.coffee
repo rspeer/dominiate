@@ -387,6 +387,7 @@ class State
     @tradeRouteValue = 0
 
     @bridges = 0
+    @princesses = 0
     @quarries = 0
     @copperValue = 1
     @phase = 'start'
@@ -715,6 +716,7 @@ class State
     @current.tacticians = 0
     @copperValue = 1
     @bridges = 0
+    @princesses = 0
     @quarries = 0
 
     # Finally, draw the next hand of five cards.
@@ -917,6 +919,7 @@ class State
     newState.tradeRouteMat = @tradeRouteMat
     newState.tradeRouteValue = @tradeRouteValue
     newState.bridges = @bridges
+    newState.princesses = @princesses
     newState.quarries = @quarries
     newState.copperValue = @copperValue
     newState.phase = @phase
