@@ -404,8 +404,9 @@ class State
     allCards = this.basicSupply.concat(tableau)
     supply = {}
     for card in allCards
-      card = c[card] ? card
-      supply[card] = card.startingSupply(this)
+      if c[card].startingSupply(this) > 0
+        card = c[card] ? card
+        supply[card] = card.startingSupply(this)
     supply
 
   #### Informational methods
