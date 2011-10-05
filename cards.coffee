@@ -222,7 +222,7 @@ makeCard 'Estate', basicCard, {
   startingSupply: (state) ->
     switch state.nPlayers
       when 1, 2 then 8
-      else then 12 
+      else 12 
 }
 
 makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
@@ -305,12 +305,94 @@ makeCard 'Market', action, {
 makeCard 'Bazaar', action, {
   cost: 5, actions: 2, cards: 1, coins: 1
 }
-makeCard 'Harem', c.Silver, {
+
+
+# Kingdom Victory cards
+# ---------------------
+# These cards are all derived from Estate to insure their starting supply
+# amount is correct. This goes for multi-type Victory cards too--deriving Great Hall
+# from action instead of Estate results in 10 Great Halls in the supply instead of
+# 8 for a 2-player game or 12 for more players.
+
+makeCard 'Duke', c.Estate, {
+  cost: 5
+  getVP: (state) -> state.current.countInDeck('Duchy')
+}
+
+makeCard 'Fairgrounds', c.Estate, {
   cost: 6
-  isVictory: true
+  getVP: (state) ->
+    unique = []
+    deck = state.current.getDeck()
+    for card in deck
+      if card not in unique
+        unique.push(card)
+    2 * Math.floor(unique.length / 5)    
+}
+
+makeCard 'Gardens', c.Estate, {
+  cost: 4
+  getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
+}
+
+makeCard 'Great Hall', c.Estate, {
+  isAction: true
+  cost: 3
+  cards: +1
+  actions: +1
+}
+
+makeCard 'Harem', c.Estate, {
+  isTreasure: true
+  cost: 6
+  coins: 2
   vp: 2
 }
 
+makeCard 'Island', c.Estate, {
+  isAction: true
+  cost: 4
+  vp: 2
+
+  playEffect: (state) ->
+    if state.current.hand.length == 0 # handle a weird edge case
+      state.log("…setting aside the Island (no other cards in hand).")
+    else
+      card = state.current.ai.choose('island', state, state.current.hand)
+      state.log("…setting aside the Island and a #{card}.")
+      state.current.hand.remove(card)
+      state.current.mats.island.push(card)
+
+    # removing the Island from play is conditional so it won't break with 
+    # Throne Room and King's Court
+    if this in state.current.inPlay
+      state.current.inPlay.remove(this)
+    state.current.mats.island.push(this)
+}
+
+makeCard 'Nobles', c.Estate, {
+  isAction: true
+  cost: 6
+  vp: 2
+
+  # Nobles is an example of a card that allows a choice from multiple
+  # simple effects. We implement this using the `choose('benefit')` AI method,
+  # which is passed a list of benefit objects, one of which it will choose
+  # to apply to the state.
+  playEffect:
+    (state) ->
+      benefit = state.current.ai.choose('benefit', state, [
+        {actions: 2},
+        {cards: 3}
+      ])
+      applyBenefit(state, benefit)  
+}
+
+makeCard 'Vineyard', c.Estate, {
+  cost: 0
+  costPotion: 1
+  getVP: (state) -> Math.floor(state.current.numActionCardsInDeck() / 3)
+}
 # Duration cards
 # --------------
 # These cards have additional properties, such as `durationActions`, defining
@@ -791,16 +873,6 @@ makeCard 'Cutpurse', action, {
           state.revealHand(opp)
 }
 
-makeCard "Duke", c.Estate, {
-  cost: 5
-  getVP: (state) ->
-    vp = 0
-    for card in state.current.getDeck()
-      if card is c.Duchy
-        vp += 1
-    vp
-}
-
 makeCard 'Explorer', action, {
   cost: 5
 
@@ -848,11 +920,6 @@ makeCard 'Familiar', action, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       state.gainCard(opp, c.Curse)
-}
-
-makeCard "Gardens", c.Estate, {
-  cost: 4
-  getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
 }
 
 # Goons: *see Militia*
@@ -1173,24 +1240,6 @@ makeCard "Mountebank", action, {
       else
         state.gainCard(opp, c.Copper)
         state.gainCard(opp, c.Curse)
-}
-
-makeCard 'Nobles', action, {
-  cost: 6
-  isVictory: true
-  vp: 2
-
-  # Nobles is an example of a card that allows a choice from multiple
-  # simple effects. We implement this using the `chooseBenefit` AI method,
-  # which is passed a list of benefit objects, one of which it will choose
-  # to apply to the state.
-  playEffect:
-    (state) ->
-      benefit = state.current.ai.chooseBenefit(state, [
-        {actions: 2},
-        {cards: 3}
-      ])
-      applyBenefit(state, benefit)
 }
 
 makeCard 'Pawn', action, {
@@ -1594,12 +1643,6 @@ makeCard 'Venture', c.Silver, {
     if treasuresDrawn == 1
       state.current.inPlay.push(foundTreasure)
       foundTreasure.onPlay(state)
-}
-
-makeCard 'Vineyard', c.Estate, {
-  cost: 0
-  costPotion: 1
-  getVP: (state) -> Math.floor(state.current.numActionCardsInDeck() / 3)
 }
 
 makeCard 'Walled Village', c.Village, {
