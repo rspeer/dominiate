@@ -1032,7 +1032,19 @@ class State
         my = player
 
     [state, my]
-
+  
+  # Functions for comparing, used for sorting
+  #
+  # Rob says: this is pretty AI-specific. It's also an unnecessarily complex operation,
+  # even given caching. The choices are already in order in the actionPriority; they need
+  # to be filtered, not sorted.
+  compareByActionPriority: (state, my, x, y) ->
+    my.ai.cacheActionPriority(state,my)
+    my.ai.choiceToValue('cachedAction', state, x) - my.ai.choiceToValue('cachedAction', state, y)
+    
+  compareByCoinCost: (state, my, x, y) ->
+    x.getCost(state)[0] - y.getCost(state)[0]
+  
   # Games can provide output using the `log` function.
   log: (obj) ->
     # Only log things that actually happen.

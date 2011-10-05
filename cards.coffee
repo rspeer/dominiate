@@ -1341,7 +1341,10 @@ makeCard 'Saboteur', action, {
         card = drawn[0]
         cardCoinCost = card.getCost(state)[0]
         if cardCoinCost >= 3
-          state.log("...#{opp.ai} reveals #{opp.setAside}, and #{card}.")
+          if opp.setAside.length == 0
+            state.log("...#{opp.ai} reveals #{card}.")
+          else
+            state.log("...#{opp.ai} reveals #{opp.setAside}, and #{card}.")
           cardsDrawn++
           choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
           choices.push([card,null])
@@ -1460,13 +1463,15 @@ makeCard 'Tournament', action, {
           state.log("#{opp.ai} reveals a Province.")
           opposingProvince = true
       if c.Province in state.current.hand
-        state.log("#{state.current.ai} reveals a Province.")
-        choices = state.prizes.slice(0)
-        if state.supply[c.Duchy] > 0
-          choices.push(c.Duchy)
-        choice = state.gainOneOf(state.current, choices, 'draw')
-        if choice isnt null
-          state.log("...putting the #{choice} on top of the deck.")
+        discardProvince = state.current.ai.choose('tournamentDiscard', state, [yes, no])
+        if discardProvince
+          state.current.doDiscard(c.Province)
+          choices = state.prizes.slice(0)
+          if state.supply[c.Duchy] > 0
+            choices.push(c.Duchy)
+          choice = state.gainOneOf(state.current, choices, 'draw')
+          if choice isnt null
+            state.log("...putting the #{choice} on top of the deck.")
       if not opposingProvince
         state.current.coins += 1
         state.current.drawCards(1)
