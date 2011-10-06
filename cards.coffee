@@ -80,6 +80,7 @@ basicCard = {
   getCost: (state) ->
     coins = this.costInCoins(state)
     coins -= state.bridges
+    coins -= state.princesses * 2
     if this.isAction
       coins -= state.quarries * 2
     if coins < 0
@@ -208,7 +209,8 @@ makeCard 'Curse', basicCard, {
       when 1, 2 then 10
       when 3 then 20
       when 4 then 30
-      else 40      
+      when 5 then 40
+      else 50
 }
 
 # To define victory cards, we define Estate and then derive other cards from
@@ -220,12 +222,20 @@ makeCard 'Estate', basicCard, {
   startingSupply: (state) ->
     switch state.nPlayers
       when 1, 2 then 8
-      when 3, 4 then 12
-      else 15  
+      else 12 
 }
 
 makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
-makeCard 'Province', c.Estate, {cost: 8, vp: 6}
+makeCard 'Province', c.Estate, {
+  cost: 8
+  vp: 6
+  startingSupply: (state) ->
+    switch state.nPlayers
+      when 1, 2 then 8
+      when 3, 4 then 12
+      when 5 then 15
+      else 18
+}
 makeCard 'Colony', c.Estate, {cost: 11, vp: 10}
 
 # Now we define the basic treasure cards. Our prototypical card here is
@@ -235,7 +245,7 @@ makeCard 'Silver', basicCard, {
   cost: 3
   isTreasure: true
   coins: 2
-  startingSupply: (state) -> 30
+  startingSupply: (state) -> 40
 }
 
 # Copper is actually more complex than Silver: its value can vary when modified
@@ -244,9 +254,15 @@ makeCard 'Copper', c.Silver, {
   cost: 0
   coins: 1
   getCoins: (state) -> state.copperValue ? 1
+  startingSupply: (state) -> 60
 }
 
-makeCard 'Gold', c.Silver, {cost: 6, coins: 3}
+makeCard 'Gold', c.Silver, {
+  cost: 6
+  coins: 3
+  startingSupply: (state) -> 30
+}
+
 makeCard 'Platinum', c.Silver, {
   cost: 9,
   coins: 5,
@@ -290,12 +306,94 @@ makeCard 'Market', action, {
 makeCard 'Bazaar', action, {
   cost: 5, actions: 2, cards: 1, coins: 1
 }
-makeCard 'Harem', c.Silver, {
+
+
+# Kingdom Victory cards
+# ---------------------
+# These cards are all derived from Estate to insure their starting supply
+# amount is correct. This goes for multi-type Victory cards too--deriving Great Hall
+# from action instead of Estate results in 10 Great Halls in the supply instead of
+# 8 for a 2-player game or 12 for more players.
+
+makeCard 'Duke', c.Estate, {
+  cost: 5
+  getVP: (state) -> state.current.countInDeck('Duchy')
+}
+
+makeCard 'Fairgrounds', c.Estate, {
   cost: 6
-  isVictory: true
+  getVP: (state) ->
+    unique = []
+    deck = state.current.getDeck()
+    for card in deck
+      if card not in unique
+        unique.push(card)
+    2 * Math.floor(unique.length / 5)    
+}
+
+makeCard 'Gardens', c.Estate, {
+  cost: 4
+  getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
+}
+
+makeCard 'Great Hall', c.Estate, {
+  isAction: true
+  cost: 3
+  cards: +1
+  actions: +1
+}
+
+makeCard 'Harem', c.Estate, {
+  isTreasure: true
+  cost: 6
+  coins: 2
   vp: 2
 }
 
+makeCard 'Island', c.Estate, {
+  isAction: true
+  cost: 4
+  vp: 2
+
+  playEffect: (state) ->
+    if state.current.hand.length == 0 # handle a weird edge case
+      state.log("…setting aside the Island (no other cards in hand).")
+    else
+      card = state.current.ai.choose('island', state, state.current.hand)
+      state.log("…setting aside the Island and a #{card}.")
+      state.current.hand.remove(card)
+      state.current.mats.island.push(card)
+
+    # removing the Island from play is conditional so it won't break with 
+    # Throne Room and King's Court
+    if this in state.current.inPlay
+      state.current.inPlay.remove(this)
+    state.current.mats.island.push(this)
+}
+
+makeCard 'Nobles', c.Estate, {
+  isAction: true
+  cost: 6
+  vp: 2
+
+  # Nobles is an example of a card that allows a choice from multiple
+  # simple effects. We implement this using the `choose('benefit')` AI method,
+  # which is passed a list of benefit objects, one of which it will choose
+  # to apply to the state.
+  playEffect:
+    (state) ->
+      benefit = state.current.ai.choose('benefit', state, [
+        {actions: 2},
+        {cards: 3}
+      ])
+      applyBenefit(state, benefit)
+}
+
+makeCard 'Vineyard', c.Estate, {
+  cost: 0
+  costPotion: 1
+  getVP: (state) -> Math.floor(state.current.numActionCardsInDeck() / 3)
+}
 # Duration cards
 # --------------
 # These cards have additional properties, such as `durationActions`, defining
@@ -490,6 +588,67 @@ makeCard 'Mine', c.Remodel, {
       state.gainCard(state.current, newCard, 'hand')
 }
 
+# Prize cards
+# -----------
+# Because Prize cards can only be gained through Tournament, and all have
+# cost = 0, startingSupply -> 0, and mayBeBought -> false it is useful to
+# have a prototype prize. The prototype has isAction: true since 4 of the 5
+# prizes are action cards.
+
+prize = makeCard 'prize', basicCard, {
+  cost: 0
+  isPrize: true
+  isAction: true
+  mayBeBought: (state) -> false
+  startingSupply: (state) -> 0
+}, true
+
+makeCard 'Bag of Gold', prize, {
+  actions: +1 
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Gold, 'draw')
+    state.log("...putting the Gold on top of the deck.")
+}
+
+makeCard 'Diadem', prize, {
+  isAction: false
+  isTreasure: true 
+  getCoins: (state) -> 2 + state.current.actions
+}
+
+makeCard 'Followers', prize, {
+  cards: +2
+  isAttack: true
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Estate)
+    state.attackOpponents (opp) ->
+      state.gainCard(opp, c.Curse)
+      if opp.hand.length > 3
+        state.requireDiscard(opp, opp.hand.length - 3)
+}
+
+# Since there is only one Princess card, and Princess's cost
+# reduction effect has the clause "while this is in play",
+# state.princesses will never need to be greater than 1.
+makeCard 'Princess', prize, {
+  buys: 1
+  playEffect:
+    (state) ->
+      state.princesses = 1
+}
+
+makeCard 'Trusty Steed', prize, {
+  playEffect: (state) ->
+    benefit = state.current.ai.choose('benefit', state, [
+      {cards: 2, actions: 2},
+      {cards: 2, coins: 2},
+      {actions: 2, coins: 2},
+      {cards: 2, horseEffect: yes},
+      {actions: 2, horseEffect: yes},
+      {coins: 2, horseEffect: yes}
+    ])
+    applyBenefit(state, benefit)
+}
 
 # Miscellaneous cards
 # -------------------
@@ -588,17 +747,6 @@ makeCard 'Apothecary', action, {
       state.log("...putting #{order} back on the deck.")
       state.current.draw = order.concat(state.current.draw)
       state.current.setAside = []
-}
-
-makeCard 'Bag of Gold', action, {
-  cost: 0
-  actions: +1
-  isPrize: true
-  mayBeBought: (state) -> false
-
-  playEffect: (state) ->
-    state.gainCard(state.current, c.Gold, 'draw')
-    state.log("...putting the Gold on top of the deck.")
 }
 
 makeCard 'Bank', c.Silver, {
@@ -771,23 +919,6 @@ makeCard 'Cutpurse', action, {
           state.revealHand(opp)
 }
 
-makeCard 'Diadem', c.Silver, {
-  cost: 0
-  isPrize: true
-  mayBeBought: (state) -> false
-  getCoins: (state) -> 2 + state.current.actions
-}
-
-makeCard "Duke", c.Estate, {
-  cost: 5
-  getVP: (state) ->
-    vp = 0
-    for card in state.current.getDeck()
-      if card is c.Duchy
-        vp += 1
-    vp
-}
-
 makeCard 'Explorer', action, {
   cost: 5
 
@@ -835,26 +966,6 @@ makeCard 'Familiar', action, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       state.gainCard(opp, c.Curse)
-}
-
-makeCard "Followers", action, {
-  cost: 0
-  cards: +2
-  
-  isAttack: true
-  isPrize: true
-  mayBeBought: (state) -> false
-  playEffect: (state) ->
-    state.gainCard(state.current, c.Estate)
-    state.attackOpponents (opp) ->
-      state.gainCard(opp, c.Curse)
-      if opp.hand.length > 3
-        state.requireDiscard(opp, opp.hand.length - 3)
-}
-
-makeCard "Gardens", c.Estate, {
-  cost: 4
-  getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
 }
 
 # Goons: *see Militia*
@@ -1108,6 +1219,7 @@ makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
     state.quarries = 0
+    state.potions = 0
     inPlay = state.current.inPlay
     for i in [inPlay.length-1...-1]
       if inPlay[i].isTreasure
@@ -1174,24 +1286,6 @@ makeCard "Mountebank", action, {
       else
         state.gainCard(opp, c.Copper)
         state.gainCard(opp, c.Curse)
-}
-
-makeCard 'Nobles', action, {
-  cost: 6
-  isVictory: true
-  vp: 2
-
-  # Nobles is an example of a card that allows a choice from multiple
-  # simple effects. We implement this using the `choose('benefit')` AI method,
-  # which is passed a list of benefit objects, one of which it will choose
-  # to apply to the state.
-  playEffect:
-    (state) ->
-      benefit = state.current.ai.choose('benefit', state, [
-        {actions: 2},
-        {cards: 3}
-      ])
-      applyBenefit(state, benefit)
 }
 
 makeCard 'Pawn', action, {
@@ -1264,16 +1358,6 @@ makeCard 'Pirate Ship', action, {
       if attackSuccess
         state.current.mats.pirateShip += 1
         state.log("...#{state.current.ai} takes a Coin token (#{state.current.mats.pirateShip} on the mat).")
-}
-
-makeCard 'Princess', action, {
-  cost: 0
-  buys: 1
-  isPrize: true
-  mayBeBought: (state) -> false
-  playEffect:
-    (state) ->
-      state.bridges += 2
 }
 
 makeCard 'Quarry', c.Silver, {
@@ -1359,7 +1443,8 @@ makeCard 'Saboteur', action, {
             state.log("...#{opp.ai} gains nothing.")
         else
           opp.setAside.push(card)
-      state.log("...#{opp.ai} discards #{opp.setAside}")
+      if opp.setAside.length > 0
+        state.log("...#{opp.ai} discards #{opp.setAside}.")
       opp.discard = opp.discard.concat(opp.setAside)
       opp.setAside = []  
 }
@@ -1632,12 +1717,6 @@ makeCard 'Venture', c.Silver, {
       foundTreasure.onPlay(state)
 }
 
-makeCard 'Vineyard', c.Estate, {
-  cost: 0
-  costPotion: 1
-  getVP: (state) -> Math.floor(state.current.numActionCardsInDeck() / 3)
-}
-
 makeCard 'Walled Village', c.Village, {
   cost: 4
   
@@ -1797,8 +1876,7 @@ upgradeChoices = (state, cards, filter) ->
       for cardname2 of state.supply
         card2 = c[cardname2]
         if filter(state, card, card2) and state.supply[card2] > 0
-          if not card2.isPrize
-            choices.push([card, card2])          
+          choices.push([card, card2])          
   return choices
 
 # Export functions that are needed elsewhere.

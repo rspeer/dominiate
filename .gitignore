@@ -4,6 +4,7 @@
 cards.js
 gameState.js
 heuristics.js
+grapher.js
 geronimoo
 .idea
 web/playWeb.js

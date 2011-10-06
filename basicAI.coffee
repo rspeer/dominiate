@@ -564,6 +564,24 @@ class BasicAI
       "Copper,0"
     ]
   
+  # islandPriority chooses which card to set aside with Island. At present this
+  # list is incomplete, but covers just about everything that we would want to set aside
+  # with an Island.
+  islandPriority: (state, my) ->
+  [
+    "Colony"
+    "Province"
+    "Fairgrounds"
+    "Duchy"
+    "Duke"
+    "Gardens"
+    "Vineyard"
+    "Estate"
+    "Copper"
+    "Curse"
+    "Island"    
+  ]    
+  
   # Taking into account gain priorities, gain values, trash priorities, and
   # trash values, how much do we like having this card in our deck overall?
   cardInDeckValue: (state, card, my) ->

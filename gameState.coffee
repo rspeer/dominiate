@@ -409,6 +409,7 @@ class State
     @tradeRouteValue = 0
 
     @bridges = 0
+    @princesses = 0
     @quarries = 0
     @copperValue = 1
     @phase = 'start'
@@ -428,8 +429,9 @@ class State
     allCards = this.basicSupply.concat(tableau)
     supply = {}
     for card in allCards
-      card = c[card] ? card
-      supply[card] = card.startingSupply(this)
+      if c[card].startingSupply(this) > 0
+        card = c[card] ? card
+        supply[card] = card.startingSupply(this)
     supply
 
   #### Informational methods
@@ -770,6 +772,7 @@ class State
     @current.mayReturnTreasury = yes
     @copperValue = 1
     @bridges = 0
+    @princesses = 0
     @quarries = 0
 
     #Announce extra turn
@@ -996,6 +999,7 @@ class State
     newState.tradeRouteMat = @tradeRouteMat.slice(0)
     newState.tradeRouteValue = @tradeRouteValue
     newState.bridges = @bridges
+    newState.princesses = @princesses
     newState.quarries = @quarries
     newState.copperValue = @copperValue
     newState.phase = @phase
