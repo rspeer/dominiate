@@ -296,9 +296,6 @@ makeCard 'Laboratory', action, {cost: 5, actions: 1, cards: 2}
 makeCard 'Smithy', action, {cost: 4, cards: 3}
 makeCard 'Festival', action, {cost: 5, actions: 2, coins: 2, buys: 1}
 makeCard 'Woodcutter', action, {cost: 3, coins: 2, buys: 1}
-makeCard 'Great Hall', action, {
-  cost: 3, actions: 1, cards: 1, vp: 1, isVictory: true
-}
 makeCard 'Market', action, {
   cost: 5, actions: 1, cards: 1, coins: 1, buys: 1
 }
