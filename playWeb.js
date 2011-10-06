@@ -1,5 +1,5 @@
 (function() {
-  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, shuffle, stringify, transferCard, transferCardToTop, upgradeChoices, _ref;
+  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, prize, shuffle, stringify, transferCard, transferCardToTop, upgradeChoices, _ref;
   var __indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++) {
       if (this[i] === item) return i;
@@ -402,6 +402,8 @@
     BasicAI.prototype.ambassadorPriority = function(state, my) {
       return ["Curse,2", "Curse,1", "Curse,0", "Ambassador,2", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"];
     };
+    BasicAI.prototype.islandPriority = function(state, my) {};
+    ["Colony", "Province", "Fairgrounds", "Duchy", "Duke", "Gardens", "Vineyard", "Estate", "Copper", "Curse", "Island"];
     BasicAI.prototype.cardInDeckValue = function(state, card, my) {
       var endgamePower;
       endgamePower = 1;
@@ -612,6 +614,7 @@
       var coins;
       coins = this.costInCoins(state);
       coins -= state.bridges;
+      coins -= state.princesses * 2;
       if (this.isAction) {
         coins -= state.quarries * 2;
       }
@@ -713,8 +716,10 @@
           return 20;
         case 4:
           return 30;
-        default:
+        case 5:
           return 40;
+        default:
+          return 50;
       }
     }
   });
@@ -727,11 +732,8 @@
         case 1:
         case 2:
           return 8;
-        case 3:
-        case 4:
-          return 12;
         default:
-          return 15;
+          return 12;
       }
     }
   });
@@ -741,7 +743,21 @@
   });
   makeCard('Province', c.Estate, {
     cost: 8,
-    vp: 6
+    vp: 6,
+    startingSupply: function(state) {
+      switch (state.nPlayers) {
+        case 1:
+        case 2:
+          return 8;
+        case 3:
+        case 4:
+          return 12;
+        case 5:
+          return 15;
+        default:
+          return 18;
+      }
+    }
   });
   makeCard('Colony', c.Estate, {
     cost: 11,
@@ -752,7 +768,7 @@
     isTreasure: true,
     coins: 2,
     startingSupply: function(state) {
-      return 30;
+      return 40;
     }
   });
   makeCard('Copper', c.Silver, {
@@ -761,11 +777,17 @@
     getCoins: function(state) {
       var _ref;
       return (_ref = state.copperValue) != null ? _ref : 1;
+    },
+    startingSupply: function(state) {
+      return 60;
     }
   });
   makeCard('Gold', c.Silver, {
     cost: 6,
-    coins: 3
+    coins: 3,
+    startingSupply: function(state) {
+      return 30;
+    }
   });
   makeCard('Platinum', c.Silver, {
     cost: 9,
@@ -838,10 +860,87 @@
     cards: 1,
     coins: 1
   });
-  makeCard('Harem', c.Silver, {
+  makeCard('Duke', c.Estate, {
+    cost: 5,
+    getVP: function(state) {
+      return state.current.countInDeck('Duchy');
+    }
+  });
+  makeCard('Fairgrounds', c.Estate, {
     cost: 6,
-    isVictory: true,
+    getVP: function(state) {
+      var card, deck, unique, _i, _len;
+      unique = [];
+      deck = state.current.getDeck();
+      for (_i = 0, _len = deck.length; _i < _len; _i++) {
+        card = deck[_i];
+        if (__indexOf.call(unique, card) < 0) {
+          unique.push(card);
+        }
+      }
+      return 2 * Math.floor(unique.length / 5);
+    }
+  });
+  makeCard('Gardens', c.Estate, {
+    cost: 4,
+    getVP: function(state) {
+      return Math.floor(state.current.getDeck().length / 10);
+    }
+  });
+  makeCard('Great Hall', c.Estate, {
+    isAction: true,
+    cost: 3,
+    cards: +1,
+    actions: +1
+  });
+  makeCard('Harem', c.Estate, {
+    isTreasure: true,
+    cost: 6,
+    coins: 2,
     vp: 2
+  });
+  makeCard('Island', c.Estate, {
+    isAction: true,
+    cost: 4,
+    vp: 2,
+    playEffect: function(state) {
+      var card;
+      if (state.current.hand.length === 0) {
+        state.log("…setting aside the Island (no other cards in hand).");
+      } else {
+        card = state.current.ai.choose('island', state, state.current.hand);
+        state.log("…setting aside the Island and a " + card + ".");
+        state.current.hand.remove(card);
+        state.current.mats.island.push(card);
+      }
+      if (__indexOf.call(state.current.inPlay, this) >= 0) {
+        state.current.inPlay.remove(this);
+      }
+      return state.current.mats.island.push(this);
+    }
+  });
+  makeCard('Nobles', c.Estate, {
+    isAction: true,
+    cost: 6,
+    vp: 2,
+    playEffect: function(state) {
+      var benefit;
+      benefit = state.current.ai.choose('benefit', state, [
+        {
+          actions: 2
+        }, {
+          cards: 3
+        }
+      ]);
+      return applyBenefit(state, benefit);
+    }
+  });
+  makeCard('Vineyard', c.Estate, {
+    cost: 0,
+    costPotion: 1,
+    getVP: function(state) {
+      return Math.floor(state.current.numActionCardsInDeck() / 3);
+    }
   });
   duration = makeCard('duration', action, {
     durationActions: 0,
@@ -1019,6 +1118,77 @@
       }
     }
   });
+  prize = makeCard('prize', basicCard, {
+    cost: 0,
+    isPrize: true,
+    isAction: true,
+    mayBeBought: function(state) {
+      return false;
+    },
+    startingSupply: function(state) {
+      return 0;
+    }
+  }, true);
+  makeCard('Bag of Gold', prize, {
+    actions: +1,
+    playEffect: function(state) {
+      state.gainCard(state.current, c.Gold, 'draw');
+      return state.log("...putting the Gold on top of the deck.");
+    }
+  });
+  makeCard('Diadem', prize, {
+    isAction: false,
+    isTreasure: true,
+    getCoins: function(state) {
+      return 2 + state.current.actions;
+    }
+  });
+  makeCard('Followers', prize, {
+    cards: +2,
+    isAttack: true,
+    playEffect: function(state) {
+      state.gainCard(state.current, c.Estate);
+      return state.attackOpponents(function(opp) {
+        state.gainCard(opp, c.Curse);
+        if (opp.hand.length > 3) {
+          return state.requireDiscard(opp, opp.hand.length - 3);
+        }
+      });
+    }
+  });
+  makeCard('Princess', prize, {
+    buys: 1,
+    playEffect: function(state) {
+      return state.princesses = 1;
+    }
+  });
+  makeCard('Trusty Steed', prize, {
+    playEffect: function(state) {
+      var benefit;
+      benefit = state.current.ai.choose('benefit', state, [
+        {
+          cards: 2,
+          actions: 2
+        }, {
+          cards: 2,
+          coins: 2
+        }, {
+          actions: 2,
+          coins: 2
+        }, {
+          cards: 2,
+          horseEffect: true
+        }, {
+          actions: 2,
+          horseEffect: true
+        }, {
+          coins: 2,
+          horseEffect: true
+        }
+      ]);
+      return applyBenefit(state, benefit);
+    }
+  });
   makeCard('Adventurer', action, {
     cost: 6,
     playEffect: function(state) {
@@ -1120,18 +1290,6 @@
         state.current.draw = order.concat(state.current.draw);
         return state.current.setAside = [];
       }
-    }
-  });
-  makeCard('Bag of Gold', action, {
-    cost: 0,
-    actions: +1,
-    isPrize: true,
-    mayBeBought: function(state) {
-      return false;
-    },
-    playEffect: function(state) {
-      state.gainCard(state.current, c.Gold, 'draw');
-      return state.log("...putting the Gold on top of the deck.");
     }
   });
   makeCard('Bank', c.Silver, {
@@ -1352,31 +1510,6 @@
       });
     }
   });
-  makeCard('Diadem', c.Silver, {
-    cost: 0,
-    isPrize: true,
-    mayBeBought: function(state) {
-      return false;
-    },
-    getCoins: function(state) {
-      return 2 + state.current.actions;
-    }
-  });
-  makeCard("Duke", c.Estate, {
-    cost: 5,
-    getVP: function(state) {
-      var card, vp, _i, _len, _ref;
-      vp = 0;
-      _ref = state.current.getDeck();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
-        if (card === c.Duchy) {
-          vp += 1;
-        }
-      }
-      return vp;
-    }
-  });
   makeCard('Explorer', action, {
     cost: 5,
     playEffect: function(state) {
@@ -1428,30 +1561,6 @@
       return state.attackOpponents(function(opp) {
         return state.gainCard(opp, c.Curse);
       });
-    }
-  });
-  makeCard("Followers", action, {
-    cost: 0,
-    cards: +2,
-    isAttack: true,
-    isPrize: true,
-    mayBeBought: function(state) {
-      return false;
-    },
-    playEffect: function(state) {
-      state.gainCard(state.current, c.Estate);
-      return state.attackOpponents(function(opp) {
-        state.gainCard(opp, c.Curse);
-        if (opp.hand.length > 3) {
-          return state.requireDiscard(opp, opp.hand.length - 3);
-        }
-      });
-    }
-  });
-  makeCard("Gardens", c.Estate, {
-    cost: 4,
-    getVP: function(state) {
-      return Math.floor(state.current.getDeck().length / 10);
     }
   });
   makeCard("Grand Market", c.Market, {
@@ -1711,6 +1820,7 @@
     buyEffect: function(state) {
       var i, inPlay, _ref, _results;
       state.quarries = 0;
+      state.potions = 0;
       inPlay = state.current.inPlay;
       _results = [];
       for (i = _ref = inPlay.length - 1; _ref <= -1 ? i < -1 : i > -1; _ref <= -1 ? i++ : i--) {
@@ -1778,22 +1888,6 @@
           return state.gainCard(opp, c.Curse);
         }
       });
-    }
-  });
-  makeCard('Nobles', action, {
-    cost: 6,
-    isVictory: true,
-    vp: 2,
-    playEffect: function(state) {
-      var benefit;
-      benefit = state.current.ai.choose('benefit', state, [
-        {
-          actions: 2
-        }, {
-          cards: 3
-        }
-      ]);
-      return applyBenefit(state, benefit);
     }
   });
   makeCard('Pawn', action, {
@@ -1891,17 +1985,6 @@
           return state.log("..." + state.current.ai + " takes a Coin token (" + state.current.mats.pirateShip + " on the mat).");
         }
       }
-    }
-  });
-  makeCard('Princess', action, {
-    cost: 0,
-    buys: 1,
-    isPrize: true,
-    mayBeBought: function(state) {
-      return false;
-    },
-    playEffect: function(state) {
-      return state.bridges += 2;
     }
   });
   makeCard('Quarry', c.Silver, {
@@ -2002,7 +2085,9 @@
             opp.setAside.push(card);
           }
         }
-        state.log("..." + opp.ai + " discards " + opp.setAside);
+        if (opp.setAside.length > 0) {
+          state.log("..." + opp.ai + " discards " + opp.setAside + ".");
+        }
         opp.discard = opp.discard.concat(opp.setAside);
         return opp.setAside = [];
       });
@@ -2324,13 +2409,6 @@
       }
     }
   });
-  makeCard('Vineyard', c.Estate, {
-    cost: 0,
-    costPotion: 1,
-    getVP: function(state) {
-      return Math.floor(state.current.numActionCardsInDeck() / 3);
-    }
-  });
   makeCard('Walled Village', c.Village, {
     cost: 4
   });
@@ -2473,9 +2551,7 @@
         for (cardname2 in state.supply) {
           card2 = c[cardname2];
           if (filter(state, card, card2) && state.supply[card2] > 0) {
-            if (!card2.isPrize) {
-              choices.push([card, card2]);
-            }
+            choices.push([card, card2]);
           }
         }
       }
@@ -2856,6 +2932,7 @@
       this.tradeRouteMat = [];
       this.tradeRouteValue = 0;
       this.bridges = 0;
+      this.princesses = 0;
       this.quarries = 0;
       this.copperValue = 1;
       this.phase = 'start';
@@ -2870,8 +2947,10 @@
       supply = {};
       for (_i = 0, _len = allCards.length; _i < _len; _i++) {
         card = allCards[_i];
-        card = (_ref2 = c[card]) != null ? _ref2 : card;
-        supply[card] = card.startingSupply(this);
+        if (c[card].startingSupply(this) > 0) {
+          card = (_ref2 = c[card]) != null ? _ref2 : card;
+          supply[card] = card.startingSupply(this);
+        }
       }
       return supply;
     };
@@ -3190,6 +3269,7 @@
       this.current.mayReturnTreasury = true;
       this.copperValue = 1;
       this.bridges = 0;
+      this.princesses = 0;
       this.quarries = 0;
       if (this.extraturn) {
         this.log("" + this.current.ai + " takes an extra turn from Outpost.");
@@ -3381,6 +3461,7 @@
       newState.tradeRouteMat = this.tradeRouteMat.slice(0);
       newState.tradeRouteValue = this.tradeRouteValue;
       newState.bridges = this.bridges;
+      newState.princesses = this.princesses;
       newState.quarries = this.quarries;
       newState.copperValue = this.copperValue;
       newState.phase = this.phase;
