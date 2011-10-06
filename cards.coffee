@@ -1493,6 +1493,7 @@ makeCard 'Torturer', action, {
 makeCard "Trade Route", action, {
   cost: 3
   buys: 1
+  trash: 1
   getCoins: (state) ->
     state.tradeRouteValue
 }
