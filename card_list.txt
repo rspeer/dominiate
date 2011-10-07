@@ -1,4 +1,4 @@
-Cards that are done (102)
+Cards that are done (116)
 =========================
 Adventurer
 Alchemist
@@ -20,6 +20,8 @@ Conspirator
 Copper
 Coppersmith
 Council Room
+Counting House
+Courtyard
 Curse
 Cutpurse
 Diadem
@@ -34,20 +36,25 @@ Farming Village
 Festival
 Fishing Village
 Followers
+Fortune Teller
 Gardens
 Goons
 Grand Market
 Great Hall
 Harem
+Haven
 Herbalist
 Hoard
 Horn of Plenty
 Horse Traders
 Hunting Party
 Ironworks
+Island
+Jester
 Laboratory
 Library
 Lighthouse
+Loan
 Lookout
 Market
 Masquerade
@@ -61,6 +68,7 @@ Monument
 Moneylender
 Mountebank
 Nobles
+Outpost
 Pawn
 Peddler
 Philosopher's Stone
@@ -73,13 +81,16 @@ Quarry
 Remake
 Remodel
 Royal Seal
+Saboteur
 Scout
 Sea Hag
 Shanty Town
 Silver
 Smithy
+Smugglers
 Steward
 Tactician
+Talisman
 Thief
 Torturer
 Tournament
@@ -105,22 +116,17 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (40)
+Cards that still need to be coded (26)
 ======================================
 
 Easy cards
 ----------
 The code to make these cards work already mostly exists.
 
-Counting House
 Feast
-Fortune Teller
 Golem
-Loan
 Pearl Diver
 Rabble
-Saboteur
-Talisman
 
 Not-so-easy cards
 -----------------
@@ -129,20 +135,15 @@ These generally require some decision-making code that doesn't exist yet.
 Apprentice
 Bishop
 Contraband
-Courtyard
 Embargo
 Envoy
 Forge
 Hamlet
-Haven
-Island
-Jester
 Mining Village
 Minion
 Native Village
 Salvager
 Scrying Pool
-Smugglers (requires more state)
 Spy
 Swindler
 Transmute
@@ -158,5 +159,4 @@ Young Witch (requires a well-defined Bane card)
 Stash (requires a decision mid-shuffle)
 Black Market (requires a more coherent definition of the Supply)
 Navigator (probably requires a function for evaluating a hand)
-Outpost (requires more state, with weird edge cases)
 Possession (will require entirely new kinds of AI decisions)
