@@ -729,6 +729,280 @@ makeCard 'Trusty Steed', prize, {
     applyBenefit(state, benefit)
 }
 
+# Attack cards
+# ------------
+# Cards with the type Attack; their prototype is just used so
+# isAttack: true doesn't need to be rewritten every time.
+
+attack = makeCard 'attack', action, {isAttack: true}, true
+
+makeCard 'Ambassador', attack, {
+  cost: 3
+
+  playEffect: (state) ->
+    # Determine the cards and quantities that can be ambassadored
+    counts = {}
+    for card in state.current.hand
+      counts[card] ?= 0
+      counts[card] += 1
+    choices = []
+    for card, count of counts
+      if count >= 2
+        choices.push [card, 2]
+      if count >= 1
+        choices.push [card, 1]
+      choices.push [card, 0]
+
+    choice = state.current.ai.choose('ambassador', state, choices)
+
+    if choice isnt null
+      [cardName, quantity] = choice
+      card = c[cardName]
+      state.log("...choosing to return #{quantity} #{cardName}.")
+      for i in [0...quantity]
+        state.current.doTrash(card)
+      # Return it to the supply, if it had a slot in the supply to begin with
+      if state.supply[card]?
+        state.supply[card] += quantity
+      state.attackOpponents (opp) ->
+        state.gainCard(opp, card)
+}
+
+makeCard 'Bureaucrat', attack, {
+  cost: 4
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Silver, 'draw')
+    state.attackOpponents (opp) ->
+      victory = []
+      for card in opp.hand
+        if card.isVictory
+          victory.push(card)
+      if victory.length == 0
+        state.revealHand(opp)
+        state.log("#{opp.ai} reveals a hand with no Victory cards.")
+      else
+        choice = opp.ai.choose('putOnDeck', state, victory)
+        transferCardToTop(choice, opp.hand, opp.draw)
+        state.log("#{opp.ai} returns #{choice} to the top of the deck.")
+}
+
+makeCard 'Cutpurse', attack, {
+  cost: 4
+  coins: +2
+  playEffect: (state) ->
+      state.attackOpponents (opp) ->
+        if c.Copper in opp.hand
+          opp.doDiscard(c.Copper)
+        else
+          state.log("#{opp.ai} has no Copper in hand.")
+          state.revealHand(opp)
+}
+
+makeCard 'Familiar', attack, {
+  cost: 3
+  costPotion: 1
+  cards: +1
+  actions: +1
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      state.gainCard(opp, c.Curse)
+}
+
+makeCard 'Fortune Teller', attack, {
+  cost: 3
+  coins: +2
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      drawn = opp.dig(state,
+        (state, card) -> card.isVictory or card is c.Curse
+      )
+      if drawn[0]?
+        card = drawn[0]
+        transferCardToTop(card, drawn, opp.draw)
+        state.log("...#{opp.ai} puts #{card} on top of the deck.")
+}
+
+# Goons: *see Militia*
+makeCard 'Jester', attack, {
+  cost: 5
+  coins: +2
+
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      card = state.discardFromDeck(opp, 1)[0]
+      if card.isVictory
+        state.gainCard(opp, c.Curse)
+      else if state.current.ai.chooseGain(state, [card, null])
+        state.gainCard(state.current, card)
+      else
+        state.gainCard(opp, card)
+}
+
+makeCard "Militia", attack, {
+  cost: 4
+  coins: +2
+  # Militia is a straightforward example of an attack card.
+  #
+  # All attack effects are wrapped in the `state.attackOpponents`
+  # method, to give opponents a chance to play reaction cards.
+  playEffect:
+    (state) ->
+      state.attackOpponents (opp) ->
+        if opp.hand.length > 3
+          state.requireDiscard(opp, opp.hand.length - 3)
+}
+
+makeCard "Goons", c.Militia, {
+  cost: 6
+  buys: +1
+
+  # The effect of Goons that causes you to gain VP on each buy is 
+  # defined in `State.doBuyPhase`. Other than that, Goons is a fancy
+  # Militia.
+}
+
+makeCard "Mountebank", attack, {
+  cost: 5
+  coins: +2
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      if c.Curse in opp.hand
+        # Discarding a Curse against Mountebank is automatic.
+        opp.doDiscard(c.Curse)
+      else
+        state.gainCard(opp, c.Copper)
+        state.gainCard(opp, c.Curse)
+}
+
+makeCard 'Pirate Ship', attack, {
+  cost: 4
+
+  playEffect: (state) ->
+    choice = state.current.ai.choose('pirateShip', state, ['coins','attack'])
+    if choice is 'coins'
+      state.current.coins += state.current.mats.pirateShip
+      state.log("...getting +$#{state.current.mats.pirateShip}.")
+    else if choice is 'attack'
+      state.log("...attacking the other players.")
+      attackSuccess = false
+
+      state.attackOpponents (opp) ->
+        drawn = opp.getCardsFromDeck(2)
+        state.log("...#{opp.ai} reveals #{drawn}.")
+        drawnTreasures = []
+        for card in drawn
+          if card.isTreasure
+            drawnTreasures.push(card)
+        treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
+        if treasureToTrash
+          attackSuccess = true
+          drawn.remove(treasureToTrash)
+          state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
+        state.current.discard.concat (drawn)
+        state.log("...#{opp.ai} discards #{drawn}.")
+        
+      if attackSuccess
+        state.current.mats.pirateShip += 1
+        state.log("...#{state.current.ai} takes a Coin token (#{state.current.mats.pirateShip} on the mat).")
+}
+
+makeCard 'Rabble', attack, {
+  cost: 5
+  cards: +3
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      drawn = opp.getCardsFromDeck(3)
+      state.log("#{opp.ai} draws #{drawn}.")
+
+      for card in drawn
+        if card.isTreasure or card.isAction
+          state.current.discard.push(card)
+          state.log("...discarding #{card}.")
+        else
+          state.current.setAside.push(card)
+      
+      if state.current.setAside.length > 0
+        order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current)
+        state.log("...putting #{order} back on the deck.")
+        state.current.draw = order.concat(state.current.draw)
+        state.current.setAside = []
+}
+
+makeCard 'Saboteur', attack, {
+  cost: 5
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 >= potions2) and (coins1-2 >= coins2)
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      drawn = opp.dig(state, 1,
+        (state, card) -> true if card.getCost(state)[0] >= 3                      
+      )
+      if drawn[0]?
+        cardToTrash = drawn[0]
+        state.log("...#{state.current.ai} trashes #{opp.ai}'s #{cardToTrash}.")
+        choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
+        choices.push([cardToTrash,null])
+        choice = opp.ai.choose('upgrade', state, choices)
+        newCard = choice[1]
+        if newCard?
+          state.gainCard(opp, newCard, 'discard', true)
+          state.log("...#{opp.ai} gains #{newCard}.")
+        else
+          state.log("...#{opp.ai} gains nothing.")
+}
+
+makeCard 'Sea Hag', attack, {
+  cost: 4
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      state.discardFromDeck(opp, 1)
+      state.gainCard(opp, c.Curse, 'draw', true)
+      state.log("#{opp.ai} gains a Curse on top of the deck.")
+}
+
+makeCard 'Thief', attack, {
+  cost: 4
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      drawn = opp.getCardsFromDeck(2)
+      state.log("...#{opp.ai} reveals #{drawn}.")
+      drawnTreasures = []
+      for card in drawn
+        if card.isTreasure
+          drawnTreasures.push(card)
+      treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
+      if treasureToTrash
+        drawn.remove(treasureToTrash)
+        state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
+        cardToGain =  state.current.ai.chooseGain(state, [treasureToTrash, null])
+        if cardToGain
+          state.gainCard(state.current, cardToGain, 'discard', true)
+          state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
+      state.current.discard.concat (drawn)
+      state.log("...#{opp.ai} discards #{drawn}.")
+}
+
+makeCard 'Torturer', attack, {
+  cost: 5
+  cards: +3
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      if opp.ai.choose('torturer', state, ['curse', 'discard']) == 'curse'
+        state.gainCard(opp, c.Curse, 'hand')
+      else
+        state.requireDiscard(opp, 2)
+}
+
+makeCard 'Witch', attack, {
+  cost: 5
+  cards: +2
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      state.gainCard(opp, c.Curse)
+}
+
 # Miscellaneous cards
 # -------------------
 # All of these cards have effects beyond what can be expressed with a
@@ -767,39 +1041,6 @@ makeCard 'Alchemist', action, {
     (state) ->
       if c.Potion in state.current.inPlay
         transferCardToTop(c.Alchemist, state.current.discard, state.current.draw)
-}
-
-makeCard 'Ambassador', action, {
-  cost: 3
-  isAttack: true
-
-  playEffect: (state) ->
-    # Determine the cards and quantities that can be ambassadored
-    counts = {}
-    for card in state.current.hand
-      counts[card] ?= 0
-      counts[card] += 1
-    choices = []
-    for card, count of counts
-      if count >= 2
-        choices.push [card, 2]
-      if count >= 1
-        choices.push [card, 1]
-      choices.push [card, 0]
-
-    choice = state.current.ai.choose('ambassador', state, choices)
-
-    if choice isnt null
-      [cardName, quantity] = choice
-      card = c[cardName]
-      state.log("...choosing to return #{quantity} #{cardName}.")
-      for i in [0...quantity]
-        state.current.doTrash(card)
-      # Return it to the supply, if it had a slot in the supply to begin with
-      if state.supply[card]?
-        state.supply[card] += quantity
-      state.attackOpponents (opp) ->
-        state.gainCard(opp, card)
 }
 
 makeCard 'Apothecary', action, {
@@ -849,25 +1090,6 @@ makeCard 'Bridge', action, {
   playEffect:
     (state) ->
       state.bridges += 1
-}
-
-makeCard 'Bureaucrat', action, {
-  cost: 4
-  isAttack: true
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      victory = []
-      for card in opp.hand
-        if card.isVictory
-          victory.push(card)
-      if victory.length == 0
-        state.revealHand(opp)
-        state.log("#{opp.ai} reveals a hand with no Victory cards.")
-      else
-        choice = opp.ai.choose('putOnDeck', state, victory)
-        transferCardToTop(choice, opp.hand, opp.draw)
-        state.log("#{opp.ai} returns #{choice} to the top of the deck.")
-      
 }
 
 makeCard 'Cellar', action, {
@@ -957,20 +1179,6 @@ makeCard 'Council Room', action, {
       state.drawCards(opp, 1)
 }
 
-makeCard 'Cutpurse', action, {
-  cost: 4
-  coins: +2
-  isAttack: true
-
-  playEffect: (state) ->
-      state.attackOpponents (opp) ->
-        if c.Copper in opp.hand
-          opp.doDiscard(c.Copper)
-        else
-          state.log("#{opp.ai} has no Copper in hand.")
-          state.revealHand(opp)
-}
-
 makeCard 'Explorer', action, {
   cost: 5
 
@@ -1009,18 +1217,6 @@ makeCard 'Farming Village', action, {
     state.current.setAside = []
 }
 
-makeCard 'Familiar', action, {
-  cost: 3
-  costPotion: 1
-  actions: +1
-  cards: +1
-  isAttack: true
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      state.gainCard(opp, c.Curse)
-}
-
-# Goons: *see Militia*
 makeCard "Grand Market", c.Market, {
   cost: 6
   coins: 2
@@ -1128,23 +1324,6 @@ makeCard 'Ironworks', action, {
       state.current.drawCards(1)
 }
 
-makeCard 'Jester', action, {
-  cost: 5
-  coins: +2
-  isAttack: true
-
-  playEffect: (state) ->
-    state.log("#{state.current.ai} gets +$2")
-    state.attackOpponents (opp) ->
-      card = state.discardFromDeck(opp, 1)[0]
-      if card.isVictory
-        state.gainCard(opp, c.Curse)
-      else if state.current.ai.chooseGain(state, [card, null])
-        state.gainCard(state.current, card)
-      else
-        state.gainCard(opp, card)
-}
-
 makeCard 'Library', action, {
   cost: 5
 
@@ -1231,21 +1410,6 @@ makeCard "Menagerie", action, {
     state.drawCards(state.current, state.current.menagerieDraws())
 }
 
-makeCard "Militia", action, {
-  cost: 4
-  coins: +2
-  isAttack: true
-  # Militia is a straightforward example of an attack card.
-  #
-  # All attack effects are wrapped in the `state.attackOpponents`
-  # method, to give opponents a chance to play reaction cards.
-  playEffect:
-    (state) ->
-      state.attackOpponents (opp) ->
-        if opp.hand.length > 3
-          state.requireDiscard(opp, opp.hand.length - 3)
-}
-
 makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
@@ -1265,16 +1429,6 @@ makeCard "Mint", action, {
     choice = state.current.ai.choose('mint', state, treasures)
     if choice isnt null
       state.gainCard(state.current, choice)
-}
-
-makeCard "Goons", c.Militia, {
-  cost: 6
-  coins: +2
-  buys: +1
-
-  # The effect of Goons that causes you to gain VP on each buy is 
-  # defined in `State.doBuyPhase`. Other than that, Goons is a fancy
-  # Militia.
 }
 
 makeCard "Moat", action, {
@@ -1303,20 +1457,6 @@ makeCard "Monument", action, {
   playEffect:
     (state) ->
       state.current.chips += 1
-}
-
-makeCard "Mountebank", action, {
-  cost: 5
-  coins: 2
-  isAttack: true
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      if c.Curse in opp.hand
-        # Discarding a Curse against Mountebank is automatic.
-        opp.doDiscard(c.Curse)
-      else
-        state.gainCard(opp, c.Copper)
-        state.gainCard(opp, c.Curse)
 }
 
 makeCard 'Pawn', action, {
@@ -1349,85 +1489,6 @@ makeCard 'Peddler', action, {
     cost
 }
 
-makeCard 'Pirate Ship', action, {
-  cost: 4
-  isAttack: true
-
-  playEffect: (state) ->
-    choice = state.current.ai.choose('pirateShip', state, ['coins', 'attack'])
-
-    if choice is 'coins'
-      state.current.coins += state.current.mats.pirateShip
-      state.log("...getting +$#{state.current.mats.pirateShip}.")
-    
-    else if choice is 'attack'
-      state.log("...attacking the other players.")
-      attackSuccess = false
-
-      state.attackOpponents (opp) ->
-        drawn = opp.getCardsFromDeck(2)
-        state.log("...#{opp.ai} reveals #{drawn}.")
-        drawnTreasures = []
-        for card in drawn
-          if card.isTreasure
-            drawnTreasures.push(card)
-        treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
-        if treasureToTrash
-          attackSuccess = true
-          drawn.remove(treasureToTrash)
-          state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
-        state.current.discard = state.current.discard.concat(drawn)
-        state.log("...#{opp.ai} discards #{drawn}.")
-        
-      if attackSuccess
-        state.current.mats.pirateShip += 1
-        state.log("...#{state.current.ai} takes a Coin token (#{state.current.mats.pirateShip} on the mat).")
-}
-
-makeCard 'Saboteur', action, {
-  cost: 5
-  isAttack: true
-
-  upgradeFilter: (state, oldCard, newCard) ->
-    [coins1, potions1] = oldCard.getCost(state)
-    [coins2, potions2] = newCard.getCost(state)
-    return (potions1 >= potions2) and (coins1-2 >= coins2)
-
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      cardsDrawn = 0;
-      while cardsDrawn < 1
-        drawn = opp.getCardsFromDeck(1)
-        if drawn.length == 0
-          if opp.setAside.length > 0
-            state.log("#{opp.ai} reveals #{opp.setAside}, but has no cards costing $3 or more in the deck.")
-          else
-            state.log("#{opp.ai} has no more cards in the deck.")
-          break
-        card = drawn[0]
-        cardCoinCost = card.getCost(state)[0]
-        if cardCoinCost >= 3
-          state.log("...#{opp.ai} reveals #{opp.setAside}, and #{card}.")
-          cardsDrawn++
-          choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
-          choices.push([card,null])
-          choice = opp.ai.choose('upgrade', state, choices)
-          drawn.remove(card)
-          state.log("...#{state.current.ai} trashes #{opp.ai}'s #{card}.")
-          if choice[1] isnt null
-            [oldCard, newCard] = choice
-            state.gainCard(opp, newCard, 'discard', true)
-            state.log("...#{opp.ai} gains #{newCard}.")
-          else
-            state.log("...#{opp.ai} gains nothing.")
-        else
-          opp.setAside.push(card)
-      if opp.setAside.length > 0
-        state.log("...#{opp.ai} discards #{opp.setAside}.")
-      opp.discard = opp.discard.concat(opp.setAside)
-      opp.setAside = []  
-}
-
 makeCard 'Scout', action, {
   cost: 4
   actions: +1
@@ -1451,20 +1512,6 @@ makeCard 'Scout', action, {
       state.current.setAside = []
 }
 
-makeCard 'Sea Hag', action, {
-  cost: 4
-  isAttack: true
-  
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      state.discardFromDeck(opp, 1)
-
-      # If no Curses are left to gain, we don't want a Curse to be
-      # fished out of the opponent's discard pile
-      if state.supply[c.Curse] > 0
-        state.gainCard(opp, c.Curse, 'draw')
-}
-
 makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
@@ -1483,30 +1530,6 @@ makeCard 'Steward', action, {
         {trash: 2}
       ])
       applyBenefit(state, benefit)
-}
-
-makeCard 'Thief', action, {
-  cost: 4
-  isAttack: true
-
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      drawn = opp.getCardsFromDeck(2)
-      state.log("...#{opp.ai} reveals #{drawn}.")
-      drawnTreasures = []
-      for card in drawn
-        if card.isTreasure
-          drawnTreasures.push(card)
-      treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
-      if treasureToTrash
-        drawn.remove(treasureToTrash)
-        state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
-        cardToGain =  state.current.ai.chooseGain(state, [treasureToTrash, null])
-        if cardToGain
-          state.gainCard(state.current, cardToGain, 'discard', true)
-          state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
-      state.current.discard = state.current.discard.concat(drawn)
-      state.log("...#{opp.ai} discards #{drawn}.")
 }
 
 makeCard 'Tournament', action, {
@@ -1531,17 +1554,6 @@ makeCard 'Tournament', action, {
       if not opposingProvince
         state.current.coins += 1
         state.current.drawCards(1)
-}
-
-makeCard 'Torturer', action, {
-  cost: 5
-  cards: +3
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      if opp.ai.choose('torturer', state, ['curse', 'discard']) == 'curse'
-        state.gainCard(opp, c.Curse)
-      else
-        state.requireDiscard(opp, 2)
 }
 
 makeCard "Trade Route", action, {
@@ -1718,14 +1730,6 @@ makeCard 'Wishing Well', action, {
         state.current.draw.unshift(card)
     else
       state.log("...drawing nothing.")
-}
-
-makeCard 'Witch', action, {
-  cost: 5
-  cards: 2
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      state.gainCard(opp, c.Curse)
 }
 
 makeCard 'Workshop', action, {
