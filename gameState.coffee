@@ -297,6 +297,42 @@ class PlayerState
       @draw = @draw[nCards...]
       return drawn
   
+  # `dig` is a function to draw and reveal cards from the deck until
+  # certain ones are found. The cards to be found are defined by digFunc,
+  # which takes (state, card) and returns true if card is one that we're
+  # trying find. For example, Venture's and Adventurer's would be
+  # digFunc: (state, card) -> card.isTreasure
+  #
+  # nCards is the number of cards we're looking for; usually 1, but Golem
+  # and Adventurer look for 2 cards.
+  #
+  # By default, discard the revealed and set aside cards, but Scrying Pool
+  # digs for a card that is not an action, then draws up all the revealed
+  # actions as well; discardSetAside allows a card calling dig to do
+  # something with setAside other than discarding.
+  dig: (state, digFunc, nCards=1, discardSetAside=true) ->
+    foundCards = [] # These are the cards you're looking for
+    revealedCards = [] # All the cards drawn and revealed from the deck
+    while foundCards.length < nCards
+      drawn = this.getCardsFromDeck(1)
+      break if drawn.length == 0
+      card = drawn[0]
+      revealedCards.push(card)
+      if digFunc(state, card)
+        foundCards.push(card)
+      else
+        this.setAside.push(card)
+    if revealedCards.length == 0
+      this.log("...#{this.ai} has no cards to draw.")
+    else
+      this.log("...#{this.ai} reveals #{revealedCards}.")
+    if discardSetAside
+      if this.setAside.length > 0
+        this.log("...#{this.ai} discards #{this.setAside}.")
+      this.discard = this.discard.concat(this.setAside)
+      this.setAside = []
+    foundCards
+  
   doDiscard: (card) ->
     if card not in @hand
       this.warn("#{@ai} has no #{card} to discard")
