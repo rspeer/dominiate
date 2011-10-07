@@ -286,6 +286,7 @@ class BasicAI
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
     "Thief"
+    "Fortune Teller"
     "Bureaucrat"
     "Conspirator" if my.actions < 2
     "Herbalist"
@@ -328,11 +329,13 @@ class BasicAI
     "Hoard"
     "Royal Seal"
     "Harem"
-    "Venture"
     "Silver"
     "Quarry"
+    "Talisman"
     "Copper"
     "Potion"
+    "Loan"
+    "Venture"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
