@@ -936,8 +936,8 @@ makeCard 'Saboteur', attack, {
     return (potions1 >= potions2) and (coins1-2 >= coins2)
   playEffect: (state) ->
     state.attackOpponents (opp) ->
-      drawn = opp.dig(state, 1,
-        (state, card) -> true if card.getCost(state)[0] >= 3                      
+      drawn = opp.dig(state,
+        (state, card) -> card.getCost(state)[0] >= 3                      
       )
       if drawn[0]?
         cardToTrash = drawn[0]
