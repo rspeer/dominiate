@@ -382,7 +382,7 @@ makeCard 'Nobles', c.Estate, {
         {actions: 2},
         {cards: 3}
       ])
-      applyBenefit(state, benefit)  
+      applyBenefit(state, benefit)
 }
 
 makeCard 'Vineyard', c.Estate, {
@@ -1622,17 +1622,6 @@ makeCard 'Tournament', action, {
       if not opposingProvince
         state.current.coins += 1
         state.current.drawCards(1)
-}
-
-makeCard 'Torturer', action, {
-  cost: 5
-  cards: +3
-  playEffect: (state) ->
-    state.attackOpponents (opp) ->
-      if opp.ai.choose('torturer', state, ['curse', 'discard']) == 'curse'
-        state.gainCard(opp, c.Curse, 'hand')
-      else
-        state.requireDiscard(opp, 2)
 }
 
 makeCard "Trade Route", action, {
