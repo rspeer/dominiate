@@ -260,7 +260,7 @@
       }
     };
     BasicAI.prototype.putOnDeckPriority = function(state, my) {
-      var card, cardCheck, defaultGained, dis, equal, hypMy, hypState, index, nowGained, onlyVictoryBought, putBack, putBackOptions, treasure, treasures, _i, _j, _k, _len, _len2, _len3, _len4, _ref, _ref2, _ref3;
+      var card, margin, putBack, putBackOptions, treasures, _i, _j, _len, _len2, _ref;
       putBack = [];
       if (my.countPlayableTerminals(state) === 0) {
         putBackOptions = (function() {
@@ -303,69 +303,32 @@
       })();
       putBack = putBack.slice(my.countPlayableTerminals(state), putBack.length);
       if (putBack.length === 0) {
-        cardCheck = my.numCardsInDeck();
-        _ref = state.hypothetical(my.ai), hypState = _ref[0], hypMy = _ref[1];
-        dis = hypState.requireDiscard(hypMy, 1);
-        defaultGained = hypMy.ai.pessimisticCardsGained(hypState);
         treasures = [];
-        _ref2 = my.hand;
-        for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-          card = _ref2[_i];
+        _ref = my.hand;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          card = _ref[_i];
           if (card.isTreasure && (!(__indexOf.call(treasures, card) >= 0))) {
             treasures.push(card);
           }
         }
-        for (_j = 0, _len2 = treasures.length; _j < _len2; _j++) {
-          treasure = treasures[_j];
-          _ref3 = state.hypothetical(my.ai), hypState = _ref3[0], hypMy = _ref3[1];
-          hypMy.doDiscard(treasure);
-          nowGained = hypMy.ai.pessimisticCardsGained(hypState);
-          equal = true;
-          if (defaultGained.length !== nowGained.length) {
-            equal = false;
-          } else {
-            for (index = 0, _len3 = defaultGained.length; index < _len3; index++) {
-              card = defaultGained[index];
-              equal = equal && (nowGained[index] === card);
-            }
-          }
-          if (equal) {
-            putBack.push(treasure);
-          }
-        }
-        if (my.numCardsInDeck() !== cardCheck) {
-          throw Exception("cards changed during decision");
-        }
-        putBack.sort(function(y, x) {
-          return state.compareByCoinCost(state, my, x, y);
+        treasures.sort(function(x, y) {
+          return x.coins - y.coins;
         });
+        margin = my.ai.coinLossMargin(state);
+        for (_j = 0, _len2 = treasures.length; _j < _len2; _j++) {
+          card = treasures[_j];
+          if (my.ai.coinsDueToCard(state, card) <= margin) {
+            putBack.push(card);
+          }
+        }
         if (my.countInPlay(state.cardInfo["Alchemist"]) > 0) {
-          if (my.countInHand(state.cardInfo["Potion"]) === 1) {
+          if (__indexOf.call(putBack, "Potion") >= 0) {
             putBack.remove(state.cardInfo["Potion"]);
           }
         }
-        onlyVictoryBought = true;
-        for (_k = 0, _len4 = defaultGained.length; _k < _len4; _k++) {
-          card = defaultGained[_k];
-          onlyVictoryBought = onlyVictoryBought && !(card.isTreasure || card.isAction);
-        }
-        if (!onlyVictoryBought) {
-          putBack.remove(state.cardInfo["Royal Seal"]);
-        }
       }
       if (putBack.length === 0) {
-        putBack = (function() {
-          var _l, _len5, _ref4, _ref5, _results;
-          _ref4 = my.ai.discardPriority(state, my);
-          _results = [];
-          for (_l = 0, _len5 = _ref4.length; _l < _len5; _l++) {
-            card = _ref4[_l];
-            if ((_ref5 = state.cardInfo[card], __indexOf.call(my.hand, _ref5) >= 0)) {
-              _results.push(card);
-            }
-          }
-          return _results;
-        })();
+        putBack = [my.ai.chooseDiscard(state, my.hand)];
       }
       return putBack;
     };
@@ -541,6 +504,42 @@
       newState = this.pessimisticBuyPhase(state);
       newState.doPlay();
       return newState.current.gainedThisTurn;
+    };
+    BasicAI.prototype.coinLossMargin = function(state) {
+      var cardToBuy, coins, coinsCost, newState, potionsCost, _ref;
+      newState = this.pessimisticBuyPhase(state);
+      coins = newState.coins;
+      cardToBuy = newState.getSingleBuyDecision();
+      if (cardToBuy === null) {
+        return 0;
+      }
+      _ref = cardToBuy.getCost(newState), coinsCost = _ref[0], potionsCost = _ref[1];
+      return coins - coinsCost;
+    };
+    BasicAI.prototype.coinsDueToCard = function(state, card) {
+      var aCard, banks, c, nonbanks, value;
+      c = state.cardInfo;
+      value = card.getCoins(state);
+      if (card.isTreasure) {
+        banks = state.current.countInHand(c.Bank);
+        value += banks;
+        if (card === state.cardInfo.Bank) {
+          nonbanks = ((function() {
+            var _i, _len, _ref, _results;
+            _ref = state.current.hand;
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+              aCard = _ref[_i];
+              if (aCard.isTreasure) {
+                _results.push(aCard);
+              }
+            }
+            return _results;
+          })()).length;
+          value += nonbanks;
+        }
+      }
+      return value;
     };
     BasicAI.prototype.copy = function() {
       var ai, key, value;
@@ -3230,35 +3229,40 @@
       this.current.playLocation = 'inPlay';
       return treasure.onPlay(this);
     };
-    State.prototype.doBuyPhase = function() {
-      var buyable, card, cardInPlay, cardname, choice, coinCost, count, goonses, i, potionCost, _ref2, _ref3, _ref4, _ref5, _results;
-      _results = [];
-      while (this.current.buys > 0) {
-        buyable = [null];
-        _ref2 = this.supply;
-        for (cardname in _ref2) {
-          count = _ref2[cardname];
-          card = c[cardname];
-          if (card.mayBeBought(this) && count > 0) {
-            _ref3 = card.getCost(this), coinCost = _ref3[0], potionCost = _ref3[1];
-            if (coinCost <= this.current.coins && potionCost <= this.current.potions) {
-              buyable.push(card);
-            }
+    State.prototype.getSingleBuyDecision = function() {
+      var buyable, card, cardname, choice, coinCost, count, potionCost, _ref2, _ref3;
+      buyable = [null];
+      _ref2 = this.supply;
+      for (cardname in _ref2) {
+        count = _ref2[cardname];
+        card = c[cardname];
+        if (card.mayBeBought(this) && count > 0) {
+          _ref3 = card.getCost(this), coinCost = _ref3[0], potionCost = _ref3[1];
+          if (coinCost <= this.current.coins && potionCost <= this.current.potions) {
+            buyable.push(card);
           }
         }
-        this.log("Coins: " + this.current.coins + ", Potions: " + this.current.potions + ", Buys: " + this.current.buys);
-        choice = this.current.ai.chooseGain(this, buyable);
+      }
+      this.log("Coins: " + this.current.coins + ", Potions: " + this.current.potions + ", Buys: " + this.current.buys);
+      choice = this.current.ai.chooseGain(this, buyable);
+      return choice;
+    };
+    State.prototype.doBuyPhase = function() {
+      var cardInPlay, choice, coinCost, goonses, i, potionCost, _ref2, _ref3, _results;
+      _results = [];
+      while (this.current.buys > 0) {
+        choice = this.getSingleBuyDecision();
         if (choice === null) {
           return;
         }
         this.log("" + this.current.ai + " buys " + choice + ".");
-        _ref4 = choice.getCost(this), coinCost = _ref4[0], potionCost = _ref4[1];
+        _ref2 = choice.getCost(this), coinCost = _ref2[0], potionCost = _ref2[1];
         this.current.coins -= coinCost;
         this.current.potions -= potionCost;
         this.current.buys -= 1;
         this.gainCard(this.current, choice, 'discard', true);
         choice.onBuy(this);
-        for (i = _ref5 = this.current.inPlay.length - 1; _ref5 <= -1 ? i < -1 : i > -1; _ref5 <= -1 ? i++ : i--) {
+        for (i = _ref3 = this.current.inPlay.length - 1; _ref3 <= -1 ? i < -1 : i > -1; _ref3 <= -1 ? i++ : i--) {
           cardInPlay = this.current.inPlay[i];
           cardInPlay.buyInPlayEffect(this, choice);
         }
