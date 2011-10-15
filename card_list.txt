@@ -120,6 +120,15 @@ Workshop
 Cards that still need to be coded (30)
 ======================================
 
+Hinterlands
+-----------
+Keeping these separate because we may have simply not thought about them enough.
+
+Trader (trash-for-benefit is hard, reaction is moderately easy)
+Border Village (easy)
+Nomad Camp (easy)
+Fool's Gold (normal play is easy; reaction strategy may be hard)
+
 Easy cards
 ----------
 The code to make these cards work already mostly exists.
@@ -127,7 +136,6 @@ The code to make these cards work already mostly exists.
 Feast
 Golem
 Pearl Diver
-Rabble
 
 Not-so-easy cards
 -----------------
