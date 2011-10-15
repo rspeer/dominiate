@@ -1393,7 +1393,9 @@ makeCard 'Library', action, {
       drawn = player.getCardsFromDeck(1)
 
       # If nothing was drawn, the deck and discard pile are empty.
-      break if drawn.length == 0
+      if drawn.length == 0
+        state.log("...stopping because there are no cards to draw.")
+        break
 
       card = drawn[0]
       if card.isAction
@@ -1403,8 +1405,11 @@ makeCard 'Library', action, {
           state.log("#{player.ai} sets aside a #{card}.")
           player.setAside.push(card)
         else
-          state.log("#{player.ai} draws a #{card}.")
+          state.log("#{player.ai} draws a #{card} and chooses to keep it.")
           player.hand.push(card)
+      else
+        state.log("#{player.ai} draws a #{card}.")
+        player.hand.push(card)
     
     # Discard the set-aside cards.
     player.discard = player.discard.concat(player.setAside)

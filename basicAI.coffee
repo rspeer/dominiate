@@ -437,6 +437,7 @@ class BasicAI
 
     # 3) Put back as much money as you can
     if putBack.length == 0
+      cardCheck = my.numCardsInDeck()
       # find out what you would gain if you put back worst card as in 4)
       [hypState, hypMy] = state.hypothetical(my.ai)
       # technically, we don't want to discard but to put back, but for pessimisticBuy this should not matter
@@ -466,6 +467,9 @@ class BasicAI
         if (equal)
           putBack.push treasure
       
+      if my.numCardsInDeck() != cardCheck
+        throw Exception("cards changed during decision")
+        
       # sort by cost. Should be improved
       putBack.sort( (y, x) -> state.compareByCoinCost(state, my, x, y) )
       
