@@ -1,5 +1,5 @@
 (function() {
-  var BasicAI, PlayerState, State, action, applyBenefit, attack, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, prize, shuffle, stringify, transferCard, transferCardToTop, treasure, upgradeChoices, _ref;
+  var BasicAI, PlayerState, State, action, applyBenefit, attack, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playFast, playGame, playStep, prize, shuffle, stringify, transferCard, transferCardToTop, treasure, upgradeChoices, _ref;
   var __indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++) {
       if (this[i] === item) return i;
@@ -77,9 +77,14 @@
     if (ret == null) {
       ret = options.log;
     }
-    return window.setZeroTimeout(function() {
-      return playStep(state, options, ret);
-    });
+    if (options.fast) {
+      options.log = function() {};
+      return playFast(state, options, ret);
+    } else {
+      return window.setZeroTimeout(function() {
+        return playStep(state, options, ret);
+      });
+    }
   };
   playStep = function(state, options, ret) {
     var errorHandler, _ref;
@@ -103,6 +108,25 @@
         return window.donePlaying();
       }
     }
+  };
+  playFast = function(state, options, ret) {
+    var errorHandler, _ref;
+    while (!state.gameIsOver()) {
+      try {
+        state.doPlay();
+        if (state.phase === 'buy' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins);
+        }
+        if (state.phase === 'cleanup' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state));
+        }
+      } catch (err) {
+        errorHandler = (_ref = options.errorHandler) != null ? _ref : typeof alert !== "undefined" && alert !== null ? alert : console.log;
+        errorHandler(err.message);
+        window.donePlaying();
+      }
+    }
+    return ret(state);
   };
   this.compileStrategies = compileStrategies;
   this.playGame = playGame;

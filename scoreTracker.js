@@ -83,7 +83,7 @@
     };
     ScoreTracker.prototype.updateScores = function() {
       var score;
-      this.proportions = (function() {
+      return this.proportions = (function() {
         var _i, _len, _ref, _results;
         _ref = this.scores;
         _results = [];
@@ -93,9 +93,6 @@
         }
         return _results;
       }).call(this);
-      if (this.scoreInHtml) {
-        return this.updateScoresOnPage();
-      }
     };
     ScoreTracker.prototype.decisiveWinner = function() {
       var i, _ref;
