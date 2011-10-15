@@ -1,5 +1,5 @@
 (function() {
-  var BasicAI, PlayerState, State, action, applyBenefit, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, prize, shuffle, stringify, transferCard, transferCardToTop, upgradeChoices, _ref;
+  var BasicAI, PlayerState, State, action, applyBenefit, attack, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playGame, playStep, prize, shuffle, stringify, transferCard, transferCardToTop, treasure, upgradeChoices, _ref;
   var __indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++) {
       if (this[i] === item) return i;
@@ -227,10 +227,10 @@
       var countInHandCopper, wantsToTrash, _ref;
       wantsToTrash = my.ai.wantsToTrash(state);
       countInHandCopper = my.countInHand("Copper");
-      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, state.gainsToEndGame() >= 5 || (_ref = state.cardInfo.Curse, __indexOf.call(my.draw, _ref) >= 0) ? "Lookout" : void 0, "Bag of Gold", "Apothecary", "Scout", "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Treasury", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Familiar", "Great Hall", "Wishing Well", "Lighthouse", "Haven", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Rabble" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, my.actions > 1 && (my.discard.length + my.draw.length) <= 3 ? "Courtyard" : void 0, wantsToTrash ? "Upgrade" : void 0, "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, "Tournament", "Menagerie", my.actions < 2 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Torturer", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, my.hand.length <= 3 ? "Library" : void 0, "Expand", "Remodel", "Jester", "Militia", "Cutpurse", "Bridge", "Horse Traders", "Steward", countInHandCopper >= 1 ? "Moneylender" : void 0, "Mine", countInHandCopper >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, "Rabble", "Smithy", my.hand.length <= 3 ? "Watchtower" : void 0, "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, (my.discard.length + my.draw.length) > 0 ? "Courtyard" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Remake", "Adventurer", "Harvest", "Explorer", "Woodcutter", "Chancellor", "Counting House", countInHandCopper >= 2 ? "Coppersmith" : void 0, state.extraturn === false ? "Outpost" : void 0, wantsToTrash ? "Ambassador" : void 0, wantsToTrash + my.countInHand("Silver") >= 2 ? "Trading Post" : void 0, wantsToTrash ? "Chapel" : void 0, wantsToTrash ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Pirate Ship", "Thief", "Bureaucrat", my.actions < 2 ? "Conspirator" : void 0, "Herbalist", "Moat", my.hand.length <= 6 ? "Library" : void 0, my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", state.smugglerChoices().length > 1 ? "Smugglers" : void 0, "Coppersmith", "Saboteur", my.hand.length <= 7 ? "Library" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", "Library", "Conspirator", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador"];
+      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, state.gainsToEndGame() >= 5 || (_ref = state.cardInfo.Curse, __indexOf.call(my.draw, _ref) >= 0) ? "Lookout" : void 0, "Bag of Gold", "Apothecary", "Scout", "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Treasury", my.inPlay.length >= 2 ? "Conspirator" : void 0, "Familiar", "Great Hall", "Wishing Well", "Lighthouse", "Haven", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Rabble" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, my.actions > 1 && (my.discard.length + my.draw.length) <= 3 ? "Courtyard" : void 0, wantsToTrash ? "Upgrade" : void 0, "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, "Tournament", "Menagerie", my.actions < 2 ? "Shanty Town" : void 0, "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Torturer", "Sea Hag", "Tribute", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, my.hand.length <= 3 ? "Library" : void 0, "Expand", "Remodel", "Jester", "Militia", "Cutpurse", "Bridge", "Horse Traders", "Steward", countInHandCopper >= 1 ? "Moneylender" : void 0, "Mine", countInHandCopper >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, "Rabble", "Smithy", my.hand.length <= 3 ? "Watchtower" : void 0, "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, (my.discard.length + my.draw.length) > 0 ? "Courtyard" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Remake", "Adventurer", "Harvest", "Explorer", "Woodcutter", "Chancellor", "Counting House", countInHandCopper >= 2 ? "Coppersmith" : void 0, state.extraturn === false ? "Outpost" : void 0, wantsToTrash ? "Ambassador" : void 0, wantsToTrash + my.countInHand("Silver") >= 2 ? "Trading Post" : void 0, wantsToTrash ? "Chapel" : void 0, wantsToTrash ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Pirate Ship", "Thief", "Fortune Teller", "Bureaucrat", my.actions < 2 ? "Conspirator" : void 0, "Herbalist", "Moat", my.hand.length <= 6 ? "Library" : void 0, my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", state.smugglerChoices().length > 1 ? "Smugglers" : void 0, "Coppersmith", "Saboteur", my.hand.length <= 7 ? "Library" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Shanty Town", "Chapel", "Library", "Conspirator", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador"];
     };
     BasicAI.prototype.treasurePriority = function(state, my) {
-      return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Hoard", "Royal Seal", "Harem", "Venture", "Silver", "Quarry", "Copper", "Potion", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
+      return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Hoard", "Royal Seal", "Harem", "Silver", "Quarry", "Talisman", "Copper", "Potion", "Loan", "Venture", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
     };
     BasicAI.prototype.cachedActionPriority = function(state, my) {
       return my.ai.cachedAP;
@@ -260,7 +260,7 @@
       }
     };
     BasicAI.prototype.putOnDeckPriority = function(state, my) {
-      var card, defaultGained, dis, equal, hypMy, hypState, index, nowGained, onlyVictoryBought, putBack, putBackOptions, treasure, treasures, _i, _j, _k, _len, _len2, _len3, _len4, _ref, _ref2, _ref3;
+      var card, cardCheck, defaultGained, dis, equal, hypMy, hypState, index, nowGained, onlyVictoryBought, putBack, putBackOptions, treasure, treasures, _i, _j, _k, _len, _len2, _len3, _len4, _ref, _ref2, _ref3;
       putBack = [];
       if (my.countPlayableTerminals(state) === 0) {
         putBackOptions = (function() {
@@ -303,6 +303,7 @@
       })();
       putBack = putBack.slice(my.countPlayableTerminals(state), putBack.length);
       if (putBack.length === 0) {
+        cardCheck = my.numCardsInDeck();
         _ref = state.hypothetical(my.ai), hypState = _ref[0], hypMy = _ref[1];
         dis = hypState.requireDiscard(hypMy, 1);
         defaultGained = hypMy.ai.pessimisticCardsGained(hypState);
@@ -331,6 +332,9 @@
           if (equal) {
             putBack.push(treasure);
           }
+        }
+        if (my.numCardsInDeck() !== cardCheck) {
+          throw Exception("cards changed during decision");
         }
         putBack.sort(function(y, x) {
           return state.compareByCoinCost(state, my, x, y);
@@ -840,13 +844,6 @@
     coins: 2,
     buys: 1
   });
-  makeCard('Great Hall', action, {
-    cost: 3,
-    actions: 1,
-    cards: 1,
-    vp: 1,
-    isVictory: true
-  });
   makeCard('Market', action, {
     cost: 5,
     actions: 1,
@@ -940,6 +937,138 @@
     costPotion: 1,
     getVP: function(state) {
       return Math.floor(state.current.numActionCardsInDeck() / 3);
+    }
+  });
+  treasure = makeCard('treasure', c.Silver, {
+    startingSupply: function(state) {
+      return 10;
+    }
+  }, true);
+  makeCard('Bank', treasure, {
+    cost: 7,
+    getCoins: function(state) {
+      var card, coins, _i, _len, _ref;
+      coins = 0;
+      _ref = state.current.inPlay;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        card = _ref[_i];
+        if (card.isTreasure) {
+          coins += 1;
+        }
+      }
+      return coins;
+    },
+    playEffect: function(state) {
+      return state.log("...which is worth " + (this.getCoins(state)) + ".");
+    }
+  });
+  makeCard("Hoard", treasure, {
+    cost: 6,
+    buyInPlayEffect: function(state, card) {
+      if (card.isVictory) {
+        state.gainCard(state.current, c.Gold, 'discard', true);
+        return state.log("...gaining a Gold.");
+      }
+    }
+  });
+  makeCard("Horn of Plenty", treasure, {
+    cost: 5,
+    coins: 0,
+    playEffect: function(state) {
+      var card, cardName, choice, choices, coins, limit, potions, _ref;
+      limit = state.current.numUniqueCardsInPlay();
+      choices = [];
+      for (cardName in state.supply) {
+        card = c[cardName];
+        _ref = card.getCost(state), coins = _ref[0], potions = _ref[1];
+        if (state.supply[cardName] > 0 && potions === 0 && coins <= limit) {
+          choices.push(card);
+        }
+      }
+      choice = state.gainOneOf(state.current, choices);
+      if (choice.isVictory) {
+        state.current.inPlay.remove(this);
+        return state.log("..." + state.current.ai + " trashes the Horn of Plenty.");
+      }
+    }
+  });
+  makeCard('Loan', treasure, {
+    coins: 1,
+    playEffect: function(state) {
+      var drawn, trash;
+      drawn = state.current.dig(state, function(state, card) {
+        return card.isTreasure;
+      });
+      if (drawn[0] != null) {
+        treasure = drawn[0];
+        trash = state.current.ai.choose('trash', state, [treasure, null]);
+        if (trash != null) {
+          state.log("...trashing the " + treasure + ".");
+          return drawn.remove(treasure);
+        } else {
+          state.log("...discarding the " + treasure + ".");
+          return state.current.discard.push(treasure);
+        }
+      }
+    }
+  });
+  makeCard("Philosopher's Stone", treasure, {
+    cost: 3,
+    costPotion: 1,
+    getCoins: function(state) {
+      return Math.floor((state.current.draw.length + state.current.discard.length) / 5);
+    },
+    playEffect: function(state) {
+      return state.log("...which is worth " + (this.getCoins(state)) + ".");
+    }
+  });
+  makeCard('Quarry', treasure, {
+    cost: 4,
+    coins: 1,
+    playEffect: function(state) {
+      return state.quarries += 1;
+    }
+  });
+  makeCard('Royal Seal', treasure, {
+    cost: 5,
+    gainInPlayEffect: function(state, card) {
+      var player, source;
+      player = state.current;
+      if (player.gainLocation === 'trash') {
+        return;
+      }
+      source = player[player.gainLocation];
+      if (player.ai.choose('gainOnDeck', state, [card, null])) {
+        state.log("...putting the " + card + " on top of the deck.");
+        player.gainLocation = 'draw';
+        return transferCardToTop(card, source, player.draw);
+      }
+    }
+  });
+  makeCard('Talisman', treasure, {
+    cost: 4,
+    coins: 1,
+    buyInPlayEffect: function(state, card) {
+      if (card.getCost(state)[0] <= 4 && !card.isVictory) {
+        state.gainCard(state.current, card, 'discard', true);
+        return state.log("...gaining a " + card + ".");
+      }
+    }
+  });
+  makeCard('Venture', treasure, {
+    cost: 5,
+    coins: 1,
+    playEffect: function(state) {
+      var drawn;
+      drawn = state.current.dig(state, function(state, card) {
+        return card.isTreasure;
+      });
+      if (drawn[0] != null) {
+        treasure = drawn[0];
+        state.log("...playing " + treasure + ".");
+        state.current.inPlay.push(treasure);
+        return treasure.onPlay(state);
+      }
     }
   });
   duration = makeCard('duration', action, {
@@ -1189,44 +1318,11 @@
       return applyBenefit(state, benefit);
     }
   });
-  makeCard('Adventurer', action, {
-    cost: 6,
-    playEffect: function(state) {
-      var card, drawn, treasuresDrawn;
-      treasuresDrawn = 0;
-      while (treasuresDrawn < 2) {
-        drawn = state.current.getCardsFromDeck(1);
-        if (drawn.length === 0) {
-          break;
-        }
-        card = drawn[0];
-        if (card.isTreasure) {
-          treasuresDrawn += 1;
-          state.current.hand.push(card);
-          state.log("...drawing a " + card + ".");
-        } else {
-          state.current.setAside.push(card);
-        }
-      }
-      state.current.discard = state.current.discard.concat(state.current.setAside);
-      return state.current.setAside = [];
-    }
-  });
-  makeCard('Alchemist', action, {
+  attack = makeCard('attack', action, {
+    isAttack: true
+  }, true);
+  makeCard('Ambassador', attack, {
     cost: 3,
-    costPotion: 1,
-    actions: +1,
-    cards: +2,
-    cleanupEffect: function(state) {
-      var _ref;
-      if (_ref = c.Potion, __indexOf.call(state.current.inPlay, _ref) >= 0) {
-        return transferCardToTop(c.Alchemist, state.current.discard, state.current.draw);
-      }
-    }
-  });
-  makeCard('Ambassador', action, {
-    cost: 3,
-    isAttack: true,
     playEffect: function(state) {
       var card, cardName, choice, choices, count, counts, i, quantity, _i, _len, _ref, _ref2;
       counts = {};
@@ -1266,6 +1362,312 @@
       }
     }
   });
+  makeCard('Bureaucrat', attack, {
+    cost: 4,
+    playEffect: function(state) {
+      state.gainCard(state.current, c.Silver, 'draw');
+      return state.attackOpponents(function(opp) {
+        var card, choice, victory, _i, _len, _ref;
+        victory = [];
+        _ref = opp.hand;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          card = _ref[_i];
+          if (card.isVictory) {
+            victory.push(card);
+          }
+        }
+        if (victory.length === 0) {
+          state.revealHand(opp);
+          return state.log("" + opp.ai + " reveals a hand with no Victory cards.");
+        } else {
+          choice = opp.ai.choose('putOnDeck', state, victory);
+          transferCardToTop(choice, opp.hand, opp.draw);
+          return state.log("" + opp.ai + " returns " + choice + " to the top of the deck.");
+        }
+      });
+    }
+  });
+  makeCard('Cutpurse', attack, {
+    cost: 4,
+    coins: +2,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var _ref;
+        if (_ref = c.Copper, __indexOf.call(opp.hand, _ref) >= 0) {
+          return opp.doDiscard(c.Copper);
+        } else {
+          state.log("" + opp.ai + " has no Copper in hand.");
+          return state.revealHand(opp);
+        }
+      });
+    }
+  });
+  makeCard('Familiar', attack, {
+    cost: 3,
+    costPotion: 1,
+    cards: +1,
+    actions: +1,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        return state.gainCard(opp, c.Curse);
+      });
+    }
+  });
+  makeCard('Fortune Teller', attack, {
+    cost: 3,
+    coins: +2,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var card, drawn;
+        drawn = opp.dig(state, function(state, card) {
+          return card.isVictory || card === c.Curse;
+        });
+        if (drawn[0] != null) {
+          card = drawn[0];
+          transferCardToTop(card, drawn, opp.draw);
+          return state.log("..." + opp.ai + " puts " + card + " on top of the deck.");
+        }
+      });
+    }
+  });
+  makeCard('Jester', attack, {
+    cost: 5,
+    coins: +2,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var card;
+        card = state.discardFromDeck(opp, 1)[0];
+        if (card.isVictory) {
+          return state.gainCard(opp, c.Curse);
+        } else if (state.current.ai.chooseGain(state, [card, null])) {
+          return state.gainCard(state.current, card);
+        } else {
+          return state.gainCard(opp, card);
+        }
+      });
+    }
+  });
+  makeCard("Militia", attack, {
+    cost: 4,
+    coins: +2,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        if (opp.hand.length > 3) {
+          return state.requireDiscard(opp, opp.hand.length - 3);
+        }
+      });
+    }
+  });
+  makeCard("Goons", c.Militia, {
+    cost: 6,
+    buys: +1
+  });
+  makeCard("Mountebank", attack, {
+    cost: 5,
+    coins: +2,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var _ref;
+        if (_ref = c.Curse, __indexOf.call(opp.hand, _ref) >= 0) {
+          return opp.doDiscard(c.Curse);
+        } else {
+          state.gainCard(opp, c.Copper);
+          return state.gainCard(opp, c.Curse);
+        }
+      });
+    }
+  });
+  makeCard('Pirate Ship', attack, {
+    cost: 4,
+    playEffect: function(state) {
+      var attackSuccess, choice;
+      choice = state.current.ai.choose('pirateShip', state, ['coins', 'attack']);
+      if (choice === 'coins') {
+        state.current.coins += state.current.mats.pirateShip;
+        return state.log("...getting +$" + state.current.mats.pirateShip + ".");
+      } else if (choice === 'attack') {
+        state.log("...attacking the other players.");
+        attackSuccess = false;
+        state.attackOpponents(function(opp) {
+          var card, drawn, drawnTreasures, treasureToTrash, _i, _len;
+          drawn = opp.getCardsFromDeck(2);
+          state.log("..." + opp.ai + " reveals " + drawn + ".");
+          drawnTreasures = [];
+          for (_i = 0, _len = drawn.length; _i < _len; _i++) {
+            card = drawn[_i];
+            if (card.isTreasure) {
+              drawnTreasures.push(card);
+            }
+          }
+          treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures);
+          if (treasureToTrash) {
+            attackSuccess = true;
+            drawn.remove(treasureToTrash);
+            state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + treasureToTrash + ".");
+          }
+          state.current.discard.concat(drawn);
+          return state.log("..." + opp.ai + " discards " + drawn + ".");
+        });
+        if (attackSuccess) {
+          state.current.mats.pirateShip += 1;
+          return state.log("..." + state.current.ai + " takes a Coin token (" + state.current.mats.pirateShip + " on the mat).");
+        }
+      }
+    }
+  });
+  makeCard('Rabble', attack, {
+    cost: 5,
+    cards: +3,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var card, drawn, order, _i, _len;
+        drawn = opp.getCardsFromDeck(3);
+        state.log("" + opp.ai + " draws " + drawn + ".");
+        for (_i = 0, _len = drawn.length; _i < _len; _i++) {
+          card = drawn[_i];
+          if (card.isTreasure || card.isAction) {
+            state.current.discard.push(card);
+            state.log("...discarding " + card + ".");
+          } else {
+            state.current.setAside.push(card);
+          }
+        }
+        if (state.current.setAside.length > 0) {
+          order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current);
+          state.log("...putting " + order + " back on the deck.");
+          state.current.draw = order.concat(state.current.draw);
+          return state.current.setAside = [];
+        }
+      });
+    }
+  });
+  makeCard('Saboteur', attack, {
+    cost: 5,
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 >= potions2) && (coins1 - 2 >= coins2);
+    },
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var cardToTrash, choice, choices, drawn, newCard;
+        drawn = opp.dig(state, function(state, card) {
+          return card.getCost(state)[0] >= 3;
+        });
+        if (drawn[0] != null) {
+          cardToTrash = drawn[0];
+          state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + cardToTrash + ".");
+          choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter);
+          choices.push([cardToTrash, null]);
+          choice = opp.ai.choose('upgrade', state, choices);
+          newCard = choice[1];
+          if (newCard != null) {
+            state.gainCard(opp, newCard, 'discard', true);
+            return state.log("..." + opp.ai + " gains " + newCard + ".");
+          } else {
+            return state.log("..." + opp.ai + " gains nothing.");
+          }
+        }
+      });
+    }
+  });
+  makeCard('Sea Hag', attack, {
+    cost: 4,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        state.discardFromDeck(opp, 1);
+        state.gainCard(opp, c.Curse, 'draw', true);
+        return state.log("" + opp.ai + " gains a Curse on top of the deck.");
+      });
+    }
+  });
+  makeCard('Thief', attack, {
+    cost: 4,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        var card, cardToGain, drawn, drawnTreasures, treasureToTrash, _i, _len;
+        drawn = opp.getCardsFromDeck(2);
+        state.log("..." + opp.ai + " reveals " + drawn + ".");
+        drawnTreasures = [];
+        for (_i = 0, _len = drawn.length; _i < _len; _i++) {
+          card = drawn[_i];
+          if (card.isTreasure) {
+            drawnTreasures.push(card);
+          }
+        }
+        treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures);
+        if (treasureToTrash) {
+          drawn.remove(treasureToTrash);
+          state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + treasureToTrash + ".");
+          cardToGain = state.current.ai.chooseGain(state, [treasureToTrash, null]);
+          if (cardToGain) {
+            state.gainCard(state.current, cardToGain, 'discard', true);
+            state.log("..." + state.current.ai + " gains the trashed " + treasureToTrash + ".");
+          }
+        }
+        state.current.discard.concat(drawn);
+        return state.log("..." + opp.ai + " discards " + drawn + ".");
+      });
+    }
+  });
+  makeCard('Torturer', attack, {
+    cost: 5,
+    cards: +3,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        if (opp.ai.choose('torturer', state, ['curse', 'discard']) === 'curse') {
+          return state.gainCard(opp, c.Curse, 'hand');
+        } else {
+          return state.requireDiscard(opp, 2);
+        }
+      });
+    }
+  });
+  makeCard('Witch', attack, {
+    cost: 5,
+    cards: +2,
+    playEffect: function(state) {
+      return state.attackOpponents(function(opp) {
+        return state.gainCard(opp, c.Curse);
+      });
+    }
+  });
+  makeCard('Adventurer', action, {
+    cost: 6,
+    playEffect: function(state) {
+      var card, drawn, treasuresDrawn;
+      treasuresDrawn = 0;
+      while (treasuresDrawn < 2) {
+        drawn = state.current.getCardsFromDeck(1);
+        if (drawn.length === 0) {
+          break;
+        }
+        card = drawn[0];
+        if (card.isTreasure) {
+          treasuresDrawn += 1;
+          state.current.hand.push(card);
+          state.log("...drawing a " + card + ".");
+        } else {
+          state.current.setAside.push(card);
+        }
+      }
+      state.current.discard = state.current.discard.concat(state.current.setAside);
+      return state.current.setAside = [];
+    }
+  });
+  makeCard('Alchemist', action, {
+    cost: 3,
+    costPotion: 1,
+    actions: +1,
+    cards: +2,
+    cleanupEffect: function(state) {
+      var _ref;
+      if (_ref = c.Potion, __indexOf.call(state.current.inPlay, _ref) >= 0) {
+        return transferCardToTop(c.Alchemist, state.current.discard, state.current.draw);
+      }
+    }
+  });
   makeCard('Apothecary', action, {
     cost: 2,
     costPotion: 1,
@@ -1292,21 +1694,6 @@
       }
     }
   });
-  makeCard('Bank', c.Silver, {
-    cost: 7,
-    getCoins: function(state) {
-      var card, coins, _i, _len, _ref;
-      coins = 0;
-      _ref = state.current.inPlay;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        card = _ref[_i];
-        if (card.isTreasure) {
-          coins += 1;
-        }
-      }
-      return coins;
-    }
-  });
   makeCard('Baron', action, {
     cost: 4,
     buys: 1,
@@ -1330,31 +1717,6 @@
     buys: 1,
     playEffect: function(state) {
       return state.bridges += 1;
-    }
-  });
-  makeCard('Bureaucrat', action, {
-    cost: 4,
-    isAttack: true,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        var card, choice, victory, _i, _len, _ref;
-        victory = [];
-        _ref = opp.hand;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          card = _ref[_i];
-          if (card.isVictory) {
-            victory.push(card);
-          }
-        }
-        if (victory.length === 0) {
-          state.revealHand(opp);
-          return state.log("" + opp.ai + " reveals a hand with no Victory cards.");
-        } else {
-          choice = opp.ai.choose('putOnDeck', state, victory);
-          transferCardToTop(choice, opp.hand, opp.draw);
-          return state.log("" + opp.ai + " returns " + choice + " to the top of the deck.");
-        }
-      });
     }
   });
   makeCard('Cellar', action, {
@@ -1551,18 +1913,6 @@
       return state.current.setAside = [];
     }
   });
-  makeCard('Familiar', action, {
-    cost: 3,
-    costPotion: 1,
-    actions: +1,
-    cards: +1,
-    isAttack: true,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        return state.gainCard(opp, c.Curse);
-      });
-    }
-  });
   makeCard("Grand Market", c.Market, {
     cost: 6,
     coins: 2,
@@ -1610,31 +1960,6 @@
         state.log("" + state.current.ai + " uses Herbalist to put " + choice + " back on the deck.");
         return transferCardToTop(choice, state.current.inPlay, state.current.draw);
       }
-    }
-  });
-  makeCard("Hoard", c.Silver, {
-    cost: 6,
-    gainInPlayEffect: function(state, card) {
-      if (card.isVictory) {
-        return state.gainCard(state.current, c.Gold);
-      }
-    }
-  });
-  makeCard("Horn of Plenty", c.Silver, {
-    cost: 5,
-    coins: 0,
-    playEffect: function(state) {
-      var card, cardName, choices, coins, limit, potions, _ref;
-      limit = state.current.numUniqueCardsInPlay();
-      choices = [];
-      for (cardName in state.supply) {
-        card = c[cardName];
-        _ref = card.getCost(state), coins = _ref[0], potions = _ref[1];
-        if (state.supply[cardName] > 0 && potions === 0 && coins <= limit) {
-          choices.push(card);
-        }
-      }
-      return state.gainOneOf(state.current, choices);
     }
   });
   makeCard("Horse Traders", action, {
@@ -1704,25 +2029,6 @@
       }
     }
   });
-  makeCard('Jester', action, {
-    cost: 5,
-    coins: +2,
-    isAttack: true,
-    playEffect: function(state) {
-      state.log("" + state.current.ai + " gets +$2");
-      return state.attackOpponents(function(opp) {
-        var card;
-        card = state.discardFromDeck(opp, 1)[0];
-        if (card.isVictory) {
-          return state.gainCard(opp, c.Curse);
-        } else if (state.current.ai.chooseGain(state, [card, null])) {
-          return state.gainCard(state.current, card);
-        } else {
-          return state.gainCard(opp, card);
-        }
-      });
-    }
-  });
   makeCard('Library', action, {
     cost: 5,
     playEffect: function(state) {
@@ -1731,6 +2037,7 @@
       while (player.hand.length < 7) {
         drawn = player.getCardsFromDeck(1);
         if (drawn.length === 0) {
+          state.log("...stopping because there are no cards to draw.");
           break;
         }
         card = drawn[0];
@@ -1739,9 +2046,12 @@
             state.log("" + player.ai + " sets aside a " + card + ".");
             player.setAside.push(card);
           } else {
-            state.log("" + player.ai + " draws a " + card + ".");
+            state.log("" + player.ai + " draws a " + card + " and chooses to keep it.");
             player.hand.push(card);
           }
+        } else {
+          state.log("" + player.ai + " draws a " + card + ".");
+          player.hand.push(card);
         }
       }
       player.discard = player.discard.concat(player.setAside);
@@ -1803,18 +2113,6 @@
       return state.drawCards(state.current, state.current.menagerieDraws());
     }
   });
-  makeCard("Militia", action, {
-    cost: 4,
-    coins: +2,
-    isAttack: true,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        if (opp.hand.length > 3) {
-          return state.requireDiscard(opp, opp.hand.length - 3);
-        }
-      });
-    }
-  });
   makeCard("Mint", action, {
     cost: 5,
     buyEffect: function(state) {
@@ -1844,11 +2142,6 @@
       }
     }
   });
-  makeCard("Goons", c.Militia, {
-    cost: 6,
-    coins: +2,
-    buys: +1
-  });
   makeCard("Moat", action, {
     cost: 2,
     cards: +2,
@@ -1872,22 +2165,6 @@
     coins: 2,
     playEffect: function(state) {
       return state.current.chips += 1;
-    }
-  });
-  makeCard("Mountebank", action, {
-    cost: 5,
-    coins: 2,
-    isAttack: true,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        var _ref;
-        if (_ref = c.Curse, __indexOf.call(opp.hand, _ref) >= 0) {
-          return opp.doDiscard(c.Curse);
-        } else {
-          state.gainCard(opp, c.Copper);
-          return state.gainCard(opp, c.Curse);
-        }
-      });
     }
   });
   makeCard('Pawn', action, {
@@ -1941,158 +2218,6 @@
       return cost;
     }
   });
-  makeCard("Philosopher's Stone", c.Silver, {
-    cost: 3,
-    costPotion: 1,
-    getCoins: function(state) {
-      return Math.floor((state.current.draw.length + state.current.discard.length) / 5);
-    }
-  });
-  makeCard('Pirate Ship', action, {
-    cost: 4,
-    isAttack: true,
-    playEffect: function(state) {
-      var attackSuccess, choice;
-      choice = state.current.ai.choose('pirateShip', state, ['coins', 'attack']);
-      if (choice === 'coins') {
-        state.current.coins += state.current.mats.pirateShip;
-        return state.log("...getting +$" + state.current.mats.pirateShip + ".");
-      } else if (choice === 'attack') {
-        state.log("...attacking the other players.");
-        attackSuccess = false;
-        state.attackOpponents(function(opp) {
-          var card, drawn, drawnTreasures, treasureToTrash, _i, _len;
-          drawn = opp.getCardsFromDeck(2);
-          state.log("..." + opp.ai + " reveals " + drawn + ".");
-          drawnTreasures = [];
-          for (_i = 0, _len = drawn.length; _i < _len; _i++) {
-            card = drawn[_i];
-            if (card.isTreasure) {
-              drawnTreasures.push(card);
-            }
-          }
-          treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures);
-          if (treasureToTrash) {
-            attackSuccess = true;
-            drawn.remove(treasureToTrash);
-            state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + treasureToTrash + ".");
-          }
-          state.current.discard = state.current.discard.concat(drawn);
-          return state.log("..." + opp.ai + " discards " + drawn + ".");
-        });
-        if (attackSuccess) {
-          state.current.mats.pirateShip += 1;
-          return state.log("..." + state.current.ai + " takes a Coin token (" + state.current.mats.pirateShip + " on the mat).");
-        }
-      }
-    }
-  });
-  makeCard('Quarry', c.Silver, {
-    cost: 4,
-    coins: 1,
-    playEffect: function(state) {
-      return state.quarries += 1;
-    }
-  });
-  makeCard('Rabble', action, {
-    cost: 5,
-    cards: +3,
-    isAttack: true,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        var card, drawn, order, _i, _len;
-        drawn = opp.getCardsFromDeck(3);
-        state.log("" + opp.ai + " draws " + drawn + ".");
-        for (_i = 0, _len = drawn.length; _i < _len; _i++) {
-          card = drawn[_i];
-          if (card.isTreasure || card.isAction) {
-            state.current.discard.push(card);
-            state.log("...discarding " + card + ".");
-          } else {
-            state.current.setAside.push(card);
-          }
-        }
-        if (state.current.setAside.length > 0) {
-          order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current);
-          state.log("...putting " + order + " back on the deck.");
-          state.current.draw = order.concat(state.current.draw);
-          return state.current.setAside = [];
-        }
-      });
-    }
-  });
-  makeCard('Royal Seal', c.Silver, {
-    cost: 5,
-    gainInPlayEffect: function(state, card) {
-      var player, source;
-      player = state.current;
-      if (player.gainLocation === 'trash') {
-        return;
-      }
-      source = player[player.gainLocation];
-      if (player.ai.choose('gainOnDeck', state, [card, null])) {
-        state.log("...putting the " + card + " on top of the deck.");
-        player.gainLocation = 'draw';
-        return transferCardToTop(card, source, player.draw);
-      }
-    }
-  });
-  makeCard('Saboteur', action, {
-    cost: 5,
-    isAttack: true,
-    upgradeFilter: function(state, oldCard, newCard) {
-      var coins1, coins2, potions1, potions2, _ref, _ref2;
-      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
-      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
-      return (potions1 >= potions2) && (coins1 - 2 >= coins2);
-    },
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        var card, cardCoinCost, cardsDrawn, choice, choices, drawn, newCard, oldCard;
-        cardsDrawn = 0;
-        while (cardsDrawn < 1) {
-          drawn = opp.getCardsFromDeck(1);
-          if (drawn.length === 0) {
-            if (opp.setAside.length > 0) {
-              state.log("" + opp.ai + " reveals " + opp.setAside + ", but has no cards costing $3 or more in the deck.");
-            } else {
-              state.log("" + opp.ai + " has no more cards in the deck.");
-            }
-            break;
-          }
-          card = drawn[0];
-          cardCoinCost = card.getCost(state)[0];
-          if (cardCoinCost >= 3) {
-            if (opp.setAside.length === 0) {
-              state.log("..." + opp.ai + " reveals " + card + ".");
-            } else {
-              state.log("..." + opp.ai + " reveals " + opp.setAside + ", and " + card + ".");
-            }
-            cardsDrawn++;
-            choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter);
-            choices.push([card, null]);
-            choice = opp.ai.choose('upgrade', state, choices);
-            drawn.remove(card);
-            state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + card + ".");
-            if (choice[1] !== null) {
-              oldCard = choice[0], newCard = choice[1];
-              state.gainCard(opp, newCard, 'discard', true);
-              state.log("..." + opp.ai + " gains " + newCard + ".");
-            } else {
-              state.log("..." + opp.ai + " gains nothing.");
-            }
-          } else {
-            opp.setAside.push(card);
-          }
-        }
-        if (opp.setAside.length > 0) {
-          state.log("..." + opp.ai + " discards " + opp.setAside + ".");
-        }
-        opp.discard = opp.discard.concat(opp.setAside);
-        return opp.setAside = [];
-      });
-    }
-  });
   makeCard('Scout', action, {
     cost: 4,
     actions: +1,
@@ -2115,18 +2240,6 @@
         state.current.draw = order.concat(state.current.draw);
         return state.current.setAside = [];
       }
-    }
-  });
-  makeCard('Sea Hag', action, {
-    cost: 4,
-    isAttack: true,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        state.discardFromDeck(opp, 1);
-        if (state.supply[c.Curse] > 0) {
-          return state.gainCard(opp, c.Curse, 'draw');
-        }
-      });
     }
   });
   makeCard('Shanty Town', action, {
@@ -2157,36 +2270,6 @@
         }
       ]);
       return applyBenefit(state, benefit);
-    }
-  });
-  makeCard('Thief', action, {
-    cost: 4,
-    isAttack: true,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        var card, cardToGain, drawn, drawnTreasures, treasureToTrash, _i, _len;
-        drawn = opp.getCardsFromDeck(2);
-        state.log("..." + opp.ai + " reveals " + drawn + ".");
-        drawnTreasures = [];
-        for (_i = 0, _len = drawn.length; _i < _len; _i++) {
-          card = drawn[_i];
-          if (card.isTreasure) {
-            drawnTreasures.push(card);
-          }
-        }
-        treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures);
-        if (treasureToTrash) {
-          drawn.remove(treasureToTrash);
-          state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + treasureToTrash + ".");
-          cardToGain = state.current.ai.chooseGain(state, [treasureToTrash, null]);
-          if (cardToGain) {
-            state.gainCard(state.current, cardToGain, 'discard', true);
-            state.log("..." + state.current.ai + " gains the trashed " + treasureToTrash + ".");
-          }
-        }
-        state.current.discard = state.current.discard.concat(drawn);
-        return state.log("..." + opp.ai + " discards " + drawn + ".");
-      });
     }
   });
   makeCard('Tournament', action, {
@@ -2223,22 +2306,10 @@
       }
     }
   });
-  makeCard('Torturer', action, {
-    cost: 5,
-    cards: +3,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        if (opp.ai.choose('torturer', state, ['curse', 'discard']) === 'curse') {
-          return state.gainCard(opp, c.Curse, 'hand');
-        } else {
-          return state.requireDiscard(opp, 2);
-        }
-      });
-    }
-  });
   makeCard("Trade Route", action, {
     cost: 3,
     buys: 1,
+    trash: 1,
     getCoins: function(state) {
       return state.tradeRouteValue;
     }
@@ -2318,34 +2389,6 @@
       return _results;
     }
   });
-  makeCard("Trusty Steed", c["Bag of Gold"], {
-    actions: 0,
-    playEffect: function(state) {
-      var benefit;
-      benefit = state.current.ai.choose('benefit', state, [
-        {
-          cards: 2,
-          actions: 2
-        }, {
-          cards: 2,
-          coins: 2
-        }, {
-          actions: 2,
-          coins: 2
-        }, {
-          cards: 2,
-          horseEffect: true
-        }, {
-          actions: 2,
-          horseEffect: true
-        }, {
-          coins: 2,
-          horseEffect: true
-        }
-      ]);
-      return applyBenefit(state, benefit);
-    }
-  });
   makeCard('University', action, {
     cost: 2,
     costPotion: 1,
@@ -2378,35 +2421,6 @@
         _results.push(opp.ai.wantsToDiscard(state) >= 2 ? (discarded = state.requireDiscard(opp, 2), discarded.length === 2 ? state.drawCards(opp, 1) : void 0) : void 0);
       }
       return _results;
-    }
-  });
-  makeCard('Venture', c.Silver, {
-    cost: 5,
-    coins: 1,
-    playEffect: function(state) {
-      var card, drawn, foundTreasure, treasuresDrawn;
-      treasuresDrawn = 0;
-      foundTreasure = null;
-      while (treasuresDrawn < 1) {
-        drawn = state.current.getCardsFromDeck(1);
-        if (drawn.length === 0) {
-          break;
-        }
-        card = drawn[0];
-        if (card.isTreasure) {
-          treasuresDrawn += 1;
-          foundTreasure = card;
-          state.log("…drawing and playing a " + card + ".");
-        } else {
-          state.current.setAside.push(card);
-        }
-      }
-      state.current.discard = state.current.discard.concat(state.current.setAside);
-      state.current.setAside = [];
-      if (treasuresDrawn === 1) {
-        state.current.inPlay.push(foundTreasure);
-        return foundTreasure.onPlay(state);
-      }
     }
   });
   makeCard('Walled Village', c.Village, {
@@ -2474,15 +2488,6 @@
       } else {
         return state.log("...drawing nothing.");
       }
-    }
-  });
-  makeCard('Witch', action, {
-    cost: 5,
-    cards: 2,
-    playEffect: function(state) {
-      return state.attackOpponents(function(opp) {
-        return state.gainCard(opp, c.Curse);
-      });
     }
   });
   makeCard('Workshop', action, {
@@ -2832,6 +2837,43 @@
         return drawn;
       }
     };
+    PlayerState.prototype.dig = function(state, digFunc, nCards, discardSetAside) {
+      var card, drawn, foundCards, revealedCards;
+      if (nCards == null) {
+        nCards = 1;
+      }
+      if (discardSetAside == null) {
+        discardSetAside = true;
+      }
+      foundCards = [];
+      revealedCards = [];
+      while (foundCards.length < nCards) {
+        drawn = this.getCardsFromDeck(1);
+        if (drawn.length === 0) {
+          break;
+        }
+        card = drawn[0];
+        revealedCards.push(card);
+        if (digFunc(state, card)) {
+          foundCards.push(card);
+        } else {
+          this.setAside.push(card);
+        }
+      }
+      if (revealedCards.length === 0) {
+        this.log("..." + this.ai + " has no cards to draw.");
+      } else {
+        this.log("..." + this.ai + " reveals " + revealedCards + ".");
+      }
+      if (discardSetAside) {
+        if (this.setAside.length > 0) {
+          this.log("..." + this.ai + " discards " + this.setAside + ".");
+        }
+        this.discard = this.discard.concat(this.setAside);
+        this.setAside = [];
+      }
+      return foundCards;
+    };
     PlayerState.prototype.doDiscard = function(card) {
       if (__indexOf.call(this.hand, card) < 0) {
         this.warn("" + this.ai + " has no " + card + " to discard");
@@ -3158,7 +3200,7 @@
       return this.current.actionStack.pop();
     };
     State.prototype.doTreasurePhase = function() {
-      var card, treasure, validTreasures, _i, _len, _ref2, _results;
+      var card, validTreasures, _i, _len, _ref2, _results;
       _results = [];
       while (true) {
         validTreasures = [null];
