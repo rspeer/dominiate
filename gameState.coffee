@@ -158,8 +158,7 @@ class PlayerState
   countPlayableTerminals: (state) ->
     if (@actions>0)
       @actions + ( (Math.max (card.getActions(state) - 1), 0 for card in this.hand).reduce (s,t) -> s + t)
-    else 0
-    
+    else 0    
    
   # `countInHand(card)` counts the number of copies of a card in hand.
   countInHand: (card) ->
@@ -711,26 +710,35 @@ class State
     @current.inPlay.push(treasure)
     @current.playLocation = 'inPlay'
     treasure.onPlay(this)
-  
-  # Ask the AI what to buy. Repeat until the player has no buys left or
-  # the AI chooses to buy nothing.
+
+  # `getSingleBuyDecision` determines what single card (or none) the AI
+  # wants to buy in the current state.
+  getSingleBuyDecision: () ->
+    buyable = [null]
+    for cardname, count of @supply
+      # Because the supply must reference cards by their names, we use
+      # `c[cardname]` to get the actual object for the card.
+      card = c[cardname]
+
+      # Determine whether each card can be bought in the current state.
+      if card.mayBeBought(this) and count > 0
+        [coinCost, potionCost] = card.getCost(this)
+        if coinCost <= @current.coins and potionCost <= @current.potions
+          buyable.push(card)
+    
+    # Ask the AI for its choice.
+    this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
+    choice = @current.ai.chooseGain(this, buyable)
+    return choice
+
+  # `doBuyPhase` steps through the buy phase, asking the AI to choose
+  # a card to buy until it has no buys left or chooses to buy nothing.
+  #
+  # Setting `hypothetical` to true will skip gaining the cards and simply
+  # return the card list.
   doBuyPhase: () ->
     while @current.buys > 0
-      buyable = [null]
-      for cardname, count of @supply
-        # Because the supply must reference cards by their names, we use
-        # `c[cardname]` to get the actual object for the card.
-        card = c[cardname]
-
-        # Determine whether each card can be bought in the current state.
-        if card.mayBeBought(this) and count > 0
-          [coinCost, potionCost] = card.getCost(this)
-          if coinCost <= @current.coins and potionCost <= @current.potions
-            buyable.push(card)
-      
-      # Ask the AI for its choice.
-      this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
-      choice = @current.ai.chooseGain(this, buyable)
+      choice = this.getSingleBuyDecision()
       return if choice is null
       this.log("#{@current.ai} buys #{choice}.")
 

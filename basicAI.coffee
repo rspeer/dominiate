@@ -437,61 +437,30 @@ class BasicAI
 
     # 3) Put back as much money as you can
     if putBack.length == 0
-      cardCheck = my.numCardsInDeck()
-      # find out what you would gain if you put back worst card as in 4)
-      [hypState, hypMy] = state.hypothetical(my.ai)
-      # technically, we don't want to discard but to put back, but for pessimisticBuy this should not matter
-      dis = hypState.requireDiscard(hypMy, 1)
-      defaultGained = hypMy.ai.pessimisticCardsGained(hypState)
-      
-      # determine which treasures are in hand, discard them hypothetically and test if the gains change.  When it doesn't, we can put back this card.
+      # Get a list of all distinct treasures in hand, in order.
       treasures = []
-      
       for card in my.hand
         if (card.isTreasure) and (not (card in treasures))
           treasures.push card
-            
-      for treasure in treasures
-        [hypState, hypMy] = state.hypothetical(my.ai)
-        hypMy.doDiscard(treasure)
-        nowGained = hypMy.ai.pessimisticCardsGained(hypState)
-        # test arrays on equality. Better way?
-        # changed order in gaining messes this up. Just ignore?
-        equal = true
-        if (defaultGained.length != nowGained.length)
-          equal = false
-        else 
-          for card, index in defaultGained
-            equal = (equal and (nowGained[index] == card))
-        
-        if (equal)
-          putBack.push treasure
-      
-      if my.numCardsInDeck() != cardCheck
-        throw Exception("cards changed during decision")
-        
-      # sort by cost. Should be improved
-      putBack.sort( (y, x) -> state.compareByCoinCost(state, my, x, y) )
-      
+      treasures.sort( (x, y) -> x.coins - y.coins)
+
+      # Get the margin of how much money we're willing to discard.
+      margin = my.ai.coinLossMargin(state)
+
+      # Find the treasure cards worth less than that.
+      for card in treasures
+        if my.ai.coinsDueToCard(state, card) <= margin
+          putBack.push(card)
+
       # Don't put back last Potion if Alchemists are in play
       if my.countInPlay(state.cardInfo["Alchemist"])>0
-        if my.countInHand(state.cardInfo["Potion"]) == 1
+        if "Potion" in putBack
           putBack.remove(state.cardInfo["Potion"])
-      
-      # Don'tput back Royal Seal if you bought treasures or actions, assuming that you want to play them asap if you take the effort to buy them
-      onlyVictoryBought = true
-      for card in defaultGained
-        onlyVictoryBought = (onlyVictoryBought and not (card.isTreasure or card.isAction))
-        
-      if not onlyVictoryBought
-        putBack.remove(state.cardInfo["Royal Seal"])
-      
-      # Think about Loan?
     
     # 4) Put back the worst card (take priority for discard)
     #
     if putBack.length==0
-      putBack = (card for card in my.ai.discardPriority(state, my) when (state.cardInfo[card] in my.hand) )
+      putBack = [my.ai.chooseDiscard(state, my.hand)]
     putBack
   
   putOnDeckValue: (state, card, my) =>
@@ -755,6 +724,33 @@ class BasicAI
     newState = this.pessimisticBuyPhase(state)
     newState.doPlay()
     return newState.current.gainedThisTurn
+  
+  # coinLossMargin determines how much treasure the player can lose
+  # "for free" (because it won't change their buy decision). Intended to be
+  # more efficient than calling pessimisticCardsGained on a number
+  # of different states.
+  #
+  # TODO: do we need an equivalent for potions?
+  coinLossMargin: (state) ->
+    newState = this.pessimisticBuyPhase(state)
+    coins = newState.coins
+    cardToBuy = newState.getSingleBuyDecision()
+    return 0 if cardToBuy is null
+    [coinsCost, potionsCost] = cardToBuy.getCost(newState)
+    return coins - coinsCost
+  
+  # Estimate the number of coins we'd lose by discarding/trashing/putting back
+  # a card.
+  coinsDueToCard: (state, card) ->
+    c = state.cardInfo
+    value = card.getCoins(state)
+    if card.isTreasure
+      banks = state.current.countInHand(c.Bank)
+      value += banks
+      if card is state.cardInfo.Bank
+        nonbanks = (aCard for aCard in state.current.hand when aCard.isTreasure).length
+        value += nonbanks
+    value
 
   #### Utility methods
   #
