@@ -302,6 +302,7 @@ class BasicAI
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
     "Thief"
+    "Fortune Teller"
     "Bureaucrat"
     "Conspirator" if my.actions < 2
     "Herbalist"
@@ -344,11 +345,13 @@ class BasicAI
     "Hoard"
     "Royal Seal"
     "Harem"
-    "Venture"
     "Silver"
     "Quarry"
+    "Talisman"
     "Copper"
     "Potion"
+    "Loan"
+    "Venture"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
@@ -563,6 +566,24 @@ class BasicAI
       "Estate,0"
       "Copper,0"
     ]
+  
+  # islandPriority chooses which card to set aside with Island. At present this
+  # list is incomplete, but covers just about everything that we would want to set aside
+  # with an Island.
+  islandPriority: (state, my) ->
+  [
+    "Colony"
+    "Province"
+    "Fairgrounds"
+    "Duchy"
+    "Duke"
+    "Gardens"
+    "Vineyard"
+    "Estate"
+    "Copper"
+    "Curse"
+    "Island"    
+  ]    
   
   # Taking into account gain priorities, gain values, trash priorities, and
   # trash values, how much do we like having this card in our deck overall?

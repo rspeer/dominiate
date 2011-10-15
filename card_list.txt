@@ -1,4 +1,4 @@
-Cards that are done (106)
+Cards that are done (116)
 =========================
 Adventurer
 Alchemist
@@ -36,6 +36,7 @@ Farming Village
 Festival
 Fishing Village
 Followers
+Fortune Teller
 Gardens
 Goons
 Grand Market
@@ -48,9 +49,12 @@ Horn of Plenty
 Horse Traders
 Hunting Party
 Ironworks
+Island
+Jester
 Laboratory
 Library
 Lighthouse
+Loan
 Lookout
 Market
 Masquerade
@@ -78,13 +82,16 @@ Rabble
 Remake
 Remodel
 Royal Seal
+Saboteur
 Scout
 Sea Hag
 Shanty Town
 Silver
 Smithy
+Smugglers
 Steward
 Tactician
+Talisman
 Thief
 Torturer
 Tournament
@@ -110,7 +117,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (36)
+Cards that still need to be coded (30)
 ======================================
 
 Easy cards
@@ -118,13 +125,9 @@ Easy cards
 The code to make these cards work already mostly exists.
 
 Feast
-Fortune Teller
 Golem
-Ghost Ship
-Loan
 Pearl Diver
-Saboteur
-Talisman
+Rabble
 
 Not-so-easy cards
 -----------------
@@ -137,14 +140,11 @@ Embargo
 Envoy
 Forge
 Hamlet
-Island
-Jester
 Mining Village
 Minion
 Native Village
 Salvager
 Scrying Pool
-Smugglers (requires more state)
 Spy
 Swindler
 Transmute
