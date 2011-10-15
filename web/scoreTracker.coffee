@@ -45,8 +45,6 @@ class ScoreTracker
 
   updateScores: =>
     @proportions = (score / @games for score in @scores)
-    if @scoreInHtml
-      this.updateScoresOnPage()
   
   decisiveWinner: =>
     for i in [0...@players.length]
