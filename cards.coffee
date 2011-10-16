@@ -1225,6 +1225,22 @@ makeCard 'Courtyard', action, {
     state.current.doPutOnDeck(card)
 }
 
+makeCard 'Crossroads', action, {
+  cost: 2
+  
+  playEffect: (state) ->
+    if not state.current.crossroadsPlayed
+      state.current.crossroadsPlayed = true
+      state.current.actions += 3
+
+    # shortcut, because it doesn't particularly matter whether just the
+    # victory cards are revealed
+    state.revealHand(state.current)
+
+    nVictory = (card for card in state.current.hand when card.isVictory).length
+    state.drawCards(state.current, nVictory)
+}
+
 makeCard 'Cutpurse', action, {
   cost: 4
   coins: +2
@@ -1522,6 +1538,16 @@ makeCard "Monument", action, {
   playEffect:
     (state) ->
       state.current.chips += 1
+}
+
+makeCard 'Nomad Camp', c.Woodcutter, {
+  cost: 4
+
+  gainEffect: (state) ->
+    if state.current.gainLocation != 'trash'
+      transferCardToTop(c['Nomad Camp'], state.current[state.current.gainLocation], state.current.draw)
+      state.current.gainLocation = 'draw'
+      state.log("...putting the Nomad Camp on top of the deck.")
 }
 
 makeCard 'Pawn', action, {

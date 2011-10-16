@@ -219,8 +219,8 @@ class BasicAI
     "Treasury"
     "Conspirator" if my.inPlay.length >= 2
     "Familiar"
-    "Great Hall"
     "Wishing Well"
+    "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Lighthouse"
     "Haven"
     # Fifth priority: terminal card-drawers, if we have actions to spare.
@@ -230,6 +230,9 @@ class BasicAI
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
+    # 5.5: Let's insert here an overly simplistic idea of how to play Crossroads.
+    "Crossroads" unless my.crossroadsPlayed
+    "Great Hall"
     # Sixth priority: card-cycling that might improve the hand.
     "Upgrade" if wantsToTrash
     "Pawn"
@@ -243,6 +246,7 @@ class BasicAI
     "Shanty Town" if my.actions < 2
     # Seventh priority: terminals. Of course, Nobles might be a non-terminal
     # if we decide we need the actions more than the cards.
+    "Crossroads"
     "Nobles"
     "Treasure Map" if my.countInHand("Treasure Map") >= 2
     "Followers"
@@ -287,6 +291,7 @@ class BasicAI
     "Harvest"
     "Explorer"
     "Woodcutter"
+    "Nomad Camp"
     "Chancellor"
     "Counting House"
     "Coppersmith" if countInHandCopper >= 2

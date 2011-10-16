@@ -44,6 +44,7 @@ class PlayerState
     @gainedThisTurn = []
     @moatProtected = no
     @tacticians = 0  # number of Tacticians that will go to the duration area
+    @crossroadsPlayed = 0
     @mayReturnTreasury = yes
     @turnsTaken = 0
 
@@ -398,6 +399,7 @@ class PlayerState
     other.gainLocation = @gainLocation
     other.actionStack = @actionStack.slice(0)
     other.tacticians = @tacticians
+    other.crossroadsPlayed = @crossroadsPlayed
     other.ai = @ai
     other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
@@ -813,6 +815,7 @@ class State
     @current.coins = 0
     @current.potions = 0
     @current.tacticians = 0
+    @current.crossroadsPlayed = 0
     @current.mayReturnTreasury = yes
     @copperValue = 1
     @bridges = 0
@@ -875,6 +878,9 @@ class State
       if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
         @tradeRouteMat.push(card)
         @tradeRouteValue += 1
+      
+      # Handle the card's own effects of being gained.
+      card.onGain(this)
       
       # Handle cards such as Royal Seal that respond to gains while they are
       # in play.

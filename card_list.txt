@@ -1,4 +1,4 @@
-Cards that are done (116)
+Cards that are done (118)
 =========================
 Adventurer
 Alchemist
@@ -22,6 +22,7 @@ Coppersmith
 Council Room
 Counting House
 Courtyard
+Crossroads
 Curse
 Cutpurse
 Diadem
@@ -68,6 +69,7 @@ Monument
 Moneylender
 Mountebank
 Nobles
+Nomad Camp
 Outpost
 Pawn
 Peddler
@@ -126,8 +128,8 @@ Keeping these separate because we may have simply not thought about them enough.
 
 Trader (trash-for-benefit is hard, reaction is moderately easy)
 Border Village (easy)
-Nomad Camp (easy)
 Fool's Gold (normal play is easy; reaction strategy may be hard)
+Mandarin (moderate)
 
 Easy cards
 ----------
