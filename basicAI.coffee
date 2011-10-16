@@ -268,6 +268,7 @@ class BasicAI
     "Remodel"
     "Jester"
     "Militia"
+    "Mandarin"
     "Cutpurse"
     "Bridge"
     "Horse Traders"

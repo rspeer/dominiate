@@ -1,4 +1,4 @@
-Cards that are done (118)
+Cards that are done (119)
 =========================
 Adventurer
 Alchemist
@@ -57,6 +57,7 @@ Library
 Lighthouse
 Loan
 Lookout
+Mandarin
 Market
 Masquerade
 Menagerie
@@ -129,7 +130,6 @@ Keeping these separate because we may have simply not thought about them enough.
 Trader (trash-for-benefit is hard, reaction is moderately easy)
 Border Village (easy)
 Fool's Gold (normal play is easy; reaction strategy may be hard)
-Mandarin (moderate)
 
 Easy cards
 ----------

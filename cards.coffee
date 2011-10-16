@@ -1221,13 +1221,14 @@ makeCard 'Courtyard', action, {
   cost: 2
   cards: 3
   playEffect: (state) ->
-    card = state.current.ai.choose('putOnDeck', state, state.current.hand)
-    state.current.doPutOnDeck(card)
+    if state.current.hand.length > 0
+      card = state.current.ai.choose('putOnDeck', state, state.current.hand)
+      state.current.doPutOnDeck(card)
 }
 
 makeCard 'Crossroads', action, {
   cost: 2
-  
+
   playEffect: (state) ->
     if not state.current.crossroadsPlayed
       state.current.crossroadsPlayed = true
@@ -1457,6 +1458,25 @@ makeCard "Lookout", action, {
     state.log("...putting #{drawn} back on the deck.")
     state.current.draw = state.current.setAside.concat(state.current.draw)
     state.current.setAside = []
+}
+
+makeCard "Mandarin", action, {
+  cost: 5
+  coins: +3
+
+  playEffect: (state) ->
+    if state.current.hand.length > 0
+      putBack = state.current.ai.choose('putOnDeck', state, state.current.hand)
+      state.current.doPutOnDeck(putBack)
+  
+  gainEffect: (state) ->
+    treasures = (card for card in state.current.inPlay when card.isTreasure)
+    if treasures.length > 0
+      for treasure in treasures
+        state.current.inPlay.remove(treasure)
+      order = state.current.ai.chooseOrderOnDeck(state, treasures, state.current)
+      state.log("...putting #{order} back on the deck.")
+      state.current.draw = order.concat(state.current.draw)
 }
 
 makeCard "Masquerade", action, {
