@@ -120,7 +120,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (30)
+Cards that still need to be coded (32)
 ======================================
 
 Hinterlands
@@ -130,6 +130,8 @@ Keeping these separate because we may have simply not thought about them enough.
 Trader (trash-for-benefit is hard, reaction is moderately easy)
 Border Village (easy)
 Fool's Gold (normal play is easy; reaction strategy may be hard)
+Ill-Gotten Gains
+Develop
 
 Easy cards
 ----------
