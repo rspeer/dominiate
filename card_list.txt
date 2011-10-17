@@ -8,6 +8,7 @@ Bag of Gold
 Bank
 Baron
 Bazaar
+Border Village
 Bridge
 Bureaucrat
 Caravan
@@ -120,7 +121,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (32)
+Cards that still need to be coded (31)
 ======================================
 
 Hinterlands
@@ -128,7 +129,6 @@ Hinterlands
 Keeping these separate because we may have simply not thought about them enough.
 
 Trader (trash-for-benefit is hard, reaction is moderately easy)
-Border Village (easy)
 Fool's Gold (normal play is easy; reaction strategy may be hard)
 Ill-Gotten Gains
 Develop
@@ -165,11 +165,11 @@ Difficult cards
 ---------------
 In estimated order of difficulty:
 
+Navigator (come up with a reasonable hand-value heuristic)
 King's Court
 Throne Room
 Secret Chamber (avoid infinite loops)
 Young Witch (requires a well-defined Bane card)
 Stash (requires a decision mid-shuffle)
 Black Market (requires a more coherent definition of the Supply)
-Navigator (probably requires a function for evaluating a hand)
 Possession (will require entirely new kinds of AI decisions)
