@@ -117,7 +117,7 @@ class BasicAI
     # Hmm. None of the above isn't an option, and neither the priority list nor
     # the value list gave us anything. First complain about it, then make an
     # arbitrary choice.
-    state.warn("#{this} has no idea what to choose from #{choices}, using #{priorityfunc}")
+    state.warn("#{this} has no idea what to choose from #{choices}\npriority is #{priority}")
     return choices[0]
   
   # Sometimes we need to compare choices in a strictly numeric way. This takes
@@ -544,7 +544,7 @@ class BasicAI
       "Copper,1" if my.getTreasureInHand() >= 4
       "Estate,0"
       "Copper,0"
-    ]
+    ].concat (card+",1" for card in my.ai.trashPriority(state, my) when card?)
   
   # islandPriority chooses which card to set aside with Island. At present this
   # list is incomplete, but covers just about everything that we would want to set aside
