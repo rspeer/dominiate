@@ -1116,6 +1116,20 @@ makeCard 'Baron', action, {
       state.gainCard(state.current. c.Estate)
 }
 
+makeCard 'Border Village', c.Village, {
+  cost: 6
+
+  gainEffect: (state, player) ->
+    choices = []
+    [myCoins, myPotions] = c['Border Village'].getCost(state)
+    for card of state.supply
+      if state.supply[card] > 0
+        [coins, potions] = c[card].getCost(state)
+        if potions <= myPotions and coins < myCoins
+          choices.push(c[card])
+    state.gainOneOf(player, choices)
+}
+
 makeCard 'Bridge', action, {
   cost: 4
   coins: 1

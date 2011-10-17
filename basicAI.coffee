@@ -208,6 +208,7 @@ class BasicAI
     "Walled Village"
     "Fishing Village"
     "Village"
+    "Border Village"
     # Fourth priority: cards that give +1 action and are almost always good.
     "Grand Market"
     "Hunting Party"
