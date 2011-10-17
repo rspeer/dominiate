@@ -784,7 +784,11 @@ class BasicAI
 
     #state.log("hand1 = #{hand1}")
     #state.log("hand2 = #{hand2}")
+    counter = 0
     loop
+      counter++
+      if counter >= 100
+        throw Error("got stuck in a loop")
       # Figure out whether we'd rather discard from hand1 or hand2.
       discard1 = this.choose('discard', state, hand1)
       value1 = this.choiceToValue('discard', state, discard1)

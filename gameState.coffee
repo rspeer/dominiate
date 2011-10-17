@@ -879,9 +879,6 @@ class State
         @tradeRouteMat.push(card)
         @tradeRouteValue += 1
       
-      # Handle the card's own effects of being gained.
-      card.onGain(this, player)
-      
       # Handle cards such as Royal Seal that respond to gains while they are
       # in play.
       for i in [player.inPlay.length-1...-1]
@@ -893,6 +890,10 @@ class State
         reactCard = player.hand[i]
         if reactCard.isReaction
           reactCard.reactToGain(this, player, card)
+
+      # Handle the card's own effects of being gained.
+      card.onGain(this, player)
+      
     else
       this.log("There is no #{card} to gain.")
   
