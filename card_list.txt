@@ -1,4 +1,4 @@
-Cards that are done (119)
+Cards that are done (121)
 =========================
 Adventurer
 Alchemist
@@ -35,6 +35,7 @@ Explorer
 Fairgrounds
 Familiar
 Farming Village
+Feast
 Festival
 Fishing Village
 Followers
@@ -70,6 +71,7 @@ Moat
 Monument
 Moneylender
 Mountebank
+Navigator
 Nobles
 Nomad Camp
 Outpost
@@ -121,7 +123,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (31)
+Cards that still need to be coded (30)
 ======================================
 
 Hinterlands
@@ -137,7 +139,6 @@ Easy cards
 ----------
 The code to make these cards work already mostly exists.
 
-Feast
 Golem
 Pearl Diver
 
@@ -165,7 +166,6 @@ Difficult cards
 ---------------
 In estimated order of difficulty:
 
-Navigator (come up with a reasonable hand-value heuristic)
 King's Court
 Throne Room
 Secret Chamber (avoid infinite loops)

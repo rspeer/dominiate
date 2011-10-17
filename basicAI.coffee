@@ -311,6 +311,7 @@ class BasicAI
     "Thief"
     "Fortune Teller"
     "Bureaucrat"
+    "Navigator"
     "Conspirator" if my.actions < 2
     "Herbalist"
     "Moat"
@@ -644,6 +645,14 @@ class BasicAI
     'curse'
   ]
 
+  discardHandValue: (state, hand, my) ->
+    return 0 if hand is null
+    deck = my.getDeck()
+    shuffle(deck)
+    randomHand = deck[0...5]
+    # If a random hand from this deck is better, discard this hand.
+    return my.ai.compareByDiscarding(state, randomHand, hand)
+
   # Choose to attack or use available coins when playing Pirate Ship.
   # Current strategy is basically Geronimoo's attackUntil5Coins play strategy,
   # but only with Provinces--or technically, cards costing 8 or more.
@@ -759,6 +768,46 @@ class BasicAI
         nonbanks = (aCard for aCard in state.current.hand when aCard.isTreasure).length
         value += nonbanks
     value
+  
+  # Figure out whether hand1 or hand2 is better by discarding their cards
+  # in priority order. Returns a -1 or 1 that can be used in sorting; it's
+  # positive if the first hand is better.
+  compareByDiscarding: (state, hand1, hand2) ->
+    # Guard against accidental mutation; we're going to be messing with
+    # these lists.
+    hand1 = hand1.slice(0)
+    hand2 = hand2.slice(0)
+    
+    # Preserve our number of actions.
+    savedActions = state.current.actions
+    state.current.actions = 1
+
+    #state.log("hand1 = #{hand1}")
+    #state.log("hand2 = #{hand2}")
+    loop
+      # Figure out whether we'd rather discard from hand1 or hand2.
+      discard1 = this.choose('discard', state, hand1)
+      value1 = this.choiceToValue('discard', state, discard1)
+      discard2 = this.choose('discard', state, hand2)
+      value2 = this.choiceToValue('discard', state, discard2)
+      if value1 > value2
+        hand1.remove(discard1)
+      else if value2 > value1
+        hand2.remove(discard2)
+      else
+        hand1.remove(discard1)
+        hand2.remove(discard2)
+      if hand1.length == 0 and hand2.length == 0
+        state.current.actions = savedActions
+        return 0      
+      if hand1.length == 0
+        #state.log("hand2 is better")
+        state.current.actions = savedActions
+        return -1
+      if hand2.length == 0
+        #state.log("hand1 is better")
+        state.current.actions = savedActions
+        return 1
 
   #### Utility methods
   #
@@ -791,3 +840,13 @@ stringify = (obj) ->
   else
     return obj.toString()
 
+# General function to randomly shuffle a list.
+shuffle = (v) ->
+  i = v.length
+  while i
+    j = parseInt(Math.random() * i)
+    i -= 1
+    temp = v[i]
+    v[i] = v[j]
+    v[j] = temp
+  v

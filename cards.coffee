@@ -1607,6 +1607,23 @@ makeCard 'Nomad Camp', c.Woodcutter, {
       state.log("...putting the Nomad Camp on top of the deck.")
 }
 
+makeCard 'Navigator', action, {
+  cost: 5
+  coins: +2
+
+  playEffect: (state) ->
+    drawn = state.getCardsFromDeck(state.current, 5)
+    if state.current.ai.choose('discardHand', state, [drawn, null]) is null
+      state.log("...choosing to keep #{drawn}.")
+      order = state.current.ai.chooseOrderOnDeck(state, drawn, state.current)
+      state.log("...putting #{order} back on the deck.")
+      state.current.draw = order.concat(state.current.draw)
+    else
+      state.log("...discarding #{drawn}.")
+      Array::push.apply state.current.discard, drawn
+
+}
+
 makeCard 'Pawn', action, {
   cost: 2
   playEffect:
