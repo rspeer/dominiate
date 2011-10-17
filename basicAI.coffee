@@ -117,7 +117,7 @@ class BasicAI
     # Hmm. None of the above isn't an option, and neither the priority list nor
     # the value list gave us anything. First complain about it, then make an
     # arbitrary choice.
-    state.warn("#{this} has no idea what to choose from #{choices}")
+    state.warn("#{this} has no idea what to choose from #{choices}, using #{priorityfunc}")
     return choices[0]
   
   # Sometimes we need to compare choices in a strictly numeric way. This takes

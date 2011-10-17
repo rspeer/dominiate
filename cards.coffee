@@ -803,6 +803,9 @@ makeCard 'Bureaucrat', attack, {
     state.gainCard(state.current, c.Silver, 'draw')
     state.attackOpponents (opp) ->
       victory = []
+      if not opp.hand?
+        state.log(opp)
+        throw new Error("#{opp} has no hand attribute")
       for card in opp.hand
         if card.isVictory
           victory.push(card)
@@ -859,12 +862,13 @@ makeCard 'Jester', attack, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       card = state.discardFromDeck(opp, 1)[0]
-      if card.isVictory
-        state.gainCard(opp, c.Curse)
-      else if state.current.ai.chooseGain(state, [card, null])
-        state.gainCard(state.current, card)
-      else
-        state.gainCard(opp, card)
+      if card?
+        if card.isVictory
+          state.gainCard(opp, c.Curse)
+        else if state.current.ai.chooseGain(state, [card, null])
+          state.gainCard(state.current, card)
+        else
+          state.gainCard(opp, card)
 }
 
 makeCard "Militia", attack, {

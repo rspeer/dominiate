@@ -1,6 +1,7 @@
 c = require('./cards')
 gameState = require('./gameState')
 basicAI = require('./basicAI')
+{loadStrategy} = require('./play')
 
 this['game is initialized correctly'] = (test) ->
   st = new gameState.State().initialize([null, null], gameState.kingdoms.moneyOnly)
@@ -14,7 +15,7 @@ this['game is initialized correctly'] = (test) ->
   test.equal st.gameIsOver(), false
   test.done()
 
-this['game runs without crashing'] = (test) ->
+this['game phases proceed as expected'] = (test) ->
   ai1 = new basicAI.BasicAI()
   ai2 = new basicAI.SillyAI()
   st = new gameState.State().initialize([ai1, ai2], gameState.kingdoms.allDefined)
@@ -36,3 +37,10 @@ this['game runs without crashing'] = (test) ->
     st.doPlay()
   console.log([player.ai.toString(), player.getVP(st), player.turnsTaken] for player in st.players)
   test.done()
+
+this['2-player smoke test'] = (test) ->
+  ais = (loadStrategy('strategies/SillyAI.coffee') for i in [1..2])
+  for i in [0...1000]
+    st = new gameState.State().initialize(ais, gameState.tableaux.all)
+    until st.gameIsOver()
+      st.doPlay()

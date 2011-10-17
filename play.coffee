@@ -32,3 +32,6 @@ playGame = (filenames) ->
 this.playGame = playGame
 args = process.argv[2...]
 playGame(args)
+
+exports.loadStrategy = loadStrategy
+exports.playGame = playGame
