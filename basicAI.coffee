@@ -319,6 +319,7 @@ class BasicAI
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Smugglers" if state.smugglerChoices().length > 1
+    "Feast"
     "Coppersmith"
     "Saboteur"
     "Library" if my.hand.length <= 7

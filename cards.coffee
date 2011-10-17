@@ -1312,6 +1312,25 @@ makeCard 'Farming Village', action, {
     state.current.setAside = []
 }
 
+makeCard "Feast", action, {
+  cost: 4
+
+  playEffect: (state) ->
+    # Trash the Feast, unless it's already been trashed.
+    if c.Feast in state.current.inPlay
+      state.current.inPlay.remove(c.Feast)
+      console.log("...trashing the Feast.")
+    
+    # Gain a card costing up to $5.
+    choices = []
+    for cardName of state.supply
+      card = c[cardName]
+      [coins, potions] = card.getCost(state)
+      if potions == 0 and coins <= 5
+        choices.push(card)
+    state.gainOneOf(state.current, choices)
+}
+
 makeCard "Grand Market", c.Market, {
   cost: 6
   coins: 2
