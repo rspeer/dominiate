@@ -178,8 +178,8 @@ basicCard = {
   onBuy: (state) ->
     this.buyEffect(state)
   
-  onGain: (state) ->
-    this.gainEffect(state)
+  onGain: (state, player) ->
+    this.gainEffect(state, player)
   
   reactToAttack: (state, player) ->
     this.attackReaction(state, player)
@@ -1473,14 +1473,14 @@ makeCard "Mandarin", action, {
       putBack = state.current.ai.choose('putOnDeck', state, state.current.hand)
       state.current.doPutOnDeck(putBack)
   
-  gainEffect: (state) ->
-    treasures = (card for card in state.current.inPlay when card.isTreasure)
+  gainEffect: (state, player) ->
+    treasures = (card for card in player.inPlay when card.isTreasure)
     if treasures.length > 0
       for treasure in treasures
-        state.current.inPlay.remove(treasure)
-      order = state.current.ai.chooseOrderOnDeck(state, treasures, state.current)
+        player.inPlay.remove(treasure)
+      order = player.ai.chooseOrderOnDeck(state, treasures, state.current)
       state.log("...putting #{order} back on the deck.")
-      state.current.draw = order.concat(state.current.draw)
+      player.draw = order.concat(player.draw)
 }
 
 makeCard "Masquerade", action, {
@@ -1567,10 +1567,10 @@ makeCard "Monument", action, {
 makeCard 'Nomad Camp', c.Woodcutter, {
   cost: 4
 
-  gainEffect: (state) ->
-    if state.current.gainLocation != 'trash'
-      transferCardToTop(c['Nomad Camp'], state.current[state.current.gainLocation], state.current.draw)
-      state.current.gainLocation = 'draw'
+  gainEffect: (state, player) ->
+    if player.gainLocation != 'trash'
+      transferCardToTop(c['Nomad Camp'], player[player.gainLocation], player.draw)
+      player.gainLocation = 'draw'
       state.log("...putting the Nomad Camp on top of the deck.")
 }
 

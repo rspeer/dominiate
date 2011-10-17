@@ -880,7 +880,7 @@ class State
         @tradeRouteValue += 1
       
       # Handle the card's own effects of being gained.
-      card.onGain(this)
+      card.onGain(this, player)
       
       # Handle cards such as Royal Seal that respond to gains while they are
       # in play.
