@@ -1,0 +1,7 @@
+You can post to GitHub at a url like this:
+
+https://github.com/rspeer/dominiate/wiki/_new?wiki[name]=Strategy%3A%20BaronCrossroads&wiki[body]=test%20test
+
+and edit an existing page like this:
+
+https://github.com/rspeer/dominiate/wiki/test-createPage/_edit?wiki[body]=test2
