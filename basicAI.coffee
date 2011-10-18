@@ -351,6 +351,7 @@ class BasicAI
     "Diadem"
     "Philosopher's Stone"
     "Gold"
+    "Cache"
     "Hoard"
     "Royal Seal"
     "Harem"

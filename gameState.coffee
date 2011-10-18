@@ -894,7 +894,7 @@ class State
         if reactCard.isReaction
           reactCard.reactToGain(this, player, card)
       
-      for opp in players[1...]
+      for opp in this.players[1...]
         for i in [opp.hand.length-1...-1]
           reactCard = opp.hand[i]
           if reactCard.isReaction

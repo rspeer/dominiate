@@ -149,7 +149,9 @@ basicCard = {
   # - What happens when this card is in hand and an opponent plays an attack?
   reactToAttack: (state, player) ->
   # - What happens when this card is in hand and its owner gains a card?
-  reactToGain: (state, player, card, gainInHand) ->
+  reactToGain: (state, player, card) ->
+  # - What happens when this card is in hand and someone else gains a card?
+  reactToOpponentGain: (state, player, opponent, card) ->
   
   # This defines everything that happens when a card is played, including
   # basic effects and complex effects defined in `playEffect`. Cards
@@ -402,6 +404,14 @@ makeCard 'Bank', treasure, {
     coins
   playEffect: (state) ->
     state.log("...which is worth #{this.getCoins(state)}.")
+}
+
+makeCard 'Cache', c.Gold, {
+  cost: 5
+  
+  gainEffect: (state) ->
+    state.gainCard(state.current, c.Copper)
+    state.gainCard(state.current, c.Copper)
 }
 
 makeCard "Fool's Gold", c.Silver, {
