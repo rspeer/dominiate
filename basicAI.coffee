@@ -117,7 +117,7 @@ class BasicAI
     # Hmm. None of the above isn't an option, and neither the priority list nor
     # the value list gave us anything. First complain about it, then make an
     # arbitrary choice.
-    state.warn("#{this} has no idea what to choose from #{choices}")
+    state.warn("#{this} has no idea what to choose from #{choices}\npriority is #{priority}")
     return choices[0]
   
   # Sometimes we need to compare choices in a strictly numeric way. This takes
@@ -208,6 +208,7 @@ class BasicAI
     "Walled Village"
     "Fishing Village"
     "Village"
+    "Border Village"
     # Fourth priority: cards that give +1 action and are almost always good.
     "Grand Market"
     "Hunting Party"
@@ -219,8 +220,8 @@ class BasicAI
     "Treasury"
     "Conspirator" if my.inPlay.length >= 2
     "Familiar"
-    "Great Hall"
     "Wishing Well"
+    "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Lighthouse"
     "Haven"
     # Fifth priority: terminal card-drawers, if we have actions to spare.
@@ -230,6 +231,9 @@ class BasicAI
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
+    # 5.5: Let's insert here an overly simplistic idea of how to play Crossroads.
+    "Crossroads" unless my.crossroadsPlayed
+    "Great Hall"
     # Sixth priority: card-cycling that might improve the hand.
     "Upgrade" if wantsToTrash
     "Pawn"
@@ -243,6 +247,7 @@ class BasicAI
     "Shanty Town" if my.actions < 2
     # Seventh priority: terminals. Of course, Nobles might be a non-terminal
     # if we decide we need the actions more than the cards.
+    "Crossroads"
     "Nobles"
     "Treasure Map" if my.countInHand("Treasure Map") >= 2
     "Followers"
@@ -264,6 +269,7 @@ class BasicAI
     "Remodel"
     "Jester"
     "Militia"
+    "Mandarin"
     "Cutpurse"
     "Bridge"
     "Horse Traders"
@@ -287,6 +293,7 @@ class BasicAI
     "Harvest"
     "Explorer"
     "Woodcutter"
+    "Nomad Camp"
     "Chancellor"
     "Counting House"
     "Coppersmith" if countInHandCopper >= 2
@@ -302,7 +309,9 @@ class BasicAI
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
     "Thief"
+    "Fortune Teller"
     "Bureaucrat"
+    "Navigator"
     "Conspirator" if my.actions < 2
     "Herbalist"
     "Moat"
@@ -311,6 +320,7 @@ class BasicAI
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Smugglers" if state.smugglerChoices().length > 1
+    "Feast"
     "Coppersmith"
     "Saboteur"
     "Library" if my.hand.length <= 7
@@ -344,13 +354,15 @@ class BasicAI
     "Hoard"
     "Royal Seal"
     "Harem"
-    "Venture"
     "Silver"
+    "Fool's Gold"
     "Quarry"
+    "Talisman"
     "Copper"
     "Ill-Gotten Gains"
-    "Fool's Gold"
     "Potion"
+    "Loan"
+    "Venture"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
@@ -436,57 +448,30 @@ class BasicAI
 
     # 3) Put back as much money as you can
     if putBack.length == 0
-      # find out what you would gain if you put back worst card as in 4)
-      [hypState, hypMy] = state.hypothetical(my.ai)
-      # technically, we don't want to discard but to put back, but for pessimisticBuy this should not matter
-      dis = hypState.requireDiscard(hypMy, 1)
-      defaultGained = hypMy.ai.pessimisticCardsGained(hypState)
-      
-      # determine which treasures are in hand, discard them hypothetically and test if the gains change.  When it doesn't, we can put back this card.
+      # Get a list of all distinct treasures in hand, in order.
       treasures = []
-      
       for card in my.hand
         if (card.isTreasure) and (not (card in treasures))
           treasures.push card
-            
-      for treasure in treasures
-        [hypState, hypMy] = state.hypothetical(my.ai)
-        hypMy.doDiscard(treasure)
-        nowGained = hypMy.ai.pessimisticCardsGained(hypState)
-        # test arrays on equality. Better way?
-        # changed order in gaining messes this up. Just ignore?
-        equal = true
-        if (defaultGained.length != nowGained.length)
-          equal = false
-        else 
-          for card, index in defaultGained
-            equal = (equal and (nowGained[index] == card))
-        
-        if (equal)
-          putBack.push treasure
-      
-      # sort by cost. Should be improved
-      putBack.sort( (y, x) -> state.compareByCoinCost(state, my, x, y) )
-      
+      treasures.sort( (x, y) -> x.coins - y.coins)
+
+      # Get the margin of how much money we're willing to discard.
+      margin = my.ai.coinLossMargin(state)
+
+      # Find the treasure cards worth less than that.
+      for card in treasures
+        if my.ai.coinsDueToCard(state, card) <= margin
+          putBack.push(card)
+
       # Don't put back last Potion if Alchemists are in play
       if my.countInPlay(state.cardInfo["Alchemist"])>0
-        if my.countInHand(state.cardInfo["Potion"]) == 1
+        if "Potion" in putBack
           putBack.remove(state.cardInfo["Potion"])
-      
-      # Don'tput back Royal Seal if you bought treasures or actions, assuming that you want to play them asap if you take the effort to buy them
-      onlyVictoryBought = true
-      for card in defaultGained
-        onlyVictoryBought = (onlyVictoryBought and not (card.isTreasure or card.isAction))
-        
-      if not onlyVictoryBought
-        putBack.remove(state.cardInfo["Royal Seal"])
-      
-      # Think about Loan?
     
     # 4) Put back the worst card (take priority for discard)
     #
     if putBack.length==0
-      putBack = (card for card in my.ai.discardPriority(state, my) when (state.cardInfo[card] in my.hand) )
+      putBack = [my.ai.chooseDiscard(state, my.hand)]
     putBack
   
   putOnDeckValue: (state, card, my) =>
@@ -564,7 +549,7 @@ class BasicAI
       "Copper,1" if my.getTreasureInHand() >= 4
       "Estate,0"
       "Copper,0"
-    ]
+    ].concat (card+",1" for card in my.ai.trashPriority(state, my) when card?)
   
   # islandPriority chooses which card to set aside with Island. At present this
   # list is incomplete, but covers just about everything that we would want to set aside
@@ -629,6 +614,15 @@ class BasicAI
     if pile.length == 0
       pile = my.discard
     return countInList(pile, card)
+
+  # `foolsGoldTrashPriority` will trash a Fool's Gold for a real Gold if
+  # it's nearing the endgame (5 gains or less), there is one FG in hand,
+  # and losing it will not change its buy.
+  foolsGoldTrashPriority: (state, my) ->
+    if my.countInHand(c["Fool's Gold"]) == 1 and my.ai.coinLossMargin(state) >= 1
+      [yes]
+    else
+      [no]
   
   # Prefer to gain action and treasure cards on the deck. Give other cards
   # a value of -1 so that `null` is a better choice.
@@ -665,6 +659,14 @@ class BasicAI
     'discard'
     'curse'
   ]
+
+  discardHandValue: (state, hand, my) ->
+    return 0 if hand is null
+    deck = my.getDeck()
+    shuffle(deck)
+    randomHand = deck[0...5]
+    # If a random hand from this deck is better, discard this hand.
+    return my.ai.compareByDiscarding(state, randomHand, hand)
 
   # Choose to attack or use available coins when playing Pirate Ship.
   # Current strategy is basically Geronimoo's attackUntil5Coins play strategy,
@@ -754,6 +756,77 @@ class BasicAI
     newState = this.pessimisticBuyPhase(state)
     newState.doPlay()
     return newState.current.gainedThisTurn
+  
+  # coinLossMargin determines how much treasure the player can lose
+  # "for free" (because it won't change their buy decision). Intended to be
+  # more efficient than calling pessimisticCardsGained on a number
+  # of different states.
+  #
+  # TODO: do we need an equivalent for potions?
+  coinLossMargin: (state) ->
+    newState = this.pessimisticBuyPhase(state)
+    coins = newState.coins
+    cardToBuy = newState.getSingleBuyDecision()
+    return 0 if cardToBuy is null
+    [coinsCost, potionsCost] = cardToBuy.getCost(newState)
+    return coins - coinsCost
+  
+  # Estimate the number of coins we'd lose by discarding/trashing/putting back
+  # a card.
+  coinsDueToCard: (state, card) ->
+    c = state.cardInfo
+    value = card.getCoins(state)
+    if card.isTreasure
+      banks = state.current.countInHand(c.Bank)
+      value += banks
+      if card is state.cardInfo.Bank
+        nonbanks = (aCard for aCard in state.current.hand when aCard.isTreasure).length
+        value += nonbanks
+    value
+  
+  # Figure out whether hand1 or hand2 is better by discarding their cards
+  # in priority order. Returns a -1 or 1 that can be used in sorting; it's
+  # positive if the first hand is better.
+  compareByDiscarding: (state, hand1, hand2) ->
+    # Guard against accidental mutation; we're going to be messing with
+    # these lists.
+    hand1 = hand1.slice(0)
+    hand2 = hand2.slice(0)
+    
+    # Preserve our number of actions.
+    savedActions = state.current.actions
+    state.current.actions = 1
+
+    #state.log("hand1 = #{hand1}")
+    #state.log("hand2 = #{hand2}")
+    counter = 0
+    loop
+      counter++
+      if counter >= 100
+        throw Error("got stuck in a loop")
+      # Figure out whether we'd rather discard from hand1 or hand2.
+      discard1 = this.choose('discard', state, hand1)
+      value1 = this.choiceToValue('discard', state, discard1)
+      discard2 = this.choose('discard', state, hand2)
+      value2 = this.choiceToValue('discard', state, discard2)
+      if value1 > value2
+        hand1.remove(discard1)
+      else if value2 > value1
+        hand2.remove(discard2)
+      else
+        hand1.remove(discard1)
+        hand2.remove(discard2)
+      if hand1.length == 0 and hand2.length == 0
+        state.current.actions = savedActions
+        return 0      
+      if hand1.length == 0
+        #state.log("hand2 is better")
+        state.current.actions = savedActions
+        return -1
+      if hand2.length == 0
+        #state.log("hand1 is better")
+        state.current.actions = savedActions
+        return 1
 
   #### Utility methods
   #
@@ -786,3 +859,13 @@ stringify = (obj) ->
   else
     return obj.toString()
 
+# General function to randomly shuffle a list.
+shuffle = (v) ->
+  i = v.length
+  while i
+    j = parseInt(Math.random() * i)
+    i -= 1
+    temp = v[i]
+    v[i] = v[j]
+    v[j] = temp
+  v

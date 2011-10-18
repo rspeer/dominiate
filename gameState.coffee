@@ -44,6 +44,8 @@ class PlayerState
     @gainedThisTurn = []
     @moatProtected = no
     @tacticians = 0  # number of Tacticians that will go to the duration area
+    @crossroadsPlayed = 0
+    @foolsGoldInPlay = no
     @mayReturnTreasury = yes
     @turnsTaken = 0
 
@@ -158,8 +160,7 @@ class PlayerState
   countPlayableTerminals: (state) ->
     if (@actions>0)
       @actions + ( (Math.max (card.getActions(state) - 1), 0 for card in this.hand).reduce (s,t) -> s + t)
-    else 0
-    
+    else 0    
    
   # `countInHand(card)` counts the number of copies of a card in hand.
   countInHand: (card) ->
@@ -305,6 +306,42 @@ class PlayerState
       @draw = @draw[nCards...]
       return drawn
   
+  # `dig` is a function to draw and reveal cards from the deck until
+  # certain ones are found. The cards to be found are defined by digFunc,
+  # which takes (state, card) and returns true if card is one that we're
+  # trying find. For example, Venture's and Adventurer's would be
+  # digFunc: (state, card) -> card.isTreasure
+  #
+  # nCards is the number of cards we're looking for; usually 1, but Golem
+  # and Adventurer look for 2 cards.
+  #
+  # By default, discard the revealed and set aside cards, but Scrying Pool
+  # digs for a card that is not an action, then draws up all the revealed
+  # actions as well; discardSetAside allows a card calling dig to do
+  # something with setAside other than discarding.
+  dig: (state, digFunc, nCards=1, discardSetAside=true) ->
+    foundCards = [] # These are the cards you're looking for
+    revealedCards = [] # All the cards drawn and revealed from the deck
+    while foundCards.length < nCards
+      drawn = this.getCardsFromDeck(1)
+      break if drawn.length == 0
+      card = drawn[0]
+      revealedCards.push(card)
+      if digFunc(state, card)
+        foundCards.push(card)
+      else
+        this.setAside.push(card)
+    if revealedCards.length == 0
+      this.log("...#{this.ai} has no cards to draw.")
+    else
+      this.log("...#{this.ai} reveals #{revealedCards}.")
+    if discardSetAside
+      if this.setAside.length > 0
+        this.log("...#{this.ai} discards #{this.setAside}.")
+      this.discard = this.discard.concat(this.setAside)
+      this.setAside = []
+    foundCards
+  
   doDiscard: (card) ->
     if card not in @hand
       this.warn("#{@ai} has no #{card} to discard")
@@ -358,11 +395,13 @@ class PlayerState
     other.setAside = @setAside.slice(0)
     other.moatProtected = @moatProtected
     other.gainedThisTurn = @gainedThisTurn.slice(0)
+    other.foolsGoldInPlay = no
     other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
     other.actionStack = @actionStack.slice(0)
     other.tacticians = @tacticians
+    other.crossroadsPlayed = @crossroadsPlayed
     other.ai = @ai
     other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
@@ -675,26 +714,35 @@ class State
     @current.inPlay.push(treasure)
     @current.playLocation = 'inPlay'
     treasure.onPlay(this)
-  
-  # Ask the AI what to buy. Repeat until the player has no buys left or
-  # the AI chooses to buy nothing.
+
+  # `getSingleBuyDecision` determines what single card (or none) the AI
+  # wants to buy in the current state.
+  getSingleBuyDecision: () ->
+    buyable = [null]
+    for cardname, count of @supply
+      # Because the supply must reference cards by their names, we use
+      # `c[cardname]` to get the actual object for the card.
+      card = c[cardname]
+
+      # Determine whether each card can be bought in the current state.
+      if card.mayBeBought(this) and count > 0
+        [coinCost, potionCost] = card.getCost(this)
+        if coinCost <= @current.coins and potionCost <= @current.potions
+          buyable.push(card)
+    
+    # Ask the AI for its choice.
+    this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
+    choice = @current.ai.chooseGain(this, buyable)
+    return choice
+
+  # `doBuyPhase` steps through the buy phase, asking the AI to choose
+  # a card to buy until it has no buys left or chooses to buy nothing.
+  #
+  # Setting `hypothetical` to true will skip gaining the cards and simply
+  # return the card list.
   doBuyPhase: () ->
     while @current.buys > 0
-      buyable = [null]
-      for cardname, count of @supply
-        # Because the supply must reference cards by their names, we use
-        # `c[cardname]` to get the actual object for the card.
-        card = c[cardname]
-
-        # Determine whether each card can be bought in the current state.
-        if card.mayBeBought(this) and count > 0
-          [coinCost, potionCost] = card.getCost(this)
-          if coinCost <= @current.coins and potionCost <= @current.potions
-            buyable.push(card)
-      
-      # Ask the AI for its choice.
-      this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
-      choice = @current.ai.chooseGain(this, buyable)
+      choice = this.getSingleBuyDecision()
       return if choice is null
       this.log("#{@current.ai} buys #{choice}.")
 
@@ -769,6 +817,8 @@ class State
     @current.coins = 0
     @current.potions = 0
     @current.tacticians = 0
+    @current.crossroadsPlayed = 0
+    @current.foolsGoldInPlay = no
     @current.mayReturnTreasury = yes
     @copperValue = 1
     @bridges = 0
@@ -843,6 +893,16 @@ class State
         reactCard = player.hand[i]
         if reactCard.isReaction
           reactCard.reactToGain(this, player, card)
+      
+      for opp in players[1...]
+        for i in [opp.hand.length-1...-1]
+          reactCard = opp.hand[i]
+          if reactCard.isReaction
+            reactCard.reactToOpponentGain(this, opp, player, card)
+
+      # Handle the card's own effects of being gained.
+      card.onGain(this, player)
+      
     else
       this.log("There is no #{card} to gain.")
   
@@ -1019,6 +1079,15 @@ class State
   #   [state, my] = state.hypothetical(this)
   hypothetical: (ai) ->
     state = this.copy()
+
+    # Rotate through players until this AI is the current player.
+    counter = 0
+    while state.players[0].ai isnt ai
+      counter++
+      if counter > state.nPlayers
+        throw new Error("Can't find this AI in the player list")
+      state.players = state.players[1...].concat([state.players[0]])
+
     state.depth = this.depth + 1
     my = null
     for player in state.players

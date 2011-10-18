@@ -1,4 +1,4 @@
-Cards that are done (106)
+Cards that are done (121)
 =========================
 Adventurer
 Alchemist
@@ -8,6 +8,7 @@ Bag of Gold
 Bank
 Baron
 Bazaar
+Border Village
 Bridge
 Bureaucrat
 Caravan
@@ -22,6 +23,7 @@ Coppersmith
 Council Room
 Counting House
 Courtyard
+Crossroads
 Curse
 Cutpurse
 Diadem
@@ -33,9 +35,11 @@ Explorer
 Fairgrounds
 Familiar
 Farming Village
+Feast
 Festival
 Fishing Village
 Followers
+Fortune Teller
 Gardens
 Goons
 Grand Market
@@ -48,10 +52,14 @@ Horn of Plenty
 Horse Traders
 Hunting Party
 Ironworks
+Island
+Jester
 Laboratory
 Library
 Lighthouse
+Loan
 Lookout
+Mandarin
 Market
 Masquerade
 Menagerie
@@ -63,7 +71,9 @@ Moat
 Monument
 Moneylender
 Mountebank
+Navigator
 Nobles
+Nomad Camp
 Outpost
 Pawn
 Peddler
@@ -78,13 +88,16 @@ Rabble
 Remake
 Remodel
 Royal Seal
+Saboteur
 Scout
 Sea Hag
 Shanty Town
 Silver
 Smithy
+Smugglers
 Steward
 Tactician
+Talisman
 Thief
 Torturer
 Tournament
@@ -110,21 +123,24 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (36)
+Cards that still need to be coded (30)
 ======================================
+
+Hinterlands
+-----------
+Keeping these separate because we may have simply not thought about them enough.
+
+Trader (Reaction is moderately easy. Maybe it's best to consider this just a trasher, not a trash-for-benefit, because gaining gobs of Silver is rarely that much of a benefit.)
+Fool's Gold (normal play is easy; reaction strategy may be hard)
+Ill-Gotten Gains (need to decide if we really want one more copper)
+Develop (pretty easy because Remake and chooseOrderOnDeck are already defined)
 
 Easy cards
 ----------
 The code to make these cards work already mostly exists.
 
-Feast
-Fortune Teller
 Golem
-Ghost Ship
-Loan
 Pearl Diver
-Saboteur
-Talisman
 
 Not-so-easy cards
 -----------------
@@ -137,14 +153,11 @@ Embargo
 Envoy
 Forge
 Hamlet
-Island
-Jester
 Mining Village
 Minion
 Native Village
 Salvager
 Scrying Pool
-Smugglers (requires more state)
 Spy
 Swindler
 Transmute
@@ -159,5 +172,4 @@ Secret Chamber (avoid infinite loops)
 Young Witch (requires a well-defined Bane card)
 Stash (requires a decision mid-shuffle)
 Black Market (requires a more coherent definition of the Supply)
-Navigator (probably requires a function for evaluating a hand)
 Possession (will require entirely new kinds of AI decisions)

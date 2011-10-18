@@ -7,7 +7,9 @@ heuristics.js
 grapher.js
 geronimoo
 .idea
+web/grapher.js
 web/playWeb.js
 web/multiLog.js
 web/scoreTracker.js
 web/strategies.js
+web/libs/bootstrap

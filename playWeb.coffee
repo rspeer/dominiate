@@ -24,6 +24,10 @@ makeStrategy = (changes) ->
     ai[key] = value
   ai
 
+# Setting `fast` to true will takesome shortcuts to play the game
+# really quickly. These include
+# producing no output, and not returning control to the browser between
+# game steps.
 playGame = (strategies, options, ret) ->
   ais = (makeStrategy(item) for item in strategies)
   
@@ -42,7 +46,11 @@ playGame = (strategies, options, ret) ->
   
   state = new State().initialize(ais, tableau, options.log)
   ret ?= options.log
-  window.setZeroTimeout -> playStep(state, options, ret)
+  if options.fast
+    options.log = () ->
+    playFast(state, options, ret)
+  else
+    window.setZeroTimeout -> playStep(state, options, ret)
 
 playStep = (state, options, ret) ->
   if state.gameIsOver()
@@ -59,6 +67,20 @@ playStep = (state, options, ret) ->
       errorHandler = options.errorHandler ? (alert ? console.log)
       errorHandler(err.message)
       window.donePlaying()
+
+playFast = (state, options, ret) ->
+  until state.gameIsOver()
+    try
+      state.doPlay()
+      if state.phase == 'buy' and (not state.extraturn) and options.grapher?
+        options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins)
+      if state.phase == 'cleanup' and (not state.extraturn) and options.grapher?
+        options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state))
+    catch err
+      errorHandler = options.errorHandler ? (alert ? console.log)
+      errorHandler(err.message)
+      window.donePlaying()
+  ret(state)
 
 this.compileStrategies = compileStrategies
 this.playGame = playGame
