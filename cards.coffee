@@ -968,6 +968,19 @@ makeCard 'Familiar', action, {
       state.gainCard(opp, c.Curse)
 }
 
+makeCard "Fool's Gold", c.Silver, {
+  cost: 2
+  coins: 1
+  
+  getCoins: (state) ->
+    if state.current.foolsGoldInPlay
+      4
+    else
+      1
+
+  # TODO: reactToOpponentGain
+}
+
 # Goons: *see Militia*
 makeCard "Grand Market", c.Market, {
   cost: 6
@@ -1076,6 +1089,19 @@ makeCard 'Hunting Party', action, {
         state.current.setAside.push(card)
     state.current.discard = state.current.discard.concat(state.current.setAside)
     state.current.setAside = []
+}
+
+makeCard 'Ill-Gotten Gains', c.Silver, {
+  cost: 5
+  coins: 1
+  playEffect: (state) -> 
+    if state.current.ai.choose('gainCopper', state, [yes, no])
+      state.current.gainCard(c.Copper)
+  
+  gainEffect: (state) ->
+    # For each player but the current: gain a curse.
+    for i in [1...state.nPlayers]
+      state.gainCard(state.players[i], c.Curse)
 }
 
 makeCard 'Ironworks', action, {

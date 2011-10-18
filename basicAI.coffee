@@ -348,6 +348,8 @@ class BasicAI
     "Silver"
     "Quarry"
     "Copper"
+    "Ill-Gotten Gains"
+    "Fool's Gold"
     "Potion"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
@@ -611,6 +613,10 @@ class BasicAI
   # Do you want to discard a Province to win a Tournament? The answer is
   # *very* yes.
   tournamentDiscardPriority: (state, my) -> [yes]
+
+  # Do you want to gain a copper from Ill-Gotten Gains? It's quite possible
+  # in endgame situations, but for now the answer is no.
+  gainCopperPriority: (state, my) -> [no]
 
   # `wishValue` prefers to wish for the card its draw pile contains
   # the most of.
