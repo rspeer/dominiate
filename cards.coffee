@@ -515,7 +515,7 @@ makeCard 'Loan', treasure, {
     drawn = state.current.dig(state,
       (state, card) -> card.isTreasure
     )    
-    if drawn[0]?
+    if drawn.length > 0
       treasure = drawn[0]
       trash = state.current.ai.choose('trash', state, [treasure, null])
       if trash?
@@ -569,7 +569,7 @@ makeCard 'Venture', treasure, {
     drawn = state.current.dig(state,
       (state, card) -> card.isTreasure
     )
-    if drawn[0]?
+    if drawn.length > 0
       treasure = drawn[0]
       state.log("...playing #{treasure}.")
       state.current.inPlay.push(treasure)
@@ -922,7 +922,7 @@ makeCard 'Fortune Teller', attack, {
       drawn = opp.dig(state,
         (state, card) -> card.isVictory or card is c.Curse
       )
-      if drawn[0]?
+      if drawn.length > 0
         card = drawn[0]
         transferCardToTop(card, drawn, opp.draw)
         state.log("...#{opp.ai} puts #{card} on top of the deck.")
@@ -1046,7 +1046,7 @@ makeCard 'Saboteur', attack, {
       drawn = opp.dig(state,
         (state, card) -> card.getCost(state)[0] >= 3                      
       )
-      if drawn[0]?
+      if drawn.length > 0
         cardToTrash = drawn[0]
         state.log("...#{state.current.ai} trashes #{opp.ai}'s #{cardToTrash}.")
         choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
@@ -1065,8 +1065,8 @@ makeCard 'Sea Hag', attack, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       state.discardFromDeck(opp, 1)
-      state.gainCard(opp, c.Curse, 'draw', true)
-      state.log("#{opp.ai} gains a Curse on top of the deck.")
+      state.gainCard(opp, c.Curse, 'draw')
+      state.log("...putting the Curse on top of the deck.")
 }
 
 makeCard 'Thief', attack, {
