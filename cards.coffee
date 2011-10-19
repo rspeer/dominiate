@@ -152,6 +152,8 @@ basicCard = {
   reactToGain: (state, player, card) ->
   # - What happens when this card is in hand and someone else gains a card?
   reactToOpponentGain: (state, player, opponent, card) ->
+  # - What happens when this card is discarded?
+  reactToDiscard: (state, player) ->
   
   # This defines everything that happens when a card is played, including
   # basic effects and complex effects defined in `playEffect`. Cards
@@ -323,6 +325,25 @@ makeCard 'Fairgrounds', c.Estate, {
     2 * Math.floor(unique.length / 5)    
 }
 
+makeCard 'Farmland', c.Estate, {
+  cost: 6
+  vp: 2
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return (potions1 >= potions2) and (coins1 + 2 == coins2)
+
+  buyEffect: (state) ->
+    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
+    choice = state.current.ai.choose('upgrade', state, choices)
+    if choice isnt null
+      [oldCard, newCard] = choice
+      state.current.doTrash(oldCard)
+      state.gainCard(state.current, newCard)    
+}
+
+
 makeCard 'Gardens', c.Estate, {
   cost: 4
   getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
@@ -379,6 +400,24 @@ makeCard 'Nobles', c.Estate, {
         {cards: 3}
       ])
       applyBenefit(state, benefit)
+}
+
+makeCard 'Silk Road', c.Estate, {
+  cost: 4
+  getVP: (state) -> Math.floor(state.current.countCardTypeInDeck('Victory') / 4)
+}
+
+# Revealing Tunnel for Gold as it is discarded is automatic.
+# TODO: add code to gamestate for reactToDiscard
+makeCard 'Tunnel', c.Estate, {
+  isReaction: true
+  cost: 3
+  vp: 2
+
+  reactToDiscard: (state, player) ->
+    if state.phase isnt 'cleanup'
+      state.gainCard(player, c.Gold)
+    
 }
 
 makeCard 'Vineyard', c.Estate, {
@@ -1079,24 +1118,15 @@ makeCard 'Witch', attack, {
 
 makeCard 'Adventurer', action, {
   cost: 6
-
   playEffect: (state) ->
-    treasuresDrawn = 0
-    while treasuresDrawn < 2
-      # Take cards one at a time, and either put them in hand or set them
-      # aside depending on their type.
-      drawn = state.current.getCardsFromDeck(1)
-      if drawn.length == 0
-        break
-      card = drawn[0]
-      if card.isTreasure
-        treasuresDrawn += 1
-        state.current.hand.push(card)
-        state.log("...drawing a #{card}.")
-      else
-        state.current.setAside.push(card)
-    state.current.discard = state.current.discard.concat(state.current.setAside)
-    state.current.setAside = []
+    drawn = state.current.dig(state,
+      (state, card) -> card.isTreasure,
+      2
+    )
+    if drawn.length > 0
+      treasures = drawn
+      state.current.hand = state.current.hand.concat(treasures)
+      state.log("...#{state.current.ai} draws #{treasures}.")
 }
 
 makeCard 'Alchemist', action, {
@@ -1328,23 +1358,36 @@ makeCard 'Explorer', action, {
 
 makeCard 'Farming Village', action, {
   cost: 4
-  actions: 2
-  
+  actions: +2
   playEffect: (state) ->
-    cardsDrawn = 0;
-    while cardsDrawn < 1
-      drawn = state.current.getCardsFromDeck(1)
-      if drawn.length == 0
-        break
+    drawn = state.current.dig(state,
+      (state, card) -> card.isAction or card.isTreasure
+    )
+    if drawn.length > 0
       card = drawn[0]
-      if card.isAction or card.isTreasure
-        cardsDrawn += 1
-        state.current.hand.push(card)
-        state.log("...drawing a #{card}.")
-      else
-        state.current.setAside.push(card)
-    state.current.discard = state.current.discard.concat(state.current.setAside)
-    state.current.setAside = []
+      state.log("...#{state.current.ai} draws #{card}.")
+      state.current.hand.push(card)
+}
+
+makeCard 'Golem', action, {
+  cost: 4
+  costPotion: 1
+  playEffect: (state) ->
+    drawn = state.current.dig(state,
+      (state, card) -> card.isAction and card.name isnt 'Golem',
+      2
+    )
+    if drawn.length > 0
+      firstAction = state.current.ai.choose('action', state, drawn)
+      drawn.remove(firstAction)
+      secondAction = drawn[0]
+      actions = [firstAction, secondAction]
+      for card in actions
+        if card?
+          state.log("...#{state.current.ai} plays #{card}.")
+          state.current.inPlay.push(card)
+          state.current.playLocation = 'inPlay'
+          state.resolveAction(card)
 }
 
 makeCard "Feast", action, {
@@ -1429,29 +1472,21 @@ makeCard "Horse Traders", action, {
       transferCard(c['Horse Traders'], player.hand, player.duration)
 }
 
+# So far Hunting Party is the only card that digs for something 
+# dependent on the game state.
 makeCard 'Hunting Party', action, {
   cost: 5
-  actions: +1
   cards: +1
-
+  actions: +1
   playEffect: (state) ->
-    state.revealHand(state.current)
-    cardsDrawn = 0;
-    while cardsDrawn < 1
-      drawn = state.current.getCardsFromDeck(1)
-      if drawn.length == 0
-        break
+    state.revealHand(state.current)    
+    drawn = state.current.dig(state,
+      (state, card) -> card not in state.current.hand
+    )
+    if drawn.length > 0
       card = drawn[0]
-      state.log("...revealing a #{card}")
-
-      if card not in state.current.hand
-        cardsDrawn += 1
-        state.current.hand.push(card)
-        state.log("...drawing a #{card}.")
-      else
-        state.current.setAside.push(card)
-    state.current.discard = state.current.discard.concat(state.current.setAside)
-    state.current.setAside = []
+      state.log("...#{state.current.ai} draws #{card}.")
+      state.current.hand.push(card)
 }
 
 makeCard 'Ironworks', action, {
