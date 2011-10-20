@@ -65,20 +65,9 @@ Roadmap
 -------
 Short-term planned features include:
 
-- Don't buy cards that make you instantly lose
 - Implement almost all the cards
+- Don't buy cards that make you instantly lose
+- Test cases, making sure the simulator keeps working in weird situations
 
-Longer term plans:
-
-- Simulate the effects of playing cards (to a shallow depth) in order to
-  choose an action.
-- Calculate the game-theoretic implications of a buy, to implement the
-  Penultimate Province Rule.
-- Hook into Golem, in order to buy a card based on the situation
-
-Things I never plan to implement without help:
-
-- Tricks with multi-revealing Secret Chamber
-- Outpost
-- Possession
-
+Some specific features I hope for Dominiate to eventually have appear tagged
+with "feature" on the Issues list.
