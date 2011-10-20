@@ -332,7 +332,7 @@ makeCard 'Farmland', c.Estate, {
   upgradeFilter: (state, oldCard, newCard) ->
     [coins1, potions1] = oldCard.getCost(state)
     [coins2, potions2] = newCard.getCost(state)
-    return (potions1 >= potions2) and (coins1 + 2 == coins2)
+    return (potions1 == potions2) and (coins1 + 2 == coins2)
 
   buyEffect: (state) ->
     choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
