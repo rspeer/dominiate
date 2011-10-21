@@ -277,12 +277,6 @@ class PlayerState
     this.log("#{@ai} draws #{drawn.length} cards (#{drawn}).")
     return drawn
 
-  discardFromDeck: (nCards) ->
-    drawn = this.getCardsFromDeck(nCards)
-    @discard = @discard.concat(drawn)
-    this.log("#{@ai} draws and discards #{drawn.length} cards (#{drawn}).")
-    return drawn
-  
   # `getCardsFromDeck` is a sub-method of many things that need to happen
   # with the game. It takes `nCards` cards off the deck, and then
   # *returns* them so you can do something with them.
@@ -342,28 +336,17 @@ class PlayerState
       this.setAside = []
     foundCards
   
+  discardFromDeck: (nCards) ->
+    throw new Error("discardFromDeck is done by the state now")
+  
   doDiscard: (card) ->
-    if card not in @hand
-      this.warn("#{@ai} has no #{card} to discard")
-      return
-    this.log("#{@ai} discards #{card}.")
-    @hand.remove(card)
-    @discard.push(card)
+    throw new Error("doDiscard is done by the state now")
   
   doTrash: (card) ->
-    if card not in @hand
-      this.warn("#{@ai} has no #{card} to trash")
-      return
-    this.log("#{@ai} trashes #{card}.")
-    @hand.remove(card)
-  
+    throw new Error("doTrash is done by the state now")
+
   doPutOnDeck: (card) ->
-    if card not in @hand
-      this.warn("#{@ai} has no #{card} to put on deck.")
-      return
-    this.log("#{@ai} puts #{card} on deck.")
-    @hand.remove(card)
-    @draw.unshift(card)
+    throw new Error("doPutOnDeck is done by the state now")
   
   shuffle: () ->
     this.log("(#{@ai} shuffles.)")
@@ -420,9 +403,9 @@ class PlayerState
 # ---------------
 # A State instance stores the complete state of the game at a point in time.
 # 
-# Many operations will mutate the state, for the sake of efficiency.
-# Any AI that evaluates different possible decisions must make a copy of
-# that state with less information in it, anyway.
+# Almost all operations work by changing the game state. This means that if
+# AI code wants to evaluate potential decisions, it should do them using a
+# copy of the state (often one with hidden information in it).
 class State
   basicSupply: ['Curse', 'Copper', 'Silver', 'Gold',
                 'Estate', 'Duchy', 'Province']
@@ -443,6 +426,7 @@ class State
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
+    @trash = []
     @prizes = [c["Bag of Gold"], c.Diadem, c.Followers, c.Princess, c["Trusty Steed"]]
     @tradeRouteMat = []
     @tradeRouteValue = 0
@@ -835,7 +819,6 @@ class State
     else
       @current.drawCards(3)
 
-
   # The player list is implemented so that the current player is always first
   # in the list; the list rotates after every turn.
   #
@@ -911,6 +894,7 @@ class State
   # be able to take advantage of the information.
   revealHand: (player) ->
     this.log("#{player.ai} reveals the hand (#{player.hand}).")
+  
   # `drawCards` causes the player to draw `num` cards.
   #
   # This currently passes through directly to the PlayerState, without
@@ -922,16 +906,63 @@ class State
   # The drawn cards will be returned.
   drawCards: (player, num) ->
     player.drawCards(num)
-  
+
   # `discardFromDeck` puts *num* cards from the top of the deck directly
   # in the discard pile. It returns the set of cards, for the benefit of
   # actions that do something based on which cards were discarded.
-  discardFromDeck: (player, num) ->
-    player.discardFromDeck(num)
+  discardFromDeck: (player, nCards) ->
+    drawn = player.getCardsFromDeck(nCards)
+    player.discard = player.discard.concat(drawn)
+    this.log("#{player.ai} draws and discards #{drawn.length} cards (#{drawn}).")
+    this.handleDiscards(player, drawn)
+    return drawn
+  
+  # `doDiscard` causes the player to discard a particular card.
+  doDiscard: (player, card) ->
+    if card not in player.hand
+      this.warn("#{player.ai} has no #{card} to discard")
+      return
+    this.log("#{player.ai} discards #{card}.")
+    player.hand.remove(card)
+    player.discard.push(card)
+    this.handleDiscards(player, [card])
+  
+  # `handleDiscards` looks through a list of cards and triggers their discard
+  # reactions.
+  handleDiscards: (player, cards) ->
+    for card in cards
+      if card.isReaction
+        card.reactToDiscard(this, player)
 
+  # `doTrash` causes the player to trash a particular card.
+  #
+  # For bookkeeping,
+  # it puts it in the `@trash` list; if we start using `@trash` consistently,
+  # we can count the total number of cards in the game, making sure that it's
+  # constant and cards aren't being dropped on the floor.
+  doTrash: (player, card) ->
+    if card not in player.hand
+      this.warn("#{player.ai} has no #{card} to trash")
+      return
+    this.log("#{player.ai} trashes #{card}.")
+    player.hand.remove(card)
+    @trash.push(card)
+  
+  # `doPutOnDeck` puts a particular card from the player's hand on top of
+  # the player's draw pile.
+  doPutOnDeck: (player, card) ->
+    if card not in player.hand
+      this.warn("#{player.ai} has no #{card} to put on deck.")
+      return
+    this.log("#{player.ai} puts #{card} on deck.")
+    player.hand.remove(card)
+    player.draw.unshift(card)
+  
   # `getCardsFromDeck` is superficially similar to `drawCards`, but it does
   # not put the cards into the hand. Any code that calls it needs to determine
-  # what happens to those cards (otherwise they'll be trashed!) This is useful
+  # what happens to those cards (otherwise they'll be dropped on the floor!)
+  #
+  # This is useful
   # for effects that say "draw *n* cards, do something based on them, and
   # discard them".
   getCardsFromDeck: (player, num) ->
@@ -948,7 +979,7 @@ class State
       choice = player.ai.chooseDiscard(this, validDiscards)
       return discarded if choice is null
       discarded.push(choice)
-      player.doDiscard(choice)
+      this.doDiscard(player, choice)
     return discarded
   
   # `requireDiscard` requires the player to discard exactly `num` cards,
@@ -960,7 +991,7 @@ class State
       return discarded if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
       discarded.push(choice)
-      player.doDiscard(choice)
+      this.doDiscard(player, choice)
     return discarded
   
   # `allowTrash` and `requireTrash` are similar to `allowDiscard` and
@@ -973,7 +1004,7 @@ class State
       choice = player.ai.chooseTrash(this, valid)
       return trashed if choice is null
       trashed.push(choice)
-      player.doTrash(choice)
+      this.doTrash(player, choice)
     return trashed
   
   requireTrash: (player, num) ->
@@ -983,7 +1014,7 @@ class State
       return trashed if valid.length == 0
       choice = player.ai.chooseTrash(this, valid)
       trashed.push(choice)
-      player.doTrash(choice)
+      this.doTrash(player, choice)
     return trashed
   
   # `gainOneOf` gives the player a choice of cards to gain. Include
@@ -1054,6 +1085,7 @@ class State
     
     newState.players = newPlayers
     newState.supply = newSupply
+    newState.trash = @trash.slice(0)
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
     newState.tradeRouteMat = @tradeRouteMat.slice(0)

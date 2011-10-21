@@ -339,7 +339,7 @@ makeCard 'Farmland', c.Estate, {
     choice = state.current.ai.choose('upgrade', state, choices)
     if choice isnt null
       [oldCard, newCard] = choice
-      state.current.doTrash(oldCard)
+      state.doTrash(state.current, oldCard)
       state.gainCard(state.current, newCard)    
 }
 
@@ -408,7 +408,7 @@ makeCard 'Silk Road', c.Estate, {
 }
 
 # Revealing Tunnel for Gold as it is discarded is automatic.
-# TODO: add code to gamestate for reactToDiscard
+# TODO: make this into a decision.
 makeCard 'Tunnel', c.Estate, {
   isReaction: true
   cost: 3
@@ -466,7 +466,7 @@ makeCard "Fool's Gold", c.Silver, {
   reactToOpponentGain: (state, player, opp, card) ->
     if card is c.Province
       if player.ai.choose('foolsGoldTrash', state, [yes, no])
-        player.doTrash(this)
+        state.doTrash(player, this)
         state.gainCard(player, c.Gold, 'draw')
         state.log("...putting the Gold on top of the draw pile.")
 }
@@ -524,6 +524,7 @@ makeCard 'Loan', treasure, {
       else
         state.log("...discarding the #{treasure}.")
         state.current.discard.push(treasure)
+        state.handleDiscards(state.current, [treasure])
 }
 
 makeCard "Philosopher's Stone", treasure, {
@@ -676,8 +677,10 @@ makeCard 'Tactician', duration, {
       # Discard the hand and activate the tactician.
       state.log("...discarding the whole hand.")
       state.current.tacticians++
-      state.current.discard = state.current.discard.concat(state.current.hand)
+      discards = state.current.hand
+      state.current.discard = state.current.discard.concat(discards)
       state.current.hand = []
+      state.handleDiscards(state.current, discards)
   
   # The cleanupEffect of a dead Tactician is to discard it instead of putting it in the
   # duration area. It's not a duration card in this case.
@@ -687,6 +690,7 @@ makeCard 'Tactician', duration, {
     else
       state.log("#{state.current.ai} discards an inactive Tactician.")
       transferCard(c.Tactician, state.current.duration, state.current.discard)
+      state.handleDiscards(state.current, [c.Tactician])
 }
 
 # Trash-for-gain cards
@@ -711,7 +715,7 @@ makeCard 'Remodel', action, {
     choice = state.current.ai.choose('upgrade', state, choices)
     if choice isnt null
       [oldCard, newCard] = choice
-      state.current.doTrash(oldCard)
+      state.doTrash(state.current, oldCard)
       state.gainCard(state.current, newCard)
 }
 
@@ -747,7 +751,7 @@ makeCard 'Remake', c.Remodel, {
       choice = state.current.ai.choose('upgrade', state, choices)
       if choice isnt null
         [oldCard, newCard] = choice
-        state.current.doTrash(oldCard)
+        state.doTrash(state.current, oldCard)
         state.gainCard(state.current, newCard)  
 }
 
@@ -766,7 +770,7 @@ makeCard 'Mine', c.Remodel, {
     choice = state.current.ai.choose('upgrade', state, choices)
     if choice isnt null
       [oldCard, newCard] = choice
-      state.current.doTrash(oldCard)
+      state.doTrash(state.current, oldCard)
       state.gainCard(state.current, newCard, 'hand')
 }
 
@@ -862,13 +866,15 @@ makeCard 'Ambassador', attack, {
       [cardName, quantity] = choice
       card = c[cardName]
       state.log("...choosing to return #{quantity} #{cardName}.")
-      for i in [0...quantity]
-        state.current.doTrash(card)
-      # Return it to the supply, if it had a slot in the supply to begin with
       if state.supply[card]?
+        for i in [0...quantity]
+          state.current.hand.remove(card)
+        # Return it to the supply, if it had a slot in the supply to begin with
         state.supply[card] += quantity
-      state.attackOpponents (opp) ->
-        state.gainCard(opp, card)
+        state.attackOpponents (opp) ->
+          state.gainCard(opp, card)
+      else
+        state.log("...but #{cardName} is not in the Supply.")
 }
 
 makeCard 'Bureaucrat', attack, {
@@ -898,7 +904,7 @@ makeCard 'Cutpurse', attack, {
   playEffect: (state) ->
       state.attackOpponents (opp) ->
         if c.Copper in opp.hand
-          opp.doDiscard(c.Copper)
+          state.doDiscard(opp, c.Copper)
         else
           state.log("#{opp.ai} has no Copper in hand.")
           state.revealHand(opp)
@@ -975,7 +981,7 @@ makeCard "Mountebank", attack, {
     state.attackOpponents (opp) ->
       if c.Curse in opp.hand
         # Discarding a Curse against Mountebank is automatic.
-        opp.doDiscard(c.Curse)
+        state.doDiscard(opp, c.Curse)
       else
         state.gainCard(opp, c.Copper)
         state.gainCard(opp, c.Curse)
@@ -1005,7 +1011,8 @@ makeCard 'Pirate Ship', attack, {
           attackSuccess = true
           drawn.remove(treasureToTrash)
           state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
-        state.current.discard.concat (drawn)
+        opp.discard = opp.discard.concat(drawn)
+        state.handleDiscards(opp, drawn)
         state.log("...#{opp.ai} discards #{drawn}.")
         
       if attackSuccess
@@ -1023,16 +1030,17 @@ makeCard 'Rabble', attack, {
 
       for card in drawn
         if card.isTreasure or card.isAction
-          state.current.discard.push(card)
+          opp.discard.push(card)
           state.log("...discarding #{card}.")
+          state.handleDiscards(opp, [card])
         else
-          state.current.setAside.push(card)
+          opp.setAside.push(card)
       
-      if state.current.setAside.length > 0
-        order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current)
+      if opp.setAside.length > 0
+        order = opp.ai.chooseOrderOnDeck(state, opp.setAside, opp)
         state.log("...putting #{order} back on the deck.")
-        state.current.draw = order.concat(state.current.draw)
-        state.current.setAside = []
+        opp.draw = order.concat(opp.draw)
+        opp.setAside = []
 }
 
 makeCard 'Saboteur', attack, {
@@ -1087,7 +1095,8 @@ makeCard 'Thief', attack, {
         if cardToGain
           state.gainCard(state.current, cardToGain, 'discard', true)
           state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
-      state.current.discard.concat (drawn)
+      opp.discard.concat (drawn)
+      state.handleDiscards(opp, [drawn])
       state.log("...#{opp.ai} discards #{drawn}.")
 }
 
@@ -1175,7 +1184,7 @@ makeCard 'Baron', action, {
     if c.Estate in state.current.hand
       discardEstate = state.current.ai.choose('baronDiscard', state, [yes, no])
     if discardEstate
-      state.current.doDiscard(c.Estate)
+      state.doDiscard(state.current, c.Estate)
       state.current.coins += 4
     else
       state.gainCard(state.current. c.Estate)
@@ -1226,6 +1235,7 @@ makeCard 'Chancellor', action, {
       draw = player.draw.slice(0)
       player.draw = []
       player.discard = player.discard.concat(draw)
+      state.handleDiscards(state.current, draw)
 }
 
 makeCard 'Chapel', action, {
@@ -1306,7 +1316,7 @@ makeCard 'Courtyard', action, {
   playEffect: (state) ->
     if state.current.hand.length > 0
       card = state.current.ai.choose('putOnDeck', state, state.current.hand)
-      state.current.doPutOnDeck(card)
+      state.doPutOnDeck(state.current, card)
 }
 
 makeCard 'Crossroads', action, {
@@ -1333,7 +1343,7 @@ makeCard 'Cutpurse', action, {
   playEffect: (state) ->
       state.attackOpponents (opp) ->
         if c.Copper in opp.hand
-          opp.doDiscard(c.Copper)
+          state.doDiscard(opp, c.Copper)
         else
           state.log("#{opp.ai} has no Copper in hand.")
           state.revealHand(opp)
@@ -1536,8 +1546,10 @@ makeCard 'Library', action, {
         player.hand.push(card)
     
     # Discard the set-aside cards.
-    player.discard = player.discard.concat(player.setAside)
+    discards = player.setAside
+    player.discard = player.discard.concat(discards)
     player.setAside = []
+    state.handleDiscards(state.current, discards)
 
 }
 
@@ -1560,6 +1572,7 @@ makeCard "Lookout", action, {
     if discard isnt null
       transferCard(discard, state.current.setAside, state.current.discard)
       state.log("...discarding #{discard}.")
+      state.handleDiscards(state.current, [discard])
     
     # Put the remaining card back on the deck.
     state.log("...putting #{drawn} back on the deck.")
@@ -1574,7 +1587,7 @@ makeCard "Mandarin", action, {
   playEffect: (state) ->
     if state.current.hand.length > 0
       putBack = state.current.ai.choose('putOnDeck', state, state.current.hand)
-      state.current.doPutOnDeck(putBack)
+      state.doPutOnDeck(state.current, putBack)
   
   gainEffect: (state, player) ->
     treasures = (card for card in player.inPlay when card.isTreasure)
@@ -1655,7 +1668,7 @@ makeCard 'Moneylender', action, {
 
   playEffect: (state) ->
     if c.Copper in state.current.hand
-      state.current.doTrash(c.Copper)
+      state.doTrash(state.current, c.Copper)
       state.current.coins += 3
 }
 
@@ -1691,7 +1704,7 @@ makeCard 'Navigator', action, {
     else
       state.log("...discarding #{drawn}.")
       Array::push.apply state.current.discard, drawn
-
+      state.handleDiscards(state.current, drawn)
 }
 
 makeCard 'Pawn', action, {
@@ -1787,7 +1800,7 @@ makeCard 'Tournament', action, {
       if c.Province in state.current.hand
         discardProvince = state.current.ai.choose('tournamentDiscard', state, [yes, no])
         if discardProvince
-          state.current.doDiscard(c.Province)
+          state.doDiscard(state.current, c.Province)
           choices = state.prizes.slice(0)
           if state.supply[c.Duchy] > 0
             choices.push(c.Duchy)
@@ -1823,11 +1836,12 @@ makeCard 'Treasure Map', action, {
 
     if c['Treasure Map'] in state.current.inPlay
       state.current.inPlay.remove(c['Treasure Map'])
+      state.trash.push(c['Treasure Map'])
       state.log("...trashing the Treasure Map.")
       trashedMaps += 1
 
     if c['Treasure Map'] in state.current.hand
-      state.current.doTrash(c['Treasure Map'])
+      state.doTrash(state.current, c['Treasure Map'])
       state.log("...and trashing another Treasure Map.")
       trashedMaps += 1
 
@@ -1857,7 +1871,7 @@ makeCard 'Tribute', action, {
   cost: 5
 
   playEffect: (state) ->
-    revealedCards = state.players[1].discardFromDeck(2)
+    revealedCards = state.discardFromDeck(state.players[1], 2)
 
     unique = []
     for card in revealedCards
@@ -2034,8 +2048,10 @@ applyBenefit = (state, benefit) ->
   if benefit.horseEffect
     for i in [0...4]
       state.gainCard(state.current, c.Silver)
-    state.current.discard = state.current.discard.concat(state.current.draw)
+    discards = state.current.draw
+    state.current.discard = state.current.discard.concat(discards)
     state.current.draw = []
+    state.handleDiscards(state.current, discards)
 
 # `upgradeChoices` is a helper function to get a list of choices for
 # Remodel and similar "upgrading" cards. In addition to the game state, it
