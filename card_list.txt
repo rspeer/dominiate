@@ -36,6 +36,7 @@ Explorer
 Fairgrounds
 Familiar
 Farming Village
+Farmland
 Feast
 Festival
 Fishing Village
@@ -43,6 +44,7 @@ Followers
 Fool's Gold
 Fortune Teller
 Gardens
+Golem
 Goons
 Grand Market
 Great Hall
@@ -95,6 +97,7 @@ Saboteur
 Scout
 Sea Hag
 Shanty Town
+Silk Road
 Silver
 Smithy
 Smugglers
@@ -110,6 +113,7 @@ Treasure Map
 Treasury
 Tribute
 Trusty Steed
+Tunnel
 University
 Upgrade
 Vault
@@ -126,7 +130,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (43)
+Cards that still need to be coded (40)
 ======================================
 
 Hinterlands
@@ -137,7 +141,6 @@ Cartographer (easy, just use discardValue and chooseOrderOnDeck)
 Develop (pretty easy because Remake and chooseOrderOnDeck are already defined)
 Duchess (moderate and weird: we should basically define it as a gainEffect on Duchy)
 Embassy (easy)
-Farmland (not too bad)
 Haggler (easy, just needs a buyInPlayEffect)
 Highway (easy, increment @bridges)
 Inn (moderate to hard; new complex decision)
@@ -147,17 +150,14 @@ Noble Brigand (easy, borrow from Thief)
 Oasis (easy)
 Oracle (moderate; same code as Spy)
 Scheme (moderate and awkward)
-Silk Road (easy)
 Spice Merchant (moderate to hard: trash-for-benefit meets chooseBenefit)
 Stables (moderate; new decision)
 Trader (Reaction is moderately easy. Maybe it's best to consider this just a trasher, not a trash-for-benefit, because gaining gobs of Silver is rarely that much of a benefit.)
-Tunnel (pretty hard, requires adding a new reactToDiscard)
 
 Easy cards
 ----------
 The code to make these cards work already mostly exists.
 
-Golem
 Pearl Diver
 
 Not-so-easy cards
@@ -170,6 +170,7 @@ Contraband
 Embargo
 Envoy
 Forge
+Governor
 Hamlet
 Mining Village
 Minion
