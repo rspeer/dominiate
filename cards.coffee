@@ -416,6 +416,7 @@ makeCard 'Tunnel', c.Estate, {
 
   reactToDiscard: (state, player) ->
     if state.phase isnt 'cleanup'
+      state.log("#{player.ai} gains a Gold for discarding the Tunnel.")
       state.gainCard(player, c.Gold)
     
 }

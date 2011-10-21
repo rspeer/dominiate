@@ -403,6 +403,7 @@ class BasicAI
   # It doesn't understand
   # discarding cards to make Shanty Town or Menagerie work, for example.
   discardPriority: (state, my) -> [
+    "Tunnel"
     "Vineyard"
     "Colony"
     "Duke"
@@ -415,8 +416,11 @@ class BasicAI
 
   discardValue: (state, card, my) =>
     # If we can discard excess actions, do so. Otherwise, discard the cheapest
-    # cards. Victory cards would already have been discarded by discardPriority.
-    if (card.isAction and card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0)
+    # cards. Victory cards would already have been discarded by discardPriority,
+    # but if Tunnel fell through somehow we discard it here.
+    if card.name == 'Tunnel'
+      25
+    else if (card.isAction and card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0)
       20 - card.cost
     else
       0 - card.cost
