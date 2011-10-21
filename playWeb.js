@@ -778,6 +778,7 @@
     reactToAttack: function(state, player) {},
     reactToGain: function(state, player, card) {},
     reactToOpponentGain: function(state, player, opponent, card) {},
+    reactToDiscard: function(state, player) {},
     onPlay: function(state) {
       var cardsToDraw, cardsToTrash;
       state.current.actions += this.getActions(state);
@@ -980,6 +981,26 @@
       return 2 * Math.floor(unique.length / 5);
     }
   });
+  makeCard('Farmland', c.Estate, {
+    cost: 6,
+    vp: 2,
+    upgradeFilter: function(state, oldCard, newCard) {
+      var coins1, coins2, potions1, potions2, _ref, _ref2;
+      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
+      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
+      return (potions1 === potions2) && (coins1 + 2 === coins2);
+    },
+    buyEffect: function(state) {
+      var choice, choices, newCard, oldCard;
+      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
+      choice = state.current.ai.choose('upgrade', state, choices);
+      if (choice !== null) {
+        oldCard = choice[0], newCard = choice[1];
+        state.current.doTrash(oldCard);
+        return state.gainCard(state.current, newCard);
+      }
+    }
+  });
   makeCard('Gardens', c.Estate, {
     cost: 4,
     getVP: function(state) {
@@ -1032,6 +1053,22 @@
         }
       ]);
       return applyBenefit(state, benefit);
+    }
+  });
+  makeCard('Silk Road', c.Estate, {
+    cost: 4,
+    getVP: function(state) {
+      return Math.floor(state.current.countCardTypeInDeck('Victory') / 4);
+    }
+  });
+  makeCard('Tunnel', c.Estate, {
+    isReaction: true,
+    cost: 3,
+    vp: 2,
+    reactToDiscard: function(state, player) {
+      if (state.phase !== 'cleanup') {
+        return state.gainCard(player, c.Gold);
+      }
     }
   });
   makeCard('Vineyard', c.Estate, {
@@ -1145,7 +1182,7 @@
       drawn = state.current.dig(state, function(state, card) {
         return card.isTreasure;
       });
-      if (drawn[0] != null) {
+      if (drawn.length > 0) {
         treasure = drawn[0];
         trash = state.current.ai.choose('trash', state, [treasure, null]);
         if (trash != null) {
@@ -1209,7 +1246,7 @@
       drawn = state.current.dig(state, function(state, card) {
         return card.isTreasure;
       });
-      if (drawn[0] != null) {
+      if (drawn.length > 0) {
         treasure = drawn[0];
         state.log("...playing " + treasure + ".");
         state.current.inPlay.push(treasure);
@@ -1572,7 +1609,7 @@
         drawn = opp.dig(state, function(state, card) {
           return card.isVictory || card === c.Curse;
         });
-        if (drawn[0] != null) {
+        if (drawn.length > 0) {
           card = drawn[0];
           transferCardToTop(card, drawn, opp.draw);
           return state.log("..." + opp.ai + " puts " + card + " on top of the deck.");
@@ -1707,7 +1744,7 @@
         drawn = opp.dig(state, function(state, card) {
           return card.getCost(state)[0] >= 3;
         });
-        if (drawn[0] != null) {
+        if (drawn.length > 0) {
           cardToTrash = drawn[0];
           state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + cardToTrash + ".");
           choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter);
@@ -1729,8 +1766,8 @@
     playEffect: function(state) {
       return state.attackOpponents(function(opp) {
         state.discardFromDeck(opp, 1);
-        state.gainCard(opp, c.Curse, 'draw', true);
-        return state.log("" + opp.ai + " gains a Curse on top of the deck.");
+        state.gainCard(opp, c.Curse, 'draw');
+        return state.log("...putting the Curse on top of the deck.");
       });
     }
   });
@@ -1788,24 +1825,15 @@
   makeCard('Adventurer', action, {
     cost: 6,
     playEffect: function(state) {
-      var card, drawn, treasuresDrawn;
-      treasuresDrawn = 0;
-      while (treasuresDrawn < 2) {
-        drawn = state.current.getCardsFromDeck(1);
-        if (drawn.length === 0) {
-          break;
-        }
-        card = drawn[0];
-        if (card.isTreasure) {
-          treasuresDrawn += 1;
-          state.current.hand.push(card);
-          state.log("...drawing a " + card + ".");
-        } else {
-          state.current.setAside.push(card);
-        }
+      var drawn, treasures;
+      drawn = state.current.dig(state, function(state, card) {
+        return card.isTreasure;
+      }, 2);
+      if (drawn.length > 0) {
+        treasures = drawn;
+        state.current.hand = state.current.hand.concat(treasures);
+        return state.log("..." + state.current.ai + " draws " + treasures + ".");
       }
-      state.current.discard = state.current.discard.concat(state.current.setAside);
-      return state.current.setAside = [];
     }
   });
   makeCard('Alchemist', action, {
@@ -2086,26 +2114,39 @@
   });
   makeCard('Farming Village', action, {
     cost: 4,
-    actions: 2,
+    actions: +2,
     playEffect: function(state) {
-      var card, cardsDrawn, drawn;
-      cardsDrawn = 0;
-      while (cardsDrawn < 1) {
-        drawn = state.current.getCardsFromDeck(1);
-        if (drawn.length === 0) {
-          break;
-        }
+      var card, drawn;
+      drawn = state.current.dig(state, function(state, card) {
+        return card.isAction || card.isTreasure;
+      });
+      if (drawn.length > 0) {
         card = drawn[0];
-        if (card.isAction || card.isTreasure) {
-          cardsDrawn += 1;
-          state.current.hand.push(card);
-          state.log("...drawing a " + card + ".");
-        } else {
-          state.current.setAside.push(card);
-        }
+        state.log("..." + state.current.ai + " draws " + card + ".");
+        return state.current.hand.push(card);
       }
-      state.current.discard = state.current.discard.concat(state.current.setAside);
-      return state.current.setAside = [];
+    }
+  });
+  makeCard('Golem', action, {
+    cost: 4,
+    costPotion: 1,
+    playEffect: function(state) {
+      var actions, card, drawn, firstAction, secondAction, _i, _len, _results;
+      drawn = state.current.dig(state, function(state, card) {
+        return card.isAction && card.name !== 'Golem';
+      }, 2);
+      if (drawn.length > 0) {
+        firstAction = state.current.ai.choose('action', state, drawn);
+        drawn.remove(firstAction);
+        secondAction = drawn[0];
+        actions = [firstAction, secondAction];
+        _results = [];
+        for (_i = 0, _len = actions.length; _i < _len; _i++) {
+          card = actions[_i];
+          _results.push(card != null ? (state.log("..." + state.current.ai + " plays " + card + "."), state.current.inPlay.push(card), state.current.playLocation = 'inPlay', state.resolveAction(card)) : void 0);
+        }
+        return _results;
+      }
     }
   });
   makeCard("Feast", action, {
@@ -2194,29 +2235,19 @@
   });
   makeCard('Hunting Party', action, {
     cost: 5,
-    actions: +1,
     cards: +1,
+    actions: +1,
     playEffect: function(state) {
-      var card, cardsDrawn, drawn;
+      var card, drawn;
       state.revealHand(state.current);
-      cardsDrawn = 0;
-      while (cardsDrawn < 1) {
-        drawn = state.current.getCardsFromDeck(1);
-        if (drawn.length === 0) {
-          break;
-        }
+      drawn = state.current.dig(state, function(state, card) {
+        return __indexOf.call(state.current.hand, card) < 0;
+      });
+      if (drawn.length > 0) {
         card = drawn[0];
-        state.log("...revealing a " + card);
-        if (__indexOf.call(state.current.hand, card) < 0) {
-          cardsDrawn += 1;
-          state.current.hand.push(card);
-          state.log("...drawing a " + card + ".");
-        } else {
-          state.current.setAside.push(card);
-        }
+        state.log("..." + state.current.ai + " draws " + card + ".");
+        return state.current.hand.push(card);
       }
-      state.current.discard = state.current.discard.concat(state.current.setAside);
-      return state.current.setAside = [];
     }
   });
   makeCard('Ironworks', action, {
