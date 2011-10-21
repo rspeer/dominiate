@@ -1,4 +1,4 @@
-Cards that are done (124)
+Cards that are done (128)
 =========================
 Adventurer
 Alchemist
@@ -156,9 +156,11 @@ Trader (Reaction is moderately easy. Maybe it's best to consider this just a tra
 
 Easy cards
 ----------
-The code to make these cards work already mostly exists.
+These cards can probably be defined in terms of existing decisions.
 
 Pearl Diver
+Spy
+Transmute
 
 Not-so-easy cards
 -----------------
@@ -177,9 +179,7 @@ Minion
 Native Village
 Salvager
 Scrying Pool
-Spy
 Swindler
-Transmute
 
 Difficult cards
 ---------------
