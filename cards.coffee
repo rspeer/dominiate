@@ -493,7 +493,7 @@ makeCard "Horn of Plenty", treasure, {
         choices.push(card)
     choice = state.gainOneOf(state.current, choices)
     if choice.isVictory
-      state.current.inPlay.remove(this)
+      transferCard(this, state.current.inPlay, state.trash)
       state.log("...#{state.current.ai} trashes the Horn of Plenty.")
 }
 
@@ -521,7 +521,7 @@ makeCard 'Loan', treasure, {
       trash = state.current.ai.choose('trash', state, [treasure, null])
       if trash?
         state.log("...trashing the #{treasure}.")
-        drawn.remove(treasure)
+        transferCard(treasure, drawn, state.trash)
       else
         state.log("...discarding the #{treasure}.")
         state.current.discard.push(treasure)
@@ -1010,7 +1010,7 @@ makeCard 'Pirate Ship', attack, {
         treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
         if treasureToTrash
           attackSuccess = true
-          drawn.remove(treasureToTrash)
+          transferCard(treasureToTrash, drawn, state.trash)
           state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
         opp.discard = opp.discard.concat(drawn)
         state.handleDiscards(opp, drawn)
@@ -1058,6 +1058,7 @@ makeCard 'Saboteur', attack, {
       if drawn.length > 0
         cardToTrash = drawn[0]
         state.log("...#{state.current.ai} trashes #{opp.ai}'s #{cardToTrash}.")
+        state.trash.push(drawn[0])
         choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
         choices.push([cardToTrash,null])
         choice = opp.ai.choose('upgrade', state, choices)
@@ -1090,13 +1091,15 @@ makeCard 'Thief', attack, {
           drawnTreasures.push(card)
       treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures)
       if treasureToTrash
-        drawn.remove(treasureToTrash)
         state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
-        cardToGain =  state.current.ai.chooseGain(state, [treasureToTrash, null])
+        transferCard(treasureToTrash, drawn, state.trash)
+
+        cardToGain = state.current.ai.chooseGain(state, [treasureToTrash, null])
         if cardToGain
-          state.gainCard(state.current, cardToGain, 'discard', true)
+          transferCard(cardToGain, state.trash, state.current.discard)
+          state.handleGainCard(state.current, cardToGain, 'discard')
           state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
-      opp.discard.concat (drawn)
+      opp.discard = opp.discard.concat(drawn)
       state.handleDiscards(opp, [drawn])
       state.log("...#{opp.ai} discards #{drawn}.")
 }
@@ -1407,7 +1410,7 @@ makeCard "Feast", action, {
   playEffect: (state) ->
     # Trash the Feast, unless it's already been trashed.
     if c.Feast in state.current.inPlay
-      state.current.inPlay.remove(c.Feast)
+      transferCard(c.Feast, state.current.inPlay, state.trash)
       console.log("...trashing the Feast.")
     
     # Gain a card costing up to $5.
@@ -1567,7 +1570,7 @@ makeCard "Lookout", action, {
       # Trash the card, with the side effect of removing it from the choice
       # list.
       state.log("...trashing #{trash}.")
-      state.current.setAside.remove(trash)
+      transferCard(trash, state.current.setAside, state.trash)
     
     discard = state.current.ai.choose('discard', state, drawn)
     if discard isnt null
@@ -1641,6 +1644,7 @@ makeCard "Mint", action, {
     for i in [inPlay.length-1...-1]
       if inPlay[i].isTreasure
         state.log("...trashing a #{inPlay[i]}.")
+        state.trash.push(inPlay[i])
         inPlay.splice(i, 1)
 
   playEffect: (state) ->
@@ -1836,9 +1840,8 @@ makeCard 'Treasure Map', action, {
     trashedMaps = 0
 
     if c['Treasure Map'] in state.current.inPlay
-      state.current.inPlay.remove(c['Treasure Map'])
-      state.trash.push(c['Treasure Map'])
       state.log("...trashing the Treasure Map.")
+      transferCard(c['Treasure Map'], state.current.inPlay, state.trash)
       trashedMaps += 1
 
     if c['Treasure Map'] in state.current.hand
@@ -1950,8 +1953,8 @@ makeCard 'Watchtower', action, {
     if player.ai.chooseTrash(state, [card, null]) is card
       # trash the card
       state.log("#{player.ai} reveals a Watchtower and trashes the #{card}.")
-      source.remove(card)
-      # Note that the gained card now has no location; it's in the trash.
+      transferCard(card, source, state.trash)
+      # Note that the gained card now has no valid location; it's in the trash.
       player.gainLocation = 'trash'
     else if player.ai.choose('gainOnDeck', state, [card, null])
       state.log("#{player.ai} reveals a Watchtower and puts the #{card} on the deck.")

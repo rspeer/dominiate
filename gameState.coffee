@@ -440,10 +440,14 @@ class State
     
     @cache = {}
     
-    
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
     @depth = 0
+
+    # `totalCards` tracks the total number of cards that are in the game. If it changes,
+    # we screwed up.
+    @totalCards = this.countTotalCards()
+
     return this
   
   # Given the tableau (the set of non-basic cards in play), construct the
@@ -564,6 +568,17 @@ class State
         choices.push(card)
     choices
   
+  # `countTotalCards` counts the number of cards that exist anywhere.
+  countTotalCards: () ->
+    total = 0
+    for player in @players
+      total += player.numCardsInDeck()
+    for card, count of @supply
+      total += count
+    total += @trash.length
+    total += @prizes.length
+    total
+
   #### Playing a turn
   #
   # `doPlay` performs the next step of the game, which is a particular phase
@@ -818,6 +833,10 @@ class State
       @current.drawCards(5)
     else
       @current.drawCards(3)
+    
+    # Make sure we didn't drop cards on the floor.
+    if this.countTotalCards() != @totalCards
+      throw new Error("The game started with #{@totalCards} cards; now there are #{this.countTotalCards()}")
 
   # The player list is implemented so that the current player is always first
   # in the list; the list rotates after every turn.
@@ -850,9 +869,8 @@ class State
         this.log("#{player.ai} gains #{card}.")
       
       # Determine what list the card is being gained in, and add it to the
-      # front of that list; also, have the PlayerState remember it.
-      player.gainLocation = gainLocation
-      location = player[player.gainLocation]
+      # front of that list.
+      location = player[gainLocation]
       location.unshift(card)
 
       # Remove the card from the supply or the prize list, as appropriate.
@@ -861,33 +879,42 @@ class State
       else
         @supply[card] -= 1
       
-      if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
-        @tradeRouteMat.push(card)
-        @tradeRouteValue += 1
-      
-      # Handle cards such as Royal Seal that respond to gains while they are
-      # in play.
-      for i in [player.inPlay.length-1...-1]
-        cardInPlay = player.inPlay[i]
-        cardInPlay.gainInPlayEffect(this, card)
-      
-      # Handle cards such as Watchtower that react to gains as a Reaction card.
-      for i in [player.hand.length-1...-1]
-        reactCard = player.hand[i]
-        if reactCard.isReaction
-          reactCard.reactToGain(this, player, card)
-      
-      for opp in this.players[1...]
-        for i in [opp.hand.length-1...-1]
-          reactCard = opp.hand[i]
-          if reactCard.isReaction
-            reactCard.reactToOpponentGain(this, opp, player, card)
-
-      # Handle the card's own effects of being gained.
-      card.onGain(this, player)
-      
+      # Delegate to `handleGainCard` to deal with reactions.
+      this.handleGainCard(player, card, gainLocation)
     else
       this.log("There is no #{card} to gain.")
+  
+  # `handleGainCard` deals with the reactions that result from gaining a card.
+  # A card effect such as Thief needs to call this explicitly after gaining a
+  # card from someplace that is not the supply or the prize list.
+  handleGainCard: (player, card, gainLocation='discard') ->
+    # Remember where the card was gained, so that reactions can find it.
+    player.gainLocation = gainLocation
+
+    if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
+      @tradeRouteMat.push(card)
+      @tradeRouteValue += 1
+    
+    # Handle cards such as Royal Seal that respond to gains while they are
+    # in play.
+    for i in [player.inPlay.length-1...-1]
+      cardInPlay = player.inPlay[i]
+      cardInPlay.gainInPlayEffect(this, card)
+    
+    # Handle cards such as Watchtower that react to gains as a Reaction card.
+    for i in [player.hand.length-1...-1]
+      reactCard = player.hand[i]
+      if reactCard.isReaction
+        reactCard.reactToGain(this, player, card)
+    
+    for opp in this.players[1...]
+      for i in [opp.hand.length-1...-1]
+        reactCard = opp.hand[i]
+        if reactCard.isReaction
+          reactCard.reactToOpponentGain(this, opp, player, card)
+
+    # Handle the card's own effects of being gained.
+    card.onGain(this, player)      
   
   # Effects of an action could cause players to reveal their hand.
   # So far, nothing happens as a result, but in the future, AIs might
