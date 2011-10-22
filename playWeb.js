@@ -274,10 +274,12 @@
       return card.cost - 1;
     };
     BasicAI.prototype.discardPriority = function(state, my) {
-      return ["Vineyard", "Colony", "Duke", "Duchy", "Gardens", "Province", "Curse", "Estate"];
+      return ["Tunnel", "Vineyard", "Colony", "Duke", "Duchy", "Gardens", "Province", "Curse", "Estate"];
     };
     BasicAI.prototype.discardValue = function(state, card, my) {
-      if ((card.isAction && card.actions === 0 && my.actionBalance() <= 0) || (my.actions === 0)) {
+      if (card.name === 'Tunnel') {
+        return 25;
+      } else if ((card.isAction && card.actions === 0 && my.actionBalance() <= 0) || (my.actions === 0)) {
         return 20 - card.cost;
       } else {
         return 0 - card.cost;
@@ -996,7 +998,7 @@
       choice = state.current.ai.choose('upgrade', state, choices);
       if (choice !== null) {
         oldCard = choice[0], newCard = choice[1];
-        state.current.doTrash(oldCard);
+        state.doTrash(state.current, oldCard);
         return state.gainCard(state.current, newCard);
       }
     }
@@ -1067,6 +1069,7 @@
     vp: 2,
     reactToDiscard: function(state, player) {
       if (state.phase !== 'cleanup') {
+        state.log("" + player.ai + " gains a Gold for discarding the Tunnel.");
         return state.gainCard(player, c.Gold);
       }
     }
@@ -1121,7 +1124,7 @@
     reactToOpponentGain: function(state, player, opp, card) {
       if (card === c.Province) {
         if (player.ai.choose('foolsGoldTrash', state, [true, false])) {
-          player.doTrash(this);
+          state.doTrash(player, this);
           state.gainCard(player, c.Gold, 'draw');
           return state.log("...putting the Gold on top of the draw pile.");
         }
@@ -1153,7 +1156,7 @@
       }
       choice = state.gainOneOf(state.current, choices);
       if (choice.isVictory) {
-        state.current.inPlay.remove(this);
+        transferCard(this, state.current.inPlay, state.trash);
         return state.log("..." + state.current.ai + " trashes the Horn of Plenty.");
       }
     }
@@ -1187,10 +1190,11 @@
         trash = state.current.ai.choose('trash', state, [treasure, null]);
         if (trash != null) {
           state.log("...trashing the " + treasure + ".");
-          return drawn.remove(treasure);
+          return transferCard(treasure, drawn, state.trash);
         } else {
           state.log("...discarding the " + treasure + ".");
-          return state.current.discard.push(treasure);
+          state.current.discard.push(treasure);
+          return state.handleDiscards(state.current, [treasure]);
         }
       }
     }
@@ -1336,13 +1340,15 @@
     durationBuys: +1,
     durationCards: +5,
     playEffect: function(state) {
-      var cardsInHand;
+      var cardsInHand, discards;
       cardsInHand = state.current.hand.length;
       if (cardsInHand > 0) {
         state.log("...discarding the whole hand.");
         state.current.tacticians++;
-        state.current.discard = state.current.discard.concat(state.current.hand);
-        return state.current.hand = [];
+        discards = state.current.hand;
+        state.current.discard = state.current.discard.concat(discards);
+        state.current.hand = [];
+        return state.handleDiscards(state.current, discards);
       }
     },
     cleanupEffect: function(state) {
@@ -1350,7 +1356,8 @@
         return state.current.tacticians--;
       } else {
         state.log("" + state.current.ai + " discards an inactive Tactician.");
-        return transferCard(c.Tactician, state.current.duration, state.current.discard);
+        transferCard(c.Tactician, state.current.duration, state.current.discard);
+        return state.handleDiscards(state.current, [c.Tactician]);
       }
     }
   });
@@ -1368,7 +1375,7 @@
       choice = state.current.ai.choose('upgrade', state, choices);
       if (choice !== null) {
         oldCard = choice[0], newCard = choice[1];
-        state.current.doTrash(oldCard);
+        state.doTrash(state.current, oldCard);
         return state.gainCard(state.current, newCard);
       }
     }
@@ -1406,7 +1413,7 @@
       for (i = 1; i <= 2; i++) {
         choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
         choice = state.current.ai.choose('upgrade', state, choices);
-        _results.push(choice !== null ? ((oldCard = choice[0], newCard = choice[1], choice), state.current.doTrash(oldCard), state.gainCard(state.current, newCard)) : void 0);
+        _results.push(choice !== null ? ((oldCard = choice[0], newCard = choice[1], choice), state.doTrash(state.current, oldCard), state.gainCard(state.current, newCard)) : void 0);
       }
       return _results;
     }
@@ -1425,7 +1432,7 @@
       choice = state.current.ai.choose('upgrade', state, choices);
       if (choice !== null) {
         oldCard = choice[0], newCard = choice[1];
-        state.current.doTrash(oldCard);
+        state.doTrash(state.current, oldCard);
         return state.gainCard(state.current, newCard, 'hand');
       }
     }
@@ -1533,15 +1540,17 @@
         cardName = choice[0], quantity = choice[1];
         card = c[cardName];
         state.log("...choosing to return " + quantity + " " + cardName + ".");
-        for (i = 0; 0 <= quantity ? i < quantity : i > quantity; 0 <= quantity ? i++ : i--) {
-          state.current.doTrash(card);
-        }
         if (state.supply[card] != null) {
+          for (i = 0; 0 <= quantity ? i < quantity : i > quantity; 0 <= quantity ? i++ : i--) {
+            state.current.hand.remove(card);
+          }
           state.supply[card] += quantity;
+          return state.attackOpponents(function(opp) {
+            return state.gainCard(opp, card);
+          });
+        } else {
+          return state.log("...but " + cardName + " is not in the Supply.");
         }
-        return state.attackOpponents(function(opp) {
-          return state.gainCard(opp, card);
-        });
       }
     }
   });
@@ -1581,7 +1590,7 @@
       return state.attackOpponents(function(opp) {
         var _ref;
         if (_ref = c.Copper, __indexOf.call(opp.hand, _ref) >= 0) {
-          return opp.doDiscard(c.Copper);
+          return state.doDiscard(opp, c.Copper);
         } else {
           state.log("" + opp.ai + " has no Copper in hand.");
           return state.revealHand(opp);
@@ -1658,7 +1667,7 @@
       return state.attackOpponents(function(opp) {
         var _ref;
         if (_ref = c.Curse, __indexOf.call(opp.hand, _ref) >= 0) {
-          return opp.doDiscard(c.Curse);
+          return state.doDiscard(opp, c.Curse);
         } else {
           state.gainCard(opp, c.Copper);
           return state.gainCard(opp, c.Curse);
@@ -1691,10 +1700,11 @@
           treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures);
           if (treasureToTrash) {
             attackSuccess = true;
-            drawn.remove(treasureToTrash);
+            transferCard(treasureToTrash, drawn, state.trash);
             state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + treasureToTrash + ".");
           }
-          state.current.discard.concat(drawn);
+          opp.discard = opp.discard.concat(drawn);
+          state.handleDiscards(opp, drawn);
           return state.log("..." + opp.ai + " discards " + drawn + ".");
         });
         if (attackSuccess) {
@@ -1715,17 +1725,18 @@
         for (_i = 0, _len = drawn.length; _i < _len; _i++) {
           card = drawn[_i];
           if (card.isTreasure || card.isAction) {
-            state.current.discard.push(card);
+            opp.discard.push(card);
             state.log("...discarding " + card + ".");
+            state.handleDiscards(opp, [card]);
           } else {
-            state.current.setAside.push(card);
+            opp.setAside.push(card);
           }
         }
-        if (state.current.setAside.length > 0) {
-          order = state.current.ai.chooseOrderOnDeck(state, state.current.setAside, state.current);
+        if (opp.setAside.length > 0) {
+          order = opp.ai.chooseOrderOnDeck(state, opp.setAside, opp);
           state.log("...putting " + order + " back on the deck.");
-          state.current.draw = order.concat(state.current.draw);
-          return state.current.setAside = [];
+          opp.draw = order.concat(opp.draw);
+          return opp.setAside = [];
         }
       });
     }
@@ -1747,6 +1758,7 @@
         if (drawn.length > 0) {
           cardToTrash = drawn[0];
           state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + cardToTrash + ".");
+          state.trash.push(drawn[0]);
           choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter);
           choices.push([cardToTrash, null]);
           choice = opp.ai.choose('upgrade', state, choices);
@@ -1787,15 +1799,17 @@
         }
         treasureToTrash = state.current.ai.choose('trashOppTreasure', state, drawnTreasures);
         if (treasureToTrash) {
-          drawn.remove(treasureToTrash);
           state.log("..." + state.current.ai + " trashes " + opp.ai + "'s " + treasureToTrash + ".");
+          transferCard(treasureToTrash, drawn, state.trash);
           cardToGain = state.current.ai.chooseGain(state, [treasureToTrash, null]);
           if (cardToGain) {
-            state.gainCard(state.current, cardToGain, 'discard', true);
+            transferCard(cardToGain, state.trash, state.current.discard);
+            state.handleGainCard(state.current, cardToGain, 'discard');
             state.log("..." + state.current.ai + " gains the trashed " + treasureToTrash + ".");
           }
         }
-        state.current.discard.concat(drawn);
+        opp.discard = opp.discard.concat(drawn);
+        state.handleDiscards(opp, [drawn]);
         return state.log("..." + opp.ai + " discards " + drawn + ".");
       });
     }
@@ -1884,7 +1898,7 @@
         discardEstate = state.current.ai.choose('baronDiscard', state, [true, false]);
       }
       if (discardEstate) {
-        state.current.doDiscard(c.Estate);
+        state.doDiscard(state.current, c.Estate);
         return state.current.coins += 4;
       } else {
         return state.gainCard(state.current.c.Estate);
@@ -1937,7 +1951,8 @@
         state.log("...putting the draw pile into the discard pile.");
         draw = player.draw.slice(0);
         player.draw = [];
-        return player.discard = player.discard.concat(draw);
+        player.discard = player.discard.concat(draw);
+        return state.handleDiscards(state.current, draw);
       }
     }
   });
@@ -2051,7 +2066,7 @@
       var card;
       if (state.current.hand.length > 0) {
         card = state.current.ai.choose('putOnDeck', state, state.current.hand);
-        return state.current.doPutOnDeck(card);
+        return state.doPutOnDeck(state.current, card);
       }
     }
   });
@@ -2087,7 +2102,7 @@
       return state.attackOpponents(function(opp) {
         var _ref;
         if (_ref = c.Copper, __indexOf.call(opp.hand, _ref) >= 0) {
-          return opp.doDiscard(c.Copper);
+          return state.doDiscard(opp, c.Copper);
         } else {
           state.log("" + opp.ai + " has no Copper in hand.");
           return state.revealHand(opp);
@@ -2154,7 +2169,7 @@
     playEffect: function(state) {
       var card, cardName, choices, coins, potions, _ref, _ref2;
       if (_ref = c.Feast, __indexOf.call(state.current.inPlay, _ref) >= 0) {
-        state.current.inPlay.remove(c.Feast);
+        transferCard(c.Feast, state.current.inPlay, state.trash);
         console.log("...trashing the Feast.");
       }
       choices = [];
@@ -2277,7 +2292,7 @@
   makeCard('Library', action, {
     cost: 5,
     playEffect: function(state) {
-      var card, drawn, player;
+      var card, discards, drawn, player;
       player = state.current;
       while (player.hand.length < 7) {
         drawn = player.getCardsFromDeck(1);
@@ -2299,8 +2314,10 @@
           player.hand.push(card);
         }
       }
-      player.discard = player.discard.concat(player.setAside);
-      return player.setAside = [];
+      discards = player.setAside;
+      player.discard = player.discard.concat(discards);
+      player.setAside = [];
+      return state.handleDiscards(state.current, discards);
     }
   });
   makeCard("Lookout", action, {
@@ -2314,12 +2331,13 @@
       trash = state.current.ai.choose('trash', state, drawn);
       if (trash !== null) {
         state.log("...trashing " + trash + ".");
-        state.current.setAside.remove(trash);
+        transferCard(trash, state.current.setAside, state.trash);
       }
       discard = state.current.ai.choose('discard', state, drawn);
       if (discard !== null) {
         transferCard(discard, state.current.setAside, state.current.discard);
         state.log("...discarding " + discard + ".");
+        state.handleDiscards(state.current, [discard]);
       }
       state.log("...putting " + drawn + " back on the deck.");
       state.current.draw = state.current.setAside.concat(state.current.draw);
@@ -2333,7 +2351,7 @@
       var putBack;
       if (state.current.hand.length > 0) {
         putBack = state.current.ai.choose('putOnDeck', state, state.current.hand);
-        return state.current.doPutOnDeck(putBack);
+        return state.doPutOnDeck(state.current, putBack);
       }
     },
     gainEffect: function(state, player) {
@@ -2402,7 +2420,7 @@
       inPlay = state.current.inPlay;
       _results = [];
       for (i = _ref = inPlay.length - 1; _ref <= -1 ? i < -1 : i > -1; _ref <= -1 ? i++ : i--) {
-        _results.push(inPlay[i].isTreasure ? (state.log("...trashing a " + inPlay[i] + "."), inPlay.splice(i, 1)) : void 0);
+        _results.push(inPlay[i].isTreasure ? (state.log("...trashing a " + inPlay[i] + "."), state.trash.push(inPlay[i]), inPlay.splice(i, 1)) : void 0);
       }
       return _results;
     },
@@ -2435,7 +2453,7 @@
     playEffect: function(state) {
       var _ref;
       if (_ref = c.Copper, __indexOf.call(state.current.hand, _ref) >= 0) {
-        state.current.doTrash(c.Copper);
+        state.doTrash(state.current, c.Copper);
         return state.current.coins += 3;
       }
     }
@@ -2470,7 +2488,8 @@
         return state.current.draw = order.concat(state.current.draw);
       } else {
         state.log("...discarding " + drawn + ".");
-        return Array.prototype.push.apply(state.current.discard, drawn);
+        Array.prototype.push.apply(state.current.discard, drawn);
+        return state.handleDiscards(state.current, drawn);
       }
     }
   });
@@ -2596,7 +2615,7 @@
       if (_ref3 = c.Province, __indexOf.call(state.current.hand, _ref3) >= 0) {
         discardProvince = state.current.ai.choose('tournamentDiscard', state, [true, false]);
         if (discardProvince) {
-          state.current.doDiscard(c.Province);
+          state.doDiscard(state.current, c.Province);
           choices = state.prizes.slice(0);
           if (state.supply[c.Duchy] > 0) {
             choices.push(c.Duchy);
@@ -2635,12 +2654,12 @@
       var num, numGolds, trashedMaps, _ref, _ref2;
       trashedMaps = 0;
       if (_ref = c['Treasure Map'], __indexOf.call(state.current.inPlay, _ref) >= 0) {
-        state.current.inPlay.remove(c['Treasure Map']);
         state.log("...trashing the Treasure Map.");
+        transferCard(c['Treasure Map'], state.current.inPlay, state.trash);
         trashedMaps += 1;
       }
       if (_ref2 = c['Treasure Map'], __indexOf.call(state.current.hand, _ref2) >= 0) {
-        state.current.doTrash(c['Treasure Map']);
+        state.doTrash(state.current, c['Treasure Map']);
         state.log("...and trashing another Treasure Map.");
         trashedMaps += 1;
       }
@@ -2674,7 +2693,7 @@
     cost: 5,
     playEffect: function(state) {
       var card, revealedCards, unique, _i, _j, _len, _len2, _results;
-      revealedCards = state.players[1].discardFromDeck(2);
+      revealedCards = state.discardFromDeck(state.players[1], 2);
       unique = [];
       for (_i = 0, _len = revealedCards.length; _i < _len; _i++) {
         card = revealedCards[_i];
@@ -2759,7 +2778,7 @@
       source = player[player.gainLocation];
       if (player.ai.chooseTrash(state, [card, null]) === card) {
         state.log("" + player.ai + " reveals a Watchtower and trashes the " + card + ".");
-        source.remove(card);
+        transferCard(card, source, state.trash);
         return player.gainLocation = 'trash';
       } else if (player.ai.choose('gainOnDeck', state, [card, null])) {
         state.log("" + player.ai + " reveals a Watchtower and puts the " + card + " on the deck.");
@@ -2827,7 +2846,7 @@
     return toList.unshift(card);
   };
   applyBenefit = function(state, benefit) {
-    var i;
+    var discards, i;
     state.log("" + state.current.ai + " chooses " + (JSON.stringify(benefit)) + ".");
     if (benefit.cards != null) {
       state.drawCards(state.current, benefit.cards);
@@ -2848,8 +2867,10 @@
       for (i = 0; i < 4; i++) {
         state.gainCard(state.current, c.Silver);
       }
-      state.current.discard = state.current.discard.concat(state.current.draw);
-      return state.current.draw = [];
+      discards = state.current.draw;
+      state.current.discard = state.current.discard.concat(discards);
+      state.current.draw = [];
+      return state.handleDiscards(state.current, discards);
     }
   };
   upgradeChoices = function(state, cards, filter) {
@@ -3121,13 +3142,6 @@
       this.log("" + this.ai + " draws " + drawn.length + " cards (" + drawn + ").");
       return drawn;
     };
-    PlayerState.prototype.discardFromDeck = function(nCards) {
-      var drawn;
-      drawn = this.getCardsFromDeck(nCards);
-      this.discard = this.discard.concat(drawn);
-      this.log("" + this.ai + " draws and discards " + drawn.length + " cards (" + drawn + ").");
-      return drawn;
-    };
     PlayerState.prototype.getCardsFromDeck = function(nCards) {
       var diff, drawn;
       if (this.draw.length < nCards) {
@@ -3183,31 +3197,17 @@
       }
       return foundCards;
     };
+    PlayerState.prototype.discardFromDeck = function(nCards) {
+      throw new Error("discardFromDeck is done by the state now");
+    };
     PlayerState.prototype.doDiscard = function(card) {
-      if (__indexOf.call(this.hand, card) < 0) {
-        this.warn("" + this.ai + " has no " + card + " to discard");
-        return;
-      }
-      this.log("" + this.ai + " discards " + card + ".");
-      this.hand.remove(card);
-      return this.discard.push(card);
+      throw new Error("doDiscard is done by the state now");
     };
     PlayerState.prototype.doTrash = function(card) {
-      if (__indexOf.call(this.hand, card) < 0) {
-        this.warn("" + this.ai + " has no " + card + " to trash");
-        return;
-      }
-      this.log("" + this.ai + " trashes " + card + ".");
-      return this.hand.remove(card);
+      throw new Error("doTrash is done by the state now");
     };
     PlayerState.prototype.doPutOnDeck = function(card) {
-      if (__indexOf.call(this.hand, card) < 0) {
-        this.warn("" + this.ai + " has no " + card + " to put on deck.");
-        return;
-      }
-      this.log("" + this.ai + " puts " + card + " on deck.");
-      this.hand.remove(card);
-      return this.draw.unshift(card);
+      throw new Error("doPutOnDeck is done by the state now");
     };
     PlayerState.prototype.shuffle = function() {
       this.log("(" + this.ai + " shuffles.)");
@@ -3281,6 +3281,7 @@
       this.nPlayers = this.players.length;
       this.current = this.players[0];
       this.supply = this.makeSupply(tableau);
+      this.trash = [];
       this.prizes = [c["Bag of Gold"], c.Diadem, c.Followers, c.Princess, c["Trusty Steed"]];
       this.tradeRouteMat = [];
       this.tradeRouteValue = 0;
@@ -3292,6 +3293,7 @@
       this.extraturn = false;
       this.cache = {};
       this.depth = 0;
+      this.totalCards = this.countTotalCards();
       return this;
     };
     State.prototype.makeSupply = function(tableau) {
@@ -3425,6 +3427,23 @@
         }
       }
       return choices;
+    };
+    State.prototype.countTotalCards = function() {
+      var card, count, player, total, _i, _len, _ref2, _ref3;
+      total = 0;
+      _ref2 = this.players;
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        player = _ref2[_i];
+        total += player.numCardsInDeck();
+      }
+      _ref3 = this.supply;
+      for (card in _ref3) {
+        count = _ref3[card];
+        total += count;
+      }
+      total += this.trash.length;
+      total += this.prizes.length;
+      return total;
     };
     State.prototype.doPlay = function() {
       switch (this.phase) {
@@ -3635,9 +3654,12 @@
         this.log("" + this.current.ai + " takes an extra turn from Outpost.");
       }
       if (!(_ref5 = c.Outpost, __indexOf.call(this.current.duration, _ref5) >= 0)) {
-        return this.current.drawCards(5);
+        this.current.drawCards(5);
       } else {
-        return this.current.drawCards(3);
+        this.current.drawCards(3);
+      }
+      if (this.countTotalCards() !== this.totalCards) {
+        throw new Error("The game started with " + this.totalCards + " cards; now there are " + (this.countTotalCards()));
       }
     };
     State.prototype.rotatePlayer = function() {
@@ -3646,7 +3668,7 @@
       return this.phase = 'start';
     };
     State.prototype.gainCard = function(player, card, gainLocation, suppressMessage) {
-      var cardInPlay, i, location, opp, reactCard, _i, _len, _ref2, _ref3, _ref4, _ref5;
+      var location;
       if (gainLocation == null) {
         gainLocation = 'discard';
       }
@@ -3661,42 +3683,49 @@
         if (!suppressMessage) {
           this.log("" + player.ai + " gains " + card + ".");
         }
-        player.gainLocation = gainLocation;
-        location = player[player.gainLocation];
+        location = player[gainLocation];
         location.unshift(card);
         if (__indexOf.call(this.prizes, card) >= 0) {
           this.prizes.remove(card);
         } else {
           this.supply[card] -= 1;
         }
-        if ((this.supply["Trade Route"] != null) && card.isVictory && __indexOf.call(this.tradeRouteMat, card) < 0) {
-          this.tradeRouteMat.push(card);
-          this.tradeRouteValue += 1;
-        }
-        for (i = _ref2 = player.inPlay.length - 1; _ref2 <= -1 ? i < -1 : i > -1; _ref2 <= -1 ? i++ : i--) {
-          cardInPlay = player.inPlay[i];
-          cardInPlay.gainInPlayEffect(this, card);
-        }
-        for (i = _ref3 = player.hand.length - 1; _ref3 <= -1 ? i < -1 : i > -1; _ref3 <= -1 ? i++ : i--) {
-          reactCard = player.hand[i];
-          if (reactCard.isReaction) {
-            reactCard.reactToGain(this, player, card);
-          }
-        }
-        _ref4 = this.players.slice(1);
-        for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
-          opp = _ref4[_i];
-          for (i = _ref5 = opp.hand.length - 1; _ref5 <= -1 ? i < -1 : i > -1; _ref5 <= -1 ? i++ : i--) {
-            reactCard = opp.hand[i];
-            if (reactCard.isReaction) {
-              reactCard.reactToOpponentGain(this, opp, player, card);
-            }
-          }
-        }
-        return card.onGain(this, player);
+        return this.handleGainCard(player, card, gainLocation);
       } else {
         return this.log("There is no " + card + " to gain.");
       }
+    };
+    State.prototype.handleGainCard = function(player, card, gainLocation) {
+      var cardInPlay, i, opp, reactCard, _i, _len, _ref2, _ref3, _ref4, _ref5;
+      if (gainLocation == null) {
+        gainLocation = 'discard';
+      }
+      player.gainLocation = gainLocation;
+      if ((this.supply["Trade Route"] != null) && card.isVictory && __indexOf.call(this.tradeRouteMat, card) < 0) {
+        this.tradeRouteMat.push(card);
+        this.tradeRouteValue += 1;
+      }
+      for (i = _ref2 = player.inPlay.length - 1; _ref2 <= -1 ? i < -1 : i > -1; _ref2 <= -1 ? i++ : i--) {
+        cardInPlay = player.inPlay[i];
+        cardInPlay.gainInPlayEffect(this, card);
+      }
+      for (i = _ref3 = player.hand.length - 1; _ref3 <= -1 ? i < -1 : i > -1; _ref3 <= -1 ? i++ : i--) {
+        reactCard = player.hand[i];
+        if (reactCard.isReaction) {
+          reactCard.reactToGain(this, player, card);
+        }
+      }
+      _ref4 = this.players.slice(1);
+      for (_i = 0, _len = _ref4.length; _i < _len; _i++) {
+        opp = _ref4[_i];
+        for (i = _ref5 = opp.hand.length - 1; _ref5 <= -1 ? i < -1 : i > -1; _ref5 <= -1 ? i++ : i--) {
+          reactCard = opp.hand[i];
+          if (reactCard.isReaction) {
+            reactCard.reactToOpponentGain(this, opp, player, card);
+          }
+        }
+      }
+      return card.onGain(this, player);
     };
     State.prototype.revealHand = function(player) {
       return this.log("" + player.ai + " reveals the hand (" + player.hand + ").");
@@ -3704,8 +3733,50 @@
     State.prototype.drawCards = function(player, num) {
       return player.drawCards(num);
     };
-    State.prototype.discardFromDeck = function(player, num) {
-      return player.discardFromDeck(num);
+    State.prototype.discardFromDeck = function(player, nCards) {
+      var drawn;
+      drawn = player.getCardsFromDeck(nCards);
+      player.discard = player.discard.concat(drawn);
+      this.log("" + player.ai + " draws and discards " + drawn.length + " cards (" + drawn + ").");
+      this.handleDiscards(player, drawn);
+      return drawn;
+    };
+    State.prototype.doDiscard = function(player, card) {
+      if (__indexOf.call(player.hand, card) < 0) {
+        this.warn("" + player.ai + " has no " + card + " to discard");
+        return;
+      }
+      this.log("" + player.ai + " discards " + card + ".");
+      player.hand.remove(card);
+      player.discard.push(card);
+      return this.handleDiscards(player, [card]);
+    };
+    State.prototype.handleDiscards = function(player, cards) {
+      var card, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = cards.length; _i < _len; _i++) {
+        card = cards[_i];
+        _results.push(card.isReaction ? card.reactToDiscard(this, player) : void 0);
+      }
+      return _results;
+    };
+    State.prototype.doTrash = function(player, card) {
+      if (__indexOf.call(player.hand, card) < 0) {
+        this.warn("" + player.ai + " has no " + card + " to trash");
+        return;
+      }
+      this.log("" + player.ai + " trashes " + card + ".");
+      player.hand.remove(card);
+      return this.trash.push(card);
+    };
+    State.prototype.doPutOnDeck = function(player, card) {
+      if (__indexOf.call(player.hand, card) < 0) {
+        this.warn("" + player.ai + " has no " + card + " to put on deck.");
+        return;
+      }
+      this.log("" + player.ai + " puts " + card + " on deck.");
+      player.hand.remove(card);
+      return player.draw.unshift(card);
     };
     State.prototype.getCardsFromDeck = function(player, num) {
       return player.getCardsFromDeck(num);
@@ -3721,7 +3792,7 @@
           return discarded;
         }
         discarded.push(choice);
-        player.doDiscard(choice);
+        this.doDiscard(player, choice);
       }
       return discarded;
     };
@@ -3735,7 +3806,7 @@
         }
         choice = player.ai.chooseDiscard(this, validDiscards);
         discarded.push(choice);
-        player.doDiscard(choice);
+        this.doDiscard(player, choice);
       }
       return discarded;
     };
@@ -3750,7 +3821,7 @@
           return trashed;
         }
         trashed.push(choice);
-        player.doTrash(choice);
+        this.doTrash(player, choice);
       }
       return trashed;
     };
@@ -3764,7 +3835,7 @@
         }
         choice = player.ai.chooseTrash(this, valid);
         trashed.push(choice);
-        player.doTrash(choice);
+        this.doTrash(player, choice);
       }
       return trashed;
     };
@@ -3827,6 +3898,7 @@
       }
       newState.players = newPlayers;
       newState.supply = newSupply;
+      newState.trash = this.trash.slice(0);
       newState.current = newPlayers[0];
       newState.nPlayers = this.nPlayers;
       newState.tradeRouteMat = this.tradeRouteMat.slice(0);
