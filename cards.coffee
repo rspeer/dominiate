@@ -455,6 +455,7 @@ makeCard 'Cache', c.Gold, {
 }
 
 makeCard "Fool's Gold", c.Silver, {
+  isReaction: true
   cost: 2
   coins: 1
   
