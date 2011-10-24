@@ -996,6 +996,48 @@ makeCard "Mountebank", attack, {
         state.gainCard(opp, c.Curse)
 }
 
+# Because attacking on buy does not count as playing an Attack, Noble Brigand's
+# buyEffect and playEffect cannot directly borrow from each other: the buyEffect
+# should not be blockable by Moat, so it cannot just call the playEffect, and
+# stat.attackOpponents needs an opp parameter, but buyEffect does not have an opp
+# parameter. So a third method is defined which takes both the state and opp as
+# parameters, and is accessed by both the buyEffect and the playEffect.
+makeCard 'Noble Brigand', attack, {
+  cost: 4
+  coins: +1
+  
+  buyEffect: (state) ->
+    for opp in state.players[1..]
+      c['Noble Brigand'].robTheRich(state, opp)
+    
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      c['Noble Brigand'].robTheRich(state, opp)
+      
+  robTheRich: (state, opp) ->
+    drawn = opp.getCardsFromDeck(2)
+    state.log("...#{opp.ai} reveals #{drawn}.")
+    silversAndGolds = []
+    gainCopper = true
+    for card in drawn
+      if card.isTreasure
+        gainCopper = false
+        if card is c.Gold or card is c.Silver
+          silversAndGolds.push(card)
+    treasureToTrash = state.current.ai.choose('trashOppTreasure', state, silversAndGolds)
+    if treasureToTrash
+      state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
+      transferCard(treasureToTrash, drawn, state.trash)
+      transferCard(treasureToTrash, state.trash, state.current.discard)
+      state.handleGainCard(state.current, treasureToTrash, 'discard')
+      state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
+    if gainCopper
+      state.gainCard(opp, c.Copper)
+    opp.discard = opp.discard.concat(drawn)
+    state.handleDiscards(opp, [drawn])
+    state.log("...#{opp.ai} discards #{drawn}.")     
+}
+
 makeCard 'Pirate Ship', attack, {
   cost: 4
 
