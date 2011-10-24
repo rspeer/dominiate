@@ -107,7 +107,7 @@ basicCard = {
   getCoins: (state) -> this.coins
   getBuys: (state) -> this.buys
   getTrash: (state) -> this.trash
-  getVP: (state) -> this.vp
+  getVP: (player) -> this.vp
   
   # getPotion says whether the card provides a potion. There is only one
   # card for which this is true, which is Potion.
@@ -312,14 +312,14 @@ makeCard 'Bazaar', action, {
 
 makeCard 'Duke', c.Estate, {
   cost: 5
-  getVP: (state) -> state.current.countInDeck('Duchy')
+  getVP: (player) -> player.countInDeck('Duchy')
 }
 
 makeCard 'Fairgrounds', c.Estate, {
   cost: 6
-  getVP: (state) ->
+  getVP: (player) ->
     unique = []
-    deck = state.current.getDeck()
+    deck = player.getDeck()
     for card in deck
       if card not in unique
         unique.push(card)
@@ -347,7 +347,7 @@ makeCard 'Farmland', c.Estate, {
 
 makeCard 'Gardens', c.Estate, {
   cost: 4
-  getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
+  getVP: (player) -> Math.floor(player.getDeck().length / 10)
 }
 
 makeCard 'Great Hall', c.Estate, {
@@ -405,7 +405,7 @@ makeCard 'Nobles', c.Estate, {
 
 makeCard 'Silk Road', c.Estate, {
   cost: 4
-  getVP: (state) -> Math.floor(state.current.countCardTypeInDeck('Victory') / 4)
+  getVP: (player) -> Math.floor(player.countCardTypeInDeck('Victory') / 4)
 }
 
 # Revealing Tunnel for Gold as it is discarded is automatic.
@@ -424,7 +424,7 @@ makeCard 'Tunnel', c.Estate, {
 makeCard 'Vineyard', c.Estate, {
   cost: 0
   costPotion: 1
-  getVP: (state) -> Math.floor(state.current.numActionCardsInDeck() / 3)
+  getVP: (player) -> Math.floor(player.numActionCardsInDeck() / 3)
 }
 
 # Kingdom Treasure cards
