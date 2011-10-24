@@ -80,6 +80,7 @@ basicCard = {
   getCost: (state) ->
     coins = this.costInCoins(state)
     coins -= state.bridges
+    coins -= state.highways
     coins -= state.princesses * 2
     if this.isAction
       coins -= state.quarries * 2
@@ -929,6 +930,7 @@ makeCard 'Fortune Teller', attack, {
 }
 
 # Goons: *see Militia*
+
 makeCard 'Jester', attack, {
   cost: 5
   coins: +2
@@ -943,6 +945,17 @@ makeCard 'Jester', attack, {
           state.gainCard(state.current, card)
         else
           state.gainCard(opp, card)
+}
+
+makeCard 'Margrave', attack, {
+  cost: 5
+  cards: +3
+  buys: +1
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      state.drawCards(opp, 1)
+      if opp.hand.length > 3
+        state.requireDiscard(opp, opp.hand.length - 3)
 }
 
 makeCard "Militia", attack, {
@@ -1339,6 +1352,18 @@ makeCard 'Cutpurse', action, {
           state.revealHand(opp)
 }
 
+makeCard 'Embassy', action, {
+  cost: 5
+  cards: +5
+  playEffect: (state) ->
+    state.requireDiscard(state.current, 3)
+    
+  gainEffect: (state, player) ->
+    for pl in state.players
+      if pl isnt player
+        state.gainCard(pl, c.Silver)
+}
+
 makeCard 'Explorer', action, {
   cost: 5
 
@@ -1448,6 +1473,19 @@ makeCard "Herbalist", action, {
       state.log("#{state.current.ai} uses Herbalist to put #{choice} back on the deck.")
       transferCardToTop(choice, state.current.inPlay, state.current.draw)
       
+}
+
+makeCard "Highway", action, {
+  cost: 5
+  cards: +1
+  actions: +1
+  
+  playEffect: (state) ->
+    highways = 0
+    for card in state.current.inPlay
+      if card.name is "Highway"
+        highways++
+    state.highways = highways
 }
 
 makeCard "Horse Traders", action, {
