@@ -127,7 +127,7 @@ class PlayerState
   getVP: (state) ->
     total = @chips
     for card in this.getDeck()
-      total += card.getVP(state, this)
+      total += card.getVP(this)
     total
   
   # `getTotalMoney()` adds up the total money in the player's deck,
