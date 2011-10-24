@@ -1340,20 +1340,6 @@ makeCard 'Crossroads', action, {
     state.drawCards(state.current, nVictory)
 }
 
-makeCard 'Cutpurse', action, {
-  cost: 4
-  coins: +2
-  isAttack: true
-
-  playEffect: (state) ->
-      state.attackOpponents (opp) ->
-        if c.Copper in opp.hand
-          opp.doDiscard(c.Copper)
-        else
-          state.log("#{opp.ai} has no Copper in hand.")
-          state.revealHand(opp)
-}
-
 makeCard 'Embassy', action, {
   cost: 5
   cards: +5
