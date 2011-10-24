@@ -446,15 +446,16 @@ makeCard 'Bank', treasure, {
     state.log("...which is worth #{this.getCoins(state)}.")
 }
 
-makeCard 'Cache', c.Gold, {
+makeCard 'Cache', treasure, {
   cost: 5
+  coins: 3
   
   gainEffect: (state) ->
     state.gainCard(state.current, c.Copper)
     state.gainCard(state.current, c.Copper)
 }
 
-makeCard "Fool's Gold", c.Silver, {
+makeCard "Fool's Gold", treasure, {
   isReaction: true
   cost: 2
   coins: 1
@@ -498,12 +499,12 @@ makeCard "Horn of Plenty", treasure, {
       state.log("...#{state.current.ai} trashes the Horn of Plenty.")
 }
 
-makeCard 'Ill-Gotten Gains', c.Silver, {
+makeCard 'Ill-Gotten Gains', treasure, {
   cost: 5
   coins: 1
   playEffect: (state) -> 
     if state.current.ai.choose('gainCopper', state, [yes, no])
-      state.current.gainCard(c.Copper)
+      state.gainCard(state.current, c.Copper, 'hand')
   
   gainEffect: (state) ->
     # For each player but the current: gain a curse.
