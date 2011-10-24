@@ -448,6 +448,7 @@ class State
     @tradeRouteValue = 0
 
     @bridges = 0
+    @highways = 0
     @princesses = 0
     @quarries = 0
     @copperValue = 1
@@ -822,6 +823,7 @@ class State
     @current.mayReturnTreasury = yes
     @copperValue = 1
     @bridges = 0
+    @highways = 0
     @princesses = 0
     @quarries = 0
 
@@ -1059,6 +1061,7 @@ class State
     newState.tradeRouteMat = @tradeRouteMat.slice(0)
     newState.tradeRouteValue = @tradeRouteValue
     newState.bridges = @bridges
+    newState.highways = @highways
     newState.princesses = @princesses
     newState.quarries = @quarries
     newState.copperValue = @copperValue
