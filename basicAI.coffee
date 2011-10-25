@@ -220,14 +220,18 @@ class BasicAI
     "Treasury"
     "Conspirator" if my.inPlay.length >= 2
     "Familiar"
+    "Highway"
     "Wishing Well"
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Lighthouse"
     "Haven"
     # Fifth priority: terminal card-drawers, if we have actions to spare.
     "Library" if my.actions > 1 and my.hand.length <= 4
+    "Torturer" if my.actions > 1
+    "Margrave" if my.actions > 1
     "Rabble" if my.actions > 1
     "Smithy" if my.actions > 1
+    "Embassy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
@@ -254,6 +258,7 @@ class BasicAI
     "Mountebank"
     "Witch"
     "Torturer"
+    "Margrave"
     "Sea Hag"
     "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
     "Goons"
@@ -280,6 +285,7 @@ class BasicAI
     "Library" if my.hand.length <= 4
     "Rabble"
     "Smithy"
+    "Embassy"
     "Watchtower" if my.hand.length <= 3
     "Council Room"
     "Library" if my.hand.length <= 5
@@ -308,6 +314,7 @@ class BasicAI
     "Trade Route" if wantsToTrash
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
+    "Noble Brigand"
     "Thief"
     "Fortune Teller"
     "Bureaucrat"
@@ -624,7 +631,7 @@ class BasicAI
   # it's nearing the endgame (5 gains or less), there is one FG in hand,
   # and losing it will not change its buy.
   foolsGoldTrashPriority: (state, my) ->
-    if my.countInHand(c["Fool's Gold"]) == 1 and my.ai.coinLossMargin(state) >= 1
+    if my.countInHand(state.cardInfo["Fool's Gold"]) == 1 and my.ai.coinLossMargin(state) >= 1
       [yes]
     else
       [no]
@@ -782,7 +789,7 @@ class BasicAI
     c = state.cardInfo
     value = card.getCoins(state)
     if card.isTreasure
-      banks = state.current.countInHand(c.Bank)
+      banks = state.current.countInHand(state.cardInfo.Bank)
       value += banks
       if card is state.cardInfo.Bank
         nonbanks = (aCard for aCard in state.current.hand when aCard.isTreasure).length
