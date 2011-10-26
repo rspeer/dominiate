@@ -385,6 +385,7 @@ class PlayerState
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
     other.actionStack = @actionStack.slice(0)
+    other.actionsPlayed = @actionsPlayed
     other.tacticians = @tacticians
     other.crossroadsPlayed = @crossroadsPlayed
     other.ai = @ai
@@ -688,6 +689,7 @@ class State
   # should skip straight to `resolveAction`.
   resolveAction: (action) ->
     @current.actionStack.push(action)
+    @current.actionsPlayed += 1
     action.onPlay(this)
     @current.actionStack.pop()
   
@@ -835,6 +837,7 @@ class State
     @current.potions = 0
     @current.tacticians = 0
     @current.crossroadsPlayed = 0
+    @current.actionsPlayed = 0
     @current.foolsGoldInPlay = no
     @current.mayReturnTreasury = yes
     @copperValue = 1

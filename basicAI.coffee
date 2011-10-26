@@ -183,26 +183,48 @@ class BasicAI
   
   # The default action-playing strategy, which aims to include a usable plan
   # for playing every action card, so that most AIs don't need to override it.
-  actionPriority: (state, my) -> 
-    wantsToTrash = my.ai.wantsToTrash(state)
+  actionPriority: (state, my, skipMultipliers = false) -> 
+    wantsToTrash = this.wantsToTrash(state)
     countInHandCopper = my.countInHand("Copper")
+    currentAction = my.getCurrentAction()
+    multiplier = 1
+    if currentAction?.isMultiplier
+      multiplier = currentAction.multiplier
     
-    # First priority: cards that succeed if we play them now, and might
+    wantsToPlayMultiplier = false
+    unless skipMultipliers
+      mults = (card for card in my.hand when card.isMultiplier)
+      if mults.length > 0
+        # We've got a multiplier in hand. Figure out if we want to play it.
+        mult = mults[0]
+        choices = my.hand.slice(0)
+        choices.remove(mult)
+        if choices.length > 1
+          choices.push("wait")
+        choices.push(null)
+        choice = this.choose('multipliedAction', state, choices)
+        if choice != "wait"
+          state.log("   Going to play a #{mult}, multiplying #{choice}")
+          wantsToPlayMultiplier = true
+
+    # Priority 1: cards that succeed if we play them now, and might
     # not if we play them later.
     ["Menagerie" if my.menagerieDraws() == 3
     "Shanty Town" if my.shantyTownDraws(true) == 2
     "Tournament" if my.countInHand("Province") > 0
     
-    # Multipliers go here for now.
-    "King's Court"
-    "Throne Room"
+    # 2: Multipliers that do something sufficiently cool.
+    "Throne Room" if wantsToPlayMultiplier and my.countInHand("King's Court") > 0
+    "King's Court" if wantsToPlayMultiplier
+    "Throne Room" if wantsToPlayMultiplier
 
-    # Second priority: cards that stack the deck.
+    # 3: cards that stack the deck.
     "Lookout" if state.gainsToEndGame() >= 5 or state.cardInfo.Curse in my.draw
     "Bag of Gold"
     "Apothecary"
     "Scout"
-    # Third priority: cards that give +2 actions.
+
+    # 4: cards that give +2 actions.
     "Trusty Steed"
     "Festival"
     "University"
@@ -214,7 +236,8 @@ class BasicAI
     "Fishing Village"
     "Village"
     "Border Village"
-    # Fourth priority: cards that give +1 action and are almost always good.
+
+    # 5: cards that give +1 action and are almost always good.
     "Grand Market"
     "Hunting Party"
     "Alchemist"
@@ -223,14 +246,15 @@ class BasicAI
     "Market"
     "Peddler"
     "Treasury"
-    "Conspirator" if my.inPlay.length >= 2
+    "Conspirator" if my.inPlay.length >= 2 or multiplier > 1
     "Familiar"
     "Highway"
     "Wishing Well"
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Lighthouse"
     "Haven"
-    # Fifth priority: terminal card-drawers, if we have actions to spare.
+
+    # 6: terminal card-drawers, if we have actions to spare.
     "Library" if my.actions > 1 and my.hand.length <= 4
     "Torturer" if my.actions > 1
     "Margrave" if my.actions > 1
@@ -240,21 +264,27 @@ class BasicAI
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
-    # 5.5: Let's insert here an overly simplistic idea of how to play Crossroads.
+
+    # 7: Let's insert here an overly simplistic idea of how to play Crossroads.
+    # Or if we don't have a Crossroads, play a Great Hall that we might otherwise
+    # have played in priority level 5.
     "Crossroads" unless my.crossroadsPlayed
     "Great Hall"
-    # Sixth priority: card-cycling that might improve the hand.
-    "Upgrade" if wantsToTrash
+
+    # 8: card-cycling that might improve the hand.
+    "Upgrade" if wantsToTrash >= multiplier
     "Pawn"
     "Warehouse"
     "Cellar"
     "Library" if my.actions > 1 and my.hand.length <= 6
-    # Seventh priority: non-terminal cards that don't succeed but at least
+
+    # 9: non-terminal cards that don't succeed but at least
     # give us something.
     "Tournament"
     "Menagerie"
     "Shanty Town" if my.actions < 2
-    # Seventh priority: terminals. Of course, Nobles might be a non-terminal
+
+    # 10: terminals. Of course, Nobles might be a non-terminal
     # if we decide we need the actions more than the cards.
     "Crossroads"
     "Nobles"
@@ -310,13 +340,10 @@ class BasicAI
     "Coppersmith" if countInHandCopper >= 2
     "Outpost" if state.extraturn == false
     # Play an Ambassador if our hand has something we'd want to discard.
-    #
-    # Here the AI has to refer to itself indirectly, as `my.ai`. `this`
-    # actually has the wrong value right now because JavaScript is weird.
     "Ambassador" if wantsToTrash
-    "Trading Post" if wantsToTrash + my.countInHand("Silver") >= 2
+    "Trading Post" if wantsToTrash + my.countInHand("Silver") >= 2 * multiplier
     "Chapel" if wantsToTrash
-    "Trade Route" if wantsToTrash
+    "Trade Route" if wantsToTrash >= multiplier
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
     "Noble Brigand"
@@ -336,14 +363,17 @@ class BasicAI
     "Coppersmith"
     "Saboteur"
     "Library" if my.hand.length <= 7
-    # Eighth priority: cards that have become useless. Maybe they'll decrease
+
+    # 11: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler, trigger Conspirator, or something.
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Shanty Town"
     "Chapel"
     "Library"
-    # Ninth priority: Conspirator when +actions remain.
+
+    # 12: Conspirator when +actions remain.
     "Conspirator"
+
     # At this point, we take no action if that choice is available.
     null
     # Nope, something is forcing us to take an action.
@@ -356,10 +386,54 @@ class BasicAI
     "Ambassador"
   ]
   
-  # For now, play multiplied actions the same way as normal ones. This is
-  # a bad choice.
-  multipliedActionPriority: (state, my) -> 
-    this.actionPriority(state, my)
+  multipliedActionPriority: (state, my) ->
+    [
+      "King's Court"
+      "Throne Room"
+      "Followers" if my.actions > 1
+      "Grand Market"
+      "Mountebank"
+      "Witch" if my.actions > 1 and state.countInSupply("Curse") >= 2
+      "Sea Hag" if my.actions > 1 and state.countInSupply("Curse") >= 2
+      "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 1)
+      "Torturer" if my.actions > 1 and state.countInSupply("Curse") >= 2
+      "Margrave" if my.actions > 1
+      "Wharf" if my.actions > 1
+      "Bridge" if my.actions > 1
+      "Jester" if my.actions > 1
+      "Horse Traders" if my.actions > 1
+      "Mandarin" if my.actions > 1
+      "Rabble" if my.actions > 1
+      "Council Room" if my.actions > 1
+      "Smithy" if my.actions > 1
+      "Embassy" if my.actions > 1
+      "Merchant Ship" if my.actions > 1
+      "Pirate Ship" if my.actions > 1
+      "Saboteur" if my.actions > 1
+      "Noble Brigand" if my.actions > 1
+      "Thief" if my.actions > 1
+      "Monument" if my.actions > 1
+      "Conspirator"
+      "Feast" if my.actions > 1
+      "Nobles"
+      "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
+      "Steward" if my.actions > 1
+      "Goons" if my.actions > 1
+      "Mine" if my.actions > 1
+      "Masquerade" if my.actions > 1
+      "Vault" if my.actions > 1
+      "Cutpurse" if my.actions > 1
+      "Coppersmith" if my.actions > 1 and my.countInHand("Copper") >= 2
+      "Woodcutter" if my.actions > 1
+      "Nomad Camp" if my.actions > 1
+      "Ambassador" if my.actions > 1 and this.wantsToTrash(state)
+      "wait"
+      # We could add here some more cards that would be nice to play with a
+      # multiplier. Nicer than Lookout, let's say, which appears pretty high
+      # on the regular action priority list.
+      #
+      # But at this point, just fall back on that priority list.
+    ].concat(this.actionPriority(state, my, skipMultipliers=true))
   
   # Most of the order of `treasurePriority` has no effect on gameplay. The
   # important part is that Bank and Horn of Plenty are last.
@@ -825,7 +899,7 @@ class BasicAI
     loop
       counter++
       if counter >= 100
-        throw Error("got stuck in a loop")
+        throw new Error("got stuck in a loop")
       # Figure out whether we'd rather discard from hand1 or hand2.
       discard1 = this.choose('discard', state, hand1)
       value1 = this.choiceToValue('discard', state, discard1)
