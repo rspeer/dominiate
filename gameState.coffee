@@ -767,7 +767,11 @@ class State
       # Handle cards such as Talisman that respond to cards being bought.
       for i in [@current.inPlay.length-1...-1]
         cardInPlay = @current.inPlay[i]
-        cardInPlay.buyInPlayEffect(this, choice)
+        # If a Mandarin put cards back on the deck, this card may not be
+        # there anymore. This showed up in a fascinating interaction among
+        # Talisman, Quarry, Border Village, and Mandarin.
+        if cardInPlay?
+          cardInPlay.buyInPlayEffect(this, choice)
 
       # Gain victory for each Goons in play.
       goonses = @current.countInPlay('Goons')

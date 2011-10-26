@@ -171,7 +171,7 @@ basicCard = {
       state.drawCards(state.current, cardsToDraw)
     if cardsToTrash > 0
       state.requireTrash(state.current, cardsToTrash)
-    this.playEffect(state)
+    this.playEffect.bind(this)(state)
   
   # Similarly, these are other ways for the game state to interact
   # with the card. Cards should override the `Effect` methods, not these.
@@ -383,7 +383,7 @@ makeCard 'Island', c.Estate, {
     # Throne Room and King's Court
     if this in state.current.inPlay
       state.current.inPlay.remove(this)
-    state.current.mats.island.push(this)
+      state.current.mats.island.push(this)
 }
 
 makeCard 'Nobles', c.Estate, {
@@ -1610,6 +1610,7 @@ makeCard "King's Court", action, {
         transferCard(action, state.current.hand, state.current.inPlay)
 
         for i in [0...@multiplier]
+          return if action is null
           state.log("...playing #{action} (#{i+1} of #{@multiplier}).")
           state.resolveAction(action)
         

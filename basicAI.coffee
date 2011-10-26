@@ -390,43 +390,43 @@ class BasicAI
     [
       "King's Court"
       "Throne Room"
-      "Followers" if my.actions > 1
+      "Followers" if my.actions > 0
       "Grand Market"
       "Mountebank"
-      "Witch" if my.actions > 1 and state.countInSupply("Curse") >= 2
-      "Sea Hag" if my.actions > 1 and state.countInSupply("Curse") >= 2
-      "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 1)
-      "Torturer" if my.actions > 1 and state.countInSupply("Curse") >= 2
-      "Margrave" if my.actions > 1
-      "Wharf" if my.actions > 1
-      "Bridge" if my.actions > 1
-      "Jester" if my.actions > 1
-      "Horse Traders" if my.actions > 1
-      "Mandarin" if my.actions > 1
-      "Rabble" if my.actions > 1
-      "Council Room" if my.actions > 1
-      "Smithy" if my.actions > 1
-      "Embassy" if my.actions > 1
-      "Merchant Ship" if my.actions > 1
-      "Pirate Ship" if my.actions > 1
-      "Saboteur" if my.actions > 1
-      "Noble Brigand" if my.actions > 1
-      "Thief" if my.actions > 1
-      "Monument" if my.actions > 1
+      "Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
+      "Sea Hag" if my.actions > 0 and state.countInSupply("Curse") >= 2
+      "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 0)
+      "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
+      "Margrave" if my.actions > 0
+      "Wharf" if my.actions > 0
+      "Bridge" if my.actions > 0
+      "Jester" if my.actions > 0
+      "Horse Traders" if my.actions > 0
+      "Mandarin" if my.actions > 0
+      "Rabble" if my.actions > 0
+      "Council Room" if my.actions > 0
+      "Smithy" if my.actions > 0
+      "Embassy" if my.actions > 0
+      "Merchant Ship" if my.actions > 0
+      "Pirate Ship" if my.actions > 0
+      "Saboteur" if my.actions > 0
+      "Noble Brigand" if my.actions > 0
+      "Thief" if my.actions > 0
+      "Monument" if my.actions > 0
       "Conspirator"
-      "Feast" if my.actions > 1
+      "Feast" if my.actions > 0
       "Nobles"
       "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
-      "Steward" if my.actions > 1
-      "Goons" if my.actions > 1
-      "Mine" if my.actions > 1
-      "Masquerade" if my.actions > 1
-      "Vault" if my.actions > 1
-      "Cutpurse" if my.actions > 1
-      "Coppersmith" if my.actions > 1 and my.countInHand("Copper") >= 2
-      "Woodcutter" if my.actions > 1
-      "Nomad Camp" if my.actions > 1
-      "Ambassador" if my.actions > 1 and this.wantsToTrash(state)
+      "Steward" if my.actions > 0
+      "Goons" if my.actions > 0
+      "Mine" if my.actions > 0
+      "Masquerade" if my.actions > 0
+      "Vault" if my.actions > 0
+      "Cutpurse" if my.actions > 0
+      "Coppersmith" if my.actions > 0 and my.countInHand("Copper") >= 2
+      "Woodcutter" if my.actions > 0
+      "Nomad Camp" if my.actions > 0
+      "Ambassador" if my.actions > 0 and this.wantsToTrash(state)
       "wait"
       # We could add here some more cards that would be nice to play with a
       # multiplier. Nicer than Lookout, let's say, which appears pretty high

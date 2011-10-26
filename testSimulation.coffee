@@ -42,7 +42,7 @@ this['2-player smoke test'] = (test) ->
   ais = (loadStrategy('strategies/SillyAI.coffee') for i in [1..2])
   noLog = (message) ->
   for i in [0...1000]
-    st = new gameState.State().initialize(ais, gameState.tableaux.all, noLog)
+    st = new gameState.State().initialize(ais, gameState.tableaux.all)
     until st.gameIsOver()
       st.doPlay()
   test.done()
