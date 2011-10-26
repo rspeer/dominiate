@@ -502,6 +502,7 @@ class BasicAI
     "Colony"
     "Duke"
     "Duchy"
+    "Fairgrounds"
     "Gardens"
     "Province"  # Provinces are occasionally useful in hand
     "Curse"
@@ -665,8 +666,11 @@ class BasicAI
       "Estate"
       "Copper"
       "Curse"
-      "Island"    
-    ]    
+      "Island"
+      "Tunnel"
+    ]
+  
+  islandValue: (state, card, my) -> this.discardValue(state, card, my)
   
   # Taking into account gain priorities, gain values, trash priorities, and
   # trash values, how much do we like having this card in our deck overall?
