@@ -1,4 +1,4 @@
-Cards that are done (128)
+Cards that are done (135)
 =========================
 Adventurer
 Alchemist
@@ -30,6 +30,7 @@ Cutpurse
 Diadem
 Duchy
 Duke
+Embassy
 Estate
 Expand
 Explorer
@@ -51,6 +52,7 @@ Great Hall
 Harem
 Haven
 Herbalist
+Highway
 Hoard
 Horn of Plenty
 Horse Traders
@@ -59,6 +61,7 @@ Ill-Gotten Gains
 Ironworks
 Island
 Jester
+King's Court
 Laboratory
 Library
 Lighthouse
@@ -66,6 +69,7 @@ Loan
 Lookout
 Mandarin
 Market
+Margrave
 Masquerade
 Menagerie
 Merchant Ship
@@ -77,6 +81,7 @@ Monument
 Moneylender
 Mountebank
 Navigator
+Noble Brigand
 Nobles
 Nomad Camp
 Outpost
@@ -105,6 +110,7 @@ Steward
 Tactician
 Talisman
 Thief
+Throne Room
 Torturer
 Tournament
 Trade Route
@@ -130,34 +136,19 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (40)
+Cards that still need to be coded (34)
 ======================================
-
-Hinterlands
------------
-Keeping these separate because we may have simply not thought about them enough.
-
-Cartographer (easy, just use discardValue and chooseOrderOnDeck)
-Develop (pretty easy because Remake and chooseOrderOnDeck are already defined)
-Duchess (moderate and weird: we should basically define it as a gainEffect on Duchy)
-Embassy (easy)
-Haggler (easy, just needs a buyInPlayEffect)
-Highway (easy, increment @bridges)
-Inn (moderate to hard; new complex decision)
-Jack of All Trades (moderately easy)
-Margrave (easy)
-Noble Brigand (easy, borrow from Thief)
-Oasis (easy)
-Oracle (moderate; same code as Spy)
-Scheme (moderate and awkward)
-Spice Merchant (moderate to hard: trash-for-benefit meets chooseBenefit)
-Stables (moderate; new decision)
-Trader (Reaction is moderately easy. Maybe it's best to consider this just a trasher, not a trash-for-benefit, because gaining gobs of Silver is rarely that much of a benefit.)
 
 Easy cards
 ----------
 These cards can probably be defined in terms of existing decisions.
 
+Cartographer (just use discardValue and chooseOrderOnDeck)
+Develop (easy because Remake and chooseOrderOnDeck are already defined)
+Haggler (just needs a buyInPlayEffect)
+Jack of All Trades
+Oasis
+Oracle
 Pearl Diver
 Spy
 Transmute
@@ -169,24 +160,28 @@ These generally require some decision-making code that doesn't exist yet.
 Apprentice
 Bishop
 Contraband
+Duchess (involves a gainEffect on Duchy)
 Embargo
 Envoy
 Forge
 Governor
 Hamlet
+Inn
 Mining Village
 Minion
 Native Village
 Salvager
 Scrying Pool
+Spice Merchant (trash-for-benefit meets chooseBenefit)
+Stables
 Swindler
+Trader (Reaction is moderately easy. Maybe it's best to consider this just a trasher, not a trash-for-benefit, because gaining gobs of Silver is rarely that much of a benefit.)
 
 Difficult cards
 ---------------
 In estimated order of difficulty:
 
-King's Court
-Throne Room
+Scheme (adds a new sub-phase to cleanup)
 Secret Chamber (avoid infinite loops)
 Young Witch (requires a well-defined Bane card)
 Stash (requires a decision mid-shuffle)
