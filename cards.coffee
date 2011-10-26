@@ -60,6 +60,7 @@ basicCard = {
   isReaction: false
   isDuration: false
   isPrize: false
+  isMultiplier: false
   
   # The **base cost** of a card is defined here. To find out what a card
   # *actually* costs, use the getCost() method.
@@ -1522,6 +1523,60 @@ makeCard 'Ironworks', action, {
       state.current.drawCards(1)
 }
 
+makeCard "King's Court", action, {
+  cost: 7
+  isMultiplier: true
+  multiplier: 3
+  optional: true
+
+  playEffect: (state) ->
+    choices = (card for card in state.current.hand when card.isAction)
+    if choices.length == 0
+      state.log("...but has no action to play with the #{this}.")
+    else
+      choices.push(null) if @optional
+      action = state.current.ai.choose('multipliedAction', state, choices)
+      transferCard(action, state.current.hand, state.current.inPlay)
+
+      for i in [0...@multiplier]
+        state.log("...playing #{action} (#{i+1} of #{@multiplier}).")
+        state.resolveAction(action)
+      
+      # Determine whether this multiplier is going to go to the duration area
+      # during the cleanup phase.
+
+      putInDuration = false
+      neverPutInDuration = false
+      # If we've already marked a multiplier to be put in the Duration area,
+      # don't mark this one. It's either already marked or it's not needed.
+      md = state.current.multipliedDurations
+      if md.length > 0 and md[md.length - 1].isMultiplier
+        neverPutInDuration = true
+
+      unless neverPutInDuration
+        if action.isMultiplier
+          # Mark the multiplier as if it were a multiplied Duration, which is
+          # a flag to not clean it up (as if it were a Duration) later.
+          putInDuration = true
+        if action.isDuration and action.name != 'Tactician'
+          putInDuration = true
+          # Store virtual copies of a multiplied duration card in `multipliedDurations`.
+          for i in [0...@multiplier-1]
+            md.push(action)
+      
+      if putInDuration
+        # Mark it by putting it in multipliedDurations. This also signals that
+        # all multiplied duration cards previous to it are accounted for.
+        md.push(this)
+
+  durationEffect: (state) ->
+    # TR and KC don't actually have a duration effect. The multiplication of
+    # of the Duration card has already happened, possibly more than once, and
+    # the number of times it happens is not strictly related to the number of
+    # multipliers in the duration area. It took a very long BGG thread to
+    # figure this out.
+}
+
 makeCard 'Library', action, {
   cost: 5
 
@@ -1789,6 +1844,12 @@ makeCard 'Steward', action, {
         {trash: 2}
       ])
       applyBenefit(state, benefit)
+}
+
+makeCard 'Throne Room', c["King's Court"], {
+  cost: 4
+  multiplier: 2
+  optional: false
 }
 
 makeCard 'Tournament', action, {

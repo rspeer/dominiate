@@ -28,6 +28,7 @@ class PlayerState
       island: []
     }
     @setAsideByHaven = []
+    @multipliedDurations = []
     @chips = 0
     @hand = []
     @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
@@ -365,6 +366,7 @@ class PlayerState
     other.coins = @coins
     other.potions = @potions
     other.setAsideByHaven = @setAsideByHaven.slice(0)
+    other.multipliedDurations = @multipliedDurations.slice(0)
     other.mats = {}
     other.mats.pirateShip = @mats.pirateShip
     other.mats.nativeVillage = @mats.nativeVillage.slice(0)
@@ -633,15 +635,19 @@ class State
     # information is actually used by Smugglers.)
     @current.gainedThisTurn = []
 
-    if this.depth == 0 and this.debug?
-      estimatedBuys = @current.ai.pessimisticCardsGained(this)
-      this.log("#{@current.ai} plans to buy #{estimatedBuys}.")
-    
     # iterate backwards because cards might move
     for i in [@current.duration.length-1...-1]
       card = @current.duration[i]
       this.log("#{@current.ai} resolves the duration effect of #{card}.")
       card.onDuration(this)
+
+    # `@current.multipliedDurations` contains virtual copies of cards, which
+    # exist because a multiplier was played on a Duration card.
+    for card in @current.multipliedDurations
+      this.log("#{@current.ai} resolves the duration effect of #{card} again.")
+      card.onDuration(this)
+    
+    @current.multipliedDurations = []
   
   # Perform the action phase. Ask the AI repeatedly which action to play,
   # until there are no more action cards to play or there are no
@@ -791,6 +797,17 @@ class State
       this.warn(["Cards were set aside at the end of turn", @current.setAside])
       @current.discard = @current.discard.concat @current.setAside
       @current.setAside = []
+    
+    # Check which multiplier cards ended up in `multipliedDurations`, which means
+    # they should be cleaned up as if they were duration cards. Remove them once
+    # they're dealt with. Disregard the other cards there for now.
+    for i in [@current.multipliedDurations.length-1...-1]
+      card = @current.multipliedDurations[i]
+      if card.isMultiplier
+        this.log("#{@current.ai} puts a #{card} in the duration area.")
+        @current.inPlay.remove(card)
+        @current.duration.push(card)
+        @current.multipliedDurations.splice(i, 1)
 
     # Clean up cards in play.
     while @current.inPlay.length > 0

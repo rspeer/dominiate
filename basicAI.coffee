@@ -82,7 +82,7 @@ class BasicAI
         choiceSet[choice] = choice
       
       # Get the priority list.
-      priority = priorityfunc(state, my)
+      priority = priorityfunc.bind(this)(state, my)
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
       for preference in priority
@@ -101,7 +101,7 @@ class BasicAI
         if (choice is null) or (choice is no)
           value = 0
         else
-          value = valuefunc(state, choice, my)
+          value = valuefunc.bind(this)(state, choice, my)
         if value > bestValue
           bestValue = value
           bestChoice = choice
@@ -132,7 +132,7 @@ class BasicAI
     priorityfunc = this[type+'Priority']
     valuefunc = this[type+'Value']
     if priorityfunc?
-      priority = priorityfunc(state, my)
+      priority = priorityfunc.bind(this)(state, my)
     else
       priority = []
 
@@ -140,7 +140,7 @@ class BasicAI
     if index != -1
       return (priority.length - index) * 100
     else if valuefunc?
-      return valuefunc(state, choice, my)
+      return valuefunc.bind(this)(state, choice, my)
     else
       return 0
  
@@ -192,6 +192,11 @@ class BasicAI
     ["Menagerie" if my.menagerieDraws() == 3
     "Shanty Town" if my.shantyTownDraws(true) == 2
     "Tournament" if my.countInHand("Province") > 0
+    
+    # Multipliers go here for now.
+    "King's Court"
+    "Throne Room"
+
     # Second priority: cards that stack the deck.
     "Lookout" if state.gainsToEndGame() >= 5 or state.cardInfo.Curse in my.draw
     "Bag of Gold"
@@ -343,6 +348,11 @@ class BasicAI
     "Treasure Map"
     "Ambassador"
   ]
+  
+  # For now, play multiplied actions the same way as normal ones. This is
+  # a bad choice.
+  multipliedActionPriority: (state, my) -> 
+    this.actionPriority(state, my)
   
   # Most of the order of `treasurePriority` has no effect on gameplay. The
   # important part is that Bank and Horn of Plenty are last.
