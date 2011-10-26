@@ -171,7 +171,7 @@ basicCard = {
       state.drawCards(state.current, cardsToDraw)
     if cardsToTrash > 0
       state.requireTrash(state.current, cardsToTrash)
-    this.playEffect.bind(this)(state)
+    this.playEffect(state)
   
   # Similarly, these are other ways for the game state to interact
   # with the card. Cards should override the `Effect` methods, not these.
@@ -1249,7 +1249,7 @@ makeCard 'Baron', action, {
       state.doDiscard(state.current, c.Estate)
       state.current.coins += 4
     else
-      state.gainCard(state.current. c.Estate)
+      state.gainCard(state.current, c.Estate)
 }
 
 makeCard 'Border Village', c.Village, {
@@ -1629,7 +1629,8 @@ makeCard "King's Court", action, {
           if action.isMultiplier
             # Mark the multiplier as if it were a multiplied Duration, which is
             # a flag to not clean it up (as if it were a Duration) later.
-            putInDuration = true
+            if md.length > 0 and not (md[md.length - 1].isMultiplier)
+              putInDuration = true
           if action.isDuration and action.name != 'Tactician'
             putInDuration = true
             # Store virtual copies of a multiplied duration card in `multipliedDurations`.

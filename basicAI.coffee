@@ -280,6 +280,7 @@ class BasicAI
 
     # 9: non-terminal cards that don't succeed but at least
     # give us something.
+    "King's Court"
     "Tournament"
     "Menagerie"
     "Shanty Town" if my.actions < 2
@@ -348,6 +349,7 @@ class BasicAI
     "Pirate Ship"
     "Noble Brigand"
     "Thief"
+    "Island"  # could be moved
     "Fortune Teller"
     "Bureaucrat"
     "Navigator"
@@ -384,6 +386,7 @@ class BasicAI
     "Trade Route"
     "Treasure Map"
     "Ambassador"
+    "Throne Room"
   ]
   
   multipliedActionPriority: (state, my) ->
@@ -651,19 +654,19 @@ class BasicAI
   # list is incomplete, but covers just about everything that we would want to set aside
   # with an Island.
   islandPriority: (state, my) ->
-  [
-    "Colony"
-    "Province"
-    "Fairgrounds"
-    "Duchy"
-    "Duke"
-    "Gardens"
-    "Vineyard"
-    "Estate"
-    "Copper"
-    "Curse"
-    "Island"    
-  ]    
+    [
+      "Colony"
+      "Province"
+      "Fairgrounds"
+      "Duchy"
+      "Duke"
+      "Gardens"
+      "Vineyard"
+      "Estate"
+      "Copper"
+      "Curse"
+      "Island"    
+    ]    
   
   # Taking into account gain priorities, gain values, trash priorities, and
   # trash values, how much do we like having this card in our deck overall?
