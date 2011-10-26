@@ -204,7 +204,6 @@ class BasicAI
         choices.push(null)
         choice = this.choose('multipliedAction', state, choices)
         if choice != "wait"
-          state.log("   Going to play a #{mult}, multiplying #{choice}")
           wantsToPlayMultiplier = true
 
     # Priority 1: cards that succeed if we play them now, and might
@@ -214,9 +213,8 @@ class BasicAI
     "Tournament" if my.countInHand("Province") > 0
     
     # 2: Multipliers that do something sufficiently cool.
-    "Throne Room" if wantsToPlayMultiplier and my.countInHand("King's Court") > 0
-    "King's Court" if wantsToPlayMultiplier
     "Throne Room" if wantsToPlayMultiplier
+    "King's Court" if wantsToPlayMultiplier
 
     # 3: cards that stack the deck.
     "Lookout" if state.gainsToEndGame() >= 5 or state.cardInfo.Curse in my.draw
@@ -427,8 +425,6 @@ class BasicAI
       "Vault" if my.actions > 0
       "Cutpurse" if my.actions > 0
       "Coppersmith" if my.actions > 0 and my.countInHand("Copper") >= 2
-      "Woodcutter" if my.actions > 0
-      "Nomad Camp" if my.actions > 0
       "Ambassador" if my.actions > 0 and this.wantsToTrash(state)
       "wait"
       # We could add here some more cards that would be nice to play with a
