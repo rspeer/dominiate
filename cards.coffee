@@ -81,6 +81,7 @@ basicCard = {
   getCost: (state) ->
     coins = this.costInCoins(state)
     coins -= state.bridges
+    coins -= state.highways
     coins -= state.princesses * 2
     if this.isAction
       coins -= state.quarries * 2
@@ -107,7 +108,7 @@ basicCard = {
   getCoins: (state) -> this.coins
   getBuys: (state) -> this.buys
   getTrash: (state) -> this.trash
-  getVP: (state) -> this.vp
+  getVP: (player) -> this.vp
   
   # getPotion says whether the card provides a potion. There is only one
   # card for which this is true, which is Potion.
@@ -312,14 +313,14 @@ makeCard 'Bazaar', action, {
 
 makeCard 'Duke', c.Estate, {
   cost: 5
-  getVP: (state) -> state.current.countInDeck('Duchy')
+  getVP: (player) -> player.countInDeck('Duchy')
 }
 
 makeCard 'Fairgrounds', c.Estate, {
   cost: 6
-  getVP: (state) ->
+  getVP: (player) ->
     unique = []
-    deck = state.current.getDeck()
+    deck = player.getDeck()
     for card in deck
       if card not in unique
         unique.push(card)
@@ -347,7 +348,7 @@ makeCard 'Farmland', c.Estate, {
 
 makeCard 'Gardens', c.Estate, {
   cost: 4
-  getVP: (state) -> Math.floor(state.current.getDeck().length / 10)
+  getVP: (player) -> Math.floor(player.getDeck().length / 10)
 }
 
 makeCard 'Great Hall', c.Estate, {
@@ -405,7 +406,7 @@ makeCard 'Nobles', c.Estate, {
 
 makeCard 'Silk Road', c.Estate, {
   cost: 4
-  getVP: (state) -> Math.floor(state.current.countCardTypeInDeck('Victory') / 4)
+  getVP: (player) -> Math.floor(player.countCardTypeInDeck('Victory') / 4)
 }
 
 # Revealing Tunnel for Gold as it is discarded is automatic.
@@ -425,7 +426,7 @@ makeCard 'Tunnel', c.Estate, {
 makeCard 'Vineyard', c.Estate, {
   cost: 0
   costPotion: 1
-  getVP: (state) -> Math.floor(state.current.numActionCardsInDeck() / 3)
+  getVP: (player) -> Math.floor(player.numActionCardsInDeck() / 3)
 }
 
 # Kingdom Treasure cards
@@ -447,15 +448,17 @@ makeCard 'Bank', treasure, {
     state.log("...which is worth #{this.getCoins(state)}.")
 }
 
-makeCard 'Cache', c.Gold, {
+makeCard 'Cache', treasure, {
   cost: 5
+  coins: 3
   
   gainEffect: (state) ->
     state.gainCard(state.current, c.Copper)
     state.gainCard(state.current, c.Copper)
 }
 
-makeCard "Fool's Gold", c.Silver, {
+makeCard "Fool's Gold", treasure, {
+  isReaction: true
   cost: 2
   coins: 1
   
@@ -498,12 +501,12 @@ makeCard "Horn of Plenty", treasure, {
       state.log("...#{state.current.ai} trashes the Horn of Plenty.")
 }
 
-makeCard 'Ill-Gotten Gains', c.Silver, {
+makeCard 'Ill-Gotten Gains', treasure, {
   cost: 5
   coins: 1
   playEffect: (state) -> 
     if state.current.ai.choose('gainCopper', state, [yes, no])
-      state.current.gainCard(c.Copper)
+      state.gainCard(state.current, c.Copper, 'hand')
   
   gainEffect: (state) ->
     # For each player but the current: gain a curse.
@@ -937,6 +940,7 @@ makeCard 'Fortune Teller', attack, {
 }
 
 # Goons: *see Militia*
+
 makeCard 'Jester', attack, {
   cost: 5
   coins: +2
@@ -951,6 +955,17 @@ makeCard 'Jester', attack, {
           state.gainCard(state.current, card)
         else
           state.gainCard(opp, card)
+}
+
+makeCard 'Margrave', attack, {
+  cost: 5
+  cards: +3
+  buys: +1
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      state.drawCards(opp, 1)
+      if opp.hand.length > 3
+        state.requireDiscard(opp, opp.hand.length - 3)
 }
 
 makeCard "Militia", attack, {
@@ -987,6 +1002,48 @@ makeCard "Mountebank", attack, {
       else
         state.gainCard(opp, c.Copper)
         state.gainCard(opp, c.Curse)
+}
+
+# Because attacking on buy does not count as playing an Attack, Noble Brigand's
+# buyEffect and playEffect cannot directly borrow from each other: the buyEffect
+# should not be blockable by Moat, so it cannot just call the playEffect, and
+# stat.attackOpponents needs an opp parameter, but buyEffect does not have an opp
+# parameter. So a third method is defined which takes both the state and opp as
+# parameters, and is accessed by both the buyEffect and the playEffect.
+makeCard 'Noble Brigand', attack, {
+  cost: 4
+  coins: +1
+  
+  buyEffect: (state) ->
+    for opp in state.players[1..]
+      c['Noble Brigand'].robTheRich(state, opp)
+    
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      c['Noble Brigand'].robTheRich(state, opp)
+      
+  robTheRich: (state, opp) ->
+    drawn = opp.getCardsFromDeck(2)
+    state.log("...#{opp.ai} reveals #{drawn}.")
+    silversAndGolds = []
+    gainCopper = true
+    for card in drawn
+      if card.isTreasure
+        gainCopper = false
+        if card is c.Gold or card is c.Silver
+          silversAndGolds.push(card)
+    treasureToTrash = state.current.ai.choose('trashOppTreasure', state, silversAndGolds)
+    if treasureToTrash
+      state.log("...#{state.current.ai} trashes #{opp.ai}'s #{treasureToTrash}.")
+      transferCard(treasureToTrash, drawn, state.trash)
+      transferCard(treasureToTrash, state.trash, state.current.discard)
+      state.handleGainCard(state.current, treasureToTrash, 'discard')
+      state.log("...#{state.current.ai} gains the trashed #{treasureToTrash}.")
+    if gainCopper
+      state.gainCard(opp, c.Copper)
+    opp.discard = opp.discard.concat(drawn)
+    state.handleDiscards(opp, [drawn])
+    state.log("...#{opp.ai} discards #{drawn}.")     
 }
 
 makeCard 'Pirate Ship', attack, {
@@ -1340,18 +1397,16 @@ makeCard 'Crossroads', action, {
     state.drawCards(state.current, nVictory)
 }
 
-makeCard 'Cutpurse', action, {
-  cost: 4
-  coins: +2
-  isAttack: true
-
+makeCard 'Embassy', action, {
+  cost: 5
+  cards: +5
   playEffect: (state) ->
-      state.attackOpponents (opp) ->
-        if c.Copper in opp.hand
-          state.doDiscard(opp, c.Copper)
-        else
-          state.log("#{opp.ai} has no Copper in hand.")
-          state.revealHand(opp)
+    state.requireDiscard(state.current, 3)
+    
+  gainEffect: (state, player) ->
+    for pl in state.players
+      if pl isnt player
+        state.gainCard(pl, c.Silver)
 }
 
 makeCard 'Explorer', action, {
@@ -1412,7 +1467,7 @@ makeCard "Feast", action, {
     # Trash the Feast, unless it's already been trashed.
     if c.Feast in state.current.inPlay
       transferCard(c.Feast, state.current.inPlay, state.trash)
-      console.log("...trashing the Feast.")
+      state.log("...trashing the Feast.")
     
     # Gain a card costing up to $5.
     choices = []
@@ -1463,6 +1518,19 @@ makeCard "Herbalist", action, {
       state.log("#{state.current.ai} uses Herbalist to put #{choice} back on the deck.")
       transferCardToTop(choice, state.current.inPlay, state.current.draw)
       
+}
+
+makeCard "Highway", action, {
+  cost: 5
+  cards: +1
+  actions: +1
+  
+  playEffect: (state) ->
+    highways = 0
+    for card in state.current.inPlay
+      if card.name is "Highway"
+        highways++
+    state.highways = highways
 }
 
 makeCard "Horse Traders", action, {
