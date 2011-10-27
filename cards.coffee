@@ -710,27 +710,35 @@ makeCard 'Tactician', duration, {
 makeCard 'Remodel', action, {
   cost: 4
 
+  exactCostUpgrade: false
+  costFunction: (coins) -> coins + 2
+
   upgradeFilter: (state, oldCard, newCard) ->
     [coins1, potions1] = oldCard.getCost(state)
     [coins2, potions2] = newCard.getCost(state)
-    return (potions1 >= potions2) and (coins1 + 2 >= coins2)
+    if this.exactCostUpgrade
+      return (potions1 >= potions2) and (this.costFunction(coins1) == coins2)
+    else
+      return (potions1 >= potions2) and (this.costFunction(coins1) >= coins2)
 
   playEffect: (state) ->
-    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
+    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this))
+    if this.exactCostUpgrade
+      choices2 = nullUpgradeChoices(state, state.current.hand, this.costFunction.bind(this))
+      choices = choices.concat(choices2)
+
     choice = state.current.ai.choose('upgrade', state, choices)
     if choice isnt null
       [oldCard, newCard] = choice
       state.doTrash(state.current, oldCard)
-      state.gainCard(state.current, newCard)
+      if newCard isnt null
+        state.gainCard(state.current, newCard)
 }
 
 makeCard 'Expand', c.Remodel, {
   cost: 7
 
-  upgradeFilter: (state, oldCard, newCard) ->
-    [coins1, potions1] = oldCard.getCost(state)
-    [coins2, potions2] = newCard.getCost(state)
-    return (potions1 >= potions2) and (coins1 + 3 >= coins2)
+  costFunction: (coins) -> coins + 3
 }
 
 makeCard 'Upgrade', c.Remodel, {
@@ -738,26 +746,24 @@ makeCard 'Upgrade', c.Remodel, {
   actions: +1
   cards: +1
 
-  upgradeFilter: (state, oldCard, newCard) ->
-    [coins1, potions1] = oldCard.getCost(state)
-    [coins2, potions2] = newCard.getCost(state)
-    return (potions1 == potions2) and (coins1 + 1 == coins2)
+  exactCostUpgrade: true
+  costFunction: (coins) -> coins + 1
 }
 
 makeCard 'Remake', c.Remodel, {
-  upgradeFilter: (state, oldCard, newCard) ->
-    [coins1, potions1] = oldCard.getCost(state)
-    [coins2, potions2] = newCard.getCost(state)
-    return (potions1 == potions2) and (coins1 + 1 == coins2)
+  exactCostUpgrade: true
+  costFunction: (coins) -> coins + 1
 
   playEffect: (state) ->
     for i in [1..2]
-      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
-      choice = state.current.ai.choose('upgrade', state, choices)
+      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this))
+      choices2 = nullUpgradeChoices(state, state.current.hand, this.costFunction.bind(this))
+      choice = state.current.ai.choose('upgrade', state, choices.concat(choices2))
       if choice isnt null
         [oldCard, newCard] = choice
         state.doTrash(state.current, oldCard)
-        state.gainCard(state.current, newCard)  
+        if newCard isnt null
+          state.gainCard(state.current, newCard)  
 }
 
 makeCard 'Mine', c.Remodel, {
@@ -771,7 +777,7 @@ makeCard 'Mine', c.Remodel, {
   
   # Modify the Remodel playEffect so that it gains the card in hand.
   playEffect: (state) ->
-    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter)
+    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this))
     choice = state.current.ai.choose('upgrade', state, choices)
     if choice isnt null
       [oldCard, newCard] = choice
@@ -2242,6 +2248,30 @@ upgradeChoices = (state, cards, filter) ->
         if filter(state, card, card2) and state.supply[card2] > 0
           choices.push([card, card2])          
   return choices
+
+# Find options where you can upgrade a card into nothing, because you're
+# required to gain a card at a cost where there isn't anything.
+nullUpgradeChoices = (state, cards, costFunction) ->
+  costs = []
+  for cardname of state.supply
+    if state.supply[cardname] > 0
+      card = c[cardname]
+      cost = ""+card.getCost(state)  # make it a string so it's searchable
+      if cost not in costs
+        costs.push(cost)
+
+  used = []
+  choices = []
+  for card in cards
+    if card not in used
+      used.push(card)
+      [coins, potions] = card.getCost(state)
+      coins2 = costFunction(coins)
+      costStr = ""+[coins2, potions]
+      if costStr not in costs
+        choices.push([card, null])
+  return choices
+      
 
 # Export functions that are needed elsewhere.
 this.transferCard = transferCard

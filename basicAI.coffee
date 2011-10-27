@@ -522,6 +522,20 @@ class BasicAI
     else
       0 - card.cost
   
+  discardForEnvoyValue: (state, card, my) ->
+    # Choose a card to discard from your opponent's hand when it's their turn.
+    opp = state.current
+    if card.name == 'Tunnel'
+      return -25
+    else if not (card.isAction) and not (card.isTreasure)
+      return -10
+    else if opp.actions == 0 and card.isAction
+      return -5
+    else if opp.actions >= 2
+      return card.cards + card.coins + card.cost + 2*card.isAttack
+    else
+      return card.coins + card.cost + 2*card.isAttack
+
   # Changed Priorities for putting cards back on deck.  Only works well for putting back 1 card, and for 1 buy.
   #
   putOnDeckPriority: (state, my) -> 
