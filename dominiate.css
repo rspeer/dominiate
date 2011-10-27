@@ -1,17 +1,21 @@
+.level0 {
+  position: absolute;
+  top: 45px;
+}
 .level1 {
   position: absolute;
-  top: 50px;
+  top: 70px;
 }
 .level1a {
   position: absolute;
-  top: 57px;
+  top: 77px;
 }
 .level2 {
   position: absolute;
-  top: 85px;
+  top: 105px;
 }
 .level3 {
-  margin-top: 550px;
+  margin-top: 570px;
 }
 .error {
   border-radius: 2px;
@@ -31,51 +35,51 @@ body {
 }
 #p1 h2 {
   position: absolute;
-  top: 50px;
+  top: 70px;
   left: 5%;
   color: #990000;
 }
 #p1 .selectLabel {
   position: absolute;
-  top: 50px;
+  top: 70px;
   right: 62%;
 }
 #p1 select {
   position: absolute;
-  top: 50px;
+  top: 70px;
   right: 52%;
 }
 #p1 .status {
   position: absolute;
-  top: 57px;
+  top: 77px;
   left: 15%;
 }
 #p2 h2 {
   position: absolute;
-  top: 50px;
+  top: 70px;
   left: 50%;
   color: #000099;
 }
 #p2 .selectLabel {
   position: absolute;
-  top: 50px;
+  top: 70px;
   right: 17%;
 }
 #p2 select {
   position: absolute;
-  top: 50px;
+  top: 70px;
   right: 7%;
 }
 #p2 .status {
   position: absolute;
-  top: 57px;
+  top: 77px;
   left: 60%;
 }
 #editor-left {
   position: absolute;
-  top: 85px;
+  top: 105px;
   position: absolute;
-  top: 85px;
+  top: 105px;
   border-radius: 3px;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -88,9 +92,9 @@ body {
 }
 #editor-right {
   position: absolute;
-  top: 85px;
+  top: 105px;
   position: absolute;
-  top: 85px;
+  top: 105px;
   border-radius: 3px;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
@@ -142,11 +146,12 @@ body {
   top: 13px;
   right: 15px;
 }
-#layoutSeparator {
-  margin-top: 550px;
+#news {
+  position: absolute;
+  top: 45px;
 }
-#gameControls {
-  padding: 1em;
+#layoutSeparator {
+  margin-top: 570px;
 }
 #gameControls input {
   margin-left: 1em;
@@ -160,6 +165,9 @@ select {
 }
 .btn {
   margin-top: 2px;
+}
+.row {
+  margin-bottom: 6px;
 }
 #playButton {
   width: 120px;

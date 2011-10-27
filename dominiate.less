@@ -1,20 +1,25 @@
+.level0 {
+    position: absolute;
+    top: 45px;
+}
+
 .level1 {
     position: absolute;
-    top: 50px;
+    top: 70px;
 }
 
 .level1a {
     position: absolute;
-    top: 57px;
+    top: 77px;
 }
 
 .level2 {
     position: absolute;
-    top: 85px;
+    top: 105px;
 }
 
 .level3 {
-    margin-top: 550px;
+    margin-top: 570px;
 }
 
 .rounded-corners (@radius: 5px) {
@@ -152,13 +157,15 @@ body {
     }
 }
 
+#news {
+    .level0;
+}
+
 #layoutSeparator {
     .level3;
 }
 
 #gameControls {
-    padding: 1em;
-
     input {
         margin-left: 1em;
     }
@@ -174,6 +181,10 @@ select {
 
 .btn {
     margin-top: 2px;
+}
+
+.row {
+    margin-bottom: 6px;
 }
 
 #playButton {
