@@ -329,7 +329,7 @@ class BasicAI
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
     "Monument"
-    "Remake"   # has a low priority so it'll mostly be played early in the game
+    "Remake" if wantsToTrash >= multiplier * 2   # has a low priority so it'll mostly be played early in the game
     "Adventurer"
     "Harvest"
     "Explorer"
