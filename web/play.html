@@ -19,8 +19,9 @@
 </div>
 
 <div id="news">
-  <b>Status</b>: 137 out of 170 cards are done.
-  See the <a href="https://github.com/rspeer/dominiate/blob/master/card_list.txt">card list</a>.
+  <b>News</b>: Now you can link to a Dominiate match between pre-defined strategies.
+  <a href="play.html#DoubleJack/TournamentPlayer">Here's an example.</a>
+  Join the <a href="https://github.com/rspeer/dominiate">GitHub project</a> to add to the strategy list.
 </div>
 
 <div id="p1">
@@ -153,6 +154,24 @@ scrollToBottom = (elt) ->
   elt.prop({ scrollTop: elt.prop("scrollHeight") })
 window.scrollToBottom = scrollToBottom
 
+loadStrategiesFromHash = ->
+  hash = window.location.hash
+  if hash
+    strategyNames = hash.substring(1).split('/')
+    p1 = strategyNames[0]
+    p2 = strategyNames[1] ? ''
+    unless strategies[p1]?
+      p1 = ''
+    unless strategies[p2]?
+      p2 = ''
+    $('#loadStrategy1').val(p1).change()
+    $('#loadStrategy2').val(p2).change()
+  else
+    $('#loadStrategy1').val('DoubleJack').change()
+    $('#loadStrategy2').val('BankWharf').change()
+
+window.addEventListener("hashchange", loadStrategiesFromHash, false)
+
 $ ->
   # Here we have all the code that hooks the game into the web page.
   # It is organized *terribly*, I realize.
@@ -269,6 +288,7 @@ $ ->
     tracker.reset()
     grapher.reset()
     multiLog.reset()
+    return false
 
   strategyElements = ['<option></option>']
   for name of strategies
@@ -279,17 +299,21 @@ $ ->
   $('#loadStrategy1').html(strategyElements.join(''))
   $('#loadStrategy2').html(strategyElements.join(''))
   $('#loadStrategy1').change =>
-    choice = $('#loadStrategy1 option:selected')[0].value
-    strategy = strategies[choice] ? ''
+    choice1 = $('#loadStrategy1 option:selected')[0].value
+    choice2 = $('#loadStrategy2 option:selected')[0].value
+    strategy = strategies[choice1] ? ''
     leftEd.setValue(strategy)
+    window.location.hash = "#{choice1}/#{choice2}"
   $('#loadStrategy2').change =>
-    choice = $('#loadStrategy2 option:selected')[0].value
-    strategy = strategies[choice] ? ''
+    choice1 = $('#loadStrategy1 option:selected')[0].value
+    choice2 = $('#loadStrategy2 option:selected')[0].value
+    strategy = strategies[choice2] ? ''
     rightEd.setValue(strategy)
+    window.location.hash = "#{choice1}/#{choice2}"
 
-  $('#loadStrategy1').val('DoubleJack').change()
-  $('#loadStrategy2').val('BankWharf').change()
-
+  # Set initial strategies based on the URL.
+  loadStrategiesFromHash(window.location.hash)
+  
 </script>
 
 </body>
