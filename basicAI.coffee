@@ -319,6 +319,7 @@ class BasicAI
     "Coppersmith" if countInHandCopper >= 3
     "Library" if my.hand.length <= 4
     "Rabble"
+    "Envoy"
     "Smithy"
     "Embassy"
     "Watchtower" if my.hand.length <= 3

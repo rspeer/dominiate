@@ -1,4 +1,4 @@
-Cards that are done (136)
+Cards that are done (137)
 =========================
 Adventurer
 Alchemist
@@ -31,6 +31,7 @@ Diadem
 Duchy
 Duke
 Embassy
+Envoy
 Estate
 Expand
 Explorer
@@ -137,7 +138,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (34)
+Cards that still need to be coded (33)
 ======================================
 
 Easy cards
@@ -162,7 +163,6 @@ Bishop
 Contraband
 Duchess (involves a gainEffect on Duchy)
 Embargo
-Envoy
 Forge
 Ghost Ship
 Governor
