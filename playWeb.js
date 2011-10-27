@@ -1,5 +1,5 @@
 (function() {
-  var BasicAI, PlayerState, State, action, applyBenefit, attack, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, numericSort, playFast, playGame, playStep, prize, shuffle, stringify, transferCard, transferCardToTop, treasure, upgradeChoices, _ref;
+  var BasicAI, PlayerState, State, action, applyBenefit, attack, basicCard, c, cloneDominionObject, compileStrategies, countInList, countStr, duration, makeCard, makeStrategy, noColony, nullUpgradeChoices, numericSort, playFast, playGame, playStep, prize, shuffle, stringify, transferCard, transferCardToTop, treasure, upgradeChoices, _ref;
   var __indexOf = Array.prototype.indexOf || function(item) {
     for (var i = 0, l = this.length; i < l; i++) {
       if (this[i] === item) return i;
@@ -324,6 +324,21 @@
         return 20 - card.cost;
       } else {
         return 0 - card.cost;
+      }
+    };
+    BasicAI.prototype.discardForEnvoyValue = function(state, card, my) {
+      var opp;
+      opp = state.current;
+      if (card.name === 'Tunnel') {
+        return -25;
+      } else if (!card.isAction && !card.isTreasure) {
+        return -10;
+      } else if (opp.actions === 0 && card.isAction) {
+        return -5;
+      } else if (opp.actions >= 2) {
+        return card.cards + card.coins + card.cost + 2 * card.isAttack;
+      } else {
+        return card.coins + card.cost + 2 * card.isAttack;
       }
     };
     BasicAI.prototype.putOnDeckPriority = function(state, my) {
@@ -1412,57 +1427,65 @@
   });
   makeCard('Remodel', action, {
     cost: 4,
+    exactCostUpgrade: false,
+    costFunction: function(coins) {
+      return coins + 2;
+    },
     upgradeFilter: function(state, oldCard, newCard) {
       var coins1, coins2, potions1, potions2, _ref, _ref2;
       _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
       _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
-      return (potions1 >= potions2) && (coins1 + 2 >= coins2);
+      if (this.exactCostUpgrade) {
+        return (potions1 >= potions2) && (this.costFunction(coins1) === coins2);
+      } else {
+        return (potions1 >= potions2) && (this.costFunction(coins1) >= coins2);
+      }
     },
     playEffect: function(state) {
-      var choice, choices, newCard, oldCard;
-      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
+      var choice, choices, choices2, newCard, oldCard;
+      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this));
+      if (this.exactCostUpgrade) {
+        choices2 = nullUpgradeChoices(state, state.current.hand, this.costFunction.bind(this));
+        choices = choices.concat(choices2);
+      }
       choice = state.current.ai.choose('upgrade', state, choices);
       if (choice !== null) {
         oldCard = choice[0], newCard = choice[1];
         state.doTrash(state.current, oldCard);
-        return state.gainCard(state.current, newCard);
+        if (newCard !== null) {
+          return state.gainCard(state.current, newCard);
+        }
       }
     }
   });
   makeCard('Expand', c.Remodel, {
     cost: 7,
-    upgradeFilter: function(state, oldCard, newCard) {
-      var coins1, coins2, potions1, potions2, _ref, _ref2;
-      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
-      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
-      return (potions1 >= potions2) && (coins1 + 3 >= coins2);
+    costFunction: function(coins) {
+      return coins + 3;
     }
   });
   makeCard('Upgrade', c.Remodel, {
     cost: 5,
     actions: +1,
     cards: +1,
-    upgradeFilter: function(state, oldCard, newCard) {
-      var coins1, coins2, potions1, potions2, _ref, _ref2;
-      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
-      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
-      return (potions1 === potions2) && (coins1 + 1 === coins2);
+    exactCostUpgrade: true,
+    costFunction: function(coins) {
+      return coins + 1;
     }
   });
   makeCard('Remake', c.Remodel, {
-    upgradeFilter: function(state, oldCard, newCard) {
-      var coins1, coins2, potions1, potions2, _ref, _ref2;
-      _ref = oldCard.getCost(state), coins1 = _ref[0], potions1 = _ref[1];
-      _ref2 = newCard.getCost(state), coins2 = _ref2[0], potions2 = _ref2[1];
-      return (potions1 === potions2) && (coins1 + 1 === coins2);
+    exactCostUpgrade: true,
+    costFunction: function(coins) {
+      return coins + 1;
     },
     playEffect: function(state) {
-      var choice, choices, i, newCard, oldCard, _results;
+      var choice, choices, choices2, i, newCard, oldCard, _results;
       _results = [];
       for (i = 1; i <= 2; i++) {
-        choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
-        choice = state.current.ai.choose('upgrade', state, choices);
-        _results.push(choice !== null ? ((oldCard = choice[0], newCard = choice[1], choice), state.doTrash(state.current, oldCard), state.gainCard(state.current, newCard)) : void 0);
+        choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this));
+        choices2 = nullUpgradeChoices(state, state.current.hand, this.costFunction.bind(this));
+        choice = state.current.ai.choose('upgrade', state, choices.concat(choices2));
+        _results.push(choice !== null ? ((oldCard = choice[0], newCard = choice[1], choice), state.doTrash(state.current, oldCard), newCard !== null ? state.gainCard(state.current, newCard) : void 0) : void 0);
       }
       return _results;
     }
@@ -1477,7 +1500,7 @@
     },
     playEffect: function(state) {
       var choice, choices, newCard, oldCard;
-      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter);
+      choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this));
       choice = state.current.ai.choose('upgrade', state, choices);
       if (choice !== null) {
         oldCard = choice[0], newCard = choice[1];
@@ -3115,6 +3138,34 @@
           if (filter(state, card, card2) && state.supply[card2] > 0) {
             choices.push([card, card2]);
           }
+        }
+      }
+    }
+    return choices;
+  };
+  nullUpgradeChoices = function(state, cards, costFunction) {
+    var card, cardname, choices, coins, coins2, cost, costStr, costs, potions, used, _i, _len, _ref;
+    costs = [];
+    for (cardname in state.supply) {
+      if (state.supply[cardname] > 0) {
+        card = c[cardname];
+        cost = "" + card.getCost(state);
+        if (__indexOf.call(costs, cost) < 0) {
+          costs.push(cost);
+        }
+      }
+    }
+    used = [];
+    choices = [];
+    for (_i = 0, _len = cards.length; _i < _len; _i++) {
+      card = cards[_i];
+      if (__indexOf.call(used, card) < 0) {
+        used.push(card);
+        _ref = card.getCost(state), coins = _ref[0], potions = _ref[1];
+        coins2 = costFunction(coins);
+        costStr = "" + [coins2, potions];
+        if (__indexOf.call(costs, costStr) < 0) {
+          choices.push([card, null]);
         }
       }
     }
