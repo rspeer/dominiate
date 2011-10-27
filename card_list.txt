@@ -1,4 +1,4 @@
-Cards that are done (135)
+Cards that are done (136)
 =========================
 Adventurer
 Alchemist
@@ -137,7 +137,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (33)
+Cards that still need to be coded (34)
 ======================================
 
 Easy cards
@@ -164,6 +164,7 @@ Duchess (involves a gainEffect on Duchy)
 Embargo
 Envoy
 Forge
+Ghost Ship
 Governor
 Hamlet
 Inn
