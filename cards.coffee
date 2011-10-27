@@ -1439,6 +1439,25 @@ makeCard 'Farming Village', action, {
       state.current.hand.push(card)
 }
 
+makeCard "Feast", action, {
+  cost: 4
+
+  playEffect: (state) ->
+    # Trash the Feast, unless it's already been trashed.
+    if c.Feast in state.current.inPlay
+      transferCard(c.Feast, state.current.inPlay, state.trash)
+      state.log("...trashing the Feast.")
+    
+    # Gain a card costing up to $5.
+    choices = []
+    for cardName of state.supply
+      card = c[cardName]
+      [coins, potions] = card.getCost(state)
+      if potions == 0 and coins <= 5
+        choices.push(card)
+    state.gainOneOf(state.current, choices)
+}
+
 makeCard 'Golem', action, {
   cost: 4
   costPotion: 1
@@ -1458,25 +1477,6 @@ makeCard 'Golem', action, {
           state.current.inPlay.push(card)
           state.current.playLocation = 'inPlay'
           state.resolveAction(card)
-}
-
-makeCard "Feast", action, {
-  cost: 4
-
-  playEffect: (state) ->
-    # Trash the Feast, unless it's already been trashed.
-    if c.Feast in state.current.inPlay
-      transferCard(c.Feast, state.current.inPlay, state.trash)
-      state.log("...trashing the Feast.")
-    
-    # Gain a card costing up to $5.
-    choices = []
-    for cardName of state.supply
-      card = c[cardName]
-      [coins, potions] = card.getCost(state)
-      if potions == 0 and coins <= 5
-        choices.push(card)
-    state.gainOneOf(state.current, choices)
 }
 
 makeCard "Grand Market", c.Market, {
@@ -1589,6 +1589,39 @@ makeCard 'Ironworks', action, {
       state.current.coins += 1
     if gained.isVictory
       state.current.drawCards(1)
+}
+
+# Jack of All Trades is a complex card made up of steps that are simple
+# to code:
+makeCard 'Jack of All Trades', action, {
+  cost: 4
+  playEffect: (state) ->
+    # Gain a silver.
+    state.gainCard(state.current, c.Silver)
+
+    # Look at the top card of your deck...
+    card = state.current.getCardsFromDeck(1)[0]
+
+    # discard it or put it back.
+    if card?
+      if state.current.ai.choose('discard', state, [card, null])
+        state.log("#{state.current.ai} reveals and discards #{card}.")
+        state.current.discard.push(card)
+      else
+        state.log("#{state.current.ai} reveals #{card} and puts it back.")
+        state.current.draw.unshift(card)
+    
+    # Draw until you have 5 cards in hand.
+    if state.current.hand.length < 5
+      state.drawCards(state.current, 5 - state.current.hand.length)
+    
+    # You may trash a card from your hand that is not a Treasure.
+    choices = (card for card in state.current.hand when not card.isTreasure)
+    choices.push(null)
+    choice = state.current.ai.choose('trash', state, choices)
+    if choice?
+      state.doTrash(state.current, choice)
+
 }
 
 makeCard "King's Court", action, {

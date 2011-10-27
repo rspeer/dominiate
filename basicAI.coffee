@@ -312,6 +312,7 @@ class BasicAI
     "Cutpurse"
     "Bridge"
     "Horse Traders"
+    "Jack of All Trades"
     "Steward"
     "Moneylender" if countInHandCopper >= 1
     "Mine"
@@ -505,13 +506,18 @@ class BasicAI
     "Estate"
   ]
 
-  discardValue: (state, card, my) =>
+  discardValue: (state, card, my) ->
     # If we can discard excess actions, do so. Otherwise, discard the cheapest
     # cards. Victory cards would already have been discarded by discardPriority,
     # but if Tunnel fell through somehow we discard it here.
+    # 
+    # First, check to see if it's our turn. That changes whether we want to discard
+    # actions.
+    myTurn = (state.current == my)
     if card.name == 'Tunnel'
       25
-    else if (card.isAction and card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0)
+    else if card.isAction and myTurn and \
+         ((card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0))
       20 - card.cost
     else
       0 - card.cost

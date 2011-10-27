@@ -18,6 +18,11 @@
   <a class="about" href="http://rspeer.github.com/dominiate">About</a>
 </div>
 
+<div id="news">
+  <b>Status</b>: 135 out of 169 cards are done.
+  See the <a href="https://github.com/rspeer/dominiate/blob/master/card_list.txt">card list</a>.
+</div>
+
 <div id="p1">
 <h2>Player 1</h2>
 <select name="loadStrategy1" id="loadStrategy1">
@@ -82,7 +87,7 @@
         <li>
           <label>
             <input type="checkbox" name="optionsCheckboxes" value="colonies"
-            id="colonies" checked="checked" />
+            id="colonies" />
             <span>Include Colony and Platinum</span>
           </label>
         </li>
@@ -282,7 +287,7 @@ $ ->
     strategy = strategies[choice] ? ''
     rightEd.setValue(strategy)
 
-  $('#loadStrategy1').val('ChapelWitch').change()
+  $('#loadStrategy1').val('DoubleJack').change()
   $('#loadStrategy2').val('BankWharf').change()
 
 </script>

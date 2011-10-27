@@ -60,6 +60,7 @@ Hunting Party
 Ill-Gotten Gains
 Ironworks
 Island
+Jack of All Trades
 Jester
 King's Court
 Laboratory
@@ -136,7 +137,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (34)
+Cards that still need to be coded (33)
 ======================================
 
 Easy cards
@@ -146,7 +147,6 @@ These cards can probably be defined in terms of existing decisions.
 Cartographer (just use discardValue and chooseOrderOnDeck)
 Develop (easy because Remake and chooseOrderOnDeck are already defined)
 Haggler (just needs a buyInPlayEffect)
-Jack of All Trades
 Oasis
 Oracle
 Pearl Diver

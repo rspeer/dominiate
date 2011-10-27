@@ -17,4 +17,13 @@
     "Silver"
     "Copper" if state.gainsToEndGame() <= 3
   ]
+
+  trashPriority: (state, my) -> [
+    "Curse"
+    "Estate" if state.gainsToEndGame() > 4
+    "Copper" if my.getTotalMoney() > 4\
+             and not (my.countInDeck("Witch") == 0 and my.getTreasureInHand() == 5)
+    "Estate" if state.gainsToEndGame() > 2
+  ]
+
 }
