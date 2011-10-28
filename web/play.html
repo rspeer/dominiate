@@ -293,10 +293,7 @@ $ ->
   strategyElements = ['<option></option>']
   for name of strategies
     visibleName = name.replace('_', ' ')
-    # Questionable strategies that shouldn't go in the list are marked with
-    # a `q_` prefix.
-    if name[0...2] != 'q_'
-      strategyElements.push("<option value='#{name}'>#{visibleName}</option>")
+    strategyElements.push("<option value='#{name}'>#{visibleName}</option>")
   strategyElements.sort()
 
   $('#loadStrategy1').html(strategyElements.join(''))

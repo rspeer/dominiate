@@ -1,3 +1,4 @@
+# The q_ prefix marks this as a questionable strategy.
 {
   name: 'MoneylenderWitch'
   gainPriority: (state, my) -> [
