@@ -49,7 +49,7 @@
       return this.vpTotals[player][turn] += vp;
     };
     Grapher.prototype.updateGraphs = function() {
-      var money, moneySeries, player, turn, vp, vpSeries, _i, _len, _ref, _ref2, _ref3;
+      var money, moneySeries, player, turn, vp, vpSeries, _base, _i, _len, _ref, _ref2, _ref3, _ref4, _ref5;
       moneySeries = [];
       vpSeries = [];
       _ref = this.players;
@@ -58,9 +58,12 @@
         money = [];
         vp = [];
         for (turn = 1; turn <= 30; turn++) {
-          if (this.turnCounts[player][turn] > 0) {
-            money.push([turn, ((_ref2 = this.moneyTotals[player][turn]) != null ? _ref2 : 0) / this.turnCounts[player][turn]]);
-            vp.push([turn, ((_ref3 = this.vpTotals[player][turn]) != null ? _ref3 : 0) / this.turnCounts[player][turn]]);
+          if ((_ref2 = (_base = this.turnCounts)[player]) == null) {
+            _base[player] = [];
+          }
+          if ((_ref3 = this.turnCounts[player][turn]) != null ? _ref3 : 0 > 0) {
+            money.push([turn, ((_ref4 = this.moneyTotals[player][turn]) != null ? _ref4 : 0) / this.turnCounts[player][turn]]);
+            vp.push([turn, ((_ref5 = this.vpTotals[player][turn]) != null ? _ref5 : 0) / this.turnCounts[player][turn]]);
           }
         }
         moneySeries.push({
