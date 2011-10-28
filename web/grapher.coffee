@@ -39,7 +39,8 @@ class Grapher
       money = []
       vp = []
       for turn in [1..30]
-        if @turnCounts[player][turn] > 0
+        @turnCounts[player] ?= []
+        if @turnCounts[player][turn] ? 0 > 0
           money.push([turn, (@moneyTotals[player][turn] ? 0) / @turnCounts[player][turn]])
           vp.push([turn, (@vpTotals[player][turn] ? 0) / @turnCounts[player][turn]])
       moneySeries.push({label: player, data: money})
