@@ -2,6 +2,7 @@
 {
   name: 'OBM Adventurer'
   author: 'WanderingWinder'
+  requires: ['Adventurer']
   gainPriority: (state, my) -> [
     "Province" if my.countInDeck("Gold") > 0
     "Duchy" if state.countInSupply("Province") <= 4

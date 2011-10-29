@@ -5,6 +5,7 @@
 {
   name: 'DoubleJack'
   author: 'rspeer'
+  requires: ["Jack of All Trades"]
   gainPriority: (state, my) -> [
     "Province" if my.getTotalMoney() > 15
     "Duchy" if state.gainsToEndGame() <= 5

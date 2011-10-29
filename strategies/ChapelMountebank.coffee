@@ -1,6 +1,7 @@
 # Gain one Chapel and one Mountebank, and otherwise play Big Money.
 {
   name: 'ChapelMountebank'
+  requires: ['Chapel', 'Mountebank']
   gainPriority: (state, my) -> [
     "Colony" if my.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6

@@ -1,5 +1,6 @@
 {
   name: 'BigEnvoy'
+  requires: ['Envoy']
   gainPriority: (state, my) -> [
     "Colony" if my.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6 \

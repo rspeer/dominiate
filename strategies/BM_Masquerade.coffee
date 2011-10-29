@@ -6,6 +6,7 @@
 # masquerade tweak you."
 {
   name: 'BM Masquerade'
+  requires: ['Masquerade']
   author: 'ehunt'
   gainPriority: (state, my) -> 
     [

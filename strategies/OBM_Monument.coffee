@@ -2,6 +2,7 @@
 {
   name: 'OBM Monument'
   author: 'tko'
+  requires: ['Monument']
   gainPriority: (state, my) -> [
     "Province" if my.getTotalMoney() > 18
     "Duchy" if state.gainsToEndGame() <= 4

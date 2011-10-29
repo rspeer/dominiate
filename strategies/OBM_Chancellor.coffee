@@ -1,6 +1,7 @@
 {
   name: 'OBM Chancellor'
   author: 'rspeer'
+  requires: ['Chancellor']
   gainPriority: (state, my) -> [
     "Province" if my.getTotalMoney() > 18
     "Duchy" if state.gainsToEndGame() <= 4

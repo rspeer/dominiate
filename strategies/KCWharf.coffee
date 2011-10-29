@@ -3,6 +3,7 @@
 {
   name: 'KCWharf'
   author: 'rspeer'
+  requires: ["King's Court", "Wharf"]
   gainPriority: (state, my) -> [
     "Colony" if my.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6

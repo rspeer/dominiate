@@ -2,6 +2,7 @@
 {
   name: 'OBM Coppersmith'
   author: 'HiveMindEmulator'
+  requires: ['Coppersmith']
   gainPriority: (state, my) -> [
     "Province" if my.getTotalMoney() > 18
     "Duchy" if state.gainsToEndGame() <= 4

@@ -2,6 +2,7 @@
 # powerful two-card strategies there is.
 {
   name: 'ChapelWitch'
+  requires: ['Chapel', 'Witch']
   gainPriority: (state, my) -> [
     "Colony" if my.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6

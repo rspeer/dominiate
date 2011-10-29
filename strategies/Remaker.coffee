@@ -1,5 +1,6 @@
 {
   name: 'Remaker'
+  requires: ['Remake']
   gainPriority: (state, my) -> [
     "Province" if my.countInDeck("Gold") > 0
     "Duchy" if 0 < state.gainsToEndGame() <= 5

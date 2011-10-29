@@ -4,6 +4,7 @@
 {
   name: 'Big Money'
   author: 'WanderingWinder'
+  requires: []
   gainPriority: (state, my) -> 
     if state.supply.Colony?
       [
