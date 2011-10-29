@@ -1,5 +1,6 @@
 {
   name: 'SingleWitch'
+  requires: ['Witch']
   gainPriority: (state, my) -> [
     "Colony" if my.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6 and my.countInDeck("Gold") > 0
