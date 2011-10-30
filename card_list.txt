@@ -1,4 +1,4 @@
-Cards that are done (137)
+Cards that are done (142)
 =========================
 Adventurer
 Alchemist
@@ -28,6 +28,7 @@ Crossroads
 Curse
 Cutpurse
 Diadem
+Duchess
 Duchy
 Duke
 Embassy
@@ -86,6 +87,7 @@ Navigator
 Noble Brigand
 Nobles
 Nomad Camp
+Oasis
 Outpost
 Pawn
 Peddler
@@ -108,6 +110,8 @@ Silk Road
 Silver
 Smithy
 Smugglers
+Spy
+Stables
 Steward
 Tactician
 Talisman
@@ -116,6 +120,7 @@ Throne Room
 Torturer
 Tournament
 Trade Route
+Trader
 Trading Post
 Treasure Map
 Treasury
@@ -138,7 +143,7 @@ Woodcutter
 Worker's Village
 Workshop
 
-Cards that still need to be coded (33)
+Cards that still need to be coded (28)
 ======================================
 
 Easy cards
@@ -146,12 +151,9 @@ Easy cards
 These cards can probably be defined in terms of existing decisions.
 
 Cartographer (just use discardValue and chooseOrderOnDeck)
-Develop (easy because Remake and chooseOrderOnDeck are already defined)
 Haggler (just needs a buyInPlayEffect)
-Oasis
 Oracle
 Pearl Diver
-Spy
 Transmute
 
 Not-so-easy cards
@@ -161,7 +163,7 @@ These generally require some decision-making code that doesn't exist yet.
 Apprentice
 Bishop
 Contraband
-Duchess (involves a gainEffect on Duchy)
+Develop (the hard part is making the list of choices)
 Embargo
 Forge
 Ghost Ship
@@ -174,9 +176,7 @@ Native Village
 Salvager
 Scrying Pool
 Spice Merchant (trash-for-benefit meets chooseBenefit)
-Stables
 Swindler
-Trader (Reaction is moderately easy. Maybe it's best to consider this just a trasher, not a trash-for-benefit, because gaining gobs of Silver is rarely that much of a benefit.)
 
 Difficult cards
 ---------------

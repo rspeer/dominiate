@@ -275,7 +275,7 @@ class PlayerState
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
     @hand = @hand.concat(drawn)
-    this.log("#{@ai} draws #{drawn.length} cards (#{drawn}).")
+    this.log("#{@ai} draws #{drawn.length} cards: #{drawn}.")
     return drawn
 
   # `getCardsFromDeck` is a sub-method of many things that need to happen
@@ -885,6 +885,11 @@ class State
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
     delete @cache.gainsToEndGame
     if card in @prizes or @supply[card] > 0
+      for i in [player.hand.length-1...-1]
+        reactCard = player.hand[i]
+        if reactCard? and reactCard.isReaction and reactCard.reactReplacingGain?
+          card = reactCard.reactReplacingGain(this, player, card)
+
       # Keep track of the card gained, for Smugglers.
       if player is @current
         player.gainedThisTurn.push(card)
@@ -1283,6 +1288,10 @@ countStr = (list, elt) ->
 # Sort by numeric value. You'd think this would be in the standard library.
 numericSort = (array) ->
   array.sort( (a, b) -> (a-b) )
+
+# Make JavaScript's lists not suck.
+Array.prototype.toString = ->
+  '[' + this.join(', ') + ']'
 
 # Exports
 # -------

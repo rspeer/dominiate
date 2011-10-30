@@ -225,7 +225,14 @@ makeCard 'Estate', basicCard, {
       else 12 
 }
 
-makeCard 'Duchy', c.Estate, {cost: 5, vp: 3}
+makeCard 'Duchy', c.Estate, {
+  cost: 5, vp: 3,
+  
+  # If Duchess is in the game, the player has the option of gaining it.
+  gainEffect: (state, player) ->
+    if state.supply['Duchess']?
+      state.gainOneOf(player, [c.Duchess, null])
+}
 makeCard 'Province', c.Estate, {
   cost: 8
   vp: 6
@@ -1143,6 +1150,36 @@ makeCard 'Sea Hag', attack, {
       state.log("...putting the Curse on top of the deck.")
 }
 
+makeCard 'Spy', attack, {
+  cost: 4
+  playEffect: (state) ->
+    pl = state.current
+    drawn = state.getCardsFromDeck(pl, 1)[0]
+    state.log("#{pl.ai} reveals #{drawn}.")
+    if drawn?
+      discarded = pl.ai.choose('discard', state, [drawn, null])
+      if discarded?
+        state.log("...choosing to discard it.")
+        pl.discard.push(drawn)
+      else
+        state.log("...choosing to put it back on the draw pile.")
+        pl.draw.unshift(drawn)
+
+    state.attackOpponents (opp) ->
+      drawn = state.getCardsFromDeck(opp, 1)[0]
+      if typeof drawn == 'string'
+        throw new Error("got a string instead of a card")
+      state.log("#{opp.ai} reveals #{drawn}.")
+      if drawn?
+        discarded = pl.ai.choose('discardFromOpponentDeck', state, [drawn, null])
+        if discarded?
+          state.log("#{pl.ai} chooses to discard it.")
+          opp.discard.push(drawn)
+        else
+          state.log("#{pl.ai} chooses to put it back on the draw pile.")
+          opp.draw.unshift(drawn)
+}
+
 makeCard 'Thief', attack, {
   cost: 4
   playEffect: (state) ->
@@ -1401,6 +1438,24 @@ makeCard 'Crossroads', action, {
 
     nVictory = (card for card in state.current.hand when card.isVictory).length
     state.drawCards(state.current, nVictory)
+}
+
+makeCard 'Duchess', action, {
+  cost: 2
+  coins: +2
+
+  playEffect: (state) ->
+    for pl in state.players
+      drawn = state.getCardsFromDeck(pl, 1)[0]
+      state.log("#{pl.ai} reveals #{drawn}.")
+      if drawn?
+        discarded = pl.ai.choose('discard', state, [drawn, null])
+        if discarded?
+          state.log("...choosing to discard it.")
+          pl.discard.push(drawn)
+        else
+          state.log("...choosing to put it back.")
+          pl.draw.unshift(drawn)
 }
 
 makeCard 'Embassy', action, {
@@ -1895,6 +1950,16 @@ makeCard 'Navigator', action, {
       state.handleDiscards(state.current, drawn)
 }
 
+makeCard 'Oasis', action, {
+  cost: 3
+  cards: +1
+  actions: +1
+  coins: +1
+
+  playEffect: (state) ->
+    state.requireDiscard(state.current, 1)
+}
+
 makeCard 'Pawn', action, {
   cost: 2
   playEffect:
@@ -1961,6 +2026,18 @@ makeCard 'Smugglers', action, {
     state.gainOneOf(state.current, state.smugglerChoices())
 }
 
+makeCard 'Stables', action, {
+  cost: 5
+  playEffect: (state) ->
+    discardChoices = (card for card in state.current.hand when card.isTreasure)
+    discardChoices.push(null)
+    discarded = state.current.ai.choose('stablesDiscard', state, discardChoices)
+    if discarded?
+      state.doDiscard(state.current, discarded)
+      state.drawCards(state.current, 3)
+      state.current.actions += 1
+}
+
 makeCard 'Steward', action, {
   cost: 3
   playEffect:
@@ -2011,6 +2088,21 @@ makeCard "Trade Route", action, {
   trash: 1
   getCoins: (state) ->
     state.tradeRouteValue
+}
+
+makeCard "Trader", action, {
+  playEffect: (state) ->
+    trashed = state.requireTrash(state.current, 1)[0]
+    if trashed?
+      [coins, potions] = trashed.getCost(state)
+      for i in [0...coins]
+        state.gainCard(state.current, c.Silver)
+  
+  # `reactReplacingGain` triggers before `reactToGain`, and lets you replace
+  # the card with a different one.
+  reactReplacingGain: (state, player, card) ->
+    card = player.ai.choose('gain', state, [c.Silver, card])
+    return c[card]
 }
 
 makeCard "Trading Post", action, {

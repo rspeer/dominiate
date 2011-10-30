@@ -117,7 +117,7 @@ class BasicAI
     # Hmm. None of the above isn't an option, and neither the priority list nor
     # the value list gave us anything. First complain about it, then make an
     # arbitrary choice.
-    state.warn("#{this} has no idea what to choose from #{choices}\npriority is #{priority}")
+    state.warn("#{this} has no idea what to choose from #{choices}")
     return choices[0]
   
   # Sometimes we need to compare choices in a strictly numeric way. This takes
@@ -221,6 +221,7 @@ class BasicAI
     "Bag of Gold"
     "Apothecary"
     "Scout"
+    "Spy"
 
     # 4: cards that give +2 actions.
     "Trusty Steed"
@@ -249,6 +250,7 @@ class BasicAI
     "Highway"
     "Wishing Well"
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
+    "Stables" if this.choose('stablesDiscard', state, my.hand.concat([null]))
     "Lighthouse"
     "Haven"
 
@@ -271,13 +273,13 @@ class BasicAI
 
     # 8: card-cycling that might improve the hand.
     "Upgrade" if wantsToTrash >= multiplier
+    "Oasis"
     "Pawn"
     "Warehouse"
     "Cellar"
     "Library" if my.actions > 1 and my.hand.length <= 6
 
-    # 9: non-terminal cards that don't succeed but at least
-    # give us something.
+    # 9: non-terminal cards that don't succeed but at least give us something.
     "King's Court"
     "Tournament"
     "Menagerie"
@@ -344,6 +346,7 @@ class BasicAI
     "Ambassador" if wantsToTrash
     "Trading Post" if wantsToTrash + my.countInHand("Silver") >= 2 * multiplier
     "Chapel" if wantsToTrash
+    "Trader" if wantsToTrash >= multiplier
     "Trade Route" if wantsToTrash >= multiplier
     "Mint" if my.ai.choose('mint', state, my.hand)
     "Pirate Ship"
@@ -364,12 +367,14 @@ class BasicAI
     "Feast"
     "Coppersmith"
     "Saboteur"
+    "Duchess"
     "Library" if my.hand.length <= 7
 
     # 11: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler, trigger Conspirator, or something.
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Shanty Town"
+    "Stables"
     "Chapel"
     "Library"
 
@@ -613,32 +618,6 @@ class BasicAI
   # By default, we want to trash the card with the lowest (cost + VP).
   trashValue: (state, card, my) ->
     0 - card.vp - card.cost
-
-  # When presented with a card with simple but variable benefits, such as
-  # Nobles, this is the default way for an AI to decide which benefit it wants.
-  # This function should actually handle a number of common situations.
-  benefitValue: (state, choice, my) ->
-    buyValue = 1
-    cardValue = 2
-    coinValue = 3
-    trashValue = 4      # if there are cards we want to trash
-    actionValue = 10    # if we need more actions
-
-    actionBalance = my.actionBalance()
-    usableActions = Math.max(0, -actionBalance)
-
-    if actionBalance >= 1
-      cardValue += actionBalance
-    if my.ai.wantsToTrash(state) < (choice.trash ? 0)
-      trashValue = -4
-    
-    value = cardValue * (choice.cards ? 0)
-    value += coinValue * (choice.coins ? 0)
-    value += buyValue * (choice.buys ? 0)
-    value += trashValue * (choice.trash ? 0)
-    value += actionValue * Math.min((choice.actions ? 0), usableActions)
-    #state.log("Benefit: #{JSON.stringify(choice)} / Value: #{value} / wants to trash: #{my.ai.wantsToTrash(state)}")
-    value
     
   # `ambassadorPriority` chooses a card to Ambassador and how many of it to
   # return.
@@ -718,6 +697,27 @@ class BasicAI
   # Do you want to discard a Province to win a Tournament? The answer is
   # *very* yes.
   tournamentDiscardPriority: (state, my) -> [yes]
+
+  # Which treasure, if any, should be discarded to feed Stables? Defaults
+  # to a list of generally crappy treasures. Doesn't include $1 Fool's Gold
+  # because you presumably have another one you're trying to draw.
+  stablesDiscardPriority: (state, my) -> [
+    "Copper"
+    "Potion" if my.countInPlay(state.cardInfo["Alchemist"]) == 0
+    "Ill-Gotten Gains"
+    "Silver"
+    "Horn of Plenty"
+  ]
+
+  # Some cards give you a choice to discard an opponent's deck. These are
+  # evaluated with `discardFromOpponentDeckValue`.
+  discardFromOpponentDeckValue: (state, card, my) ->
+    if card.name == 'Tunnel'
+      return -25
+    else if not (card.isAction) and not (card.isTreasure)
+      return -10
+    else
+      return card.coins + card.cost + 2*card.isAttack
 
   # Do you want to gain a copper from Ill-Gotten Gains? It's quite possible
   # in endgame situations, but for now the answer is no.
@@ -811,7 +811,33 @@ class BasicAI
     return card.cost
 
   #### Informational methods
-  #
+
+  # When presented with a card with simple but variable benefits, such as
+  # Nobles, this is the default way for an AI to decide which benefit it wants.
+  # This function should actually handle a number of common situations.
+  benefitValue: (state, choice, my) ->
+    buyValue = 1
+    cardValue = 2
+    coinValue = 3
+    trashValue = 4      # if there are cards we want to trash
+    actionValue = 10    # if we need more actions
+
+    actionBalance = my.actionBalance()
+    usableActions = Math.max(0, -actionBalance)
+
+    if actionBalance >= 1
+      cardValue += actionBalance
+    if my.ai.wantsToTrash(state) < (choice.trash ? 0)
+      trashValue = -4
+    
+    value = cardValue * (choice.cards ? 0)
+    value += coinValue * (choice.coins ? 0)
+    value += buyValue * (choice.buys ? 0)
+    value += trashValue * (choice.trash ? 0)
+    value += actionValue * Math.min((choice.actions ? 0), usableActions)
+    #state.log("Benefit: #{JSON.stringify(choice)} / Value: #{value} / wants to trash: #{my.ai.wantsToTrash(state)}")
+    value
+
   # `wantsToTrash` returns the number of cards in hand that we would trash
   # for no benefit.
   wantsToTrash: (state) ->
