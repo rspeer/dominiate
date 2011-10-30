@@ -155,6 +155,7 @@ Haggler (just needs a buyInPlayEffect)
 Oracle
 Pearl Diver
 Transmute
+Scrying Pool (borrow from Spy)
 
 Not-so-easy cards
 -----------------
@@ -174,7 +175,6 @@ Mining Village
 Minion
 Native Village
 Salvager
-Scrying Pool
 Spice Merchant (trash-for-benefit meets chooseBenefit)
 Swindler
 
