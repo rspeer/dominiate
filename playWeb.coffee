@@ -36,15 +36,7 @@ playGame = (strategies, options, ret) ->
   options.tracker.setPlayers(ai.name for ai in ais)
   options.grapher.setPlayers(ai.name for ai in ais)
   
-  # Handle options from the checkboxes on the page.
-  if options.colonies
-    tableau = tableaux.all
-  else
-    tableau = tableaux.noColony
-  if options.randomizeOrder
-    shuffle(ais)
-  
-  state = new State().initialize(ais, tableau, options.log)
+  state = new State().setUpWithOptions(ais, options)
   ret ?= options.log
   if options.fast
     options.log = () ->
