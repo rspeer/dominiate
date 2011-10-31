@@ -1521,8 +1521,9 @@ makeCard "Feast", action, {
 
   playEffect: (state) ->
     # Trash the Feast, unless it's already been trashed.
-    if c.Feast in state.current.inPlay
-      transferCard(c.Feast, state.current.inPlay, state.trash)
+    if state.playLocation != 'trash'
+      transferCard(c.Feast, state.current[state.playLocation], state.trash)
+      state.playLocation = 'trash'
       state.log("...trashing the Feast.")
     
     # Gain a card costing up to $5.
@@ -1934,7 +1935,7 @@ makeCard 'Nomad Camp', c.Woodcutter, {
 }
 
 makeCard 'Navigator', action, {
-  cost: 5
+  cost: 4
   coins: +2
 
   playEffect: (state) ->

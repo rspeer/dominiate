@@ -708,6 +708,13 @@ class BasicAI
     "Silver"
     "Horn of Plenty"
   ]
+   
+  spiceMerchantTrashPriority: (state, my) -> [
+    "Copper",
+    "Ill-Gotten Gains",
+    "Fool's Gold" if my.countInDeck("Fool's Gold") == 1,
+    "Silver" if my.getTotalMoney() >= 8
+  ]
 
   # Some cards give you a choice to discard an opponent's deck. These are
   # evaluated with `discardFromOpponentDeckValue`.
