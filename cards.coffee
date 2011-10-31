@@ -1521,9 +1521,9 @@ makeCard "Feast", action, {
 
   playEffect: (state) ->
     # Trash the Feast, unless it's already been trashed.
-    if state.playLocation != 'trash'
-      transferCard(c.Feast, state.current[state.playLocation], state.trash)
-      state.playLocation = 'trash'
+    if state.current.playLocation != 'trash'
+      transferCard(c.Feast, state.current[state.current.playLocation], state.trash)
+      state.current.playLocation = 'trash'
       state.log("...trashing the Feast.")
     
     # Gain a card costing up to $5.
