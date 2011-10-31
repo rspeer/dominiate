@@ -428,14 +428,14 @@
     };
     BasicAI.prototype.ambassadorPriority = function(state, my) {
       var card;
-      return ["Curse,2", "Curse,1", "Curse,0", "Ambassador,2", "Estate,2", "Estate,1", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() >= 5 ? "Copper,2" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "Copper,2" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "Copper,1" : void 0, my.getTreasureInHand() >= 4 ? "Copper,1" : void 0, "Estate,0", "Copper,0"].concat((function() {
+      return ["[Curse, 2]", "[Curse, 1]", "[Curse, 0]", "[Ambassador, 2]", "[Estate, 2]", "[Estate, 1]", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "[Copper, 2]" : void 0, my.getTreasureInHand() >= 5 ? "[Copper, 2]" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "[Copper, 2]" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "[Copper, 1]" : void 0, my.getTreasureInHand() >= 4 ? "[Copper, 1]" : void 0, "[Estate, 0]", "[Copper, 0]", "[Potion, 2]", "[Potion, 1]"].concat((function() {
         var _i, _len, _ref, _results;
         _ref = my.ai.trashPriority(state, my);
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           card = _ref[_i];
           if (card != null) {
-            _results.push(card + ",1");
+            _results.push("[" + card + ", 1]");
           }
         }
         return _results;
@@ -468,6 +468,9 @@
     };
     BasicAI.prototype.stablesDiscardPriority = function(state, my) {
       return ["Copper", my.countInPlay(state.cardInfo["Alchemist"]) === 0 ? "Potion" : void 0, "Ill-Gotten Gains", "Silver", "Horn of Plenty"];
+    };
+    BasicAI.prototype.spiceMerchantTrashPriority = function(state, my) {
+      return ["Copper", "Ill-Gotten Gains", my.countInDeck("Fool's Gold") === 1 ? "Fool's Gold" : void 0, my.getTotalMoney() >= 8 ? "Silver" : void 0];
     };
     BasicAI.prototype.discardFromOpponentDeckValue = function(state, card, my) {
       if (card.name === 'Tunnel') {
@@ -2364,15 +2367,16 @@
   makeCard("Feast", action, {
     cost: 4,
     playEffect: function(state) {
-      var card, cardName, choices, coins, potions, _ref, _ref2;
-      if (_ref = c.Feast, __indexOf.call(state.current.inPlay, _ref) >= 0) {
-        transferCard(c.Feast, state.current.inPlay, state.trash);
+      var card, cardName, choices, coins, potions, _ref;
+      if (state.current.playLocation !== 'trash') {
+        transferCard(c.Feast, state.current[state.current.playLocation], state.trash);
+        state.current.playLocation = 'trash';
         state.log("...trashing the Feast.");
       }
       choices = [];
       for (cardName in state.supply) {
         card = c[cardName];
-        _ref2 = card.getCost(state), coins = _ref2[0], potions = _ref2[1];
+        _ref = card.getCost(state), coins = _ref[0], potions = _ref[1];
         if (potions === 0 && coins <= 5) {
           choices.push(card);
         }
@@ -2813,7 +2817,7 @@
     }
   });
   makeCard('Navigator', action, {
-    cost: 5,
+    cost: 4,
     coins: +2,
     playEffect: function(state) {
       var drawn, order;
@@ -3011,6 +3015,7 @@
     }
   });
   makeCard("Trader", action, {
+    cost: 4,
     playEffect: function(state) {
       var coins, i, potions, trashed, _ref, _results;
       trashed = state.requireTrash(state.current, 1)[0];
@@ -3683,7 +3688,8 @@
   })();
   State = (function() {
     function State() {}
-    State.prototype.basicSupply = ['Curse', 'Copper', 'Silver', 'Gold', 'Estate', 'Duchy', 'Province'];
+    State.prototype.basicSupply = [c.Curse, c.Copper, c.Silver, c.Gold, c.Estate, c.Duchy, c.Province];
+    State.prototype.extraSupply = [c.Potion, c.Platinum, c.Colony];
     State.prototype.cardInfo = c;
     State.prototype.initialize = function(ais, tableau, logFunc) {
       var ai;
@@ -3713,8 +3719,60 @@
       this.extraturn = false;
       this.cache = {};
       this.depth = 0;
+      this.log("Tableau: " + tableau);
       this.totalCards = this.countTotalCards();
       return this;
+    };
+    State.prototype.setUpWithOptions = function(ais, options) {
+      var ai, card, index, moreCards, tableau, _i, _j, _k, _len, _len2, _len3, _ref2, _ref3, _ref4;
+      tableau = [];
+      for (_i = 0, _len = ais.length; _i < _len; _i++) {
+        ai = ais[_i];
+        if (ai.requires != null) {
+          _ref2 = ai.requires;
+          for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+            card = _ref2[_j];
+            if (card === c.Colony || card === c.Platinum) {
+              if (!(options.colonies != null)) {
+                options.colonies = true;
+              } else if (options.colonies === false) {
+                throw new Error("This setup forbids Colonies, but " + ai + " requires them");
+              }
+            } else if (__indexOf.call(tableau, card) < 0 && __indexOf.call(this.basicSupply, card) < 0 && __indexOf.call(this.extraSupply, card) < 0 && !card.isPrize) {
+              tableau.push(card);
+            }
+          }
+        }
+      }
+      if (tableau.length > 10) {
+        throw new Error("These strategies require too many different cards to play against each other.");
+      }
+      index = 0;
+      moreCards = c.allCards.slice(0);
+      shuffle(moreCards);
+      while (tableau.length < 10) {
+        card = c[moreCards[index]];
+        if (!(__indexOf.call(tableau, card) >= 0 || __indexOf.call(this.basicSupply, card) >= 0 || __indexOf.call(this.extraSupply, card) >= 0 || card.isPrize)) {
+          tableau.push(card);
+        }
+        index++;
+      }
+      if (options.colonies) {
+        tableau.push(c.Colony);
+        tableau.push(c.Platinum);
+      }
+      for (_k = 0, _len3 = tableau.length; _k < _len3; _k++) {
+        card = tableau[_k];
+        if (card.costPotion > 0) {
+          if (_ref3 = c.Potion, __indexOf.call(tableau, _ref3) < 0) {
+            tableau.push(c.Potion);
+          }
+        }
+      }
+      if (options.randomizeOrder) {
+        shuffle(ais);
+      }
+      return this.initialize(ais, tableau, (_ref4 = options.log) != null ? _ref4 : console.log);
     };
     State.prototype.makeSupply = function(tableau) {
       var allCards, card, supply, _i, _len, _ref2;
