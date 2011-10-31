@@ -296,6 +296,7 @@ class BasicAI
     "Torturer"
     "Margrave"
     "Sea Hag"
+    "Young Witch"
     "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
     "Goons"
     "Wharf"
@@ -405,6 +406,7 @@ class BasicAI
       "Sea Hag" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 0)
       "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
+      "Young Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Margrave" if my.actions > 0
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0

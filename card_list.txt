@@ -1,4 +1,4 @@
-Cards that are done (142)
+Cards that are done (143)
 =========================
 Adventurer
 Alchemist
@@ -142,8 +142,9 @@ Witch
 Woodcutter
 Worker's Village
 Workshop
+Young Witch
 
-Cards that still need to be coded (28)
+Cards that still need to be coded (27)
 ======================================
 
 Easy cards
@@ -184,7 +185,6 @@ In estimated order of difficulty:
 
 Scheme (adds a new sub-phase to cleanup)
 Secret Chamber (avoid infinite loops)
-Young Witch (requires a well-defined Bane card)
+Black Market (requires a new setup step)
 Stash (requires a decision mid-shuffle)
-Black Market (requires a more coherent definition of the Supply)
 Possession (will require entirely new kinds of AI decisions)

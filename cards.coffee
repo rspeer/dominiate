@@ -1224,6 +1224,19 @@ makeCard 'Witch', attack, {
       state.gainCard(opp, c.Curse)
 }
 
+makeCard 'Young Witch', attack, {
+  cost: 4
+  cards: +2
+  playEffect: (state) ->
+    state.requireDiscard(state.current, 2)
+    state.attackOpponents (opp) ->
+      if state.bane in opp.hand
+        state.log("#{opp.ai} is protected by the Bane card, #{state.bane}.")
+      else
+        state.gainCard(opp, c.Curse)
+    
+}
+
 # Miscellaneous cards
 # -------------------
 # All of these cards have effects beyond what can be expressed with a
