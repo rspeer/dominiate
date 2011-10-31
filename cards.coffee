@@ -1581,6 +1581,22 @@ makeCard "Grand Market", c.Market, {
     not(c.Copper in state.current.inPlay)
 }
 
+makeCard 'Haggler', action, {
+  cost: 5
+  coins: +2  
+  buyInPlayEffect: (state, card1) ->
+    [coins1, potions1] = card1.getCost(state)
+    choices = []
+    for cardName of state.supply
+      card2 = c[cardName]
+      [coins2, potions2] = card2.getCost(state)
+      if (potions2 <= potions1) and (coins2 < coins1) and not card2.isVictory
+        choices.push(card2)
+      else if (potions2 < potions1) and (coins2 == coins1) and not card2.isVictory
+        choices.push(card2)        
+    state.gainOneOf(state.current, choices)
+}
+
 makeCard "Harvest", action, {
   cost: 5
   playEffect: (state) ->
