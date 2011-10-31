@@ -297,6 +297,7 @@ class BasicAI
     "Remake"   # has a low priority so it'll mostly be played early in the game
     "Adventurer"
     "Harvest"
+    "Haggler" # probably needs to make sure the gained card will be wanted
     "Explorer"
     "Woodcutter"
     "Nomad Camp"
