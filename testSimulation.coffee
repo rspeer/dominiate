@@ -18,7 +18,7 @@ this['game is initialized correctly'] = (test) ->
 this['game phases proceed as expected'] = (test) ->
   ai1 = new basicAI.BasicAI()
   ai2 = new basicAI.BasicAI()
-  st = new gameState.State().initialize([ai1, ai2], gameState.tableaux.all)
+  st = new gameState.State().setUpWithOptions([ai1, ai2], {})
   st.doPlay(); test.equal st.phase, 'action'
   st.doPlay(); test.equal st.phase, 'treasure'
   st.doPlay(); test.equal st.phase, 'buy'
@@ -42,7 +42,7 @@ this['2-player smoke test'] = (test) ->
   ais = (loadStrategy('strategies/SillyAI.coffee') for i in [1..2])
   noLog = (message) ->
   for i in [0...100]
-    st = new gameState.State().initialize(ais, gameState.tableaux.all)
+    st = new gameState.State().setUpWithOptions(ais, {log: noLog})
     until st.gameIsOver()
       st.doPlay()
   test.done()

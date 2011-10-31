@@ -489,10 +489,9 @@ class State
     moreCards = c.allCards.slice(0)
     shuffle(moreCards)
     while tableau.length < 10
-      while moreCards[index] in tableau or moreCards[index] in this.basicSupply\
-            or moreCards[index] in this.extraSupply or moreCards[index].isPrize
-        index++
-      tableau.push(moreCards[index])
+      card = c[moreCards[index]]
+      if not (card in tableau or card in this.basicSupply or card in this.extraSupply or card.isPrize)
+        tableau.push(card)
       index++
 
     if options.colonies
