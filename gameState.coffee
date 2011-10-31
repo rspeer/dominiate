@@ -924,6 +924,8 @@ class State
     # Make sure we didn't drop cards on the floor.
     if this.countTotalCards() != @totalCards
       throw new Error("The game started with #{@totalCards} cards; now there are #{this.countTotalCards()}")
+    
+    this.log("Empty piles: #{this.emptyPiles()}")
 
   # The player list is implemented so that the current player is always first
   # in the list; the list rotates after every turn.

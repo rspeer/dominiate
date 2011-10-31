@@ -40,7 +40,7 @@ this['game phases proceed as expected'] = (test) ->
 
 this['2-player smoke test'] = (test) ->
   ais = (loadStrategy('strategies/SillyAI.coffee') for i in [1..2])
-  noLog = (message) ->
+  noLog = console.warn
   for i in [0...100]
     st = new gameState.State().setUpWithOptions(ais, {log: noLog})
     until st.gameIsOver()

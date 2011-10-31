@@ -8,6 +8,9 @@
   requires: []
   gainPriority: (state, my) -> []
   gainValue: (state, card, my) ->
+    if my.turnsTaken > 100
+      # oh god, just make it stop
+      return 1
     if card.name is "Copper" or card.name is "Curse"
       return -1
     else
