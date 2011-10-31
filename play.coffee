@@ -22,7 +22,11 @@ loadStrategy = (filename) ->
 
 playGame = (filenames) ->
   ais = (loadStrategy(filename) for filename in filenames)
-  st = new State().initialize(ais, tableaux.all)
+  st = new State().setUpWithOptions(ais, {
+    colonies: true
+    randomizeOrder: true
+    log: console.log
+  })
   until st.gameIsOver()
     st.doPlay()
   result = ([player.ai.toString(), player.getVP(st), player.turnsTaken] for player in st.players)

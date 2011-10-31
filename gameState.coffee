@@ -410,8 +410,9 @@ class PlayerState
 # AI code wants to evaluate potential decisions, it should do them using a
 # copy of the state (often one with hidden information in it).
 class State
-  basicSupply: ['Curse', 'Copper', 'Silver', 'Gold',
-                'Estate', 'Duchy', 'Province']
+  basicSupply: [c.Curse, c.Copper, c.Silver, c.Gold,
+                c.Estate, c.Duchy, c.Province]
+  extraSupply: [c.Potion, c.Platinum, c.Colony]
   
   # AIs can get at the `c` object that stores information about cards
   # by looking up `state.cardInfo`.
@@ -447,6 +448,7 @@ class State
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
     @depth = 0
+    this.log("Tableau: #{tableau}")
 
     # `totalCards` tracks the total number of cards that are in the game. If it changes,
     # we screwed up.
@@ -454,6 +456,59 @@ class State
 
     return this
   
+  # `setUpWithOptions` is the function I'd like to use as the primary way of setting up
+  # a new game, doing the work of choosing a set of kingdom and extra cards (what I call
+  # the tableau) with the cards they require plus random cards, and handling options.
+  #
+  # It takes two arguments, `ais` and `options`. `ais` is the list of AI objects, and
+  # `options` is an object with these keys and values:
+  #
+  # - `randomizeOrder`: whether to shuffle the player order. Defaults to true.
+  # - `colonies`: whether to add Colonies and Platinums to the tableau. Defaults
+  #   to false-ish: it can be set to true by a strategy that requires Colony if
+  #   left undefined.
+  # - `log
+  setUpWithOptions: (ais, options) ->
+    tableau = []
+    for ai in ais
+      if ai.requires?
+        for card in ai.requires
+          if card in [c.Colony, c.Platinum]
+            if not options.colonies?
+              options.colonies = true
+            else if options.colonies is false
+              throw new Error("This setup forbids Colonies, but #{ai} requires them")
+          else if card not in tableau and card not in this.basicSupply\
+               and card not in this.extraSupply and not card.isPrize
+            tableau.push(card)
+
+    if tableau.length > 10
+      throw new Error("These strategies require too many different cards to play against each other.")
+    
+    index = 0
+    moreCards = c.allCards.slice(0)
+    shuffle(moreCards)
+    while tableau.length < 10
+      while moreCards[index] in tableau or moreCards[index] in this.basicSupply\
+            or moreCards[index] in this.extraSupply or moreCards[index].isPrize
+        index++
+      tableau.push(moreCards[index])
+      index++
+
+    if options.colonies
+      tableau.push(c.Colony)
+      tableau.push(c.Platinum)
+    
+    for card in tableau
+      if card.costPotion > 0
+        if c.Potion not in tableau
+          tableau.push(c.Potion)
+    
+    if options.randomizeOrder
+      shuffle(ais)
+    
+    return this.initialize(ais, tableau, options.log ? console.log)
+
   # Given the tableau (the set of non-basic cards in play), construct the
   # appropriate supply for the number of players.
   makeSupply: (tableau) ->

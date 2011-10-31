@@ -630,22 +630,24 @@ class BasicAI
   # JavaScript, lists are never "equal" to other lists anyway.
   ambassadorPriority: (state, my) ->
     [
-      "Curse,2"
-      "Curse,1"
-      "Curse,0"
+      "[Curse, 2]"
+      "[Curse, 1]"
+      "[Curse, 0]"
       # Handle a silly case:
-      "Ambassador,2"
-      "Estate,2"
-      "Estate,1"
+      "[Ambassador, 2]"
+      "[Estate, 2]"
+      "[Estate, 1]"
       # Make sure we have at least $5 in the deck, including if we buy a Silver.
-      "Copper,2" if my.getTreasureInHand() < 3 and my.getTotalMoney() >= 5
-      "Copper,2" if my.getTreasureInHand() >= 5
-      "Copper,2" if my.getTreasureInHand() == 3 and my.getTotalMoney() >= 7
-      "Copper,1" if my.getTreasureInHand() < 3 and my.getTotalMoney() >= 4
-      "Copper,1" if my.getTreasureInHand() >= 4
-      "Estate,0"
-      "Copper,0"
-    ].concat (card+",1" for card in my.ai.trashPriority(state, my) when card?)
+      "[Copper, 2]" if my.getTreasureInHand() < 3 and my.getTotalMoney() >= 5
+      "[Copper, 2]" if my.getTreasureInHand() >= 5
+      "[Copper, 2]" if my.getTreasureInHand() == 3 and my.getTotalMoney() >= 7
+      "[Copper, 1]" if my.getTreasureInHand() < 3 and my.getTotalMoney() >= 4
+      "[Copper, 1]" if my.getTreasureInHand() >= 4
+      "[Estate, 0]"
+      "[Copper, 0]"
+      "[Potion, 2]"
+      "[Potion, 1]"
+    ].concat ("[#{card}, 1]" for card in my.ai.trashPriority(state, my) when card?)
   
   # islandPriority chooses which card to set aside with Island. At present this
   # list is incomplete, but covers just about everything that we would want to set aside

@@ -2092,6 +2092,7 @@ makeCard "Trade Route", action, {
 }
 
 makeCard "Trader", action, {
+  cost: 4
   playEffect: (state) ->
     trashed = state.requireTrash(state.current, 1)[0]
     if trashed?
@@ -2317,7 +2318,7 @@ transferCardToTop = (card, fromList, toList) ->
 # - `{trash: n}`: trash *n* cards
 # - `{horseEffect: yes}`: gain 4 Silvers and discard your draw pile
 #
-# The basic AI has no rule in it that chooses `horseEffect`.
+# The AI has no rule in it that chooses `horseEffect`.
 applyBenefit = (state, benefit) ->
   state.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
   if benefit.cards?
