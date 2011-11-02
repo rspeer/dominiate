@@ -181,6 +181,12 @@ class BasicAI
     "Copper" if state.gainsToEndGame() <= 3
   ]
   
+  # gainValue covers cases where a strategy has to gain a card that isn't in
+  # its priority list. The default is to favor more expensive cards,
+  # particularly action and treasure cards.
+  gainValue: (state, card, my) ->
+    card.cost + 2*card.costPotion + card.isTreasure + card.isAction - 2
+  
   # The default action-playing strategy, which aims to include a usable plan
   # for playing every action card, so that most AIs don't need to override it.
   actionPriority: (state, my, skipMultipliers = false) -> 
