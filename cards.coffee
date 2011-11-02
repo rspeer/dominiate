@@ -1141,6 +1141,22 @@ makeCard 'Saboteur', attack, {
           state.log("...#{opp.ai} gains nothing.")
 }
 
+makeCard 'Scrying Pool', attack, {
+  cost: 2
+  costPotion: 1
+  actions: +1
+
+  playEffect: (state) ->
+    spyDecision(state.current, state.current, state, 'scryingPoolDiscard')
+
+    state.attackOpponents (opp) ->
+      spyDecision(state.current, opp, state, 'discardFromOpponentDeck')
+    
+    loop
+      drawn = state.drawCards(state.current, 1)[0]
+      break if (not drawn?) or (not drawn.isAction)
+}
+
 makeCard 'Sea Hag', attack, {
   cost: 4
   playEffect: (state) ->
@@ -1152,32 +1168,14 @@ makeCard 'Sea Hag', attack, {
 
 makeCard 'Spy', attack, {
   cost: 4
+  cards: +1
+  actions: +1
+
   playEffect: (state) ->
-    pl = state.current
-    drawn = state.getCardsFromDeck(pl, 1)[0]
-    state.log("#{pl.ai} reveals #{drawn}.")
-    if drawn?
-      discarded = pl.ai.choose('discard', state, [drawn, null])
-      if discarded?
-        state.log("...choosing to discard it.")
-        pl.discard.push(drawn)
-      else
-        state.log("...choosing to put it back on the draw pile.")
-        pl.draw.unshift(drawn)
+    spyDecision(state.current, state.current, state, 'discard')
 
     state.attackOpponents (opp) ->
-      drawn = state.getCardsFromDeck(opp, 1)[0]
-      if typeof drawn == 'string'
-        throw new Error("got a string instead of a card")
-      state.log("#{opp.ai} reveals #{drawn}.")
-      if drawn?
-        discarded = pl.ai.choose('discardFromOpponentDeck', state, [drawn, null])
-        if discarded?
-          state.log("#{pl.ai} chooses to discard it.")
-          opp.discard.push(drawn)
-        else
-          state.log("#{pl.ai} chooses to put it back on the draw pile.")
-          opp.draw.unshift(drawn)
+      spyDecision(state.current, opp, state, 'discardFromOpponentDeck')
 }
 
 makeCard 'Thief', attack, {
@@ -2410,7 +2408,23 @@ nullUpgradeChoices = (state, cards, costFunction) ->
       if costStr not in costs
         choices.push([card, null])
   return choices
-      
+
+# The `player` makes a single spying decision on `target`'s deck, using
+# the decision named `decision` to decide whether to keep the card. For
+# example, if the player is choosing to discard from its own deck, the
+# decision name is `discard`; if it's an opponent's deck, the decision
+# name is `discardFromOpponentDeck`.
+spyDecision = (player, target, state, decision) ->
+  drawn = state.getCardsFromDeck(target, 1)[0]
+  state.log("#{target.ai} reveals #{drawn}.")
+  if drawn?
+    discarded = player.ai.choose(decision, state, [drawn, null])
+    if discarded?
+      state.log("#{target.ai} chooses to discard it.")
+      target.discard.push(drawn)
+    else
+      state.log("#{target.ai} chooses to put it back on the draw pile.")
+      target.draw.unshift(drawn) 
 
 # Export functions that are needed elsewhere.
 this.transferCard = transferCard

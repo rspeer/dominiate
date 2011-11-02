@@ -227,6 +227,7 @@ class BasicAI
     "Bag of Gold"
     "Apothecary"
     "Scout"
+    "Scrying Pool"
     "Spy"
 
     # 4: cards that give +2 actions.
@@ -414,7 +415,7 @@ class BasicAI
       "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 0)
       "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Young Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
-      "Margrave" if my.actions > 0
+      "Scrying Pool"
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0
       "Jester" if my.actions > 0
@@ -422,6 +423,7 @@ class BasicAI
       "Mandarin" if my.actions > 0
       "Rabble" if my.actions > 0
       "Council Room" if my.actions > 0
+      "Margrave" if my.actions > 0
       "Smithy" if my.actions > 0
       "Embassy" if my.actions > 0
       "Merchant Ship" if my.actions > 0
@@ -736,6 +738,14 @@ class BasicAI
       return -10
     else
       return card.coins + card.cost + 2*card.isAttack
+  
+  # `scryingPoolDiscardValue` is like `discardValue`, except it strongly
+  # prefers to discard non-actions.
+  scryingPoolDiscardValue: (state, card, my) ->
+    if not card.isAction
+      2000
+    else
+      this.choiceToValue('discard', state, card)
 
   # Do you want to gain a copper from Ill-Gotten Gains? It's quite possible
   # in endgame situations, but for now the answer is no.
