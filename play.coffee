@@ -24,6 +24,7 @@ playGame = (filenames) ->
   ais = (loadStrategy(filename) for filename in filenames)
   st = new State().setUpWithOptions(ais, {
     colonies: true
+    require: ['Pearl Diver']
     randomizeOrder: true
     log: console.log
   })

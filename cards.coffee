@@ -2065,6 +2065,25 @@ makeCard 'Pawn', action, {
       applyBenefit(state, benefit)
 }
 
+makeCard 'Pearl Diver', action, {
+  cost: 2
+  cards: +1
+  actions: +1
+  playEffect: (state) ->
+    player = state.current
+    bottomCard = player.draw.pop()
+    if bottomCard?
+      doNotWant = player.ai.choose('discard', state, [bottomCard, null])
+      if doNotWant
+        state.log("...choosing to leave #{bottomCard} at the bottom of the deck.")
+        player.draw.push(bottomCard)
+      else
+        state.log("...moving #{bottomCard} from the bottom to the top of the deck.")
+        player.draw.unshift(bottomCard)
+    else
+      state.log("...but the draw pile is empty.")
+}
+
 makeCard 'Peddler', action, {
   cost: 8
   actions: 1

@@ -1,4 +1,4 @@
-Cards that are done (148)
+Cards that are done (149)
 =========================
 Adventurer
 Alchemist
@@ -94,6 +94,7 @@ Nomad Camp
 Oasis
 Outpost
 Pawn
+Pearl Diver
 Peddler
 Philosopher's Stone
 Pirate Ship
@@ -150,7 +151,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (21)
+Cards that still need to be coded (20)
 ======================================
 
 Easy cards
@@ -158,7 +159,6 @@ Easy cards
 These cards can probably be defined in terms of existing decisions.
 
 Oracle
-Pearl Diver
 Transmute
 
 Not-so-easy cards
@@ -177,7 +177,7 @@ Mining Village
 Minion
 Native Village
 Salvager
-Swindler
+Swindler (probably needs a list of cards that are likely to suck, plus different strategies for the early/late game)
 
 Difficult cards
 ---------------

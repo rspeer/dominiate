@@ -266,6 +266,7 @@ class BasicAI
     "Hamlet"
     "Lighthouse"
     "Haven"
+    "Pearl Diver"
 
     # 6: terminal card-drawers, if we have actions to spare.
     "Library" if my.actions > 1 and my.hand.length <= 4
