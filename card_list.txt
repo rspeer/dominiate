@@ -112,6 +112,7 @@ Silk Road
 Silver
 Smithy
 Smugglers
+Spice Merchant
 Spy
 Stables
 Steward
@@ -176,7 +177,6 @@ Mining Village
 Minion
 Native Village
 Salvager
-Spice Merchant (trash-for-benefit meets chooseBenefit)
 Swindler
 
 Difficult cards

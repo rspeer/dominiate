@@ -257,6 +257,7 @@ class BasicAI
     "Highway"
     "Wishing Well"
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
+    "Spice Merchant" if state.cardInfo.Copper in my.Hand
     "Stables" if this.choose('stablesDiscard', state, my.hand.concat([null]))
     "Lighthouse"
     "Haven"
@@ -285,6 +286,7 @@ class BasicAI
     "Warehouse"
     "Cellar"
     "Library" if my.actions > 1 and my.hand.length <= 6
+    "Spice Merchant" if this.choose('spiceMerchantTrash', state, my.hand.concat([null]))
 
     # 9: non-terminal cards that don't succeed but at least give us something.
     "King's Court"
@@ -382,6 +384,7 @@ class BasicAI
     # 11: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler, trigger Conspirator, or something.
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
+    "Spice Merchant"
     "Shanty Town"
     "Stables"
     "Chapel"
@@ -724,6 +727,7 @@ class BasicAI
    
   spiceMerchantTrashPriority: (state, my) -> [
     "Copper",
+    "Loan",
     "Ill-Gotten Gains",
     "Fool's Gold" if my.countInDeck("Fool's Gold") == 1,
     "Silver" if my.getTotalMoney() >= 8

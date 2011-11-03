@@ -2054,6 +2054,21 @@ makeCard 'Smugglers', action, {
     state.gainOneOf(state.current, state.smugglerChoices())
 }
 
+makeCard 'Spice Merchant', action, {
+  cost: 4
+  playEffect: (state) ->
+    trashChoices = (card for card in state.current.hand when card.isTreasure)
+    trashChoices.push(null)
+    trashed = state.current.ai.choose('spiceMerchantTrash', state, trashChoices)
+    if trashed?
+      state.doTrash(state.current, trashed)
+      benefit = state.current.ai.choose('benefit', state, [
+        {cards: 2, actions: 1},
+        {coins: 2, buys: 1}
+      ])
+      applyBenefit(state, benefit)
+}
+
 makeCard 'Stables', action, {
   cost: 5
   playEffect: (state) ->
