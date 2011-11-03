@@ -952,6 +952,22 @@ makeCard 'Fortune Teller', attack, {
         state.log("...#{opp.ai} puts #{card} on top of the deck.")
 }
 
+makeCard 'Ghost Ship', attack, {
+  cost: 5
+  cards: +2
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      while opp.hand.length > 3
+        # Choosing cards one at a time does not necessarily lead to the
+        # best decision. However, it leads to a reasonable, quick decision when
+        # there could be a very large number of nearly-identical options
+        # to evaluate, which is good for a simulator.
+        choices = opp.hand
+        putBack = opp.ai.choose('putOnDeck', state, choices)
+        state.log("...#{opp.ai} puts #{putBack} on top of the deck.")
+        transferCardToTop(putBack, opp.hand, opp.draw)
+}
+
 # Goons: *see Militia*
 
 makeCard 'Jester', attack, {
@@ -2435,10 +2451,10 @@ spyDecision = (player, target, state, decision) ->
   if drawn?
     discarded = player.ai.choose(decision, state, [drawn, null])
     if discarded?
-      state.log("#{target.ai} chooses to discard it.")
+      state.log("#{player.ai} chooses to discard it.")
       target.discard.push(drawn)
     else
-      state.log("#{target.ai} chooses to put it back on the draw pile.")
+      state.log("#{player.ai} chooses to put it back on the draw pile.")
       target.draw.unshift(drawn) 
 
 # Export functions that are needed elsewhere.

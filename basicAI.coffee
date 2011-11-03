@@ -267,6 +267,8 @@ class BasicAI
     "Torturer" if my.actions > 1
     "Margrave" if my.actions > 1
     "Rabble" if my.actions > 1
+    "Witch" if my.actions > 1
+    "Ghost Ship" if my.actions > 1
     "Smithy" if my.actions > 1
     "Embassy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
@@ -313,6 +315,7 @@ class BasicAI
     "Tactician"
     "Masquerade"
     "Vault"
+    "Ghost Ship"
     "Princess"
     "Explorer" if my.countInHand("Province") >= 1
     "Library" if my.hand.length <= 3
@@ -421,6 +424,7 @@ class BasicAI
       "Scrying Pool"
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0
+      "Ghost Ship" if my.actions > 0
       "Jester" if my.actions > 0
       "Horse Traders" if my.actions > 0
       "Mandarin" if my.actions > 0
@@ -611,8 +615,8 @@ class BasicAI
     putBack
   
   putOnDeckValue: (state, card, my) =>
-    this.discardValue(state, card, my)
-  
+    this.discardValue(state, card, my)  
+
   # The `herbalist` decision puts a treasure card back on the deck. It sounds
   # the same as `putOnDeck`, but it's for a different
   # situation -- the card is coming from in play, not from your hand. So

@@ -1,4 +1,4 @@
-Cards that are done (145)
+Cards that are done (147)
 =========================
 Adventurer
 Alchemist
@@ -47,6 +47,7 @@ Followers
 Fool's Gold
 Fortune Teller
 Gardens
+Ghost Ship
 Golem
 Goons
 Grand Market
@@ -147,7 +148,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (25)
+Cards that still need to be coded (23)
 ======================================
 
 Easy cards
@@ -169,7 +170,6 @@ Contraband
 Develop (the hard part is making the list of choices)
 Embargo
 Forge
-Ghost Ship
 Governor
 Hamlet
 Inn
