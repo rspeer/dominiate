@@ -1,4 +1,4 @@
-Cards that are done (147)
+Cards that are done (148)
 =========================
 Adventurer
 Alchemist
@@ -54,6 +54,7 @@ Goons
 Grand Market
 Great Hall
 Haggler
+Hamlet
 Harem
 Haven
 Herbalist
@@ -149,7 +150,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (23)
+Cards that still need to be coded (21)
 ======================================
 
 Easy cards
@@ -171,7 +172,6 @@ Develop (the hard part is making the list of choices)
 Embargo
 Forge
 Governor
-Hamlet
 Inn
 Mining Village
 Minion

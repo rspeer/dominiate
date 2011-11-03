@@ -474,7 +474,7 @@ class State
   #   left undefined.
   # - `log
   setUpWithOptions: (ais, options) ->
-    tableau = []
+    tableau = options.require ? []
     for ai in ais
       if ai.requires?
         for card in ai.requires

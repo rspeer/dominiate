@@ -1634,6 +1634,29 @@ makeCard 'Haggler', action, {
     state.gainOneOf(state.current, choices)
 }
 
+makeCard "Hamlet", action, {
+  cost: 2
+  cards: +1
+  actions: +1
+
+  playEffect: (state) ->
+    player = state.current
+
+    # We take a bit of a shortcut for now: we discard up to two cards, then if only
+    # one was discarded, decide whether to use it for +action or +buy.
+    discarded = state.allowDiscard(player, 2)
+    if discarded.length == 2
+      console.log("#{player.ai} gets +1 action and +1 buy.")
+      player.actions++
+      player.buys++
+    else if discarded.length == 1
+      benefit = player.ai.choose('benefit', state, [
+        {actions: 1},
+        {cards: 1}
+      ])
+      applyBenefit(state, benefit)
+}
+
 makeCard "Harvest", action, {
   cost: 5
   playEffect: (state) ->
@@ -2401,7 +2424,7 @@ transferCardToTop = (card, fromList, toList) ->
 #
 # The AI has no rule in it that chooses `horseEffect`.
 applyBenefit = (state, benefit) ->
-  state.log("#{state.current.ai} chooses #{JSON.stringify(benefit)}.")
+  state.log("#{state.current.ai} gets #{JSON.stringify(benefit)}.")
   if benefit.cards?
     state.drawCards(state.current, benefit.cards)
   if benefit.actions?
