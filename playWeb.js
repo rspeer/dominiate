@@ -79,19 +79,27 @@
     }
   };
   playStep = function(state, options, ret) {
+    var errorHandler, _ref;
     if (state.gameIsOver()) {
       return ret(state);
     } else {
-      state.doPlay();
-      if (state.phase === 'buy' && (!state.extraturn) && (options.grapher != null)) {
-        options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins);
+      try {
+        state.doPlay();
+        if (state.phase === 'buy' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins);
+        }
+        if (state.phase === 'cleanup' && (!state.extraturn) && (options.grapher != null)) {
+          options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state));
+        }
+        return window.setZeroTimeout(function() {
+          return playStep(state, options, ret);
+        });
+      } catch (err) {
+        errorHandler = (_ref = options.errorHandler) != null ? _ref : typeof alert !== "undefined" && alert !== null ? alert : console.log;
+        errorHandler(err.message);
+        window.donePlaying();
+        throw err;
       }
-      if (state.phase === 'cleanup' && (!state.extraturn) && (options.grapher != null)) {
-        options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state));
-      }
-      return window.setZeroTimeout(function() {
-        return playStep(state, options, ret);
-      });
     }
   };
   playFast = function(state, options, ret) {
