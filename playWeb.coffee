@@ -48,18 +48,18 @@ playStep = (state, options, ret) ->
   if state.gameIsOver()
     ret(state)
   else
-    #try
+    try
       state.doPlay()
       if state.phase == 'buy' and (not state.extraturn) and options.grapher?
         options.grapher.recordMoney(state.current.ai.name, state.current.turnsTaken, state.current.coins)
       if state.phase == 'cleanup' and (not state.extraturn) and options.grapher?
         options.grapher.recordVP(state.current.ai.name, state.current.turnsTaken, state.current.getVP(state))
       window.setZeroTimeout -> playStep(state, options, ret)
-    #catch err
-    #  errorHandler = options.errorHandler ? (alert ? console.log)
-    #  errorHandler(err.message)
-    #  window.donePlaying()
-    #  throw err
+    catch err
+      errorHandler = options.errorHandler ? (alert ? console.log)
+      errorHandler(err.message)
+      window.donePlaying()
+      throw err
 
 playFast = (state, options, ret) ->
   until state.gameIsOver()
