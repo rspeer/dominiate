@@ -261,7 +261,7 @@ class BasicAI
     "Highway"
     "Wishing Well"
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
-    "Spice Merchant" if state.cardInfo.Copper in my.Hand
+    "Spice Merchant" if state.cardInfo.Copper in my.hand
     "Stables" if this.choose('stablesDiscard', state, my.hand.concat([null]))
     "Hamlet"
     "Lighthouse"

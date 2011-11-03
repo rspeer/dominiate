@@ -174,6 +174,7 @@ to write.
 
 Apprentice
 Bishop
+Black Market (requires a new setup step)
 Develop (the hard part is making the list of choices)
 Embargo (the trick is guessing what your opponent wants)
 Forge
@@ -187,6 +188,5 @@ In estimated order of difficulty:
 
 Scheme (adds a new sub-phase to cleanup)
 Secret Chamber (avoid infinite loops)
-Black Market (requires a new setup step)
 Stash (requires a decision mid-shuffle)
 Possession (will require entirely new kinds of AI decisions)
