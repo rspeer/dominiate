@@ -280,6 +280,7 @@ class BasicAI
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5
     "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
+    "Oracle" if my.actions > 1
 
     # 7: Let's insert here an overly simplistic idea of how to play Crossroads.
     # Or if we don't have a Crossroads, play a Great Hall that we might otherwise
@@ -351,6 +352,7 @@ class BasicAI
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
     "Monument"
+    "Oracle"
     "Remake" if wantsToTrash >= multiplier * 2   # has a low priority so it'll mostly be played early in the game
     "Adventurer"
     "Harvest"
@@ -455,6 +457,7 @@ class BasicAI
       "Mine" if my.actions > 0
       "Masquerade" if my.actions > 0
       "Vault" if my.actions > 0
+      "Oracle" if my.actions > 0
       "Cutpurse" if my.actions > 0
       "Coppersmith" if my.actions > 0 and my.countInHand("Copper") >= 2
       "Ambassador" if my.actions > 0 and this.wantsToTrash(state)
@@ -756,7 +759,7 @@ class BasicAI
   # evaluated with `discardFromOpponentDeckValue`.
   discardFromOpponentDeckValue: (state, card, my) ->
     if card.name == 'Tunnel'
-      return -25
+      return -2000
     else if not (card.isAction) and not (card.isTreasure)
       return -10
     else
@@ -833,11 +836,19 @@ class BasicAI
 
   discardHandValue: (state, hand, my) ->
     return 0 if hand is null
-    deck = my.getDeck()
+    deck = my.discard.concat(my.draw)
     shuffle(deck)
     randomHand = deck[0...5]
     # If a random hand from this deck is better, discard this hand.
     return my.ai.compareByDiscarding(state, randomHand, hand)
+  
+  # Choose whether we want these cards or two random cards.
+  oracleDiscardValue: (state, cards, my) ->
+    deck = my.discard.concat(my.draw)
+    shuffle(deck)
+    randomCards = deck[0...cards.length]
+
+    return my.ai.compareByDiscarding(state, my.hand.concat(randomCards), my.hand.concat(cards))
 
   # Choose to attack or use available coins when playing Pirate Ship.
   # Current strategy is basically Geronimoo's attackUntil5Coins play strategy,
@@ -911,10 +922,12 @@ class BasicAI
   
   # `goingGreen`: determine when we're playing for victory points. By default,
   # it's if there are any Colonies, Provinces, or Duchies in the deck.
+  #
+  # The bigger the number, the greener the deck.
   goingGreen: (state) ->
     my = this.myPlayer(state)
     bigGreen = my.countInDeck("Colony") + my.countInDeck("Province") + my.countInDeck("Duchy")
-    return (bigGreen > 0)
+    return bigGreen
   
   # `pessimisticMoneyInHand` establishes a minimum on how much money the
   # player will be able to spend in this game state. It assumes the player
@@ -1020,15 +1033,13 @@ class BasicAI
       else
         hand1.remove(discard1)
         hand2.remove(discard2)
-      if hand1.length == 0 and hand2.length == 0
+      if hand1.length <= 2 and hand2.length <= 2
         state.current.actions = savedActions
         return 0      
-      if hand1.length == 0
-        #state.log("hand2 is better")
+      if hand1.length <= 2
         state.current.actions = savedActions
         return -1
-      if hand2.length == 0
-        #state.log("hand1 is better")
+      if hand2.length <= 2
         state.current.actions = savedActions
         return 1
 

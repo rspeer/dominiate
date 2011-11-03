@@ -1075,6 +1075,37 @@ makeCard 'Noble Brigand', attack, {
     state.log("...#{opp.ai} discards #{drawn}.")     
 }
 
+makeCard 'Oracle', attack, {
+  cost: 3
+
+  playEffect: (state) ->
+    player = state.current
+    myCards = state.getCardsFromDeck(player, 2)
+    if player.ai.oracleDiscardValue(state, myCards, player) > 0
+      state.log("...discarding #{myCards}.")
+      Array::push.apply(player.discard, myCards)
+    else
+      state.log("...keeping #{myCards} on top of the deck.")
+      Array::unshift.apply(player.draw, myCards)
+    
+    state.attackOpponents (opp) ->
+      cards = state.getCardsFromDeck(opp, 2)
+      # Can't use oracleDiscardValue because it's a different situation, and
+      # we don't know what's in the opponent's hand.
+
+      value = 0
+      for card in cards
+        value += player.ai.choiceToValue('discardFromOpponentDeck', state, card)
+      if value > 0
+        state.log("#{player.ai} discards #{cards} from #{opp.ai}'s deck.")
+        Array::push.apply(opp.discard, cards)
+      else
+        state.log("#{player.ai} leaves #{cards} on #{opp.ai}'s deck.")
+        Array::unshift.apply(opp.draw, cards)
+
+    state.drawCards(player, 2)
+}
+
 makeCard 'Pirate Ship', attack, {
   cost: 4
 
@@ -2244,13 +2275,14 @@ makeCard "Transmute", action, {
   playEffect: (state) ->
     player = state.current
     trashed = player.ai.choose('transmute', state, player.hand)
-    state.doTrash(player, trashed)
-    if trashed.isAction
-      state.gainCard(state.current, c.Duchy)
-    if trashed.isTreasure
-      state.gainCard(state.current, c.Transmute)
-    if trashed.isVictory
-      state.gainCard(state.current, c.Gold)
+    if trashed?
+      state.doTrash(player, trashed)
+      if trashed.isAction
+        state.gainCard(state.current, c.Duchy)
+      if trashed.isTreasure
+        state.gainCard(state.current, c.Transmute)
+      if trashed.isVictory
+        state.gainCard(state.current, c.Gold)
 }
 
 makeCard 'Treasure Map', action, {

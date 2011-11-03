@@ -1,4 +1,4 @@
-Cards that are done (149)
+Cards that are done (152)
 =========================
 Adventurer
 Alchemist
@@ -92,6 +92,7 @@ Noble Brigand
 Nobles
 Nomad Camp
 Oasis
+Oracle
 Outpost
 Pawn
 Pearl Diver
@@ -152,32 +153,33 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (19)
+Cards that still need to be coded (18)
 ======================================
 
-Easy cards
-----------
-These cards can probably be defined in terms of existing decisions.
+Possibly easy cards
+-------------------
+Though they will generally involve defining new decisions, there should be a
+fair amount of code you can reuse for these cards.
 
-Oracle
+Contraband
+Governor
+Mining Village
+Minion
+Swindler (probably needs a list of cards that are likely to suck, plus different strategies for the early/late game)
 
 Not-so-easy cards
 -----------------
-These generally require some decision-making code that doesn't exist yet.
+These are likely to require new helper functions or decisions that are hard
+to write.
 
 Apprentice
 Bishop
-Contraband
 Develop (the hard part is making the list of choices)
-Embargo
+Embargo (the trick is guessing what your opponent wants)
 Forge
-Governor
 Inn
-Mining Village
-Minion
 Native Village
 Salvager
-Swindler (probably needs a list of cards that are likely to suck, plus different strategies for the early/late game)
 
 Difficult cards
 ---------------
