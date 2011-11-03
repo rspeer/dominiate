@@ -13,6 +13,7 @@ Bridge
 Bureaucrat
 Cache
 Caravan
+Cartographer
 Cellar
 Chancellor
 Chapel
@@ -155,7 +156,6 @@ Easy cards
 ----------
 These cards can probably be defined in terms of existing decisions.
 
-Cartographer (just use discardValue and chooseOrderOnDeck)
 Oracle
 Pearl Diver
 Transmute

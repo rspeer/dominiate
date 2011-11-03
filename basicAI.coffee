@@ -184,8 +184,11 @@ class BasicAI
   # gainValue covers cases where a strategy has to gain a card that isn't in
   # its priority list. The default is to favor more expensive cards,
   # particularly action and treasure cards.
+  # 
+  # It is important for all these values to be negative, to avoid giving defined
+  # strategies cards they don't actually want.
   gainValue: (state, card, my) ->
-    card.cost + 2*card.costPotion + card.isTreasure + card.isAction - 2
+    card.cost + 2*card.costPotion + card.isTreasure + card.isAction - 20
   
   # The default action-playing strategy, which aims to include a usable plan
   # for playing every action card, so that most AIs don't need to override it.
@@ -224,6 +227,7 @@ class BasicAI
 
     # 3: cards that stack the deck.
     "Lookout" if state.gainsToEndGame() >= 5 or state.cardInfo.Curse in my.draw
+    "Cartographer"
     "Bag of Gold"
     "Apothecary"
     "Scout"

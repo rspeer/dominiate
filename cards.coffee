@@ -1345,6 +1345,29 @@ makeCard 'Bridge', action, {
       state.bridges += 1
 }
 
+makeCard 'Cartographer', action, {
+  cost: 5
+  cards: +1
+  actions: +1
+
+  playEffect: (state) ->
+    player = state.current
+    revealed = player.getCardsFromDeck(4)
+    kept = []
+    state.log("#{player.ai} reveals #{revealed} from the deck.")
+    while revealed.length
+      card = revealed.pop()
+      if player.ai.choose('discard', state, [card, null])
+        state.log("#{player.ai} discards #{card}.")
+        player.discard.push(card)
+        state.handleDiscards(player, [card])
+      else
+        kept.push(card)
+    order = player.ai.chooseOrderOnDeck(state, kept, player)
+    state.log("#{player.ai} puts #{order} back on the deck.")
+    player.draw = order.concat(player.draw)
+}
+
 makeCard 'Cellar', action, {
   cost: 2
   actions: 1
