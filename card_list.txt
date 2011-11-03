@@ -129,6 +129,7 @@ Tournament
 Trade Route
 Trader
 Trading Post
+Transmute
 Treasure Map
 Treasury
 Tribute
@@ -151,7 +152,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (20)
+Cards that still need to be coded (19)
 ======================================
 
 Easy cards
@@ -159,7 +160,6 @@ Easy cards
 These cards can probably be defined in terms of existing decisions.
 
 Oracle
-Transmute
 
 Not-so-easy cards
 -----------------

@@ -385,6 +385,7 @@ class BasicAI
     "Workshop"
     "Smugglers" if state.smugglerChoices().length > 1
     "Feast"
+    "Transmute" if wantsToTrash >= multiplier
     "Coppersmith"
     "Saboteur"
     "Duchess"
@@ -693,6 +694,14 @@ class BasicAI
     ]
   
   islandValue: (state, card, my) -> this.discardValue(state, card, my)
+
+  transmuteValue: (state, card, my) ->
+    if card.isAction and this.goingGreen(state)
+      return 10
+    else if card.isAction and card.isVictory and card.cost <= 4
+      return 1000
+    else
+      return this.choiceToValue('trash', state, card)
   
   # Taking into account gain priorities, gain values, trash priorities, and
   # trash values, how much do we like having this card in our deck overall?
@@ -899,7 +908,14 @@ class BasicAI
       if this.chooseDiscard(state, [card, null]) is card
         discardableCards += 1
     return discardableCards
-
+  
+  # `goingGreen`: determine when we're playing for victory points. By default,
+  # it's if there are any Colonies, Provinces, or Duchies in the deck.
+  goingGreen: (state) ->
+    my = this.myPlayer(state)
+    bigGreen = my.countInDeck("Colony") + my.countInDeck("Province") + my.countInDeck("Duchy")
+    return (bigGreen > 0)
+  
   # `pessimisticMoneyInHand` establishes a minimum on how much money the
   # player will be able to spend in this game state. It assumes the player
   # will draw no money from the deck.

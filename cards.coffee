@@ -2238,6 +2238,21 @@ makeCard "Trading Post", action, {
     state.log("...gaining a Silver in hand.")    
 }
 
+makeCard "Transmute", action, {
+  cost: 0
+  costPotion: 1
+  playEffect: (state) ->
+    player = state.current
+    trashed = player.ai.choose('transmute', state, player.hand)
+    state.doTrash(player, trashed)
+    if trashed.isAction
+      state.gainCard(state.current, c.Duchy)
+    if trashed.isTreasure
+      state.gainCard(state.current, c.Transmute)
+    if trashed.isVictory
+      state.gainCard(state.current, c.Gold)
+}
+
 makeCard 'Treasure Map', action, {
   cost: 4
 

@@ -26,6 +26,7 @@ playGame = (filenames) ->
     colonies: true
     randomizeOrder: true
     log: console.log
+    require: ['Transmute']
   })
   until st.gameIsOver()
     st.doPlay()
