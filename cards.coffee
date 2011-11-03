@@ -1646,7 +1646,7 @@ makeCard "Hamlet", action, {
     # one was discarded, decide whether to use it for +action or +buy.
     discarded = state.allowDiscard(player, 2)
     if discarded.length == 2
-      console.log("#{player.ai} gets +1 action and +1 buy.")
+      state.log("#{player.ai} gets +1 action and +1 buy.")
       player.actions++
       player.buys++
     else if discarded.length == 1
