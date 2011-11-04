@@ -418,6 +418,12 @@ class BasicAI
     "Throne Room"
   ]
   
+  # `multipliedActionPriority` is similar to `actionPriority`, but is used when
+  # we have played a Throne Room or King's Court.
+  #
+  # This list emphasizes cards that are really good when multiplied, especially
+  # terminals when there are +actions left. At the end, it falls back on the
+  # usual actionPriority list.
   multipliedActionPriority: (state, my) ->
     [
       "King's Court"
@@ -469,7 +475,8 @@ class BasicAI
       # But at this point, just fall back on that priority list.
     ].concat(this.actionPriority(state, my, skipMultipliers=true))
   
-  # Most of the order of `treasurePriority` has no effect on gameplay. The
+  # `treasurePriority` determines what order to play treasures in.
+  # Most of the order has no effect on gameplay. The
   # important part is that Bank and Horn of Plenty are last.
   treasurePriority: (state, my) -> [
     "Platinum"
@@ -485,41 +492,13 @@ class BasicAI
     "Quarry"
     "Talisman"
     "Copper"
-    "Ill-Gotten Gains"
     "Potion"
     "Loan"
     "Venture"
+    "Ill-Gotten Gains"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
   ]
-
-  cachedActionPriority: (state, my) ->
-    my.ai.cachedAP
-    
-  cacheActionPriority: (state, my) ->
-    @cachedAP = my.ai.actionPriority(state, my)
-
-  # `chooseOrderOnDeck` handles situations where multiple cards are returned
-  # to the deck, such as Scout and Apothecary.
-  #
-  # This decision doesn't fit into the xPriority / xValue framework, as there
-  # are a number of mostly indistinguishable choices. Instead of listing all
-  # the permutations of cards as choices, we just list the cards to arrange.
-  #
-  # The default decision is to put the cards with the lowest discard value on
-  # top.
-  chooseOrderOnDeck: (state, cards, my) ->
-    sorter = (card1, card2) ->
-      my.ai.choiceToValue('discard', state, card1)\
-      - my.ai.choiceToValue('discard', state, card2)
-    
-    choice = cards.slice(0)
-    return choice.sort(sorter)
-
-  mintValue: (state, card, my) -> 
-    # Mint anything but Copper and Diadem. Otherwise, go mostly by the card's base cost.
-    # There is only 1 Diadem, never any available to gain, so never Mint it.
-    return card.cost - 1
   
   # The default `discardPriority` is tuned for Big Money where the decisions
   # are obvious. But many strategies would probably prefer a different
@@ -864,6 +843,11 @@ class BasicAI
     else
       -1
   ]
+
+  # Mint anything but Copper and Diadem. Otherwise, go mostly by the card's base cost.
+  # There is only 1 Diadem, never any available to gain, so never Mint it.
+  mintValue: (state, card, my) -> 
+    return card.cost - 1
   
   # Choose opponent treasure to trash; go by the card's base cost.
   # Diadems are comparable to the cost-5 treasures.
@@ -871,6 +855,23 @@ class BasicAI
     if card is 'Diadem'
       return 5
     return card.cost
+
+  # `chooseOrderOnDeck` handles situations where multiple cards are returned
+  # to the deck, such as Scout and Apothecary.
+  #
+  # This decision doesn't fit into the xPriority / xValue framework, as there
+  # are a number of mostly indistinguishable choices. Instead of listing all
+  # the permutations of cards as choices, we just list the cards to arrange.
+  #
+  # The default decision is to put the cards with the lowest discard value on
+  # top.
+  chooseOrderOnDeck: (state, cards, my) ->
+    sorter = (card1, card2) ->
+      my.ai.choiceToValue('discard', state, card1)\
+      - my.ai.choiceToValue('discard', state, card2)
+    
+    choice = cards.slice(0)
+    return choice.sort(sorter)
 
   #### Informational methods
 
@@ -923,7 +924,8 @@ class BasicAI
   # `goingGreen`: determine when we're playing for victory points. By default,
   # it's if there are any Colonies, Provinces, or Duchies in the deck.
   #
-  # The bigger the number, the greener the deck.
+  # The bigger the number, the greener the deck, but a true (greater than 0)
+  # value is a good indication in itself that we want victory cards.
   goingGreen: (state) ->
     my = this.myPlayer(state)
     bigGreen = my.countInDeck("Colony") + my.countInDeck("Province") + my.countInDeck("Duchy")
@@ -1053,6 +1055,15 @@ class BasicAI
       ai[key] = value
     ai.name = this.name+'*'
     ai
+
+  # Some functions need to check the actionPriority a lot. This pair of
+  # methods will save a cached value so you don't need to run such an expensive
+  # function over and over.
+  cachedActionPriority: (state, my) ->
+    my.ai.cachedAP
+    
+  cacheActionPriority: (state, my) ->
+    @cachedAP = my.ai.actionPriority(state, my)
 
   toString: () -> this.name
 this.BasicAI = BasicAI
