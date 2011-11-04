@@ -18,7 +18,11 @@ strategies play against each other.</p>             </td>             <td class=
 
 <span class="nv">playGame = </span><span class="nf">(filenames) -&gt;</span>
   <span class="nv">ais = </span><span class="p">(</span><span class="nx">loadStrategy</span><span class="p">(</span><span class="nx">filename</span><span class="p">)</span> <span class="k">for</span> <span class="nx">filename</span> <span class="k">in</span> <span class="nx">filenames</span><span class="p">)</span>
-  <span class="nv">st = </span><span class="k">new</span> <span class="nx">State</span><span class="p">().</span><span class="nx">initialize</span><span class="p">(</span><span class="nx">ais</span><span class="p">,</span> <span class="nx">tableaux</span><span class="p">.</span><span class="nx">all</span><span class="p">)</span>
+  <span class="nv">st = </span><span class="k">new</span> <span class="nx">State</span><span class="p">().</span><span class="nx">setUpWithOptions</span><span class="p">(</span><span class="nx">ais</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nv">colonies: </span><span class="kc">true</span>
+    <span class="nv">randomizeOrder: </span><span class="kc">true</span>
+    <span class="nv">log: </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span>
+  <span class="p">})</span>
   <span class="nx">until</span> <span class="nx">st</span><span class="p">.</span><span class="nx">gameIsOver</span><span class="p">()</span>
     <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">()</span>
   <span class="nv">result = </span><span class="p">([</span><span class="nx">player</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">toString</span><span class="p">(),</span> <span class="nx">player</span><span class="p">.</span><span class="nx">getVP</span><span class="p">(</span><span class="nx">st</span><span class="p">),</span> <span class="nx">player</span><span class="p">.</span><span class="nx">turnsTaken</span><span class="p">]</span> <span class="k">for</span> <span class="nx">player</span> <span class="k">in</span> <span class="nx">st</span><span class="p">.</span><span class="nx">players</span><span class="p">)</span>
