@@ -1560,7 +1560,7 @@ makeCard 'Envoy', action, {
     # Have the left-hand neighbor (or the AI itself in solitaire) choose a card
     # to discard.
     neighbor = state.players[1] ? state.players[0]
-    choice = neighbor.ai.choose('discardForEnvoy', state, drawn)
+    choice = neighbor.ai.choose('envoy', state, drawn)
     if choice?
       state.log("#{neighbor.ai} chooses for #{state.current.ai} to discard #{choice}.")
       transferCard(choice, drawn, state.current.discard)

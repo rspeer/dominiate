@@ -534,21 +534,47 @@ class BasicAI
       20 - card.cost
     else
       0 - card.cost
-  
-  discardForEnvoyValue: (state, card, my) ->
-    # Choose a card to discard from your opponent's hand when it's their turn.
-    opp = state.current
+
+  trashPriority: (state, my) -> [
+    "Curse"
+    "Estate" if state.gainsToEndGame() > 4
+    "Copper" if my.getTotalMoney() > 4
+    "Potion" if my.turnsTaken >= 10
+    "Estate" if state.gainsToEndGame() > 2
+  ]
+
+  # If we have to trash a card we don't want to, assign a value to each card.
+  # By default, we want to trash the card with the lowest (cost + VP).
+  trashValue: (state, card, my) ->
+    0 - card.vp - card.cost
+
+  # Some cards give you a choice to discard an opponent's deck. These are
+  # evaluated with `discardFromOpponentDeckValue`.
+  discardFromOpponentDeckValue: (state, card, my) ->
     if card.name == 'Tunnel'
-      return -25
+      return -2000
     else if not (card.isAction) and not (card.isTreasure)
       return -10
-    else if opp.actions == 0 and card.isAction
-      return -5
-    else if opp.actions >= 2
-      return card.cards + card.coins + card.cost + 2*card.isAttack
     else
-      return card.coins + card.cost + 2*card.isAttack
+      return card.coins + card.cost + 2*card.isAttack  
 
+  # `discardHandValue` decides whether to discard an entire hand of cards.
+  discardHandValue: (state, hand, my) ->
+    return 0 if hand is null
+    deck = my.discard.concat(my.draw)
+    shuffle(deck)
+    randomHand = deck[0...5]
+    # If a random hand from this deck is better, discard this hand.
+    return my.ai.compareByDiscarding(state, randomHand, hand)
+    
+  # Prefer to gain action and treasure cards on the deck. Give other cards
+  # a value of -1 so that `null` is a better choice.
+  gainOnDeckValue: (state, card, my) ->
+    if (card.isAction or card.isTreasure)
+      1
+    else
+      -1
+  
   # Changed Priorities for putting cards back on deck.  Only works well for putting back 1 card, and for 1 buy.
   #
   putOnDeckPriority: (state, my) -> 
@@ -605,27 +631,33 @@ class BasicAI
   
   putOnDeckValue: (state, card, my) =>
     this.discardValue(state, card, my)  
+  
+  # How much does the AI want to discard its deck right now (for Chancellor)?
+  # Here, we decide to reshuffle (returning a reshuffleValue over 0) when most
+  # of the non-Action, non-Treasure cards are in the draw pile, or when there
+  # are no such cards in the deck.
+  reshuffleValue: (state, choice, my) ->
+    junkToDraw = 0
+    totalJunk = 0
+    for card in my.draw
+      if not (card.isAction or card.isTreasure)
+        junkToDraw++
+    for card in my.getDeck()
+      if not (card.isAction or card.isTreasure)
+        totalJunk++
+    return 1 if (totalJunk == 0)
+    proportion = junkToDraw/totalJunk
+    return (proportion - 0.5)
 
-  # The `herbalist` decision puts a treasure card back on the deck. It sounds
-  # the same as `putOnDeck`, but it's for a different
-  # situation -- the card is coming from in play, not from your hand. So
-  # actually we use the `mintValue` by default.
-  herbalistValue: (state, card, my) =>
-    this.mintValue(state, card, my)
+  # Choose opponent treasure to trash; go by the card's base cost.
+  # Diadems are comparable to the cost-5 treasures.
+  trashOppTreasureValue: (state, card, my) =>
+    if card is 'Diadem'
+      return 5
+    return card.cost    
 
-  trashPriority: (state, my) -> [
-    "Curse"
-    "Estate" if state.gainsToEndGame() > 4
-    "Copper" if my.getTotalMoney() > 4
-    "Potion" if my.turnsTaken >= 10
-    "Estate" if state.gainsToEndGame() > 2
-  ]
+  #### Decisions for particular cards
 
-  # If we have to trash a card we don't want to, assign a value to each card.
-  # By default, we want to trash the card with the lowest (cost + VP).
-  trashValue: (state, card, my) ->
-    0 - card.vp - card.cost
-    
   # `ambassadorPriority` chooses a card to Ambassador and how many of it to
   # return.
   #
@@ -656,6 +688,44 @@ class BasicAI
       "[Potion, 1]"
     ].concat ("[#{card}, 1]" for card in my.ai.trashPriority(state, my) when card?)
   
+  # The question here is: do you want to discard an Estate using a Baron?
+  # And the answer is yes.
+  baronDiscardPriority: (state, my) -> [yes]
+
+  envoyValue: (state, card, my) ->
+    # Choose a card to discard from your opponent's hand when it's their turn.
+    opp = state.current
+    if card.name == 'Tunnel'
+      return -25
+    else if not (card.isAction) and not (card.isTreasure)
+      return -10
+    else if opp.actions == 0 and card.isAction
+      return -5
+    else if opp.actions >= 2
+      return card.cards + card.coins + card.cost + 2*card.isAttack
+    else
+      return card.coins + card.cost + 2*card.isAttack
+
+  # `foolsGoldTrashPriority` will trash a Fool's Gold for a real Gold if
+  # it's nearing the endgame (5 gains or less), there is one FG in hand,
+  # and losing it will not change its buy.
+  foolsGoldTrashPriority: (state, my) ->
+    if my.countInHand(state.cardInfo["Fool's Gold"]) == 1 and my.ai.coinLossMargin(state) >= 1
+      [yes]
+    else
+      [no]  
+
+  # Do you want to gain a copper from Ill-Gotten Gains? It's quite possible
+  # in endgame situations, but for now the answer is no.
+  gainCopperPriority: (state, my) -> [no]
+
+  # The `herbalist` decision puts a treasure card back on the deck. It sounds
+  # the same as `putOnDeck`, but it's for a different
+  # situation -- the card is coming from in play, not from your hand. So
+  # actually we use the `mintValue` by default.
+  herbalistValue: (state, card, my) =>
+    this.mintValue(state, card, my)
+
   # islandPriority chooses which card to set aside with Island. At present this
   # list is incomplete, but covers just about everything that we would want to set aside
   # with an Island.
@@ -677,6 +747,34 @@ class BasicAI
   
   islandValue: (state, card, my) -> this.discardValue(state, card, my)
 
+  librarySetAsideValue: (state, card, my) -> [
+    if my.actions == 0 and card.isAction
+      1
+    else
+      -1
+  ]
+
+  # Mint anything but Copper and Diadem. Otherwise, go mostly by the card's base cost.
+  # There is only 1 Diadem, never any available to gain, so never Mint it.
+  mintValue: (state, card, my) -> 
+    return card.cost - 1
+  
+  # Choose whether we want these cards or two random cards.
+  oracleDiscardValue: (state, cards, my) ->
+    deck = my.discard.concat(my.draw)
+    shuffle(deck)
+    randomCards = deck[0...cards.length]
+
+    return my.ai.compareByDiscarding(state, my.hand.concat(randomCards), my.hand.concat(cards))
+
+  # Choose to attack or use available coins when playing Pirate Ship.
+  # Current strategy is basically Geronimoo's attackUntil5Coins play strategy,
+  # but only with Provinces--or technically, cards costing 8 or more.
+  pirateShipPriority: (state, my) -> [
+    'coins' if state.current.mats.pirateShip >= 5 and state.current.getAvailableMoney()+state.current.mats.pirateShip >= 8
+    'attack'
+  ]
+
   transmuteValue: (state, card, my) ->
     if card.isAction and this.goingGreen(state)
       return 10
@@ -685,6 +783,62 @@ class BasicAI
     else
       return this.choiceToValue('trash', state, card)
   
+  # `scryingPoolDiscardValue` is like `discardValue`, except it strongly
+  # prefers to discard non-actions.
+  scryingPoolDiscardValue: (state, card, my) ->
+    if not card.isAction
+      2000
+    else
+      this.choiceToValue('discard', state, card)
+
+  spiceMerchantTrashPriority: (state, my) -> [
+    "Copper",
+    "Loan",
+    "Ill-Gotten Gains",
+    "Fool's Gold" if my.countInDeck("Fool's Gold") == 1,
+    "Silver" if my.getTotalMoney() >= 8
+  ]
+
+  # Which treasure, if any, should be discarded to feed Stables? Defaults
+  # to a list of generally crappy treasures. Doesn't include $1 Fool's Gold
+  # because you presumably have another one you're trying to draw.
+  stablesDiscardPriority: (state, my) -> [
+    "Copper"
+    "Potion" if my.countInPlay(state.cardInfo["Alchemist"]) == 0
+    "Ill-Gotten Gains"
+    "Silver"
+    "Horn of Plenty"
+  ]
+   
+  # Do you want to discard a Province to win a Tournament? The answer is
+  # *very* yes.
+  tournamentDiscardPriority: (state, my) -> [yes]
+
+  # `wishValue` prefers to wish for the card its draw pile contains
+  # the most of.
+  #
+  # The fact that this doesn't make a hypothetical copy is a shortcut. We are
+  # technically "peeking" at the deck, but we don't use any information except
+  # the count of each card, which would be the same in any hypothetical version.
+  wishValue: (state, card, my) ->
+    pile = my.draw
+    if pile.length == 0
+      pile = my.discard
+    return countInList(pile, card)
+
+  # Choose to discard or to gain a curse when attacked by Torturer.
+  torturerPriority: (state, my) -> [
+    'curse' if state.countInSupply("Curse") == 0
+    'discard' if my.ai.wantsToDiscard(state) >= 2
+    'discard' if my.hand.length <= 1
+    'curse' if my.trashingInHand() > 0
+    'curse' if my.hand.length <= 3
+    'discard'
+    'curse'
+  ]
+  
+  #### Trash-for-benefit decisions
+
   # Taking into account gain priorities, gain values, trash priorities, and
   # trash values, how much do we like having this card in our deck overall?
   cardInDeckValue: (state, card, my) ->
@@ -707,154 +861,6 @@ class BasicAI
     return my.ai.cardInDeckValue(state, newCard, my) - \
            my.ai.cardInDeckValue(state, oldCard, my)
   
-  # The question here is: do you want to discard an Estate using a Baron?
-  # And the answer is yes.
-  baronDiscardPriority: (state, my) -> [yes]
-
-  # Do you want to discard a Province to win a Tournament? The answer is
-  # *very* yes.
-  tournamentDiscardPriority: (state, my) -> [yes]
-
-  # Which treasure, if any, should be discarded to feed Stables? Defaults
-  # to a list of generally crappy treasures. Doesn't include $1 Fool's Gold
-  # because you presumably have another one you're trying to draw.
-  stablesDiscardPriority: (state, my) -> [
-    "Copper"
-    "Potion" if my.countInPlay(state.cardInfo["Alchemist"]) == 0
-    "Ill-Gotten Gains"
-    "Silver"
-    "Horn of Plenty"
-  ]
-   
-  spiceMerchantTrashPriority: (state, my) -> [
-    "Copper",
-    "Loan",
-    "Ill-Gotten Gains",
-    "Fool's Gold" if my.countInDeck("Fool's Gold") == 1,
-    "Silver" if my.getTotalMoney() >= 8
-  ]
-
-  # Some cards give you a choice to discard an opponent's deck. These are
-  # evaluated with `discardFromOpponentDeckValue`.
-  discardFromOpponentDeckValue: (state, card, my) ->
-    if card.name == 'Tunnel'
-      return -2000
-    else if not (card.isAction) and not (card.isTreasure)
-      return -10
-    else
-      return card.coins + card.cost + 2*card.isAttack
-  
-  # `scryingPoolDiscardValue` is like `discardValue`, except it strongly
-  # prefers to discard non-actions.
-  scryingPoolDiscardValue: (state, card, my) ->
-    if not card.isAction
-      2000
-    else
-      this.choiceToValue('discard', state, card)
-
-  # Do you want to gain a copper from Ill-Gotten Gains? It's quite possible
-  # in endgame situations, but for now the answer is no.
-  gainCopperPriority: (state, my) -> [no]
-
-  # `wishValue` prefers to wish for the card its draw pile contains
-  # the most of.
-  #
-  # The fact that this doesn't make a hypothetical copy is a shortcut. We are
-  # technically "peeking" at the deck, but we don't use any information except
-  # the count of each card, which would be the same in any hypothetical version.
-  wishValue: (state, card, my) ->
-    pile = my.draw
-    if pile.length == 0
-      pile = my.discard
-    return countInList(pile, card)
-
-  # `foolsGoldTrashPriority` will trash a Fool's Gold for a real Gold if
-  # it's nearing the endgame (5 gains or less), there is one FG in hand,
-  # and losing it will not change its buy.
-  foolsGoldTrashPriority: (state, my) ->
-    if my.countInHand(state.cardInfo["Fool's Gold"]) == 1 and my.ai.coinLossMargin(state) >= 1
-      [yes]
-    else
-      [no]
-  
-  # Prefer to gain action and treasure cards on the deck. Give other cards
-  # a value of -1 so that `null` is a better choice.
-  gainOnDeckValue: (state, card, my) ->
-    if (card.isAction or card.isTreasure)
-      1
-    else
-      -1
-  
-  # How much does the AI want to discard its deck right now (for Chancellor)?
-  # Here, we decide to reshuffle (returning a reshuffleValue over 0) when most
-  # of the non-Action, non-Treasure cards are in the draw pile, or when there
-  # are no such cards in the deck.
-  reshuffleValue: (state, choice, my) ->
-    junkToDraw = 0
-    totalJunk = 0
-    for card in my.draw
-      if not (card.isAction or card.isTreasure)
-        junkToDraw++
-    for card in my.getDeck()
-      if not (card.isAction or card.isTreasure)
-        totalJunk++
-    return 1 if (totalJunk == 0)
-    proportion = junkToDraw/totalJunk
-    return (proportion - 0.5)
-
-  # Choose to discard or to gain a curse when attacked by Torturer.
-  torturerPriority: (state, my) -> [
-    'curse' if state.countInSupply("Curse") == 0
-    'discard' if my.ai.wantsToDiscard(state) >= 2
-    'discard' if my.hand.length <= 1
-    'curse' if my.trashingInHand() > 0
-    'curse' if my.hand.length <= 3
-    'discard'
-    'curse'
-  ]
-
-  discardHandValue: (state, hand, my) ->
-    return 0 if hand is null
-    deck = my.discard.concat(my.draw)
-    shuffle(deck)
-    randomHand = deck[0...5]
-    # If a random hand from this deck is better, discard this hand.
-    return my.ai.compareByDiscarding(state, randomHand, hand)
-  
-  # Choose whether we want these cards or two random cards.
-  oracleDiscardValue: (state, cards, my) ->
-    deck = my.discard.concat(my.draw)
-    shuffle(deck)
-    randomCards = deck[0...cards.length]
-
-    return my.ai.compareByDiscarding(state, my.hand.concat(randomCards), my.hand.concat(cards))
-
-  # Choose to attack or use available coins when playing Pirate Ship.
-  # Current strategy is basically Geronimoo's attackUntil5Coins play strategy,
-  # but only with Provinces--or technically, cards costing 8 or more.
-  pirateShipPriority: (state, my) -> [
-    'coins' if state.current.mats.pirateShip >= 5 and state.current.getAvailableMoney()+state.current.mats.pirateShip >= 8
-    'attack'
-  ]
-
-  librarySetAsideValue: (state, card, my) -> [
-    if my.actions == 0 and card.isAction
-      1
-    else
-      -1
-  ]
-
-  # Mint anything but Copper and Diadem. Otherwise, go mostly by the card's base cost.
-  # There is only 1 Diadem, never any available to gain, so never Mint it.
-  mintValue: (state, card, my) -> 
-    return card.cost - 1
-  
-  # Choose opponent treasure to trash; go by the card's base cost.
-  # Diadems are comparable to the cost-5 treasures.
-  trashOppTreasureValue: (state, card, my) =>
-    if card is 'Diadem'
-      return 5
-    return card.cost
 
   # `chooseOrderOnDeck` handles situations where multiple cards are returned
   # to the deck, such as Scout and Apothecary.
@@ -898,7 +904,6 @@ class BasicAI
     value += buyValue * (choice.buys ? 0)
     value += trashValue * (choice.trash ? 0)
     value += actionValue * Math.min((choice.actions ? 0), usableActions)
-    #state.log("Benefit: #{JSON.stringify(choice)} / Value: #{value} / wants to trash: #{my.ai.wantsToTrash(state)}")
     value
 
   # `wantsToTrash` returns the number of cards in hand that we would trash
