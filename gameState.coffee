@@ -94,7 +94,7 @@ class PlayerState
   # `getDeck()` returns all the cards in the player's deck, even those in
   # strange places such as the Island mat.
   getDeck: () ->
-    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @mats.nativeVillage.concat @mats.island.concat @setAsideByHaven
+    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @setAside.concat @mats.nativeVillage.concat @mats.island.concat @setAsideByHaven
   
   # `getCurrentAction()` returns the action being resolved that is on the
   # top of the stack.
@@ -112,6 +112,10 @@ class PlayerState
   
   # `numCardsInDeck()` returns the size of the player's deck.
   numCardsInDeck: () -> this.getDeck().length
+
+  # Aliases for `numCardsInDeck` that you might use intuitively. 
+  countCardsInDeck: this.numCardsInDeck
+  cardsInDeck: this.numCardsInDeck
   
   # `countCardTypeInDeck(type)` counts the number of cards of a given type
   # in the deck. Curse is not a type for these purposes, it's a card.
@@ -122,6 +126,7 @@ class PlayerState
       if card[typeChecker]
         count++
     count
+  numCardTypeInDeck: this.countCardTypeInDeck
 
   # `getVP()` returns the number of VP the player would have if the game
   # ended now.
@@ -130,6 +135,7 @@ class PlayerState
     for card in this.getDeck()
       total += card.getVP(this)
     total
+  countVP: this.getVP
   
   # `getTotalMoney()` adds up the total money in the player's deck,
   # including *all* cards that provide a constant number of +$, not just
@@ -139,12 +145,14 @@ class PlayerState
     for card in this.getDeck()
       total += card.coins
     total
+  totalMoney: this.getTotalMoney
 
   # `getAvailableMoney()` counts the money the player might have upon playing
   # all treasure in hand. Banks, Ventures, and such are counted inaccurately
   # so far.
   getAvailableMoney: () ->
     this.coins + this.getTreasureInHand()
+  availableMoney: this.getAvailableMoney
   
   # `getTreasureInHand()` adds up the value of the treasure in the player's
   # hand. Banks and Ventures and such will be inaccurate.
@@ -157,11 +165,14 @@ class PlayerState
       if card.isTreasure
         total += card.coins
     total
+  treasureInHand: this.getTreasureInHand
   
   countPlayableTerminals: (state) ->
     if (@actions>0)
       @actions + ( (Math.max (card.getActions(state) - 1), 0 for card in this.hand).reduce (s,t) -> s + t)
-    else 0    
+    else 0
+  numPlayableTerminals: this.countPlayableTerminals    
+  playableTerminals: this.countPlayableTerminals    
    
   # `countInHand(card)` counts the number of copies of a card in hand.
   countInHand: (card) ->
@@ -182,11 +193,7 @@ class PlayerState
   # `numActionCardsInDeck()` is the number of action cards in the player's
   # entire deck.
   numActionCardsInDeck: () ->
-    count = 0
-    for card in this.getDeck()
-      if card.isAction
-        count += 1
-    count
+    this.countCardTypeInDeck('Action')
   
   # `getActionDensity()` returns a fractional value, between 0.0 and 1.0,
   # representing the proportion of actions in the deck.
@@ -269,6 +276,8 @@ class PlayerState
       if card not in unique
         unique.push(card)
     return unique.length
+  countUniqueCardsInPlay: this.numUniqueCardsInPlay
+  uniqueCardsInPlay: this.numUniqueCardsInPlay
 
   #### Methods that modify the PlayerState
 

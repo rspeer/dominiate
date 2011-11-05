@@ -9,15 +9,17 @@
 # state and make a decision accordingly.
 #
 # In any case that is not a simple yes/no decision, the method will be 
-# given a list of choices. It will delegate to the `xValue` method to assign a
-# value to each possible choice, and choose the one with the highest value
-# (earlier options win ties).
+# given a list of choices. It will first check a method called `xPriority`,
+# which takes in the state and returns an ordered list of choices.
+# The player will make the first valid choice in that list. Choices are
+# skipped when they have an "if" clause that fails.
 #
-# If the `xValue` method does not exist (as will often be the case), it will
-# try a different method called `xPriority`, which takes in the state and
-# returns an ordered list of choices. The player will make the first valid
-# choice in that list. Priority functions are usually easier to define than
-# value functions.
+# If the priority list doesn't choose anything, or if there is no priority
+# function, it will consult the `xValue` method instead, which takes in
+# a specific choice and assigns it a numerical value.
+#
+# Priority functions are usually easier to define than value functions, but
+# value functions can easily cover every possible case.
 #
 # The BasicAI has a default decision function for every decision, so
 # every AI that derives from it will have *some* way to decide what to do in
