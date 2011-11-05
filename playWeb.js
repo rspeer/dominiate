@@ -3597,7 +3597,7 @@
       return this;
     };
     PlayerState.prototype.getDeck = function() {
-      return this.draw.concat(this.discard.concat(this.hand.concat(this.inPlay.concat(this.duration.concat(this.mats.nativeVillage.concat(this.mats.island.concat(this.setAsideByHaven)))))));
+      return this.draw.concat(this.discard.concat(this.hand.concat(this.inPlay.concat(this.duration.concat(this.setAside.concat(this.mats.nativeVillage.concat(this.mats.island.concat(this.setAsideByHaven))))))));
     };
     PlayerState.prototype.getCurrentAction = function() {
       return this.actionStack[this.actionStack.length - 1];
@@ -3617,6 +3617,8 @@
     PlayerState.prototype.numCardsInDeck = function() {
       return this.getDeck().length;
     };
+    PlayerState.prototype.countCardsInDeck = PlayerState.numCardsInDeck;
+    PlayerState.prototype.cardsInDeck = PlayerState.numCardsInDeck;
     PlayerState.prototype.countCardTypeInDeck = function(type) {
       var card, count, typeChecker, _i, _len, _ref2;
       typeChecker = 'is' + type;
@@ -3630,6 +3632,7 @@
       }
       return count;
     };
+    PlayerState.prototype.numCardTypeInDeck = PlayerState.countCardTypeInDeck;
     PlayerState.prototype.getVP = function(state) {
       var card, total, _i, _len, _ref2;
       total = this.chips;
@@ -3640,6 +3643,7 @@
       }
       return total;
     };
+    PlayerState.prototype.countVP = PlayerState.getVP;
     PlayerState.prototype.getTotalMoney = function() {
       var card, total, _i, _len, _ref2;
       total = 0;
@@ -3650,9 +3654,11 @@
       }
       return total;
     };
+    PlayerState.prototype.totalMoney = PlayerState.getTotalMoney;
     PlayerState.prototype.getAvailableMoney = function() {
       return this.coins + this.getTreasureInHand();
     };
+    PlayerState.prototype.availableMoney = PlayerState.getAvailableMoney;
     PlayerState.prototype.getTreasureInHand = function() {
       var card, total, _i, _len, _ref2;
       total = 0;
@@ -3665,6 +3671,7 @@
       }
       return total;
     };
+    PlayerState.prototype.treasureInHand = PlayerState.getTreasureInHand;
     PlayerState.prototype.countPlayableTerminals = function(state) {
       var card;
       if (this.actions > 0) {
@@ -3684,6 +3691,8 @@
         return 0;
       }
     };
+    PlayerState.prototype.numPlayableTerminals = PlayerState.countPlayableTerminals;
+    PlayerState.prototype.playableTerminals = PlayerState.countPlayableTerminals;
     PlayerState.prototype.countInHand = function(card) {
       return countStr(this.hand, card);
     };
@@ -3694,16 +3703,7 @@
       return countStr(this.inPlay, card);
     };
     PlayerState.prototype.numActionCardsInDeck = function() {
-      var card, count, _i, _len, _ref2;
-      count = 0;
-      _ref2 = this.getDeck();
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        card = _ref2[_i];
-        if (card.isAction) {
-          count += 1;
-        }
-      }
-      return count;
+      return this.countCardTypeInDeck('Action');
     };
     PlayerState.prototype.getActionDensity = function() {
       return this.numActionCardsInDeck() / this.getDeck().length;
@@ -3800,6 +3800,8 @@
       }
       return unique.length;
     };
+    PlayerState.prototype.countUniqueCardsInPlay = PlayerState.numUniqueCardsInPlay;
+    PlayerState.prototype.uniqueCardsInPlay = PlayerState.numUniqueCardsInPlay;
     PlayerState.prototype.drawCards = function(nCards) {
       var drawn;
       drawn = this.getCardsFromDeck(nCards);
