@@ -203,6 +203,8 @@ class BasicAI
       multiplier = currentAction.multiplier
     
     wantsToPlayMultiplier = false
+    okayToPlayMultiplier = false
+
     unless skipMultipliers
       mults = (card for card in my.hand when card.isMultiplier)
       if mults.length > 0
@@ -210,9 +212,17 @@ class BasicAI
         mult = mults[0]
         choices = my.hand.slice(0)
         choices.remove(mult)
+        choices.push(null)
+
+        # Determine if it's better than nothing.
+        choice1 = this.choose('multipliedAction', state, choices)
+        if choice1 isnt null
+          okayToPlayMultiplier = true
+        
+        # Now add the "wait" option and see if we want to multiply an action
+        # *right now*.
         if choices.length > 1
           choices.push("wait")
-        choices.push(null)
         choice = this.choose('multipliedAction', state, choices)
         if choice != "wait"
           wantsToPlayMultiplier = true
@@ -301,6 +311,7 @@ class BasicAI
 
     # 9: non-terminal cards that don't succeed but at least give us something.
     "King's Court"
+    "Throne Room" if okayToPlayMultiplier
     "Tournament"
     "Menagerie"
     "Shanty Town" if my.actions < 2
@@ -328,17 +339,17 @@ class BasicAI
     "Princess"
     "Explorer" if my.countInHand("Province") >= 1
     "Library" if my.hand.length <= 3
-    "Expand"
-    "Remodel"
     "Jester"
     "Militia"
-    "Mandarin"
     "Cutpurse"
     "Bridge"
+    "Bishop"
     "Horse Traders"
     "Jack of All Trades"
     "Steward"
     "Moneylender" if countInHandCopper >= 1
+    "Expand"
+    "Remodel"
     "Mine"
     "Coppersmith" if countInHandCopper >= 3
     "Library" if my.hand.length <= 4
@@ -359,6 +370,7 @@ class BasicAI
     "Adventurer"
     "Harvest"
     "Haggler" # probably needs to make sure the gained card will be wanted
+    "Mandarin"
     "Explorer"
     "Woodcutter"
     "Nomad Camp"
@@ -561,13 +573,16 @@ class BasicAI
       return card.coins + card.cost + 2*card.isAttack  
 
   # `discardHandValue` decides whether to discard an entire hand of cards.
-  discardHandValue: (state, hand, my) ->
+  discardHandValue: (state, hand, my, nCards = 5) ->
     return 0 if hand is null
     deck = my.discard.concat(my.draw)
-    shuffle(deck)
-    randomHand = deck[0...5]
-    # If a random hand from this deck is better, discard this hand.
-    return my.ai.compareByDiscarding(state, randomHand, hand)
+    total = 0
+    for i in [0...5]
+      shuffle(deck)
+      randomHand = deck[0...nCards]
+      # If a random hand from this deck is better, discard this hand.
+      total += my.ai.compareByDiscarding(state, randomHand, hand)
+    return total
     
   # Prefer to gain action and treasure cards on the deck. Give other cards
   # a value of -1 so that `null` is a better choice.
@@ -693,6 +708,34 @@ class BasicAI
   # The question here is: do you want to discard an Estate using a Baron?
   # And the answer is yes.
   baronDiscardPriority: (state, my) -> [yes]
+  
+  # `bishopTrashPriority` lists cards that are especially good to trash.
+  bishopTrashPriority: (state, my) -> [
+    "Farmland"
+    "Duchy" if this.goingGreen(state) < 3
+    "Border Village"
+    "Bishop"
+    "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
+    "Curse"
+  ]
+
+  bishopTrashValue: (state, card, my) ->
+    [coins, potions] = card.getCost(state)
+    value = Math.floor(coins/2) - card.getVP(my)
+
+    # if we're going for victory points, that's all we care about.
+    if this.goingGreen(state) >= 3
+      return value
+
+    # otherwise, focus on what we want to trash
+    else
+      if card in this.trashPriority(state, my)
+        value += 1
+      if card.isAction and ((card.actions == 0 and my.actionBalance() <= 0) or (my.actions == 0))
+        value += 1
+      if card.isTreasure and card.coins > (this.coinLossMargin(state) + 1)
+        value -= 10
+      return value
 
   envoyValue: (state, card, my) ->
     # Choose a card to discard from your opponent's hand when it's their turn.
@@ -755,6 +798,19 @@ class BasicAI
     else
       -1
   ]
+
+  minionDiscardValue: (state, choice, my) ->
+    if choice == yes
+      # Find out how valuable it would be to discard these cards and draw 4.
+      value = this.discardHandValue(state, my.hand, my, 4)
+      opponent = state.players[state.players.length - 1]
+
+      # If the attack would decrease an opponent's hand size, it's more valuable.
+      if opponent.hand.length > 4
+        value += 2
+      return value
+    else
+      return 0
 
   # Mint anything but Copper and Diadem. Otherwise, go mostly by the card's base cost.
   # There is only 1 Diadem, never any available to gain, so never Mint it.
@@ -997,6 +1053,20 @@ class BasicAI
     [coinsCost, potionsCost] = cardToBuy.getCost(newState)
     return coins - coinsCost
   
+  # coinGainMargin determines how much treasure the player wants to gain,
+  # in order to get a better card. Tries up to +$8, then returns Infinity
+  # if nothing changes.
+  coinGainMargin: (state) ->
+    newState = this.pessimisticBuyPhase(state)
+    coins = newState.coins
+    baseCard = newState.getSingleBuyDecision()
+    for increment in [1..8]
+      newState.coins = coins+increment
+      cardToBuy = newState.getSingleBuyDecision()
+      if cardToBuy != baseCard
+        return increment
+    return Infinity
+  
   # Estimate the number of coins we'd lose by discarding/trashing/putting back
   # a card.
   coinsDueToCard: (state, card) ->
@@ -1011,7 +1081,9 @@ class BasicAI
     value
   
   # Figure out whether hand1 or hand2 is better by discarding their cards
-  # in priority order. Returns a -1 or 1 that can be used in sorting; it's
+  # in priority order, until one of them gets to 2 or fewer cards.
+  #
+  # Returns a -1 or 1 that can be used in sorting; it's
   # positive if the first hand is better.
   compareByDiscarding: (state, hand1, hand2) ->
     # Guard against accidental mutation; we're going to be messing with

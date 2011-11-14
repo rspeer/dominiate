@@ -1,4 +1,4 @@
-Cards that are done (152)
+Cards that are done (153)
 =========================
 Adventurer
 Alchemist
@@ -8,6 +8,7 @@ Bag of Gold
 Bank
 Baron
 Bazaar
+Bishop
 Border Village
 Bridge
 Bureaucrat
@@ -153,7 +154,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (18)
+Cards that still need to be coded (17)
 ======================================
 
 Possibly easy cards
@@ -173,7 +174,6 @@ These are likely to require new helper functions or decisions that are hard
 to write.
 
 Apprentice
-Bishop
 Black Market (requires a new setup step)
 Develop (the hard part is making the list of choices)
 Embargo (the trick is guessing what your opponent wants)

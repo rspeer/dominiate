@@ -1020,6 +1020,27 @@ makeCard "Goons", c.Militia, {
   # Militia.
 }
 
+makeCard "Minion", attack, {
+  cost: 5
+  actions: +1
+
+  discardAndDraw4: (state, player) ->
+    discarded = player.hand
+    Array::push.apply(player.discard, discarded)
+    player.hand = []
+    state.handleDiscards(player, discarded)
+    return state.drawCards(player, 4)
+
+  playEffect: (state) ->
+    player = state.current
+    if player.ai.choose('minionDiscard', state, [yes, no])
+      this.discardAndDraw4(state, player)
+      state.attackOpponents (opp) ->
+        this.discardAndDraw4(state, opp)
+    else
+      player.coins += 2
+}
+
 makeCard "Mountebank", attack, {
   cost: 5
   coins: +2
@@ -1341,7 +1362,7 @@ makeCard 'Apothecary', action, {
 
 makeCard 'Baron', action, {
   cost: 4
-  buys: 1
+  buys: +1
   playEffect: (state) ->
     discardEstate = no
     if c.Estate in state.current.hand
@@ -1351,6 +1372,25 @@ makeCard 'Baron', action, {
       state.current.coins += 4
     else
       state.gainCard(state.current, c.Estate)
+}
+
+makeCard 'Bishop', action, {
+  cost: 4
+  coins: +1
+
+  playEffect: (state) ->
+    toTrash = state.current.ai.choose('bishopTrash', state, state.current.hand)
+    state.current.chips += 1
+    state.log("...gaining 1 VP.")
+    if toTrash?
+      state.doTrash(state.current, toTrash)
+      [coins, potions] = toTrash.getCost(state)
+      vp = Math.floor(coins/2)
+      state.log("...gaining #{vp} VP.")
+      state.current.chips += vp
+
+    for opp in state.players[1...]
+      state.allowTrash(opp, 1)
 }
 
 makeCard 'Border Village', c.Village, {
