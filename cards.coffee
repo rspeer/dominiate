@@ -1025,6 +1025,7 @@ makeCard "Minion", attack, {
   actions: +1
 
   discardAndDraw4: (state, player) ->
+    state.log("#{player.ai} discards the hand.")
     discarded = player.hand
     Array::push.apply(player.discard, discarded)
     player.hand = []
@@ -1034,9 +1035,9 @@ makeCard "Minion", attack, {
   playEffect: (state) ->
     player = state.current
     if player.ai.choose('minionDiscard', state, [yes, no])
-      this.discardAndDraw4(state, player)
+      c['Minion'].discardAndDraw4(state, player)
       state.attackOpponents (opp) ->
-        this.discardAndDraw4(state, opp)
+        c['Minion'].discardAndDraw4(state, opp)
     else
       player.coins += 2
 }
@@ -2039,7 +2040,7 @@ makeCard "Mining Village", c.Village, {
   playEffect: (state) ->
     if state.current.ai.choose('miningVillageTrash', state, [yes, no])
       if state.current.playLocation != 'trash'
-        transferCard(this, state.current[state.current.playLocation], state.trash)
+        transferCard(c['Mining Village'], state.current[state.current.playLocation], state.trash)
         state.current.playLocation = 'trash'
         state.log("...trashing the Mining Village for +$2.")
         state.current.coins += 2
@@ -2508,7 +2509,7 @@ makeCard 'Workshop', action, {
     for cardName of state.supply
       card = c[cardName]
       [coins, potions] = card.getCost(state)
-      if potions == 0 and coins <= 4
+      if potions == 0 and coins <= 4 and state.supply[cardName] > 0
         choices.push(card)
     state.gainOneOf(state.current, choices)
 }
@@ -2622,15 +2623,17 @@ nullUpgradeChoices = (state, cards, costFunction) ->
 # name is `discardFromOpponentDeck`.
 spyDecision = (player, target, state, decision) ->
   drawn = state.getCardsFromDeck(target, 1)[0]
-  state.log("#{target.ai} reveals #{drawn}.")
   if drawn?
+    state.log("#{target.ai} reveals #{drawn}.")
     discarded = player.ai.choose(decision, state, [drawn, null])
     if discarded?
       state.log("#{player.ai} chooses to discard it.")
       target.discard.push(drawn)
     else
       state.log("#{player.ai} chooses to put it back on the draw pile.")
-      target.draw.unshift(drawn) 
+      target.draw.unshift(drawn)
+  else
+    state.log("#{target.ai} has no card to reveal.")
 
 # Export functions that are needed elsewhere.
 this.transferCard = transferCard
