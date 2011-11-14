@@ -1,4 +1,4 @@
-Cards that are done (154)
+Cards that are done (155)
 =========================
 Adventurer
 Alchemist
@@ -83,6 +83,7 @@ Menagerie
 Merchant Ship
 Militia
 Mine
+Mining Village
 Mint
 Moat
 Monument
@@ -155,7 +156,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (16)
+Cards that still need to be coded (15)
 ======================================
 
 Possibly easy cards
@@ -165,7 +166,6 @@ fair amount of code you can reuse for these cards.
 
 Contraband
 Governor
-Mining Village
 Minion
 Swindler (probably needs a list of cards that are likely to suck, plus different strategies for the early/late game)
 

@@ -258,6 +258,7 @@ class BasicAI
     "Fishing Village"
     "Village"
     "Border Village"
+    "Mining Village"
 
     # 5: cards that give +1 action and are almost always good.
     "Grand Market"
@@ -801,6 +802,12 @@ class BasicAI
       -1
   ]
 
+  miningVillageTrashValue: (state, choice, my) ->
+    if this.goingGreen(state) and this.coinGainMargin(state) <= 2
+      1
+    else
+      -1
+
   minionDiscardValue: (state, choice, my) ->
     if choice == yes
       # Find out how valuable it would be to discard these cards and draw 4.
@@ -1086,10 +1093,10 @@ class BasicAI
   # if nothing changes.
   coinGainMargin: (state) ->
     newState = this.pessimisticBuyPhase(state)
-    coins = newState.coins
+    coins = newState.current.coins
     baseCard = newState.getSingleBuyDecision()
-    for increment in [1..8]
-      newState.coins = coins+increment
+    for increment in [1, 2, 3, 4, 5, 6, 7, 8]
+      newState.current.coins = coins+increment
       cardToBuy = newState.getSingleBuyDecision()
       if cardToBuy != baseCard
         return increment

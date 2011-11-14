@@ -2034,6 +2034,17 @@ makeCard "Menagerie", action, {
     state.drawCards(state.current, state.current.menagerieDraws())
 }
 
+makeCard "Mining Village", c.Village, {
+  cost: 4
+  playEffect: (state) ->
+    if state.current.ai.choose('miningVillageTrash', state, [yes, no])
+      if state.current.playLocation != 'trash'
+        transferCard(this, state.current[state.current.playLocation], state.trash)
+        state.current.playLocation = 'trash'
+        state.log("...trashing the Mining Village for +$2.")
+        state.current.coins += 2
+}
+
 makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
