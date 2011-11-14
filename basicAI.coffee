@@ -456,6 +456,7 @@ class BasicAI
       "Scrying Pool"
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0
+      "Minion"
       "Ghost Ship" if my.actions > 0
       "Jester" if my.actions > 0
       "Horse Traders" if my.actions > 0
