@@ -1,4 +1,4 @@
-Cards that are done (153)
+Cards that are done (154)
 =========================
 Adventurer
 Alchemist
@@ -110,6 +110,7 @@ Remake
 Remodel
 Royal Seal
 Saboteur
+Salvager
 Scout
 Scrying Pool
 Sea Hag
@@ -154,7 +155,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (17)
+Cards that still need to be coded (16)
 ======================================
 
 Possibly easy cards
@@ -180,7 +181,6 @@ Embargo (the trick is guessing what your opponent wants)
 Forge
 Inn
 Native Village
-Salvager
 
 Difficult cards
 ---------------

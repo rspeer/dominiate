@@ -350,6 +350,7 @@ class BasicAI
     "Moneylender" if countInHandCopper >= 1
     "Expand"
     "Remodel"
+    "Salvager"
     "Mine"
     "Coppersmith" if countInHandCopper >= 3
     "Library" if my.hand.length <= 4
@@ -714,6 +715,7 @@ class BasicAI
     "Farmland"
     "Duchy" if this.goingGreen(state) < 3
     "Border Village"
+    "Mandarin"
     "Bishop"
     "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
     "Curse"
@@ -833,14 +835,27 @@ class BasicAI
     'attack'
   ]
 
-  transmuteValue: (state, card, my) ->
-    if card.isAction and this.goingGreen(state)
-      return 10
-    else if card.isAction and card.isVictory and card.cost <= 4
-      return 1000
-    else
-      return this.choiceToValue('trash', state, card)
+  salvagerTrashPriority: (state, card, my) -> [
+    "Border Village"
+    "Mandarin"
+    "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
+    "Salvager"
+  ]
   
+  # To calculate the salvagerTrashValue, we simulate trashing each card, determine
+  # the best card we would buy as a result, and evaluate it as if we were
+  # upgrading the trashed card into the bought one.
+  salvagerTrashValue: (state, card, my) ->
+    [hypothesis, hypothetically_my] = state.hypothetical(this)
+    hypothetically_my.hand.remove(card)
+    [coins, potions] = card.getCost(hypothesis)
+    hypothetically_my.coins += coins
+    hypothetically_my.buys += 1
+    buyState = this.fastForwardToBuy(hypothesis, hypothetically_my)
+    gained = buyState.getSingleBuyDecision()
+
+    return this.upgradeValue(state, [card, gained], my)
+
   # `scryingPoolDiscardValue` is like `discardValue`, except it strongly
   # prefers to discard non-actions.
   scryingPoolDiscardValue: (state, card, my) ->
@@ -872,6 +887,14 @@ class BasicAI
   # *very* yes.
   tournamentDiscardPriority: (state, my) -> [yes]
 
+  transmuteValue: (state, card, my) ->
+    if card.isAction and this.goingGreen(state)
+      return 10
+    else if card.isAction and card.isVictory and card.cost <= 4
+      return 1000
+    else
+      return this.choiceToValue('trash', state, card)
+  
   # `wishValue` prefers to wish for the card its draw pile contains
   # the most of.
   #
@@ -1021,18 +1044,23 @@ class BasicAI
     
     [hypothesis, hypothetically_my] = state.hypothetical(this)
     #  We need to save draw and discard before emptying and restore them before buyPhase, to be able to choose the right buys in actionPriority(state)
-    oldDraws   = hypothetically_my.draw.slice(0)
-    oldDiscard = hypothetically_my.discard.slice(0)
-    hypothetically_my.draw = []
-    hypothetically_my.discard = []
-    
-    while hypothesis.phase != 'buy'
-      hypothesis.doPlay()
-      
-    hypothetically_my.draw = oldDraws
-    hypothetically_my.discard = oldDiscard
+    return this.fastForwardToBuy(hypothesis, hypothetically_my)
 
-    return hypothesis
+  fastForwardToBuy: (state, my) ->
+    if state.depth == 0
+      throw new Error("Can only fast-forward in a hypothetical state")
+    oldDraws   = my.draw.slice(0)
+    oldDiscard = my.discard.slice(0)
+    my.draw = []
+    my.discard = []
+    
+    while state.phase != 'buy'
+      state.doPlay()
+      
+    my.draw = oldDraws
+    my.discard = oldDiscard
+
+    return state
   
   pessimisticCardsGained: (state) ->
     newState = this.pessimisticBuyPhase(state)

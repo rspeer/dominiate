@@ -2169,6 +2169,18 @@ makeCard 'Peddler', action, {
     cost
 }
 
+makeCard 'Salvager', action, {
+  cost: 4
+  buys: +1
+
+  playEffect: (state) ->
+    toTrash = state.current.ai.choose('salvagerTrash', state, state.current.hand)
+    if toTrash?
+      [coins, potions] = toTrash.getCost(state)
+      state.doTrash(state.current, toTrash)
+      state.current.coins += coins
+}
+
 makeCard 'Scout', action, {
   cost: 4
   actions: +1
