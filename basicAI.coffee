@@ -276,10 +276,11 @@ class BasicAI
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Spice Merchant" if state.cardInfo.Copper in my.hand
     "Stables" if this.choose('stablesDiscard', state, my.hand.concat([null]))
+    "Apprentice"
+    "Pearl Diver"
     "Hamlet"
     "Lighthouse"
     "Haven"
-    "Pearl Diver"
     "Minion"
 
     # 6: terminal card-drawers, if we have actions to spare.
@@ -709,6 +710,20 @@ class BasicAI
       "[Potion, 1]"
     ].concat ("[#{card}, 1]" for card in my.ai.trashPriority(state, my) when card?)
   
+  apprenticeTrashPriority: (state, my) ->
+    "Border Village"
+    "Mandarin"
+    "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
+    "Estate"
+    "Curse"
+    "Apprentice"
+  
+  apprenticeTrashValue: (state, card, my) ->
+    vp = card.getVP(my)
+    [coins, potions] = card.getCost(state)
+    drawn = Math.min(my.draw.length + my.discard.length, coins+2*potions)
+    return this.choiceToValue('trash', state, card) + 2*drawn - vp    
+
   # The question here is: do you want to discard an Estate using a Baron?
   # And the answer is yes.
   baronDiscardPriority: (state, my) -> [yes]

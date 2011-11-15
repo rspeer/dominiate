@@ -1361,6 +1361,18 @@ makeCard 'Apothecary', action, {
       state.current.setAside = []
 }
 
+makeCard 'Apprentice', action, {
+  cost: 5
+  actions: +1
+
+  playEffect: (state) ->
+    toTrash = state.current.ai.choose('salvagerTrash', state, state.current.hand)
+    if toTrash?
+      [coins, potions] = toTrash.getCost(state)
+      state.doTrash(state.current, toTrash)
+      state.drawCards(state.current, coins+2*potions)
+}
+
 makeCard 'Baron', action, {
   cost: 4
   buys: +1
