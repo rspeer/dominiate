@@ -9,6 +9,13 @@ class TDminion extends BasicAI
   requires: []
   author: 'rspeer'
 
+  training: [
+    {input: {"my:Province": 8}, output: {0: 1}}
+    {input: {"opp:Province": 8}, output: {0: 0}}
+    {input: {"my:vp": 48}, output: {0: 1}}
+    {input: {"opp:vp": 48}, output: {0: 0}}
+  ]
+
   constructor: ->
     @lambda = 0.9
     @timeHorizon = 20
@@ -27,13 +34,7 @@ class TDminion extends BasicAI
     
     for extrafeat in ["my:vp", "my:totalMoney", "my:actionBalance", "my:actionDensity", "my:cardsInDeck", "opp:vp", "opp:totalMoney", "opp:actionBalance", "opp:actionDensity", "opp:cardsInDeck", "numEmptyPiles", "gainsToEndGame"]
       startVec[extrafeat] = 0
-    training = [
-      {input: {"my:Province": 8}, output: {0: 1}}
-      {input: {"opp:Province": 8}, output: {0: -1}}
-      {input: {"my:vp": 48}, output: {0: 1}}
-      {input: {"opp:vp": 48}, output: {0: -1}}
-    ]
-    @net.train(training, 1000)
+    @net.train(@training, 1000)
 
     @cachedTurn = null
     @cachedVec = null
@@ -117,13 +118,14 @@ class TDminion extends BasicAI
   atEndOfGame: (state, my) ->
     winners = state.getWinners()
 
-    if my in winners
+    if this.name in winners
       winPoints = state.nPlayers
     else
       winPoints = 0
     
-    # scale to [-1, 1] and learn it as the final outcome
-    winValue = (winPoints * 2 / state.nPlayers) - 1
+    # scale to [0, 1] and learn it as the final outcome
+    winValue = (winPoints / state.nPlayers)
+    console.warn("winValue: #{winValue}")
     this.learnValue(winValue)
     
     # reset for the next game if there is one
