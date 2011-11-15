@@ -195,9 +195,9 @@ class PlayerState
   numActionCardsInDeck: () ->
     this.countCardTypeInDeck('Action')
   
-  # `getActionDensity()` returns a fractional value, between 0.0 and 1.0,
+  # `actionDensity()` returns a fractional value, between 0.0 and 1.0,
   # representing the proportion of actions in the deck.
-  getActionDensity: () ->
+  actionDensity: () ->
     this.numActionCardsInDeck() / this.getDeck().length
   
   # `menagerieDraws()` is the number of cards the player would draw upon
@@ -251,7 +251,7 @@ class PlayerState
         #
         # *TODO*: do something better when there are variable card-drawers.
         if card.actions == 0
-          balance -= card.cards * this.getActionDensity()
+          balance -= card.cards * this.actionDensity()
     balance
   
   # What is the trashing power of this hand?
@@ -566,7 +566,15 @@ class State
       this.log("Empty piles: #{emptyPiles}")
       for [playerName, vp, turns] in this.getFinalStatus()
         this.log("#{playerName} took #{turns} turns and scored #{vp} points.")
+      
+      
+      if this.depth == 0
+        # Let the AIs know the game is over.
+        for player in this.players
+          if player.ai.atEndOfGame?
+            player.ai.atEndOfGame(this, player)
       return true
+      
     return false
 
   # `getFinalStatus()` is a useful thing to call when `gameIsOver()` is true.

@@ -47,6 +47,23 @@ class BasicAI
         return player
     throw new Error("#{this} is being asked to make a decision, but isn't playing the game...?")
 
+  anyOpponent: (state) ->
+    for player in state.players
+      if player.ai isnt this
+        return player
+    throw new Error("#{this} seems to be the only player in the game")
+
+  bestOpponent: (state) ->
+    bestScore = -100
+    bestOpp = null
+    for player in state.players
+      if player.ai isnt this
+        vp = player.getVP(state)
+        if vp > bestScore
+          bestScore = vp
+          bestOpp = player
+    return bestOpp
+
   # Decision-making machinery
   # -------------------------
   # Make the AI's preferred choice, first by checking its explicit priority
