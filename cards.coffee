@@ -475,6 +475,9 @@ makeCard "Fool's Gold", treasure, {
     else
       1
   
+  playEffect: (state) ->
+    state.current.foolsGoldInPlay = true
+
   reactToOpponentGain: (state, player, opp, card) ->
     if card is c.Province
       if player.ai.choose('foolsGoldTrash', state, [yes, no])
