@@ -582,7 +582,7 @@ class BasicAI
   # If we have to trash a card we don't want to, assign a value to each card.
   # By default, we want to trash the card with the lowest (cost + VP).
   trashValue: (state, card, my) ->
-    0 - card.vp - card.cost
+    -0.5 - card.vp - card.cost
 
   # Some cards give you a choice to discard an opponent's deck. These are
   # evaluated with `discardFromOpponentDeckValue`.

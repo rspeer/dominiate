@@ -23,6 +23,7 @@ loadStrategy = (filename) ->
 ai1 = loadStrategy('strategies/TDminion.coffee')
 ai2 = loadStrategy('strategies/TDminion.coffee')
 ai2.name = 'TDminion2'
+#ai2.net = ai1.net
 
 playGame = (filenames) ->
   ais = [ai1, ai2]
