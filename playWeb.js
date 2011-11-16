@@ -1337,6 +1337,9 @@
         return 1;
       }
     },
+    playEffect: function(state) {
+      return state.current.foolsGoldInPlay = true;
+    },
     reactToOpponentGain: function(state, player, opp, card) {
       if (card === c.Province) {
         if (player.ai.choose('foolsGoldTrash', state, [true, false])) {
