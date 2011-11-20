@@ -253,7 +253,17 @@ class PlayerState
         if card.actions == 0
           balance -= card.cards * this.getActionDensity()
     balance
-  
+
+  # `deckActionBalance()` is a measure of action balance across the entire
+  # deck.
+  deckActionBalance: () ->
+    balance = 0
+    for card in this.getDeck()
+      if card.isAction
+        balance += card.actions
+        balance--
+    return balance / this.numCardsInDeck()
+
   # What is the trashing power of this hand?
   trashingInHand: () ->
     trash = 0

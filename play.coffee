@@ -23,7 +23,7 @@ loadStrategy = (filename) ->
 playGame = (filenames) ->
   ais = (loadStrategy(filename) for filename in filenames)
   st = new State().setUpWithOptions(ais, {
-    colonies: true
+    colonies: false
     randomizeOrder: true
     log: console.log
     require: []
