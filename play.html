@@ -155,6 +155,8 @@ window.scrollToBottom = scrollToBottom
 
 loadStrategiesFromHash = ->
   hash = window.location.hash
+  oldp1 = $('#loadStrategy1').val()
+  oldp2 = $('#loadStrategy2').val()
   if hash
     strategyNames = hash.substring(1).split('/')
     p1 = strategyNames[0]
@@ -163,8 +165,10 @@ loadStrategiesFromHash = ->
       p1 = ''
     unless strategies[p2]?
       p2 = ''
-    $('#loadStrategy1').val(p1).change()
-    $('#loadStrategy2').val(p2).change()
+    if p1 != oldp1
+      $('#loadStrategy1').val(p1).change()
+    if p2 != oldp2
+      $('#loadStrategy2').val(p2).change()
   else
     $('#loadStrategy1').val('DoubleJack').change()
     $('#loadStrategy2').val('BankWharf').change()

@@ -3960,6 +3960,19 @@
       }
       return balance;
     };
+    PlayerState.prototype.deckActionBalance = function() {
+      var balance, card, _i, _len, _ref2;
+      balance = 0;
+      _ref2 = this.getDeck();
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        card = _ref2[_i];
+        if (card.isAction) {
+          balance += card.actions;
+          balance--;
+        }
+      }
+      return balance / this.numCardsInDeck();
+    };
     PlayerState.prototype.trashingInHand = function() {
       var card, trash, _i, _len, _ref2;
       trash = 0;
