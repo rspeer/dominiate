@@ -26,6 +26,7 @@ playGame = (filenames) ->
     colonies: true
     randomizeOrder: true
     log: console.log
+    require: []
   })
   until st.gameIsOver()
     st.doPlay()

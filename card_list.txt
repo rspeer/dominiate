@@ -1,13 +1,15 @@
-Cards that are done (152)
+Cards that are done (157)
 =========================
 Adventurer
 Alchemist
 Ambassador
 Apothecary
+Apprentice
 Bag of Gold
 Bank
 Baron
 Bazaar
+Bishop
 Border Village
 Bridge
 Bureaucrat
@@ -82,6 +84,8 @@ Menagerie
 Merchant Ship
 Militia
 Mine
+Mining Village
+Minion
 Mint
 Moat
 Monument
@@ -109,6 +113,7 @@ Remake
 Remodel
 Royal Seal
 Saboteur
+Salvager
 Scout
 Scrying Pool
 Sea Hag
@@ -153,7 +158,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (18)
+Cards that still need to be coded (13)
 ======================================
 
 Possibly easy cards
@@ -163,8 +168,6 @@ fair amount of code you can reuse for these cards.
 
 Contraband
 Governor
-Mining Village
-Minion
 Swindler (probably needs a list of cards that are likely to suck, plus different strategies for the early/late game)
 
 Not-so-easy cards
@@ -172,15 +175,12 @@ Not-so-easy cards
 These are likely to require new helper functions or decisions that are hard
 to write.
 
-Apprentice
-Bishop
 Black Market (requires a new setup step)
 Develop (the hard part is making the list of choices)
 Embargo (the trick is guessing what your opponent wants)
 Forge
 Inn
 Native Village
-Salvager
 
 Difficult cards
 ---------------

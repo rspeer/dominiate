@@ -475,6 +475,9 @@ makeCard "Fool's Gold", treasure, {
     else
       1
   
+  playEffect: (state) ->
+    state.current.foolsGoldInPlay = true
+
   reactToOpponentGain: (state, player, opp, card) ->
     if card is c.Province
       if player.ai.choose('foolsGoldTrash', state, [yes, no])
@@ -1020,6 +1023,28 @@ makeCard "Goons", c.Militia, {
   # Militia.
 }
 
+makeCard "Minion", attack, {
+  cost: 5
+  actions: +1
+
+  discardAndDraw4: (state, player) ->
+    state.log("#{player.ai} discards the hand.")
+    discarded = player.hand
+    Array::push.apply(player.discard, discarded)
+    player.hand = []
+    state.handleDiscards(player, discarded)
+    return state.drawCards(player, 4)
+
+  playEffect: (state) ->
+    player = state.current
+    if player.ai.choose('minionDiscard', state, [yes, no])
+      c['Minion'].discardAndDraw4(state, player)
+      state.attackOpponents (opp) ->
+        c['Minion'].discardAndDraw4(state, opp)
+    else
+      player.coins += 2
+}
+
 makeCard "Mountebank", attack, {
   cost: 5
   coins: +2
@@ -1339,9 +1364,21 @@ makeCard 'Apothecary', action, {
       state.current.setAside = []
 }
 
+makeCard 'Apprentice', action, {
+  cost: 5
+  actions: +1
+
+  playEffect: (state) ->
+    toTrash = state.current.ai.choose('salvagerTrash', state, state.current.hand)
+    if toTrash?
+      [coins, potions] = toTrash.getCost(state)
+      state.doTrash(state.current, toTrash)
+      state.drawCards(state.current, coins+2*potions)
+}
+
 makeCard 'Baron', action, {
   cost: 4
-  buys: 1
+  buys: +1
   playEffect: (state) ->
     discardEstate = no
     if c.Estate in state.current.hand
@@ -1351,6 +1388,25 @@ makeCard 'Baron', action, {
       state.current.coins += 4
     else
       state.gainCard(state.current, c.Estate)
+}
+
+makeCard 'Bishop', action, {
+  cost: 4
+  coins: +1
+
+  playEffect: (state) ->
+    toTrash = state.current.ai.choose('bishopTrash', state, state.current.hand)
+    state.current.chips += 1
+    state.log("...gaining 1 VP.")
+    if toTrash?
+      state.doTrash(state.current, toTrash)
+      [coins, potions] = toTrash.getCost(state)
+      vp = Math.floor(coins/2)
+      state.log("...gaining #{vp} VP.")
+      state.current.chips += vp
+
+    for opp in state.players[1...]
+      state.allowTrash(opp, 1)
 }
 
 makeCard 'Border Village', c.Village, {
@@ -1994,6 +2050,17 @@ makeCard "Menagerie", action, {
     state.drawCards(state.current, state.current.menagerieDraws())
 }
 
+makeCard "Mining Village", c.Village, {
+  cost: 4
+  playEffect: (state) ->
+    if state.current.ai.choose('miningVillageTrash', state, [yes, no])
+      if state.current.playLocation != 'trash'
+        transferCard(c['Mining Village'], state.current[state.current.playLocation], state.trash)
+        state.current.playLocation = 'trash'
+        state.log("...trashing the Mining Village for +$2.")
+        state.current.coins += 2
+}
+
 makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
@@ -2127,6 +2194,18 @@ makeCard 'Peddler', action, {
       if cost < 0
         cost = 0
     cost
+}
+
+makeCard 'Salvager', action, {
+  cost: 4
+  buys: +1
+
+  playEffect: (state) ->
+    toTrash = state.current.ai.choose('salvagerTrash', state, state.current.hand)
+    if toTrash?
+      [coins, potions] = toTrash.getCost(state)
+      state.doTrash(state.current, toTrash)
+      state.current.coins += coins
 }
 
 makeCard 'Scout', action, {
@@ -2445,7 +2524,7 @@ makeCard 'Workshop', action, {
     for cardName of state.supply
       card = c[cardName]
       [coins, potions] = card.getCost(state)
-      if potions == 0 and coins <= 4
+      if potions == 0 and coins <= 4 and state.supply[cardName] > 0
         choices.push(card)
     state.gainOneOf(state.current, choices)
 }
@@ -2559,15 +2638,17 @@ nullUpgradeChoices = (state, cards, costFunction) ->
 # name is `discardFromOpponentDeck`.
 spyDecision = (player, target, state, decision) ->
   drawn = state.getCardsFromDeck(target, 1)[0]
-  state.log("#{target.ai} reveals #{drawn}.")
   if drawn?
+    state.log("#{target.ai} reveals #{drawn}.")
     discarded = player.ai.choose(decision, state, [drawn, null])
     if discarded?
       state.log("#{player.ai} chooses to discard it.")
       target.discard.push(drawn)
     else
       state.log("#{player.ai} chooses to put it back on the draw pile.")
-      target.draw.unshift(drawn) 
+      target.draw.unshift(drawn)
+  else
+    state.log("#{target.ai} has no card to reveal.")
 
 # Export functions that are needed elsewhere.
 this.transferCard = transferCard
