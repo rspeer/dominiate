@@ -4073,6 +4073,7 @@
           this.log("..." + this.ai + " discards " + this.setAside + ".");
         }
         this.discard = this.discard.concat(this.setAside);
+        state.handleDiscards(this, this.setAside);
         this.setAside = [];
       }
       return foundCards;
