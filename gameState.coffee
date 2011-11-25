@@ -343,6 +343,7 @@ class PlayerState
       if this.setAside.length > 0
         this.log("...#{this.ai} discards #{this.setAside}.")
       this.discard = this.discard.concat(this.setAside)
+      state.handleDiscards(this, this.setAside)
       this.setAside = []
     foundCards
   
