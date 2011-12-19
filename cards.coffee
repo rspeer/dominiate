@@ -2231,6 +2231,33 @@ makeCard 'Scout', action, {
       state.current.setAside = []
 }
 
+# Secret Chamber
+# Initial code by Jorbles
+# This is far from optimal, but I believe it does what the card
+# is supposed to do without breaking any rules. I may have to come
+# back to this when my coffee skills are stronger. And I have a 
+# greater understanding of how discards are decided. Ideally, the 
+# code for discards should be different depending on the type of 
+# attack and the total money already in hand.
+
+makeCard "Secret Chamber", action, {
+  cost: 2
+	isReaction: true
+	
+	playEffect: (state) ->
+    		discarded = state.allowDiscard(state.current, Infinity)
+    		state.log("...getting +$#{discarded.length} from the Secret Chamber.")
+    		state.current.coins += discarded.length
+
+	reactToAttack: (state, player) ->
+		state.drawCards(player, 2) #is this correct?
+		#there is probably a better way to write this, but i couldn't find how AIs decide what to discard from Militia, Goons, etc.
+    card = state.current.ai.choose('putOnDeck', state, state.current.hand)
+    state.doPutOnDeck(state.current, card)
+    card = state.current.ai.choose('putOnDeck', state, state.current.hand)
+		state.doPutOnDeck(state.current, card)
+}
+
 makeCard 'Shanty Town', action, {
   cost: 3
   actions: +2
