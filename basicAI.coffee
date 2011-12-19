@@ -389,6 +389,7 @@ class BasicAI
     "Trader" if wantsToTrash >= multiplier
     "Trade Route" if wantsToTrash >= multiplier
     "Mint" if my.ai.choose('mint', state, my.hand)
+    "Secret Chamber"
     "Pirate Ship"
     "Noble Brigand"
     "Thief"

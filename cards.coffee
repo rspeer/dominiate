@@ -2242,20 +2242,19 @@ makeCard 'Scout', action, {
 
 makeCard "Secret Chamber", action, {
   cost: 2
-	isReaction: true
-	
-	playEffect: (state) ->
-    		discarded = state.allowDiscard(state.current, Infinity)
-    		state.log("...getting +$#{discarded.length} from the Secret Chamber.")
-    		state.current.coins += discarded.length
+  isReaction: true
 
-	reactToAttack: (state, player) ->
-		state.drawCards(player, 2) #is this correct?
-		#there is probably a better way to write this, but i couldn't find how AIs decide what to discard from Militia, Goons, etc.
+  playEffect: (state) ->
+    discarded = state.allowDiscard(state.current, Infinity)
+    state.log("...getting +$#{discarded.length} from the Secret Chamber.")
+    state.current.coins += discarded.length
+
+  reactToAttack: (state, player) ->
+    state.drawCards(player, 2)
     card = state.current.ai.choose('putOnDeck', state, state.current.hand)
     state.doPutOnDeck(state.current, card)
     card = state.current.ai.choose('putOnDeck', state, state.current.hand)
-		state.doPutOnDeck(state.current, card)
+    state.doPutOnDeck(state.current, card)
 }
 
 makeCard 'Shanty Town', action, {
