@@ -228,16 +228,18 @@ class BasicAI
           wantsToPlayMultiplier = true
 
     # Priority 1: cards that succeed if we play them now, and might
-    # not if we play them later.
+    # not if we play them later. (950-999)
+
     ["Menagerie" if my.menagerieDraws() == 3
     "Shanty Town" if my.shantyTownDraws(true) == 2
     "Tournament" if my.countInHand("Province") > 0
+    "Library" if my.hand.length <= 3 and my.actions > 1
     
-    # 2: Multipliers that do something sufficiently cool.
+    # 2: Multipliers that do something sufficiently cool. (900-949)
     "Throne Room" if wantsToPlayMultiplier
     "King's Court" if wantsToPlayMultiplier
 
-    # 3: cards that stack the deck.
+    # 3: cards that stack the deck. (850-899)
     "Lookout" if state.gainsToEndGame() >= 5 or state.cardInfo.Curse in my.draw
     "Cartographer"
     "Bag of Gold"
@@ -246,7 +248,7 @@ class BasicAI
     "Scrying Pool"
     "Spy"
 
-    # 4: cards that give +2 actions.
+    # 4: cards that give +2 actions. (800-849)
     "Trusty Steed"
     "Festival"
     "University"
@@ -260,7 +262,7 @@ class BasicAI
     "Border Village"
     "Mining Village"
 
-    # 5: cards that give +1 action and are almost always good.
+    # 5: cards that give +1 action and are almost always good. (700-800)
     "Grand Market"
     "Hunting Party"
     "Alchemist"
@@ -283,8 +285,8 @@ class BasicAI
     "Haven"
     "Minion"
 
-    # 6: terminal card-drawers, if we have actions to spare.
-    "Library" if my.actions > 1 and my.hand.length <= 4
+    # 6: terminal card-drawers, if we have actions to spare. (600-699)
+    "Library" if my.actions > 1 and my.hand.length <= 4  # 695
     "Torturer" if my.actions > 1
     "Margrave" if my.actions > 1
     "Rabble" if my.actions > 1
@@ -299,11 +301,11 @@ class BasicAI
 
     # 7: Let's insert here an overly simplistic idea of how to play Crossroads.
     # Or if we don't have a Crossroads, play a Great Hall that we might otherwise
-    # have played in priority level 5.
+    # have played in priority level 5. (500-599)
     "Crossroads" unless my.crossroadsPlayed
     "Great Hall"
 
-    # 8: card-cycling that might improve the hand.
+    # 8: card-cycling that might improve the hand. (400-499)
     "Upgrade" if wantsToTrash >= multiplier
     "Oasis"
     "Pawn"
@@ -312,7 +314,7 @@ class BasicAI
     "Library" if my.actions > 1 and my.hand.length <= 6
     "Spice Merchant" if this.choose('spiceMerchantTrash', state, my.hand.concat([null]))
 
-    # 9: non-terminal cards that don't succeed but at least give us something.
+    # 9: non-terminal cards that don't succeed but at least give us something. (300-399)
     "King's Court"
     "Throne Room" if okayToPlayMultiplier
     "Tournament"
@@ -320,7 +322,7 @@ class BasicAI
     "Shanty Town" if my.actions < 2
 
     # 10: terminals. Of course, Nobles might be a non-terminal
-    # if we decide we need the actions more than the cards.
+    # if we decide we need the actions more than the cards. (100-299)
     "Crossroads"
     "Nobles"
     "Treasure Map" if my.countInHand("Treasure Map") >= 2
@@ -335,84 +337,84 @@ class BasicAI
     "Goons"
     "Wharf"
     # Tactician needs a play condition, but I don't know what it would be.
-    "Tactician"
+    "Tactician" # 290
     "Masquerade"
-    "Vault"
+    "Vault" # 280
     "Ghost Ship"
-    "Princess"
+    "Princess" # 270
     "Explorer" if my.countInHand("Province") >= 1
-    "Library" if my.hand.length <= 3
+    "Library" if my.hand.length <= 3  # 260
     "Jester"
     "Militia"
-    "Cutpurse"
+    "Cutpurse"  # 250
     "Bridge"
     "Bishop"
-    "Horse Traders"
+    "Horse Traders"  # 240
     "Jack of All Trades"
     "Steward"
-    "Moneylender" if countInHandCopper >= 1
+    "Moneylender" if countInHandCopper >= 1 # 230
     "Expand"
-    "Remodel"
-    "Salvager"
+    "Remodel"  
+    "Salvager" # 220
     "Mine"
     "Coppersmith" if countInHandCopper >= 3
-    "Library" if my.hand.length <= 4
+    "Library" if my.hand.length <= 4  # 210
     "Rabble"
     "Envoy"
-    "Smithy"
+    "Smithy"   # 200
     "Embassy"
     "Watchtower" if my.hand.length <= 3
     "Council Room"
     "Library" if my.hand.length <= 5
-    "Watchtower" if my.hand.length <= 4
+    "Watchtower" if my.hand.length <= 4  # 190
     "Courtyard" if (my.discard.length + my.draw.length) > 0
     "Merchant Ship"
     "Baron" if my.countInHand("Estate") >= 1
     "Monument"
-    "Oracle"
+    "Oracle" # 180
     "Remake" if wantsToTrash >= multiplier * 2   # has a low priority so it'll mostly be played early in the game
     "Adventurer"
     "Harvest"
-    "Haggler" # probably needs to make sure the gained card will be wanted
+    "Haggler" # probably needs to make sure the gained card will be wanted; 170
     "Mandarin"
     "Explorer"
     "Woodcutter"
     "Nomad Camp"
-    "Chancellor"
+    "Chancellor" # 160
     "Counting House"
     "Coppersmith" if countInHandCopper >= 2
     "Outpost" if state.extraturn == false
     # Play an Ambassador if our hand has something we'd want to discard.
-    "Ambassador" if wantsToTrash
+    "Ambassador" if wantsToTrash # 150
     "Trading Post" if wantsToTrash + my.countInHand("Silver") >= 2 * multiplier
     "Chapel" if wantsToTrash
     "Trader" if wantsToTrash >= multiplier
     "Trade Route" if wantsToTrash >= multiplier
-    "Mint" if my.ai.choose('mint', state, my.hand)
+    "Mint" if my.ai.choose('mint', state, my.hand) # 140
     "Pirate Ship"
     "Noble Brigand"
     "Thief"
     "Island"  # could be moved
-    "Fortune Teller"
+    "Fortune Teller" # 130
     "Bureaucrat"
     "Navigator"
     "Conspirator" if my.actions < 2
     "Herbalist"
-    "Moat"
+    "Moat"  # 120
     "Library" if my.hand.length <= 6
     "Watchtower" if my.hand.length <= 5
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
-    "Smugglers" if state.smugglerChoices().length > 1
+    "Smugglers" if state.smugglerChoices().length > 1 # 110
     "Feast"
     "Transmute" if wantsToTrash >= multiplier
     "Coppersmith"
     "Saboteur"
     "Duchess"
-    "Library" if my.hand.length <= 7
+    "Library" if my.hand.length <= 7 # 101
 
     # 11: cards that have become useless. Maybe they'll decrease
-    # the cost of Peddler, trigger Conspirator, or something.
+    # the cost of Peddler, trigger Conspirator, or something. (20-99)
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Spice Merchant"
     "Shanty Town"
@@ -420,7 +422,7 @@ class BasicAI
     "Chapel"
     "Library"
 
-    # 12: Conspirator when +actions remain.
+    # 12: Conspirator when +actions remain. (10)
     "Conspirator"
 
     # At this point, we take no action if that choice is available.
