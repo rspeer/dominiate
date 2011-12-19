@@ -26,7 +26,7 @@ playGame = (filenames) ->
     colonies: false
     randomizeOrder: true
     log: console.log
-    require: ['Secret Chamber', 'Apprentice']
+    require: []
   })
   until st.gameIsOver()
     st.doPlay()

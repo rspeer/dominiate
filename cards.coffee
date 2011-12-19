@@ -1042,6 +1042,7 @@ makeCard "Minion", attack, {
       state.attackOpponents (opp) ->
         c['Minion'].discardAndDraw4(state, opp)
     else
+      state.attackOpponents (opp) -> null
       player.coins += 2
 }
 
@@ -1137,6 +1138,7 @@ makeCard 'Pirate Ship', attack, {
   playEffect: (state) ->
     choice = state.current.ai.choose('pirateShip', state, ['coins','attack'])
     if choice is 'coins'
+      state.attackOpponents (opp) -> null
       state.current.coins += state.current.mats.pirateShip
       state.log("...getting +$#{state.current.mats.pirateShip}.")
     else if choice is 'attack'
@@ -1369,7 +1371,7 @@ makeCard 'Apprentice', action, {
   actions: +1
 
   playEffect: (state) ->
-    toTrash = state.current.ai.choose('salvagerTrash', state, state.current.hand)
+    toTrash = state.current.ai.choose('apprenticeTrash', state, state.current.hand)
     if toTrash?
       [coins, potions] = toTrash.getCost(state)
       state.doTrash(state.current, toTrash)
@@ -2250,11 +2252,14 @@ makeCard "Secret Chamber", action, {
     state.current.coins += discarded.length
 
   reactToAttack: (state, player) ->
+    state.log("#{player.ai.name} reveals a Secret Chamber.")
     state.drawCards(player, 2)
-    card = state.current.ai.choose('putOnDeck', state, state.current.hand)
-    state.doPutOnDeck(state.current, card)
-    card = state.current.ai.choose('putOnDeck', state, state.current.hand)
-    state.doPutOnDeck(state.current, card)
+    card = player.ai.choose('putOnDeck', state, player.hand)
+    if card isnt null
+      state.doPutOnDeck(player, card)
+    card = player.ai.choose('putOnDeck', state, player.hand)
+    if card isnt null
+      state.doPutOnDeck(player, card)
 }
 
 makeCard 'Shanty Town', action, {
