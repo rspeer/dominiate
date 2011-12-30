@@ -1,3 +1,11 @@
+# This isn't a standalone file that can be run with the "coffee" interpreter.
+# It's a unit test file.
+# 
+# You can run it through "nodeunit" (`npm install nodeunit`), which now has
+# built-in support for CoffeeScript:
+#
+#     nodeunit testSimulation.coffee
+
 c = require('./cards')
 gameState = require('./gameState')
 basicAI = require('./basicAI')
