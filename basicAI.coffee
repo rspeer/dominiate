@@ -84,14 +84,24 @@ class BasicAI
         choiceSet[choice] = choice
       
       # Get the priority list.
+      state.log(priorityfunc.toString())
       priority = priorityfunc.bind(this)(state, my)
+      state.log(priority)
+      state.log(choices)
+      state.log(choiceSet.toString())
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
+      #priority = priority[0] if priority[0]? and priority[0][0]?
       for preference in priority
+        state.log("Preferance = "+preference)
         if preference is null and null in choices
+          state.log("choice????");
           return null
         if choiceSet[preference]?
+          state.log("choice@@@@");
           return choiceSet[preference]
+     else
+             state.log("no func")
   
     # The priority list doesn't want any of these choices (perhaps because
     # it doesn't exist). Now try the value list.
@@ -151,6 +161,7 @@ class BasicAI
   # names automatically: for example, if the type is 'foo', the AI will check
   # its fooValue and fooPriority functions.
   choose: (type, state, choices) ->
+    state.log("Choose "+type);
     # Get the priority and value functions. If one doesn't exist, that's okay,
     # we'll pass on the 'undefined' value and chooseByPriorityAndValue will
     # know what to do.
@@ -158,7 +169,7 @@ class BasicAI
     valuefunc = this[type+'Value']
     this.chooseByPriorityAndValue(state, choices, priorityfunc, valuefunc)
   
-  #### Backwards-compatible choices
+  ## Backwards-compatible choices
   # 
   # To avoid having to rewrite all the code at once, we support these functions
   # that pass `chooseAction` onto `choose('action')`, and so on.
@@ -679,7 +690,7 @@ class BasicAI
       return 5
     return card.cost    
 
-  #### Decisions for particular cards
+  ## Decisions for particular cards
 
   # `ambassadorPriority` chooses a card to Ambassador and how many of it to
   # return.
@@ -943,7 +954,7 @@ class BasicAI
     'curse'
   ]
   
-  #### Trash-for-benefit decisions
+  ## Trash-for-benefit decisions
 
   # Taking into account gain priorities, gain values, trash priorities, and
   # trash values, how much do we like having this card in our deck overall?
@@ -985,7 +996,7 @@ class BasicAI
     choice = cards.slice(0)
     return choice.sort(sorter)
 
-  #### Informational methods
+  ## Informational methods
 
   # When presented with a card with simple but variable benefits, such as
   # Nobles, this is the default way for an AI to decide which benefit it wants.
@@ -1177,7 +1188,7 @@ class BasicAI
         state.current.actions = savedActions
         return 1
 
-  #### Utility methods
+  ## Utility methods
   #
   # `copy` makes a copy of the AI. It will have the same behavior but a
   # different name, and will not be equal to this AI.
