@@ -435,7 +435,7 @@ class BasicAI
     "Treasure Map"
     "Ambassador"
     "Throne Room"
-  ]
+    ]
   
   # `multipliedActionPriority` is similar to `actionPriority`, but is used when
   # we have played a Throne Room or King's Court.
