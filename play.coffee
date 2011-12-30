@@ -6,7 +6,7 @@
 {State,tableaux} = require './gameState'
 {BasicAI} = require './basicAI'
 fs = require 'fs'
-coffee = require 'coffee-script'
+coffee = require '/Program Files (x86)/nodejs/node_modules/coffee-script/lib/coffee-script'
 
 loadStrategy = (filename) ->
   ai = new BasicAI()
@@ -35,6 +35,9 @@ playGame = (filenames) ->
   result
 
 this.playGame = playGame
+console.log("HELLO")
+console.log(process.argv[2])
+console.log(process.argv[3])
 args = process.argv[2...]
 playGame(args)
 

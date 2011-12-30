@@ -72,7 +72,7 @@ class PlayerState
     this.drawCards(5)
     this
 
-  #### Informational methods
+  ## Informational methods
   # 
   # The methods here ask about general properties of a player's deck,
   # discard pile, and so on. A number of similar methods appear on the `State`
@@ -664,7 +664,7 @@ class State
     total += @prizes.length
     total
 
-  #### Playing a turn
+  ## Playing a turn
   #
   # `doPlay` performs the next step of the game, which is a particular phase
   # of a particular player's turn. If the phase is...
@@ -807,7 +807,7 @@ class State
   # `getSingleBuyDecision` determines what single card (or none) the AI
   # wants to buy in the current state.
   getSingleBuyDecision: () ->
-    buyable = [null]
+    buyable = []
     for cardname, count of @supply
       # Because the supply must reference cards by their names, we use
       # `c[cardname]` to get the actual object for the card.
@@ -1303,8 +1303,11 @@ class State
   # A warning has a similar effect to a log message, but indicates that
   # something has gone wrong with the gameplay.
   warn: (obj) ->
-    if console?
-      console.warn("WARNING: ", obj)
+    if this.logFunc?
+      this.logFunc(obj)
+    else 
+      if console?
+        console.warn("WARNING: ", obj)
 
 # Define some possible tableaux to play the game with. None of these are
 # actually legal tableaux, but that gives strategies more room to play.

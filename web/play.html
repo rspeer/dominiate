@@ -102,6 +102,9 @@
       <a id="playButton" href="#" class="btn success">
         Start playing
       </a>
+      <a id="tourneyButton" href="#" class="btn success">
+        Start tourney
+      </a>
       <a id="reset" href="#" class="btn">
         Reset
       </a>
@@ -212,6 +215,8 @@ $ ->
     window.playing = true
     $('#playButton').removeClass('success').addClass('danger')
     $('#playButton').text('Stop playing')
+    $('#tourneyButton').removeClass('success').addClass('danger')
+    $('#tourneyButton').text('Stop tourney')
   
   donePlaying = ->
     window.playing = false
@@ -219,6 +224,8 @@ $ ->
     tracker.updateScoresOnPage()
     $('#playButton').removeClass('danger').addClass('success')
     $('#playButton').text('Start playing')
+    $('#tourneyButton').removeClass('danger').addClass('success')
+    $('#tourneyButton').text('Start tourney')
   window.donePlaying = donePlaying
 
   playOneGame = ->
@@ -285,6 +292,18 @@ $ ->
     else if $('#play1000').is(':checked') then playUntil((-> false), 1000)
     else if $('#playUntilDecisive').is(':checked')
       playUntil(tracker.decisiveWinner, Infinity)
+    return false
+    
+  $('#tourneyButton').click (event) -> 
+    alert("Dr. Mitch")
+    if window.playing
+      window.playing = false
+    else if $('#playOne').is(':checked') then playOneGame()
+    else if $('#play100').is(':checked') then playUntil((-> false), 100)
+    else if $('#play1000').is(':checked') then playUntil((-> false), 1000)
+    else if $('#playUntilDecisive').is(':checked')
+      playUntil(tracker.decisiveWinner, Infinity)
+    alert("end dr");
     return false
 
   $('#reset').click (event) ->
