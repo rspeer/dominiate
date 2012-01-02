@@ -84,24 +84,24 @@ class BasicAI
         choiceSet[choice] = choice
       
       # Get the priority list.
-      state.log(priorityfunc.toString())
+#mm       state.log(priorityfunc.toString())
       priority = priorityfunc.bind(this)(state, my)
-      state.log(priority)
-      state.log(choices)
+#mm       state.log(priority)
+#mm       state.log(choices)
  
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
       #priority = priority[0] if priority[0]? and priority[0][0]?
       for preference in priority
-        state.log("Preferance = "+preference)
+#mm         state.log("Preferance = "+preference)
         if preference is null and null in choices
-          state.log("choice????");
+#mm           state.log("choice????");
           return null
         if choiceSet[preference]?
-          state.log("choice@@@@");
+#mm           state.log("choice@@@@");
           return choiceSet[preference]
-     else
-             state.log("no func")
+#mm     else
+#mm             state.log("no func")
   
     # The priority list doesn't want any of these choices (perhaps because
     # it doesn't exist). Now try the value list.
@@ -116,7 +116,7 @@ class BasicAI
           value = valuefunc.bind(this)(state, choice, my)
         if value > bestValue
           bestValue = value
-          state.log("choiceXXX")
+#mm           state.log("choiceXXX")
           bestChoice = choice
       
       # If we got a valid choice, return it.
@@ -163,7 +163,7 @@ class BasicAI
   # names automatically: for example, if the type is 'foo', the AI will check
   # its fooValue and fooPriority functions.
   choose: (type, state, choices) ->
-    state.log("Choose "+type);
+#mm     state.log("Choose "+type);
     # Get the priority and value functions. If one doesn't exist, that's okay,
     # we'll pass on the 'undefined' value and chooseByPriorityAndValue will
     # know what to do.

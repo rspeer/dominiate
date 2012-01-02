@@ -6,7 +6,7 @@
 {State,tableaux} = require './gameState'
 {BasicAI} = require './basicAI'
 fs = require 'fs'
-coffee = require '/Program Files (x86)/nodejs/node_modules/coffee-script/lib/coffee-script'
+coffee = require 'coffee-script'
 
 loadStrategy = (filename) ->
   ai = new BasicAI()
@@ -31,13 +31,9 @@ playGame = (filenames) ->
   until st.gameIsOver()
     st.doPlay()
   result = ([player.ai.toString(), player.getVP(st), player.turnsTaken] for player in st.players)
-  console.log(result)
   result
 
 this.playGame = playGame
-console.log("HELLO")
-console.log(process.argv[2])
-console.log(process.argv[3])
 args = process.argv[2...]
 playGame(args)
 

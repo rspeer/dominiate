@@ -9,7 +9,7 @@
 {EvoAI} = require './evolutionAI'
 fs = require 'fs'
 sys = require 'util'
-coffee = require '/Program Files (x86)/nodejs/node_modules/coffee-script/lib/coffee-script'
+coffee = require 'coffee-script'
 logFile = fs.createWriteStream("evaluate.log");
 
 loadStrategy = (body) ->
