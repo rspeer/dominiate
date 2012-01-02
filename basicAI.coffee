@@ -88,7 +88,7 @@ class BasicAI
       priority = priorityfunc.bind(this)(state, my)
       state.log(priority)
       state.log(choices)
-      state.log(choiceSet.toString())
+ 
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
       #priority = priority[0] if priority[0]? and priority[0][0]?
@@ -116,6 +116,7 @@ class BasicAI
           value = valuefunc.bind(this)(state, choice, my)
         if value > bestValue
           bestValue = value
+          state.log("choiceXXX")
           bestChoice = choice
       
       # If we got a valid choice, return it.
@@ -130,7 +131,8 @@ class BasicAI
     # the value list gave us anything. First complain about it, then make an
     # arbitrary choice.
     state.warn("#{this} has no idea what to choose from #{choices}")
-    return choices[0]
+    #return choices[0]
+    return null
   
   # Sometimes we need to compare choices in a strictly numeric way. This takes
   # a particular choice for a particular choice type, and gets its numeric value.

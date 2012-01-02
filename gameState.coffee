@@ -289,7 +289,7 @@ class PlayerState
   countUniqueCardsInPlay: this.numUniqueCardsInPlay
   uniqueCardsInPlay: this.numUniqueCardsInPlay
 
-  #### Methods that modify the PlayerState
+  ## Methods that modify the PlayerState
 
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
@@ -546,7 +546,7 @@ class State
         supply[card] = card.startingSupply(this)
     supply
 
-  #### Informational methods
+  ## Informational methods
   # These methods are referred to by some card effects, but can also be useful
   # in crafting a strategy.
   #
@@ -568,6 +568,9 @@ class State
     # by making sure the phase is `'start'`.
     return false if @phase != 'start'
 
+    for [playerName, vp, turns] in this.getFinalStatus()
+            return true if turns > 100
+            
     # Check all the conditions in which empty piles can end the game.
     emptyPiles = this.emptyPiles()
     if emptyPiles.length >= this.totalPilesToEndGame() \
@@ -955,7 +958,7 @@ class State
     @current = @players[0]
     @phase = 'start'
   
-  #### Small-scale effects
+  ## Small-scale effects
   # `gainCard` performs the effects of a player gaining a card.
   #
   # This is one of many events that affects a particular player, and
@@ -1199,7 +1202,7 @@ class State
     else
       effect(player)
   
-  #### Bookkeeping
+  ## Bookkeeping
   # `copy()` makes a copy of this state that can be safely mutated
   # without affecting the original state.
   #
