@@ -1,3 +1,4 @@
+
 all: css web-coffee web-strategies command-line
 
 web-coffee:
@@ -22,4 +23,4 @@ web-deploy: web-coffee web-strategies css
 	cd gh-pages; make
 	
 command-line: 
-	coffee -c basicAI.coffee cards.coffee gameState.coffee play.coffee goEvo.coffee evaluate.coffee evolutionAI.coffee
+	coffee -c basicAI.coffee cards.coffee gameState.coffee play.coffee goEvo.coffee evaluate.coffee evolutionAI.coffee tictoc.coffee

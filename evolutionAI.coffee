@@ -1,8 +1,9 @@
+
 ## The Evoulton AI Class.
 #--------------------------
 # This code can generate, mate and mutate AI players for machine learning
 # It can also write out the player as a strtegey file usable in the web interface
-toSource = require 'C:\\Program Files (x86)\\nodejs\\node_modules\\toSource'
+#toSource = require 'C:\\Program Files (x86)\\nodejs\\node_modules\\toSource'
 
 exports.mutaterate = 5 # 5 = 5%
 

@@ -1,3 +1,4 @@
+
 #!/usr/bin/env coffee
 #
 # This is the script that you can run at the command line to see how
@@ -172,7 +173,7 @@ action = process.argv[2]
 fileName = process.argv[3]
 numInFirstGen = process.argv[4]
 gamesPerMatch = process.argv[5]
-logFile = fs.createWriteStream(fileName+"/goEvo.log");
+logFile = fs.createWriteStream(fileName+"-goEvo.log");
 
 logFile.once('open', (fd)->
   goEvo(action,fileName,numInFirstGen,gamesPerMatch))
