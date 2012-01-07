@@ -90,6 +90,8 @@ playTourney = (dir = "./strategies",webdir = "~/html/dominiate/strategies", game
         if !inserted
                 standings.push({name:chalenger.name, result:vsBigMoney})
   html = "<h1>Standngs after "+genNum+" generations</h1>"
+  html += "<p>"+(new Date()).toString()+"</p>"
+  html += "<p><a href=standnigs.csv>multi generation report (csv)</a></p>"
   html+="#"+(num+1)+": <a href='"+standings[num].name+".coffee'>"+standings[num].name+"</a> "+standings[num].result+"% Vs BigMoney<br>" for num in [0...standings.length]
   fs.writeFileSync(dir+"/generaton"+genNum+".standings",JSON.stringify(standings))
   try fs.mkdirSync(webdir)
@@ -99,13 +101,42 @@ playTourney = (dir = "./strategies",webdir = "~/html/dominiate/strategies", game
   fs.writeFileSync(webdir+"/index.html",html)
   console.log("Execution Took "+fullTimer.tocString())
   
+createCSV = (sourceDir,destFile=sourceDir+"/standings.csv") ->
+        filenames = fs.readdirSync(sourceDir)
+        console.log(filenames)
+        csvStr = "GenNum,Min,Max,Mean,Median,Mode\n"
+        csvArray = new Array()
+        keys = new Array()
+        for f in filenames when f.search('.standings') isnt -1
+                console.log(f)
+                genNum = /\d+/.exec(f)[0]
+                standings = JSON.parse(fs.readFileSync(sourceDir+"/"+f, 'utf-8'))
+                min = standings[0]["result"]
+                max = standings[0]["result"]
+                mean = 0
+                median = 0
+                mode = 0
+                for st in standings
+                        min = st["result"] if st["result"] < min
+                        max = st["result"] if st["result"] > max
+                        mean += st["result"]
+                mean /= standings.length
+                keys.push(genNum)
+                csvArray[genNum] = [genNum,min,max,mean,median,mode].join(",")+"\n"
+        keys.sort((a, b)->(a - b))
+        csvStr += csvArray[k] for k in keys
+        fs.writeFileSync(destFile,csvStr)
+  
 this.playGame = playGame
 sourcedir = process.argv[2]
-#webdir = process.argv[3]
+#webdir = "../html/dominiate/"
+webdir = ""
 gamesPerMatch = process.argv[3]
 logFile.once('open', (fd)->
   logFile.write("Game Start\r\n")
-  playTourney(sourcedir,"../html/dominiate/"+sourcedir,gamesPerMatch))
+  playTourney(sourcedir,webdir+sourcedir,gamesPerMatch)
+  createCSV(sourcedir,webdir+sourcedir+"/standings.csv")
+  )
 
 exports.loadStrategy = loadStrategy
 exports.playGame = playGame
