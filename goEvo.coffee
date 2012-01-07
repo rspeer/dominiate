@@ -1,4 +1,5 @@
 
+
 #!/usr/bin/env coffee
 #
 # This is the script that you can run at the command line to see how
@@ -97,7 +98,7 @@ goEvo = (action = 'start', directory = 'test', firstGen = 3, gamesPerMatch = 1) 
                 filenames = fs.readdirSync(directory)
                 fs.unlinkSync(directory+"/"+f) for f in filenames
                 evos = (new EvoAI(namer(nameNum++)) for num in [0...firstGen])
-                fs.writeFileSync(directory+"/"+evo.name+".coffee",evo.toString()) for evo in evos
+                #fs.writeFileSync(directory+"/"+evo.name+".coffee",evo.toString()) for evo in evos
                 numGames = 0
                 genNum = 0
         else if action == 'continue'
@@ -112,7 +113,7 @@ goEvo = (action = 'start', directory = 'test', firstGen = 3, gamesPerMatch = 1) 
                 console.log("not a valid action. Try 'start' or 'continue'");
                 return
         console.log("Done Load Players")
-        while true
+        while genNum < 1000
                 numGames = 0
                 while numGames < firstGen
                         numGames++
@@ -163,7 +164,7 @@ goEvo = (action = 'start', directory = 'test', firstGen = 3, gamesPerMatch = 1) 
                         console.log(players[0].name+" and "+players[1].name+" have child "+evos[evos.length-1].name)
                 genNum++
                 console.log("Recording All Players")
-                fs.writeFileSync(directory+"/"+evo.name+".coffee",evo.toString()) for evo in evos
+                #fs.writeFileSync(directory+"/"+evo.name+".coffee",evo.toString()) for evo in evos
                 console.log("Execution Took "+fullTimer.tocString())
                 try fs.renameSync(filename,directory+"/generation"+(genNum-1)+".evo")
                 fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))

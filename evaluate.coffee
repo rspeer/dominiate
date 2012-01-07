@@ -41,7 +41,7 @@ playGame = (ais, numGames = 1) ->
   result = ([player.ai.toString(), player.getVP(st), player.turnsTaken] for player in st.players)
   st.getWinners()
   
-playTourney = (dir = "./strategies", gamesPerMatch = 1) ->
+playTourney = (dir = "./strategies",webdir = "~/html/dominiate/strategies", gamesPerMatch = 1) ->
   filenames = fs.readdirSync(dir)
   console.log("Load Players")
   savedObject = JSON.parse(fs.readFileSync(dir+"/currentGeneration.evo", 'utf-8'))
@@ -91,15 +91,21 @@ playTourney = (dir = "./strategies", gamesPerMatch = 1) ->
                 standings.push({name:chalenger.name, result:vsBigMoney})
   html = "<h1>Standngs after "+genNum+" generations</h1>"
   html+="#"+(num+1)+": <a href='"+standings[num].name+".coffee'>"+standings[num].name+"</a> "+standings[num].result+"% Vs BigMoney<br>" for num in [0...standings.length]
-  fs.writeFileSync(dir+"/index.html",html)
+  fs.writeFileSync(dir+"/generaton"+genNum+".standings",JSON.stringify(standings))
+  try fs.mkdirSync(webdir)
+  filenames = fs.readdirSync(webdir)
+  fs.unlinkSync(webdir+"/"+f) for f in filenames when f.search('.coffee') isnt -1
+  fs.writeFileSync(webdir+"/"+ai.name+".coffee",ai.toString()) for ai in evos
+  fs.writeFileSync(webdir+"/index.html",html)
   console.log("Execution Took "+fullTimer.tocString())
   
 this.playGame = playGame
-dir = process.argv[2]
+sourcedir = process.argv[2]
+#webdir = process.argv[3]
 gamesPerMatch = process.argv[3]
 logFile.once('open', (fd)->
   logFile.write("Game Start\r\n")
-  playTourney(dir,gamesPerMatch))
+  playTourney(sourcedir,"../html/dominiate/"+sourcedir,gamesPerMatch))
 
 exports.loadStrategy = loadStrategy
 exports.playGame = playGame
