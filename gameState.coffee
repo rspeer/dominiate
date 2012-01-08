@@ -31,14 +31,13 @@ class PlayerState
     @multipliedDurations = []
     @chips = 0
     @hand = []
-    @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
-                c.Copper, c.Copper, c.Estate, c.Estate, c.Estate]
+    @discard = (c[card] for card in ai.startingDiscard())
     
     # If you want to ask what's in a player's draw pile, be sure to only do
     # it to a *hypothetical* PlayerState that you retrieve with
     # `state.hypothetical(ai)`. Then the draw pile will contain a random
     # guess, as opposed to the actual hidden information.
-    @draw = []
+    @draw = (c[card] for card in ai.startingDraw())
     @inPlay = []
     @duration = []
     @setAside = []
@@ -293,7 +292,8 @@ class PlayerState
 
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
-    @hand = @hand.concat(drawn)
+    Array::push.apply @hand, drawn
+    # @hand = @hand.concat(drawn)
     this.log("#{@ai} draws #{drawn.length} cards: #{drawn}.")
     return drawn
 

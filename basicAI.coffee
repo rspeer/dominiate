@@ -34,6 +34,9 @@ class BasicAI
   # use cachedActionPriority(state, my) to obtain cache
   @cachedAP = []
   
+  startingDraw: () -> []
+  startingDiscard: () -> ["Copper", "Copper", "Copper", "Copper", "Copper", "Copper", "Copper", "Estate", "Estate", "Estate"]
+  
   # Referring to `state.current` to find information about one's own state is
   # not always safe! Some of these decisions may be made during other players'
   # turns. In those cases, what we want is `this.myPlayer(state)`.
