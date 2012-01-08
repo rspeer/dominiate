@@ -869,10 +869,7 @@ class State
 
     # Don't allow cards that will lose us the game
     #
-    # Not completely optimal because further buys could still cause us winning
-    # But Geronimoo also does not do better, so for first we should do it like that
-    #
-    # Also note that this just cares for the buyPhase, gains by other means (Workshop) are not covered
+    # Note that this just cares for the buyPhase, gains by other means (Workshop) are not covered
     
     buyable = (card for card in buyable when (not this.buyCausesToLose(@current, this, card)) )
         
