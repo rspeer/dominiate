@@ -3,8 +3,8 @@
 # This is the script that you can run at the command line to see how
 # strategies play against each other.
 
-{State,tableaux} = require './gameState'
 {BasicAI} = require './basicAI'
+{State,tableaux} = require './gameState'
 fs = require 'fs'
 coffee = require 'coffee-script'
 
