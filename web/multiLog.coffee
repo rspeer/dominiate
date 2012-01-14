@@ -21,6 +21,12 @@ class MultiLog
   getCurrent: ->
     @pages[@currentPage-1]
 
+  getCurrentPage: ->
+    @currentPage
+
+  getLastPage: ->
+    @pages.length
+
   updateOutput: ->
     if @pages[@currentPage-1]?
       @outputElt.html(@pages[@currentPage-1])

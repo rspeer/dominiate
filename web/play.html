@@ -203,7 +203,8 @@ $ ->
   singleGameResult = (state) =>
     result = state.getWinners().toString() + " wins!"
     multiLog.addLineToEnd(result)
-    multiLog.updateOutput()
+    # Avoid refreshing the output if it's not visible
+    multiLog.updateOutput() if multiLog.getCurrentPage() == multiLog.getLastPage()
     tracker.recordGame(state)
 
   errorHandler = (error) => alert(error.message)
