@@ -690,12 +690,15 @@ makeCard 'Tactician', duration, {
   durationCards: +5
 
   playEffect: (state) ->
+    # If this is the first time we've played Tactician this turn, reset our count
+    @activeTacticians = 0 if state.current.countInPlay('Tactician') == 1
+
     cardsInHand = state.current.hand.length
     # If any cards can be discarded...
     if cardsInHand > 0
       # Discard the hand and activate the tactician.
       state.log("...discarding the whole hand.")
-      state.current.tacticians++
+      @activeTacticians++
       discards = state.current.hand
       state.current.discard = state.current.discard.concat(discards)
       state.current.hand = []
@@ -704,8 +707,8 @@ makeCard 'Tactician', duration, {
   # The cleanupEffect of a dead Tactician is to discard it instead of putting it in the
   # duration area. It's not a duration card in this case.
   cleanupEffect: (state) ->
-    if state.current.tacticians > 0
-      state.current.tacticians--
+    if @activeTacticians > 0
+      @activeTacticians--
     else
       state.log("#{state.current.ai} discards an inactive Tactician.")
       transferCard(c.Tactician, state.current.duration, state.current.discard)
