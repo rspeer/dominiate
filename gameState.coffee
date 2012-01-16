@@ -44,7 +44,6 @@ class PlayerState
     @setAside = []
     @gainedThisTurn = []
     @tacticians = 0  # number of Tacticians that will go to the duration area
-    @foolsGoldInPlay = no
     @mayReturnTreasury = yes
     @turnsTaken = 0
 
@@ -397,7 +396,6 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.gainedThisTurn = @gainedThisTurn.slice(0)
-    other.foolsGoldInPlay = no
     other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
@@ -912,7 +910,6 @@ class State
     @current.potions = 0
     @current.tacticians = 0
     @current.actionsPlayed = 0
-    @current.foolsGoldInPlay = no
     @current.mayReturnTreasury = yes
     @copperValue = 1
     @bridges = 0

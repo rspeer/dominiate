@@ -470,7 +470,7 @@ makeCard "Fool's Gold", treasure, {
   coins: 1
   
   getCoins: (state) ->
-    if state.current.foolsGoldInPlay
+    if state.current.countInPlay("Fool's Gold") > 1
       4
     else
       1
