@@ -43,7 +43,6 @@ class PlayerState
     @duration = []
     @setAside = []
     @gainedThisTurn = []
-    @mayReturnTreasury = yes
     @turnsTaken = 0
 
     # To stack various card effects, we'll have to keep track of the location
@@ -395,7 +394,6 @@ class PlayerState
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
     other.gainedThisTurn = @gainedThisTurn.slice(0)
-    other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
     other.actionStack = @actionStack.slice(0)
@@ -907,7 +905,6 @@ class State
     @current.coins = 0
     @current.potions = 0
     @current.actionsPlayed = 0
-    @current.mayReturnTreasury = yes
     @copperValue = 1
     @bridges = 0
     @highways = 0

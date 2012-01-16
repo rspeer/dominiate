@@ -2427,15 +2427,22 @@ makeCard 'Treasure Map', action, {
 
 makeCard 'Treasury', c.Market, {
   buys: 0
+
+  playEffect: (state) ->
+    @mayReturnTreasury = yes
   
   buyInPlayEffect: (state, card) ->
+    # FIXME: This is incorrect in one highly unlikely edge case - if you buy
+    #        a victory card from the Black Market, then you play a Treasury,
+    #        you are not allowed to return the treasury to the top of the deck
+    #        even though the treasury wasn't in play when you bought the card.
     if card.isVictory
-      state.current.mayReturnTreasury = no
-      
+      @mayReturnTreasury = no
+
   cleanupEffect: (state) ->    
-    if state.current.mayReturnTreasury
+    if @mayReturnTreasury
       transferCardToTop(c.Treasury, state.current.discard, state.current.draw)
-      state.log("#{state.current.ai} returns a Treasury to the top of the deck.")    
+      state.log("#{state.current.ai} returns a Treasury to the top of the deck.")
 }
 
 makeCard 'Tribute', action, {
