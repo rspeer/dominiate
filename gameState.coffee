@@ -22,17 +22,16 @@ class PlayerState
     @buys = 1
     @coins = 0
     @potions = 0
-    @mats = {
-      pirateShip: 0
-      nativeVillage: []
-      island: []
-    }
-    @setAsideByHaven = []
     @multipliedDurations = []
     @chips = 0
     @hand = []
     @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
                 c.Copper, c.Copper, c.Estate, c.Estate, c.Estate]
+
+    # A mat is a place where cards can store inter-turn state for a player.
+    # It can correspond to a physical mat, like the Island or Pirate Ship
+    # Mat or just a place to set things aside for cards like Haven.
+    @mats = {}
     
     # If you want to ask what's in a player's draw pile, be sure to only do
     # it to a *hypothetical* PlayerState that you retrieve with
@@ -89,8 +88,14 @@ class PlayerState
   # `getDeck()` returns all the cards in the player's deck, even those in
   # strange places such as the Island mat.
   getDeck: () ->
-    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @setAside.concat @mats.nativeVillage.concat @mats.island.concat @setAsideByHaven
-  
+    result = [].concat(@draw, @discard, @hand, @inPlay, @duration, @setAside)
+
+    for own name, contents of @mats when contents?
+      # If contents is a card or an array containing cards, add it to the list
+      if contents.hasOwnProperty('playEffect') || contents[0]?.hasOwnProperty('playEffect')
+        result = result.concat(contents)
+    result
+
   # `getCurrentAction()` returns the action being resolved that is on the
   # top of the stack.
   getCurrentAction: () ->
@@ -380,12 +385,15 @@ class PlayerState
     other.buys = @buys
     other.coins = @coins
     other.potions = @potions
-    other.setAsideByHaven = @setAsideByHaven.slice(0)
     other.multipliedDurations = @multipliedDurations.slice(0)
+
+    # Clone mat contents, deep-copying arrays of cards
     other.mats = {}
-    other.mats.pirateShip = @mats.pirateShip
-    other.mats.nativeVillage = @mats.nativeVillage.slice(0)
-    other.mats.island = @mats.island.slice(0)
+    for own name, contents of @mats
+      if contents instanceof Array
+        contents = contents.concat()
+      other.mats[name] = contents
+
     other.chips = @chips
     other.hand = @hand.slice(0)
     other.draw = @draw.slice(0)
@@ -468,6 +476,11 @@ class State
     # `totalCards` tracks the total number of cards that are in the game. If it changes,
     # we screwed up.
     @totalCards = this.countTotalCards()
+
+    # Let cards in the tableau know the game is starting so they can perform
+    # any necessary initialization
+    for card in tableau
+      card.startGameEffect(this)
 
     return this
   

@@ -129,6 +129,10 @@ basicCard = {
   # that modify the state. These functions are no-ops in `basicCard`, and
   # may be overridden by cards that need them:
 
+  # Card initialization that happens at the start of the game, for instance
+  # Black Market might set up the Black Market Deck, or Island might set up
+  # the Island Mat
+  startGameEffect: (state) ->
   # - What happens when the card is bought?
   buyEffect: (state) ->
   # - What happens when the card is gained?
@@ -377,6 +381,10 @@ makeCard 'Island', c.Estate, {
   cost: 4
   vp: 2
 
+  startGameEffect: (state) ->
+    for player in state.players
+      player.mats.island = []
+
   playEffect: (state) ->
     if state.current.hand.length == 0 # handle a weird edge case
       state.log("…setting aside the Island (no other cards in hand).")
@@ -617,20 +625,25 @@ makeCard 'Haven', duration, {
   cost: 2
   cards: +1
   actions: +1
-  
+
+  startGameEffect: (state) ->
+    for player in state.players
+      # We put Haven and the cards it sets aside on a "mat"
+      player.mats.haven = []
+
   playEffect: (state) ->
     cardInHaven = state.current.ai.choose('putOnDeck', state, state.current.hand)
     if cardInHaven?
       state.log("#{state.current.ai} sets aside a #{cardInHaven} with Haven.")
-      transferCard(cardInHaven, state.current.hand, state.current.setAsideByHaven)
+      transferCard(cardInHaven, state.current.hand, state.current.mats.haven)
     else
       if state.current.hand.length==0
         state.log("#{state.current.ai} has no cards to set aside.")
       else
         state.warn("hand not empty but no card set aside")
-  
+
   durationEffect: (state) ->
-    cardFromHaven = state.current.setAsideByHaven.pop()
+    cardFromHaven = state.current.mats.haven.pop()
     if cardFromHaven?
       state.log("#{state.current.ai} picks up a #{cardFromHaven} from Haven.")
       state.current.hand.unshift(cardFromHaven)
@@ -1139,6 +1152,10 @@ makeCard 'Oracle', attack, {
 
 makeCard 'Pirate Ship', attack, {
   cost: 4
+
+  startGameEffect: (state) ->
+    for player in state.players
+      player.mats.pirateShip = 0
 
   playEffect: (state) ->
     choice = state.current.ai.choose('pirateShip', state, ['coins','attack'])
