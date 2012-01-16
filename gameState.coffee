@@ -853,12 +853,6 @@ class State
         # Talisman, Quarry, Border Village, and Mandarin.
         if cardInPlay?
           cardInPlay.buyInPlayEffect(this, choice)
-
-      # Gain victory for each Goons in play.
-      goonses = @current.countInPlay('Goons')
-      if goonses > 0
-        this.log("...gaining #{goonses} VP.")
-        @current.chips += goonses
   
   # Handle all the things that happen at the end of the turn.
   doCleanupPhase: () ->

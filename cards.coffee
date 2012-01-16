@@ -971,8 +971,6 @@ makeCard 'Ghost Ship', attack, {
         transferCardToTop(putBack, opp.hand, opp.draw)
 }
 
-# Goons: *see Militia*
-
 makeCard 'Jester', attack, {
   cost: 5
   coins: +2
@@ -1018,9 +1016,9 @@ makeCard "Goons", c.Militia, {
   cost: 6
   buys: +1
 
-  # The effect of Goons that causes you to gain VP on each buy is 
-  # defined in `State.doBuyPhase`. Other than that, Goons is a fancy
-  # Militia.
+  buyInPlayEffect: (state, card) ->
+    state.log("...getting +1 ▼.")
+    state.current.chips += 1
 }
 
 makeCard "Minion", attack, {
