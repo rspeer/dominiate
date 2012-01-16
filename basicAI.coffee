@@ -300,7 +300,7 @@ class BasicAI
     # 7: Let's insert here an overly simplistic idea of how to play Crossroads.
     # Or if we don't have a Crossroads, play a Great Hall that we might otherwise
     # have played in priority level 5.
-    "Crossroads" unless my.crossroadsPlayed
+    "Crossroads" unless my.countInPlay(state.cardInfo.Crossroads) > 0
     "Great Hall"
 
     # 8: card-cycling that might improve the hand.
@@ -452,7 +452,7 @@ class BasicAI
       "Mountebank"
       "Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Sea Hag" if my.actions > 0 and state.countInSupply("Curse") >= 2
-      "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 0)
+      "Crossroads" if my.actions > 0 or my.countInPlay(state.cardInfo.Crossroads) == 0
       "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Young Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Scrying Pool"

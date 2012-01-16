@@ -45,7 +45,6 @@ class PlayerState
     @gainedThisTurn = []
     @moatProtected = no
     @tacticians = 0  # number of Tacticians that will go to the duration area
-    @crossroadsPlayed = 0
     @foolsGoldInPlay = no
     @mayReturnTreasury = yes
     @turnsTaken = 0
@@ -407,7 +406,6 @@ class PlayerState
     other.actionStack = @actionStack.slice(0)
     other.actionsPlayed = @actionsPlayed
     other.tacticians = @tacticians
-    other.crossroadsPlayed = @crossroadsPlayed
     other.ai = @ai
     other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
@@ -915,7 +913,6 @@ class State
     @current.coins = 0
     @current.potions = 0
     @current.tacticians = 0
-    @current.crossroadsPlayed = 0
     @current.actionsPlayed = 0
     @current.foolsGoldInPlay = no
     @current.mayReturnTreasury = yes

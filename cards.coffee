@@ -1565,8 +1565,7 @@ makeCard 'Crossroads', action, {
   cost: 2
 
   playEffect: (state) ->
-    if not state.current.crossroadsPlayed
-      state.current.crossroadsPlayed = true
+    if state.current.countInPlay('Crossroads') == 1
       state.current.actions += 3
 
     # shortcut, because it doesn't particularly matter whether just the
