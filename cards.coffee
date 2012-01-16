@@ -149,7 +149,7 @@ basicCard = {
   # - What happens when the card is shuffled into the draw deck?
   shuffleEffect: (state) ->
   # - What happens when this card is in hand and an opponent plays an attack?
-  reactToAttack: (state, player) ->
+  reactToAttack: (state, player, attackEvent) ->
   # - What happens when this card is in hand and its owner gains a card?
   reactToGain: (state, player, card) ->
   # - What happens when this card is in hand and someone else gains a card?
@@ -1804,7 +1804,7 @@ makeCard "Horse Traders", action, {
       state.drawCards(state.current, 1)
   
   reactToAttack:
-    (state, player) ->
+    (state, player, attackEvent) ->
       transferCard(c['Horse Traders'], player.hand, player.duration)
 }
 
@@ -2086,11 +2086,12 @@ makeCard "Moat", action, {
   cost: 2
   cards: +2
   isReaction: true
-  # Revealing Moat sets a flag in the player's state, indicating
-  # that the player is unaffected by the attack. In this code, Moat
-  # is always revealed, without an AI decision.
-  reactToAttack:
-    (state, player) -> player.moatProtected = true
+
+  reactToAttack: (state, player, attackEvent) ->
+    # Don't bother blocking the attack if it's already blocked (avoid log spam)
+    unless attackEvent.blocked
+      state.log("#{player.ai} is protected by a Moat.")
+      attackEvent.blocked = true
 }
 
 makeCard 'Moneylender', action, {
@@ -2248,7 +2249,7 @@ makeCard "Secret Chamber", action, {
     state.log("...getting +$#{discarded.length} from the Secret Chamber.")
     state.current.coins += discarded.length
 
-  reactToAttack: (state, player) ->
+  reactToAttack: (state, player, attackEvent) ->
     state.log("#{player.ai.name} reveals a Secret Chamber.")
     state.drawCards(player, 2)
     card = player.ai.choose('putOnDeck', state, player.hand)

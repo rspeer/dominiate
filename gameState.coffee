@@ -43,7 +43,6 @@ class PlayerState
     @duration = []
     @setAside = []
     @gainedThisTurn = []
-    @moatProtected = no
     @tacticians = 0  # number of Tacticians that will go to the duration area
     @foolsGoldInPlay = no
     @mayReturnTreasury = yes
@@ -397,7 +396,6 @@ class PlayerState
     other.inPlay = @inPlay.slice(0)
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
-    other.moatProtected = @moatProtected
     other.gainedThisTurn = @gainedThisTurn.slice(0)
     other.foolsGoldInPlay = no
     other.mayReturnTreasury = @mayReturnTreasury
@@ -1170,25 +1168,21 @@ class State
   # `attackPlayer` does the work of attacking a particular player, including
   # handling their reactions to attacks.
   attackPlayer: (player, effect) ->
-    # The most straightforward reaction is Moat, which cancels the attack.
-    # Set a flag on the PlayerState that indicates that the player has not
-    # yet revealed a Moat.
-    player.moatProtected = no
+    attackEvent = {}
     
     # Iterate backwards, because we might be removing things from the list.
     for i in [player.hand.length-1...-1]
       card = player.hand[i]
       if card.isReaction
-        card.reactToAttack(this, player)
+        card.reactToAttack(this, player, attackEvent)
     
-    # If the player has revealed a Moat, or has Lighthouse in the duration
-    # area, the attack is averted. Otherwise, it happens.
-    if player.moatProtected
-      this.log("#{player.ai} is protected by a Moat.")
-    else if c.Lighthouse in player.duration
-      this.log("#{player.ai} is protected by the Lighthouse.")
-    else
-      effect(player)
+    # Apply the attack's effect unless it's been blocked by a card such as
+    # Moat or Lighthouse
+    unless attackEvent.blocked
+      if c.Lighthouse in player.duration
+        this.log("#{player.ai} is protected by the Lighthouse.")
+      else
+        effect(player)
   
   #### Bookkeeping
   # `copy()` makes a copy of this state that can be safely mutated
