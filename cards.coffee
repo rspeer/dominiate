@@ -671,7 +671,11 @@ makeCard 'Lighthouse', duration, {
   coins: +1
   durationCoins: +1
 
-  # The protecting effect is defined in gameState.
+  reactToAttack: (state, player, attackEvent) ->
+    # Don't bother blocking the attack if it's already blocked (avoid log spam)
+    unless attackEvent.blocked
+      state.log("#{player.ai} is protected by the Lighthouse.")
+      attackEvent.blocked = true
 }
 
 makeCard 'Outpost', duration, {

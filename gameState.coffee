@@ -1168,21 +1168,22 @@ class State
   # `attackPlayer` does the work of attacking a particular player, including
   # handling their reactions to attacks.
   attackPlayer: (player, effect) ->
+    # attackEvent gets passed to each reactToAttack method.  Any card
+    # may block the attack by setting attackEvent.blocked to true
     attackEvent = {}
-    
-    # Iterate backwards, because we might be removing things from the list.
-    for i in [player.hand.length-1...-1]
-      card = player.hand[i]
-      if card.isReaction
-        card.reactToAttack(this, player, attackEvent)
+
+    # Reaction cards in the hand can react to the attack
+    reactionCards = (card for card in player.hand when card.isReaction)
+
+    # Duration cards such as Lighthouse can also react
+    reactionCards = reactionCards.concat(player.duration)
+
+    for card in reactionCards
+      card.reactToAttack(this, player, attackEvent)
     
     # Apply the attack's effect unless it's been blocked by a card such as
     # Moat or Lighthouse
-    unless attackEvent.blocked
-      if c.Lighthouse in player.duration
-        this.log("#{player.ai} is protected by the Lighthouse.")
-      else
-        effect(player)
+    effect(player) unless attackEvent.blocked
   
   #### Bookkeeping
   # `copy()` makes a copy of this state that can be safely mutated
