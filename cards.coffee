@@ -80,11 +80,10 @@ basicCard = {
   # coins and the cost in potions.
   getCost: (state) ->
     coins = this.costInCoins(state)
-    coins -= state.bridges
-    coins -= state.highways
-    coins -= state.princesses * 2
-    if this.isAction
-      coins -= state.quarries * 2
+
+    for modifier in state.costModifiers
+      coins += modifier.modify(this)
+
     if coins < 0
       coins = 0
     return [coins, this.costInPotions(state)]
@@ -562,7 +561,14 @@ makeCard "Philosopher's Stone", treasure, {
 makeCard 'Quarry', treasure, {
   cost: 4
   coins: 1
-  playEffect: (state) -> state.quarries += 1
+  playEffect: (state) =>
+    state.costModifiers.push
+      source: this
+      modify: (card) ->
+        if card.isAction
+          -2
+        else
+          0
 }
 
 makeCard 'Royal Seal', treasure, {
@@ -859,12 +865,13 @@ makeCard 'Followers', prize, {
 
 # Since there is only one Princess card, and Princess's cost
 # reduction effect has the clause "while this is in play",
-# state.princesses will never need to be greater than 1.
 makeCard 'Princess', prize, {
   buys: 1
   playEffect:
     (state) ->
-      state.princesses = 1
+      state.costModifiers.push
+        source: this
+        modify: (card) -> -2
 }
 
 makeCard 'Trusty Steed', prize, {
@@ -1454,9 +1461,10 @@ makeCard 'Bridge', action, {
   cost: 4
   coins: 1
   buys: 1
-  playEffect:
-    (state) ->
-      state.bridges += 1
+  playEffect: (state) ->
+    state.costModifiers.push
+      source: this
+      modify: (card) -> -1
 }
 
 makeCard 'Cartographer', action, {
@@ -1806,11 +1814,9 @@ makeCard "Highway", action, {
   actions: +1
   
   playEffect: (state) ->
-    highways = 0
-    for card in state.current.inPlay
-      if card.name is "Highway"
-        highways++
-    state.highways = highways
+    state.costModifiers.push
+      source: this
+      modify: (card) -> -1
 }
 
 makeCard "Horse Traders", action, {
@@ -2090,7 +2096,8 @@ makeCard "Mining Village", c.Village, {
 makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
-    state.quarries = 0
+    # Remove cost modifiers that were created by treasure (e.g. Quarry)
+    state.costModifiers = (m for m in state.costModifiers when !m.source.isTreasure)
     state.potions = 0
     inPlay = state.current.inPlay
     for i in [inPlay.length-1...-1]

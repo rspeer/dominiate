@@ -458,10 +458,11 @@ class State
     @tradeRouteMat = []
     @tradeRouteValue = 0
 
-    @bridges = 0
-    @highways = 0
-    @princesses = 0
-    @quarries = 0
+    # A list of objects which have a "modify" method that takes a card and returns
+    # a modification to its cost.  Objects must also have a "source" property that
+    # specifies which card caused the cost modification.
+    @costModifiers = []
+
     @copperValue = 1
     @phase = 'start'
     @extraturn = false
@@ -925,10 +926,8 @@ class State
     @current.potions = 0
     @current.actionsPlayed = 0
     @copperValue = 1
-    @bridges = 0
-    @highways = 0
-    @princesses = 0
-    @quarries = 0
+
+    @costModifiers = []
 
     #Announce extra turn
     if @extraturn       
@@ -1247,10 +1246,7 @@ class State
     newState.nPlayers = @nPlayers
     newState.tradeRouteMat = @tradeRouteMat.slice(0)
     newState.tradeRouteValue = @tradeRouteValue
-    newState.bridges = @bridges
-    newState.highways = @highways
-    newState.princesses = @princesses
-    newState.quarries = @quarries
+    newState.costModifiers = @costModifiers.concat()
     newState.copperValue = @copperValue
     newState.phase = @phase
     newState.cache = {}
