@@ -448,8 +448,13 @@ class State
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
+    # Cards like Tournament or Black Market may put cards in a special supply
+    @specialSupply = {}
     @trash = []
-    @prizes = [c["Bag of Gold"], c.Diadem, c.Followers, c.Princess, c["Trusty Steed"]]
+
+    # A map of Card to state object that allows cards to define lasting state.
+    @cardState = {}
+
     @tradeRouteMat = []
     @tradeRouteValue = 0
 
@@ -473,14 +478,14 @@ class State
     @depth = 0
     this.log("Tableau: #{tableau}")
 
-    # `totalCards` tracks the total number of cards that are in the game. If it changes,
-    # we screwed up.
-    @totalCards = this.countTotalCards()
-
     # Let cards in the tableau know the game is starting so they can perform
     # any necessary initialization
     for card in tableau
       card.startGameEffect(this)
+
+    # `totalCards` tracks the total number of cards that are in the game. If it changes,
+    # we screwed up.
+    @totalCards = this.countTotalCards()
 
     return this
   
@@ -663,8 +668,9 @@ class State
       total += player.numCardsInDeck()
     for card, count of @supply
       total += count
+    for card, count of @specialSupply
+      total += count
     total += @trash.length
-    total += @prizes.length
     total
 
   #### Playing a turn
@@ -958,7 +964,7 @@ class State
   # be one of the objects in the `@players` array.
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
     delete @cache.gainsToEndGame
-    if card in @prizes or @supply[card] > 0
+    if @supply[card] > 0 or @specialSupply[card] > 0
       for i in [player.hand.length-1...-1]
         reactCard = player.hand[i]
         if reactCard? and reactCard.isReaction and reactCard.reactReplacingGain?
@@ -978,12 +984,12 @@ class State
       location = player[gainLocation]
       location.unshift(card)
 
-      # Remove the card from the supply or the prize list, as appropriate.
-      if card in @prizes
-        @prizes.remove(card)
-      else
+      # Remove the card from the supply
+      if @supply[card] > 0
         @supply[card] -= 1
-      
+      else
+        @specialSupply[card] -= 1
+
       # Delegate to `handleGainCard` to deal with reactions.
       this.handleGainCard(player, card, gainLocation)
     else
@@ -1202,6 +1208,10 @@ class State
     for key, value of @supply
       newSupply[key] = value
     
+    newSpecialSupply = {}
+    for key, value of @specialSupply
+      newSpecialSupply[key] = value
+
     newState = new State()
     # If something overrode the log function, make sure that's preserved.
     newState.logFunc = @logFunc
@@ -1211,9 +1221,27 @@ class State
       playerCopy = player.copy()
       playerCopy.logFunc = (obj) ->
       newPlayers.push(playerCopy)
+
+    # Copy card-specific state
+    newCardState = {}
+    for card, state of @cardState
+      # If the card state has a copy method, call it, otherwise just shallow
+      # copy the state
+      if state.copy?
+        # Objects with a copy method
+        newCardState[card] = state.copy?()
+      else if typeof state == 'object'
+        # Objects with no copy method
+        newCardState[card] = copy = {}
+        copy[k] = v for k, v of state
+      else
+        # Simple types
+        newCardState[card] = state
     
     newState.players = newPlayers
     newState.supply = newSupply
+    newState.specialSupply = newSpecialSupply
+    newState.cardState = newCardState
     newState.trash = @trash.slice(0)
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
@@ -1226,7 +1254,6 @@ class State
     newState.copperValue = @copperValue
     newState.phase = @phase
     newState.cache = {}
-    newState.prizes = @prizes.slice(0)
 
     newState
 

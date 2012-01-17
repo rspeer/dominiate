@@ -703,15 +703,18 @@ makeCard 'Tactician', duration, {
   durationCards: +5
 
   playEffect: (state) ->
-    # If this is the first time we've played Tactician this turn, reset our count
-    @activeTacticians = 0 if state.current.countInPlay('Tactician') == 1
+    # If this is the first time we've played Tactician this turn, reset the count
+    # of active Tacticians.
+    if state.current.countInPlay('Tactician') == 1
+      state.cardState[this] =
+        activeTacticians: 0
 
     cardsInHand = state.current.hand.length
     # If any cards can be discarded...
     if cardsInHand > 0
       # Discard the hand and activate the tactician.
       state.log("...discarding the whole hand.")
-      @activeTacticians++
+      state.cardState[this].activeTacticians++
       discards = state.current.hand
       state.current.discard = state.current.discard.concat(discards)
       state.current.hand = []
@@ -720,8 +723,8 @@ makeCard 'Tactician', duration, {
   # The cleanupEffect of a dead Tactician is to discard it instead of putting it in the
   # duration area. It's not a duration card in this case.
   cleanupEffect: (state) ->
-    if @activeTacticians > 0
-      @activeTacticians--
+    if state.cardState[this].activeTacticians > 0
+      state.cardState[this].activeTacticians--
     else
       state.log("#{state.current.ai} discards an inactive Tactician.")
       transferCard(c.Tactician, state.current.duration, state.current.discard)
@@ -2346,6 +2349,18 @@ makeCard 'Throne Room', c["King's Court"], {
 makeCard 'Tournament', action, {
   cost: 4
   actions: +1
+
+  startGameEffect: (state) ->
+    # Add Tournament prizes to the game state's special supply
+    prizeNames = ['Bag of Gold', 'Diadem', 'Followers', 'Princess', 'Trusty Steed']
+    prizes = (c[name] for name in prizeNames)
+
+    for prize in prizes
+      state.specialSupply[prize] = 1
+
+    state.cardState[this] =
+      prizes: prizes
+
   playEffect:
     (state) ->
       # All Provinces are automatically revealed.
@@ -2358,10 +2373,13 @@ makeCard 'Tournament', action, {
         discardProvince = state.current.ai.choose('tournamentDiscard', state, [yes, no])
         if discardProvince
           state.doDiscard(state.current, c.Province)
-          choices = state.prizes.slice(0)
+          prizes = state.cardState[this].prizes
+          choices = (prize for prize in prizes when state.specialSupply[prize] > 0)
+
           if state.supply[c.Duchy] > 0
             choices.push(c.Duchy)
           choice = state.gainOneOf(state.current, choices, 'draw')
+
           if choice isnt null
             state.log("...putting the #{choice} on top of the deck.")
       if not opposingProvince
@@ -2446,7 +2464,8 @@ makeCard 'Treasury', c.Market, {
   buys: 0
 
   playEffect: (state) ->
-    @mayReturnTreasury = yes
+    state.cardState[this] =
+      mayReturnTreasury: yes
   
   buyInPlayEffect: (state, card) ->
     # FIXME: This is incorrect in one highly unlikely edge case - if you buy
@@ -2454,10 +2473,10 @@ makeCard 'Treasury', c.Market, {
     #        you are not allowed to return the treasury to the top of the deck
     #        even though the treasury wasn't in play when you bought the card.
     if card.isVictory
-      @mayReturnTreasury = no
+      state.cardState[this].mayReturnTreasury = no
 
   cleanupEffect: (state) ->    
-    if @mayReturnTreasury
+    if state.cardState[this].mayReturnTreasury
       transferCardToTop(c.Treasury, state.current.discard, state.current.draw)
       state.log("#{state.current.ai} returns a Treasury to the top of the deck.")
 }
