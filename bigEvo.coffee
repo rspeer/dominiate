@@ -50,7 +50,10 @@ loadStrategy = (body) ->
   str = contents
   contents = contents.replace("return[ [","return[")
   contents = contents.replace("]];","];")
-  
+
+  contents = contents.replace("return[ [","return[")
+  contents = contents.replace("]];","];") 
+ 
   changes = eval(contents)
 
   for key, value of changes
@@ -102,6 +105,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                 #fs.writeFileSync(directory+"/"+evo.name+".coffee",evo.toString()) for evo in evos
                 numGames = 0
                 genNum = 0
+                standings = ({name: evo.name,result:-1,ref:numGames++} for evo in evos)
         else if action == 'continue'
                 savedObject = JSON.parse(fs.readFileSync(filename, 'utf-8'))
                 evos = (new EvoAI(no).unpickle(evo) for evo in savedObject["evos"])
@@ -109,6 +113,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                 nameNum = savedObject["namerSeed"]
                 genNum = savedObject["generationNumber"]
                 firstGen = evos.length
+                standings = JSON.parse(fs.readFileSync(dir+"/generaton"+genNum+".standings"
                 numGames = 0
         else
                 console.log("not a valid action. Try 'start' or 'continue'");
@@ -118,16 +123,16 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                 ais = (loadStrategy(evo.toString()) for evo in evos)
                 results = {}
                 vsBigMoney = {}
-                standings = new Array()
                 fullTimer = new TicToc()
                 fullTimer.tic()
                 defender = loadStrategy(fs.readFileSync("strategies/BigMoney.coffee", 'utf-8'))
                 numGames = 0
                 console.log("Players Loaded")
-                for ai in ais
+                for standing in standings
+                      continue if standing.result != -1
                       numGames++
                       console.log("Match "+numGames+" of "+(ais.length))
-                      chalenger = ai
+                      chalenger = ai[standing.ref]
                       dw = 0
                       cw = 0
                       t = 0
@@ -157,6 +162,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                                       break
                       if !inserted
                               standings.push({name:chalenger.name, result:vsBigMoney,ref:(numGames-1)})
+                      fs.writeFileSync(webdir+"/"+chalenger.name+".coffee",chalenger.toString())
                       html = "<h1>Standngs after "+genNum+" generations</h1>"
                       html += "<p>"+(new Date()).toString()+"</p>"
                       html += "<p><a href=standings.txt>multi generation report (csv)</a></p>"
@@ -167,6 +173,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                       fs.unlinkSync(webdir+"/"+f) for f in filenames when f.search('.coffee') isnt -1
                       fs.writeFileSync(webdir+"/"+ai.name+".coffee",ai.toString()) for ai in evos
                       fs.writeFileSync(webdir+"/index.html",html)
+                      createCSV(dir,webdir+"/standings.txt")
                 
                 ptr = Math.floor(evos.length/3)*2
                 while ptr < evos.length
@@ -174,8 +181,10 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                         r2 = Math.floor(Math.random()*evos.length/3)
                         mom = evos[standings[r1].ref]
                         dad = evos[standings[r2].ref]
-                        evos[ptr] = mom.mate(dad,namer(nameNum++))
-                        console.log(mom.name+" and "+dad.name+" have child "+evos[ptr].name+" replacing rank #"+ptr)
+                        child = mom.mate(dad,namer(nameNum++))
+                        evos[standings[ptr].ref] = child
+			standings[ptr] = {name:child.name,result:-1,ref:standings[ptr].ref}
+                        console.log(mom.name+" and "+dad.name+" have child "+child.name+" replacing rank #"+ptr)
                         ptr++                     
                 fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
                 genNum++
