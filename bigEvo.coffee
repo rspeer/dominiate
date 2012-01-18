@@ -175,10 +175,10 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                         mom = evos[standings[r1].ref]
                         dad = evos[standings[r2].ref]
                         evos[ptr] = mom.mate(dad,namer(nameNum++))
-                        console.log(mom.name +" and "+dad.name+" have child "+evos[ptr].name)
                         ptr++                     
                 fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
                 genNum++
+                createCSV(dir,webdir+"/standings.txt")
         console.log("Execution Took "+fullTimer.tocString())
   
 createCSV = (sourceDir,destFile) ->
