@@ -150,7 +150,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
               inserted = false
               for num in [0...standings.length]
                       if vsBigMoney >= standings[num].result
-                              standings.splice(num,0,{name:chalenger.name, result:vsBigMoney})
+                              standings.splice(num,0,{name:chalenger.name, result:vsBigMoney,ref:(numGames-1)})
                               inserted = true
                               break
               if !inserted
@@ -172,6 +172,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                 r2 = Math.floor(Math.random()*evos.length/3)
                 mom = evos[standings[r1].ref]
                 dad = evos[standings[r2].ref]
+                console.log(mom.name)
                 evos[ptr++] = mom.mate(dad,namer(nameNum++))
              
         fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
@@ -179,12 +180,10 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
   
 createCSV = (sourceDir,destFile=sourceDir+"/standings.csv") ->
         filenames = fs.readdirSync(sourceDir)
-        console.log(filenames)
         csvStr = "GenNum,Min,Max,Mean,Median,Mode\n"
         csvArray = new Array()
         keys = new Array()
         for f in filenames when f.search('.standings') isnt -1
-                console.log(f)
                 genNum = /\d+/.exec(f)[0]
                 standings = JSON.parse(fs.readFileSync(sourceDir+"/"+f, 'utf-8'))
                 min = standings[0]["result"]
@@ -206,8 +205,8 @@ createCSV = (sourceDir,destFile=sourceDir+"/standings.csv") ->
 this.playGame = playGame
 action = process.argv[2]
 sourcedir = process.argv[3]
-webdir = "../html/dominiate/"
-#webdir = ""
+#webdir = "../html/dominiate/"
+webdir = ""
 seedpop = process.argv[4]
 gamesPerMatch = process.argv[5]
 logFile = fs.createWriteStream(sourcedir+"-bigEvo.log");
