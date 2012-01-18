@@ -113,7 +113,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                 nameNum = savedObject["namerSeed"]
                 genNum = savedObject["generationNumber"]
                 firstGen = evos.length
-                standings = JSON.parse(fs.readFileSync(dir+"/generaton"+genNum+".standings"
+                standings = JSON.parse(fs.readFileSync(dir+"/generaton"+genNum+".standings"))
                 numGames = 0
         else
                 console.log("not a valid action. Try 'start' or 'continue'");
@@ -183,7 +183,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                         dad = evos[standings[r2].ref]
                         child = mom.mate(dad,namer(nameNum++))
                         evos[standings[ptr].ref] = child
-			standings[ptr] = {name:child.name,result:-1,ref:standings[ptr].ref}
+                        standings[ptr] = {name:child.name,result:-1,ref:standings[ptr].ref}
                         console.log(mom.name+" and "+dad.name+" have child "+child.name+" replacing rank #"+ptr)
                         ptr++                     
                 fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
