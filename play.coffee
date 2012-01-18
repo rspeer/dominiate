@@ -31,7 +31,6 @@ playGame = (filenames) ->
   until st.gameIsOver()
     st.doPlay()
   result = ([player.ai.toString(), player.getVP(st), player.turnsTaken] for player in st.players)
-  console.log(result)
   result
 
 this.playGame = playGame

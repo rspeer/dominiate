@@ -72,7 +72,7 @@ class PlayerState
     this.drawCards(5)
     this
 
-  #### Informational methods
+  ## Informational methods
   # 
   # The methods here ask about general properties of a player's deck,
   # discard pile, and so on. A number of similar methods appear on the `State`
@@ -289,7 +289,7 @@ class PlayerState
   countUniqueCardsInPlay: this.numUniqueCardsInPlay
   uniqueCardsInPlay: this.numUniqueCardsInPlay
 
-  #### Methods that modify the PlayerState
+  ## Methods that modify the PlayerState
 
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
@@ -546,7 +546,7 @@ class State
         supply[card] = card.startingSupply(this)
     supply
 
-  #### Informational methods
+  ## Informational methods
   # These methods are referred to by some card effects, but can also be useful
   # in crafting a strategy.
   #
@@ -568,6 +568,9 @@ class State
     # by making sure the phase is `'start'`.
     return false if @phase != 'start'
 
+    for [playerName, vp, turns] in this.getFinalStatus()
+            return true if turns > 100
+            
     # Check all the conditions in which empty piles can end the game.
     emptyPiles = this.emptyPiles()
     if emptyPiles.length >= this.totalPilesToEndGame() \
@@ -664,7 +667,7 @@ class State
     total += @prizes.length
     total
 
-  #### Playing a turn
+  ## Playing a turn
   #
   # `doPlay` performs the next step of the game, which is a particular phase
   # of a particular player's turn. If the phase is...
@@ -807,7 +810,7 @@ class State
   # `getSingleBuyDecision` determines what single card (or none) the AI
   # wants to buy in the current state.
   getSingleBuyDecision: () ->
-    buyable = [null]
+    buyable = []
     for cardname, count of @supply
       # Because the supply must reference cards by their names, we use
       # `c[cardname]` to get the actual object for the card.
@@ -955,7 +958,7 @@ class State
     @current = @players[0]
     @phase = 'start'
   
-  #### Small-scale effects
+  ## Small-scale effects
   # `gainCard` performs the effects of a player gaining a card.
   #
   # This is one of many events that affects a particular player, and
@@ -1199,7 +1202,7 @@ class State
     else
       effect(player)
   
-  #### Bookkeeping
+  ## Bookkeeping
   # `copy()` makes a copy of this state that can be safely mutated
   # without affecting the original state.
   #
@@ -1303,8 +1306,11 @@ class State
   # A warning has a similar effect to a log message, but indicates that
   # something has gone wrong with the gameplay.
   warn: (obj) ->
-    if console?
-      console.warn("WARNING: ", obj)
+    if this.logFunc?
+      this.logFunc(obj)
+    else 
+      if console?
+        console.warn("WARNING: ", obj)
 
 # Define some possible tableaux to play the game with. None of these are
 # actually legal tableaux, but that gives strategies more room to play.
