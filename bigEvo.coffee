@@ -157,25 +157,25 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                                       break
                       if !inserted
                               standings.push({name:chalenger.name, result:vsBigMoney,ref:(numGames-1)})
-                html = "<h1>Standngs after "+genNum+" generations</h1>"
-                html += "<p>"+(new Date()).toString()+"</p>"
-                html += "<p><a href=standings.txt>multi generation report (csv)</a></p>"
-                html+="#"+(num+1)+": <a href='"+standings[num].name+".coffee'>"+standings[num].name+"</a> "+standings[num].result+"% Vs BigMoney<br>" for num in [0...standings.length]
-                fs.writeFileSync(dir+"/generaton"+genNum+".standings",JSON.stringify(standings))
-                try fs.mkdirSync(webdir)
-                filenames = fs.readdirSync(webdir)
-                fs.unlinkSync(webdir+"/"+f) for f in filenames when f.search('.coffee') isnt -1
-                fs.writeFileSync(webdir+"/"+ai.name+".coffee",ai.toString()) for ai in evos
-                fs.writeFileSync(webdir+"/index.html",html)
+                      html = "<h1>Standngs after "+genNum+" generations</h1>"
+                      html += "<p>"+(new Date()).toString()+"</p>"
+                      html += "<p><a href=standings.txt>multi generation report (csv)</a></p>"
+                      html+="#"+(num+1)+": <a href='"+standings[num].name+".coffee'>"+standings[num].name+"</a> "+standings[num].result+"% Vs BigMoney<br>" for num in [0...standings.length]
+                      fs.writeFileSync(dir+"/generaton"+genNum+".standings",JSON.stringify(standings))
+                      try fs.mkdirSync(webdir)
+                      filenames = fs.readdirSync(webdir)
+                      fs.unlinkSync(webdir+"/"+f) for f in filenames when f.search('.coffee') isnt -1
+                      fs.writeFileSync(webdir+"/"+ai.name+".coffee",ai.toString()) for ai in evos
+                      fs.writeFileSync(webdir+"/index.html",html)
                 
-                ptr = evos.length/3+1
-                for n in [0...evos.length/3]
+                ptr = Math.floor(evos.length/3)*2
+                while ptr < evos.length
                         r1 = Math.floor(Math.random()*evos.length/3)
                         r2 = Math.floor(Math.random()*evos.length/3)
                         mom = evos[standings[r1].ref]
                         dad = evos[standings[r2].ref]
                         evos[ptr] = mom.mate(dad,namer(nameNum++))
-                        console.log(mom.name +" and "+dad.name+" have child "+evos[ptr].name)
+                        console.log(mom.name+" and "+dad.name+" have child "+evos[ptr].name+" replacing rank #"+ptr)
                         ptr++                     
                 fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
                 genNum++
