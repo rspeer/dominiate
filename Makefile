@@ -23,4 +23,4 @@ web-deploy: web-coffee web-strategies css
 	cd gh-pages; make
 	
 command-line: 
-	coffee -c basicAI.coffee cards.coffee gameState.coffee play.coffee goEvo.coffee evaluate.coffee evolutionAI.coffee tictoc.coffee
+	coffee -c basicAI.coffee cards.coffee gameState.coffee play.coffee goEvo.coffee evaluate.coffee evolutionAI.coffee tictoc.coffee bigEvo.coffee
