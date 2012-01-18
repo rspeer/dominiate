@@ -157,7 +157,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                       standings.push({name:chalenger.name, result:vsBigMoney,ref:(numGames-1)})
         html = "<h1>Standngs after "+genNum+" generations</h1>"
         html += "<p>"+(new Date()).toString()+"</p>"
-        html += "<p><a href=standnigs.csv>multi generation report (csv)</a></p>"
+        html += "<p><a href=standings.txt>multi generation report (csv)</a></p>"
         html+="#"+(num+1)+": <a href='"+standings[num].name+".coffee'>"+standings[num].name+"</a> "+standings[num].result+"% Vs BigMoney<br>" for num in [0...standings.length]
         fs.writeFileSync(dir+"/generaton"+genNum+".standings",JSON.stringify(standings))
         try fs.mkdirSync(webdir)
@@ -178,26 +178,26 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
         fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
         console.log("Execution Took "+fullTimer.tocString())
   
-createCSV = (sourceDir,destFile=sourceDir+"/standings.csv") ->
+createCSV = (sourceDir,destFile) ->
         filenames = fs.readdirSync(sourceDir)
         csvStr = "GenNum,Min,Max,Mean,Median,Mode\n"
         csvArray = new Array()
         keys = new Array()
         for f in filenames when f.search('.standings') isnt -1
-                genNum = /\d+/.exec(f)[0]
-                standings = JSON.parse(fs.readFileSync(sourceDir+"/"+f, 'utf-8'))
-                min = standings[0]["result"]
-                max = standings[0]["result"]
-                mean = 0
-                median = 0
-                mode = 0
-                for st in standings
+            genNum = /\d+/.exec(f)[0]
+            standings = JSON.parse(fs.readFileSync(sourceDir+"/"+f, 'utf-8'))
+            min = standings[0]["result"]
+            max = standings[0]["result"]
+            mean = 0
+            median = 0
+            mode = 0
+            for st in standings
                         min = st["result"] if st["result"] < min
                         max = st["result"] if st["result"] > max
                         mean += st["result"]
-                mean /= standings.length
-                keys.push(genNum)
-                csvArray[genNum] = [genNum,min,max,mean,median,mode].join(",")+"\n"
+            mean /= standings.length
+            keys.push(genNum)
+            csvArray[genNum] = [genNum,min,max,mean,median,mode].join(",")+"\n"
         keys.sort((a, b)->(a - b))
         csvStr += csvArray[k] for k in keys
         fs.writeFileSync(destFile,csvStr)
@@ -205,15 +205,15 @@ createCSV = (sourceDir,destFile=sourceDir+"/standings.csv") ->
 this.playGame = playGame
 action = process.argv[2]
 sourcedir = process.argv[3]
-#webdir = "../html/dominiate/"
-webdir = ""
+webdir = "../html/dominiate/"
+#webdir = ""
 seedpop = process.argv[4]
 gamesPerMatch = process.argv[5]
 logFile = fs.createWriteStream(sourcedir+"-bigEvo.log");
 logFile.once('open', (fd)->
   logFile.write("Game Start\r\n")
   playTourney(action,sourcedir,webdir+sourcedir,gamesPerMatch,seedpop)
-  createCSV(sourcedir,webdir+sourcedir+"/standings.csv")
+  createCSV(sourcedir,webdir+sourcedir+"/standings.txt")
   )
 
 exports.loadStrategy = loadStrategy
@@ -221,5 +221,3 @@ exports.playGame = playGame
 
 fileLogger = (s) ->
         return
-	#logFile.write(s+"\r\n")
-	
