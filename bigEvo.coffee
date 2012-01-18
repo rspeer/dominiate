@@ -174,9 +174,9 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                         r2 = Math.floor(Math.random()*evos.length/3)
                         mom = evos[standings[r1].ref]
                         dad = evos[standings[r2].ref]
-                        evos[ptr++] = mom.mate(dad,namer(nameNum++))
-                        console.log(mom.name +" and "+dad.name+" have child "+evos[ptr-1].name)
-                     
+                        evos[ptr] = mom.mate(dad,namer(nameNum++))
+                        console.log(mom.name +" and "+dad.name+" have child "+evos[ptr].name)
+                        ptr++                     
                 fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
                 genNum++
         console.log("Execution Took "+fullTimer.tocString())
