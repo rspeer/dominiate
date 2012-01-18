@@ -179,6 +179,7 @@ playTourney = (action,dir = "./strategies",webdir = "~/html/dominiate/strategies
                         ptr++                     
                 fs.writeFileSync(filename,JSON.stringify({"evos":evos,"generationNumber":genNum,"namerSeed":nameNum,"gamesPerMatch":gamesPerMatch}))
                 genNum++
+                createCSV(dir,webdir+"/standings.txt")
         console.log("Execution Took "+fullTimer.tocString())
   
 createCSV = (sourceDir,destFile) ->
