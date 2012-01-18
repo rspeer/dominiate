@@ -1333,11 +1333,31 @@ makeCard 'Witch', attack, {
 makeCard 'Young Witch', attack, {
   cost: 4
   cards: +2
+
+  startGameEffect: (state) ->
+    state.cardState[this] = cardState = {}
+
+    cards = c.allCards
+    nCards = cards.length
+    bane = null
+
+    # Try random cards until we find a suitable bane
+    until cardState.bane?
+      bane = c[cards[Math.floor(Math.random() * nCards)]]
+      if (bane.cost == 2 or bane.cost == 3) and bane.costPotion == 0
+        unless state.supply[bane]
+          cardState.bane = bane
+
+    # Add the bane to the supply
+    state.supply[bane] = bane.startingSupply(state)
+    state.log("Young Witch Bane card is #{bane}")
+
   playEffect: (state) ->
+    bane = state.cardState.bane
     state.requireDiscard(state.current, 2)
     state.attackOpponents (opp) ->
-      if state.bane in opp.hand
-        state.log("#{opp.ai} is protected by the Bane card, #{state.bane}.")
+      if bane in opp.hand
+        state.log("#{opp.ai} is protected by the Bane card, #{bane}.")
       else
         state.gainCard(opp, c.Curse)
     

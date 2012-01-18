@@ -466,11 +466,6 @@ class State
     
     @cache = {}
     
-    if c["Young Witch"] in tableau
-      @bane = tableau[10]
-    else
-      @bane = null
-
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
     @depth = 0
@@ -520,11 +515,10 @@ class State
     index = 0
     moreCards = c.allCards.slice(0)
     shuffle(moreCards)
-    while (tableau.length < 10) or (c["Young Witch"] in tableau and tableau.length < 11)
+    while tableau.length < 10
       card = c[moreCards[index]]
       if not (card in tableau or card in this.basicSupply or card in this.extraSupply or card.isPrize)
-        if not (tableau.length == 10 and (card.cost > 3 or card.costPotion > 0))
-          tableau.push(card)
+        tableau.push(card)
       index++
 
     if options.colonies
