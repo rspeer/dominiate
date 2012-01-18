@@ -455,9 +455,6 @@ class State
     # A map of Card to state object that allows cards to define lasting state.
     @cardState = {}
 
-    @tradeRouteMat = []
-    @tradeRouteValue = 0
-
     # A list of objects which have a "modify" method that takes a card and returns
     # a modification to its cost.  Objects must also have a "source" property that
     # specifies which card caused the cost modification.
@@ -986,24 +983,28 @@ class State
       # Remove the card from the supply
       if @supply[card] > 0
         @supply[card] -= 1
+        gainSource = 'supply'
       else
         @specialSupply[card] -= 1
+        gainSource = 'specialSupply'
 
       # Delegate to `handleGainCard` to deal with reactions.
-      this.handleGainCard(player, card, gainLocation)
+      this.handleGainCard(player, card, gainLocation, gainSource)
     else
       this.log("There is no #{card} to gain.")
   
   # `handleGainCard` deals with the reactions that result from gaining a card.
   # A card effect such as Thief needs to call this explicitly after gaining a
   # card from someplace that is not the supply or the prize list.
-  handleGainCard: (player, card, gainLocation='discard') ->
+  handleGainCard: (player, card, gainLocation='discard', gainSource='supply') ->
     # Remember where the card was gained, so that reactions can find it.
     player.gainLocation = gainLocation
 
-    if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
-      @tradeRouteMat.push(card)
-      @tradeRouteValue += 1
+    for own supplyCard, quantity of @supply
+      c[supplyCard].globalGainEffect(this, player, card, gainSource)
+
+    for own supplyCard, quantity of @specialSupply
+      c[supplyCard].globalGainEffect(this, player, card, gainSource)
     
     # Handle cards such as Royal Seal that respond to gains while they are
     # in play.
@@ -1244,8 +1245,6 @@ class State
     newState.trash = @trash.slice(0)
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
-    newState.tradeRouteMat = @tradeRouteMat.slice(0)
-    newState.tradeRouteValue = @tradeRouteValue
     newState.costModifiers = @costModifiers.concat()
     newState.copperValue = @copperValue
     newState.phase = @phase

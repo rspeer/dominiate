@@ -159,7 +159,9 @@ basicCard = {
   reactToOpponentGain: (state, player, opponent, card) ->
   # - What happens when this card is discarded?
   reactToDiscard: (state, player) ->
-  
+  # - What happens when a card is gained, in general?
+  globalGainEffect: (state, player, card, source) ->
+
   # This defines everything that happens when a card is played, including
   # basic effects and complex effects defined in `playEffect`. Cards
   # should not override `onPlay`; they should override `playEffect` instead.
@@ -2366,6 +2368,7 @@ makeCard 'Tournament', action, {
       state.specialSupply[prize] = 1
 
     state.cardState[this] =
+      copy: -> prizes: @prizes.concat()
       prizes: prizes
 
   playEffect:
@@ -2398,8 +2401,19 @@ makeCard "Trade Route", action, {
   cost: 3
   buys: 1
   trash: 1
+
+  startGameEffect: (state) ->
+    state.cardState[this] =
+      copy: -> mat: @mat.concat()
+      mat: []
+
+  globalGainEffect: (state, player, card, source) ->
+    mat = state.cardState[this].mat
+    if card.isVictory and source == 'supply' and card not in mat
+      mat.push(card)
+
   getCoins: (state) ->
-    state.tradeRouteValue
+    state.cardState[this].mat.length
 }
 
 makeCard "Trader", action, {
