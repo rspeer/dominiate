@@ -21,7 +21,9 @@ loadStrategy = (body) ->
   str = contents
   contents = contents.replace("return[ [","return[")
   contents = contents.replace("]];","];")
-  
+
+  contents = contents.replace("return[ [","return[")
+  contents = contents.replace("]];","];")  
   changes = eval(contents)
 
   for key, value of changes
@@ -91,7 +93,7 @@ playTourney = (dir = "./strategies",webdir = "~/html/dominiate/strategies", game
                 standings.push({name:chalenger.name, result:vsBigMoney})
   html = "<h1>Standngs after "+genNum+" generations</h1>"
   html += "<p>"+(new Date()).toString()+"</p>"
-  html += "<p><a href=standnigs.csv>multi generation report (csv)</a></p>"
+  html += "<p><a href='standings.txt'>multi generation report (csv)</a></p>"
   html+="#"+(num+1)+": <a href='"+standings[num].name+".coffee'>"+standings[num].name+"</a> "+standings[num].result+"% Vs BigMoney<br>" for num in [0...standings.length]
   fs.writeFileSync(dir+"/generaton"+genNum+".standings",JSON.stringify(standings))
   try fs.mkdirSync(webdir)
@@ -103,12 +105,10 @@ playTourney = (dir = "./strategies",webdir = "~/html/dominiate/strategies", game
   
 createCSV = (sourceDir,destFile=sourceDir+"/standings.csv") ->
         filenames = fs.readdirSync(sourceDir)
-        console.log(filenames)
         csvStr = "GenNum,Min,Max,Mean,Median,Mode\n"
         csvArray = new Array()
         keys = new Array()
         for f in filenames when f.search('.standings') isnt -1
-                console.log(f)
                 genNum = /\d+/.exec(f)[0]
                 standings = JSON.parse(fs.readFileSync(sourceDir+"/"+f, 'utf-8'))
                 min = standings[0]["result"]
@@ -129,13 +129,13 @@ createCSV = (sourceDir,destFile=sourceDir+"/standings.csv") ->
   
 this.playGame = playGame
 sourcedir = process.argv[2]
-#webdir = "../html/dominiate/"
-webdir = ""
+webdir = "../html/dominiate/"
+#webdir = ""
 gamesPerMatch = process.argv[3]
 logFile.once('open', (fd)->
   logFile.write("Game Start\r\n")
   playTourney(sourcedir,webdir+sourcedir,gamesPerMatch)
-  createCSV(sourcedir,webdir+sourcedir+"/standings.csv")
+  createCSV(sourcedir,webdir+sourcedir+"/standings.txt")
   )
 
 exports.loadStrategy = loadStrategy
