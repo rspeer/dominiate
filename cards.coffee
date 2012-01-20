@@ -2210,6 +2210,19 @@ makeCard 'Salvager', action, {
       state.current.coins += coins
 }
 
+makeCard 'Scheme', action, {
+  cost: 3
+  actions: 1
+  cards: 1
+  cleanupEffect: (state) ->
+    choices = (card for card in state.current.inPlay when card.isAction)
+    choices.push(null)
+    choice = state.current.ai.choose('scheme', state, choices)
+    if choice isnt null
+      state.log("#{state.current.ai} uses Scheme to put #{choice} back on the deck.")
+      transferCardToTop(choice, state.current.inPlay, state.current.draw)
+}
+
 makeCard 'Scout', action, {
   cost: 4
   actions: +1
