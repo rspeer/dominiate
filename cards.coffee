@@ -1350,6 +1350,8 @@ makeCard 'Young Witch', attack, {
 
     # Add the bane to the supply
     state.supply[bane] = bane.startingSupply(state)
+    # Notify the new card that the game is starting
+    bane.startGameEffect(state)
     state.log("Young Witch Bane card is #{bane}")
 
   playEffect: (state) ->
