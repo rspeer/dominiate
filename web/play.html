@@ -209,17 +209,21 @@ $ ->
 
   errorHandler = (error) => alert(error.message)
   
+  startTime = null
+
   begunPlaying = ->
     window.playing = true
     $('#playButton').removeClass('success').addClass('danger')
     $('#playButton').text('Stop playing')
+    startTime = new Date()
   
-  donePlaying = ->
+  donePlaying = (count) ->
     window.playing = false
     grapher.updateGraphs()
     tracker.updateScoresOnPage()
     $('#playButton').removeClass('danger').addClass('success')
     $('#playButton').text('Start playing')
+    console?.log?("Played #{count} games in #{(new Date() - startTime) / 1000.0}s");
   window.donePlaying = donePlaying
 
   playOneGame = ->
@@ -242,6 +246,7 @@ $ ->
 
 
   playUntil = (condition, count) ->
+    startTime = new Date();
     scripts = [leftEd.getValue(), rightEd.getValue()]
     compiled = compileStrategies(scripts, errorHandler)
     return if not compiled
@@ -259,7 +264,7 @@ $ ->
     playLoop = (result) ->
       singleGameResult(result)
       if condition() or (playCount >= count) or (not window.playing)
-        donePlaying()
+        donePlaying(playCount)
       else
         if (not options.fast) then multiLog.addPageQuietly('')
         nextIteration = ->
