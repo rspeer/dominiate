@@ -897,6 +897,13 @@ class State
         @current.duration.push(card)
         @current.multipliedDurations.splice(i, 1)
 
+
+    # Handle effects of cleaning up the card, which may involve moving it
+    # somewhere else.  We do this before removing cards from play because
+    # cards such as Scheme and Herbalist need to consider cards in play.
+    cardsToCleanup = @current.inPlay.concat()
+    card.onCleanup(this) for card in cardsToCleanup
+
     # Clean up cards in play.
     while @current.inPlay.length > 0
       card = @current.inPlay[0]
@@ -907,9 +914,6 @@ class State
         @current.duration.push(card)
       else
         @current.discard.push(card)
-      # Handle effects of cleaning up the card, which may involve moving it
-      # somewhere else.
-      card.onCleanup(this)
 
     # Discard the remaining cards in hand.
     @current.discard = @current.discard.concat(@current.hand)

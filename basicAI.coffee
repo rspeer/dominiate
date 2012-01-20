@@ -272,6 +272,7 @@ class BasicAI
     "Conspirator" if my.inPlay.length >= 2 or multiplier > 1
     "Familiar"
     "Highway"
+    "Scheme"
     "Wishing Well"
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Spice Merchant" if state.cardInfo.Copper in my.hand
@@ -455,6 +456,7 @@ class BasicAI
       "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 0)
       "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Young Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
+      "Scheme" if my.countInDeck("King's Court") >= 2
       "Scrying Pool"
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0
@@ -880,6 +882,19 @@ class BasicAI
     gained = buyState.getSingleBuyDecision()
 
     return this.upgradeValue(state, [card, gained], my)
+
+  # Scheme uses the same priority function as multiplied actions.  Good actions
+  # to multiply this turn are typically good actions to have around next turn.
+  schemePriority: (state, my) ->
+    # Project a little of what the state will look like at the beginning of the
+    # next turn.  This keeps multipliedActionPriority from evaluating a card
+    # as though it will be used in the current (finished) turn.
+    myNext = {}
+    myNext[key] = value for key, value of my
+    myNext.actions = 1
+    myNext.buys = 1
+    myNext.coins = 0
+    this.multipliedActionPriority(state, myNext)
 
   # `scryingPoolDiscardValue` is like `discardValue`, except it strongly
   # prefers to discard non-actions.
