@@ -80,11 +80,10 @@ basicCard = {
   # coins and the cost in potions.
   getCost: (state) ->
     coins = this.costInCoins(state)
-    coins -= state.bridges
-    coins -= state.highways
-    coins -= state.princesses * 2
-    if this.isAction
-      coins -= state.quarries * 2
+
+    for modifier in state.costModifiers
+      coins += modifier.modify(this)
+
     if coins < 0
       coins = 0
     return [coins, this.costInPotions(state)]
@@ -129,6 +128,10 @@ basicCard = {
   # that modify the state. These functions are no-ops in `basicCard`, and
   # may be overridden by cards that need them:
 
+  # Card initialization that happens at the start of the game, for instance
+  # Black Market might set up the Black Market Deck, or Island might set up
+  # the Island Mat
+  startGameEffect: (state) ->
   # - What happens when the card is bought?
   buyEffect: (state) ->
   # - What happens when the card is gained?
@@ -149,14 +152,16 @@ basicCard = {
   # - What happens when the card is shuffled into the draw deck?
   shuffleEffect: (state) ->
   # - What happens when this card is in hand and an opponent plays an attack?
-  reactToAttack: (state, player) ->
+  reactToAttack: (state, player, attackEvent) ->
   # - What happens when this card is in hand and its owner gains a card?
   reactToGain: (state, player, card) ->
   # - What happens when this card is in hand and someone else gains a card?
   reactToOpponentGain: (state, player, opponent, card) ->
   # - What happens when this card is discarded?
   reactToDiscard: (state, player) ->
-  
+  # - What happens when a card is gained, in general?
+  globalGainEffect: (state, player, card, source) ->
+
   # This defines everything that happens when a card is played, including
   # basic effects and complex effects defined in `playEffect`. Cards
   # should not override `onPlay`; they should override `playEffect` instead.
@@ -377,6 +382,10 @@ makeCard 'Island', c.Estate, {
   cost: 4
   vp: 2
 
+  startGameEffect: (state) ->
+    for player in state.players
+      player.mats.island = []
+
   playEffect: (state) ->
     if state.current.hand.length == 0 # handle a weird edge case
       state.log("…setting aside the Island (no other cards in hand).")
@@ -470,7 +479,7 @@ makeCard "Fool's Gold", treasure, {
   coins: 1
   
   getCoins: (state) ->
-    if state.current.foolsGoldInPlay
+    if state.current.countInPlay("Fool's Gold") > 1
       4
     else
       1
@@ -554,7 +563,14 @@ makeCard "Philosopher's Stone", treasure, {
 makeCard 'Quarry', treasure, {
   cost: 4
   coins: 1
-  playEffect: (state) -> state.quarries += 1
+  playEffect: (state) =>
+    state.costModifiers.push
+      source: this
+      modify: (card) ->
+        if card.isAction
+          -2
+        else
+          0
 }
 
 makeCard 'Royal Seal', treasure, {
@@ -617,20 +633,25 @@ makeCard 'Haven', duration, {
   cost: 2
   cards: +1
   actions: +1
-  
+
+  startGameEffect: (state) ->
+    for player in state.players
+      # We put Haven and the cards it sets aside on a "mat"
+      player.mats.haven = []
+
   playEffect: (state) ->
     cardInHaven = state.current.ai.choose('putOnDeck', state, state.current.hand)
     if cardInHaven?
       state.log("#{state.current.ai} sets aside a #{cardInHaven} with Haven.")
-      transferCard(cardInHaven, state.current.hand, state.current.setAsideByHaven)
+      transferCard(cardInHaven, state.current.hand, state.current.mats.haven)
     else
       if state.current.hand.length==0
         state.log("#{state.current.ai} has no cards to set aside.")
       else
         state.warn("hand not empty but no card set aside")
-  
+
   durationEffect: (state) ->
-    cardFromHaven = state.current.setAsideByHaven.pop()
+    cardFromHaven = state.current.mats.haven.pop()
     if cardFromHaven?
       state.log("#{state.current.ai} picks up a #{cardFromHaven} from Haven.")
       state.current.hand.unshift(cardFromHaven)
@@ -671,7 +692,11 @@ makeCard 'Lighthouse', duration, {
   coins: +1
   durationCoins: +1
 
-  # The protecting effect is defined in gameState.
+  reactToAttack: (state, player, attackEvent) ->
+    # Don't bother blocking the attack if it's already blocked (avoid log spam)
+    unless attackEvent.blocked
+      state.log("#{player.ai} is protected by the Lighthouse.")
+      attackEvent.blocked = true
 }
 
 makeCard 'Outpost', duration, {
@@ -686,12 +711,18 @@ makeCard 'Tactician', duration, {
   durationCards: +5
 
   playEffect: (state) ->
+    # If this is the first time we've played Tactician this turn, reset the count
+    # of active Tacticians.
+    if state.current.countInPlay('Tactician') == 1
+      state.cardState[this] =
+        activeTacticians: 0
+
     cardsInHand = state.current.hand.length
     # If any cards can be discarded...
     if cardsInHand > 0
       # Discard the hand and activate the tactician.
       state.log("...discarding the whole hand.")
-      state.current.tacticians++
+      state.cardState[this].activeTacticians++
       discards = state.current.hand
       state.current.discard = state.current.discard.concat(discards)
       state.current.hand = []
@@ -700,8 +731,8 @@ makeCard 'Tactician', duration, {
   # The cleanupEffect of a dead Tactician is to discard it instead of putting it in the
   # duration area. It's not a duration card in this case.
   cleanupEffect: (state) ->
-    if state.current.tacticians > 0
-      state.current.tacticians--
+    if state.cardState[this].activeTacticians > 0
+      state.cardState[this].activeTacticians--
     else
       state.log("#{state.current.ai} discards an inactive Tactician.")
       transferCard(c.Tactician, state.current.duration, state.current.discard)
@@ -836,12 +867,13 @@ makeCard 'Followers', prize, {
 
 # Since there is only one Princess card, and Princess's cost
 # reduction effect has the clause "while this is in play",
-# state.princesses will never need to be greater than 1.
 makeCard 'Princess', prize, {
   buys: 1
   playEffect:
     (state) ->
-      state.princesses = 1
+      state.costModifiers.push
+        source: this
+        modify: (card) -> -2
 }
 
 makeCard 'Trusty Steed', prize, {
@@ -971,8 +1003,6 @@ makeCard 'Ghost Ship', attack, {
         transferCardToTop(putBack, opp.hand, opp.draw)
 }
 
-# Goons: *see Militia*
-
 makeCard 'Jester', attack, {
   cost: 5
   coins: +2
@@ -1018,9 +1048,9 @@ makeCard "Goons", c.Militia, {
   cost: 6
   buys: +1
 
-  # The effect of Goons that causes you to gain VP on each buy is 
-  # defined in `State.doBuyPhase`. Other than that, Goons is a fancy
-  # Militia.
+  buyInPlayEffect: (state, card) ->
+    state.log("...getting +1 ▼.")
+    state.current.chips += 1
 }
 
 makeCard "Minion", attack, {
@@ -1134,6 +1164,10 @@ makeCard 'Oracle', attack, {
 
 makeCard 'Pirate Ship', attack, {
   cost: 4
+
+  startGameEffect: (state) ->
+    for player in state.players
+      player.mats.pirateShip = 0
 
   playEffect: (state) ->
     choice = state.current.ai.choose('pirateShip', state, ['coins','attack'])
@@ -1299,11 +1333,33 @@ makeCard 'Witch', attack, {
 makeCard 'Young Witch', attack, {
   cost: 4
   cards: +2
+
+  startGameEffect: (state) ->
+    state.cardState[this] = cardState = {}
+
+    cards = c.allCards
+    nCards = cards.length
+    bane = null
+
+    # Try random cards until we find a suitable bane
+    until cardState.bane?
+      bane = c[cards[Math.floor(Math.random() * nCards)]]
+      if (bane.cost == 2 or bane.cost == 3) and bane.costPotion == 0
+        unless state.supply[bane]
+          cardState.bane = bane
+
+    # Add the bane to the supply
+    state.supply[bane] = bane.startingSupply(state)
+    # Notify the new card that the game is starting
+    bane.startGameEffect(state)
+    state.log("Young Witch Bane card is #{bane}")
+
   playEffect: (state) ->
+    bane = state.cardState.bane
     state.requireDiscard(state.current, 2)
     state.attackOpponents (opp) ->
-      if state.bane in opp.hand
-        state.log("#{opp.ai} is protected by the Bane card, #{state.bane}.")
+      if bane in opp.hand
+        state.log("#{opp.ai} is protected by the Bane card, #{bane}.")
       else
         state.gainCard(opp, c.Curse)
     
@@ -1429,9 +1485,10 @@ makeCard 'Bridge', action, {
   cost: 4
   coins: 1
   buys: 1
-  playEffect:
-    (state) ->
-      state.bridges += 1
+  playEffect: (state) ->
+    state.costModifiers.push
+      source: this
+      modify: (card) -> -1
 }
 
 makeCard 'Cartographer', action, {
@@ -1567,8 +1624,7 @@ makeCard 'Crossroads', action, {
   cost: 2
 
   playEffect: (state) ->
-    if not state.current.crossroadsPlayed
-      state.current.crossroadsPlayed = true
+    if state.current.countInPlay('Crossroads') == 1
       state.current.actions += 3
 
     # shortcut, because it doesn't particularly matter whether just the
@@ -1782,11 +1838,9 @@ makeCard "Highway", action, {
   actions: +1
   
   playEffect: (state) ->
-    highways = 0
-    for card in state.current.inPlay
-      if card.name is "Highway"
-        highways++
-    state.highways = highways
+    state.costModifiers.push
+      source: this
+      modify: (card) -> -1
 }
 
 makeCard "Horse Traders", action, {
@@ -1807,7 +1861,7 @@ makeCard "Horse Traders", action, {
       state.drawCards(state.current, 1)
   
   reactToAttack:
-    (state, player) ->
+    (state, player, attackEvent) ->
       transferCard(c['Horse Traders'], player.hand, player.duration)
 }
 
@@ -2066,7 +2120,8 @@ makeCard "Mining Village", c.Village, {
 makeCard "Mint", action, {
   cost: 5
   buyEffect: (state) ->
-    state.quarries = 0
+    # Remove cost modifiers that were created by treasure (e.g. Quarry)
+    state.costModifiers = (m for m in state.costModifiers when !m.source.isTreasure)
     state.potions = 0
     inPlay = state.current.inPlay
     for i in [inPlay.length-1...-1]
@@ -2089,11 +2144,12 @@ makeCard "Moat", action, {
   cost: 2
   cards: +2
   isReaction: true
-  # Revealing Moat sets a flag in the player's state, indicating
-  # that the player is unaffected by the attack. In this code, Moat
-  # is always revealed, without an AI decision.
-  reactToAttack:
-    (state, player) -> player.moatProtected = true
+
+  reactToAttack: (state, player, attackEvent) ->
+    # Don't bother blocking the attack if it's already blocked (avoid log spam)
+    unless attackEvent.blocked
+      state.log("#{player.ai} is protected by a Moat.")
+      attackEvent.blocked = true
 }
 
 makeCard 'Moneylender', action, {
@@ -2264,7 +2320,7 @@ makeCard "Secret Chamber", action, {
     state.log("...getting +$#{discarded.length} from the Secret Chamber.")
     state.current.coins += discarded.length
 
-  reactToAttack: (state, player) ->
+  reactToAttack: (state, player, attackEvent) ->
     state.log("#{player.ai.name} reveals a Secret Chamber.")
     state.drawCards(player, 2)
     card = player.ai.choose('putOnDeck', state, player.hand)
@@ -2337,6 +2393,19 @@ makeCard 'Throne Room', c["King's Court"], {
 makeCard 'Tournament', action, {
   cost: 4
   actions: +1
+
+  startGameEffect: (state) ->
+    # Add Tournament prizes to the game state's special supply
+    prizeNames = ['Bag of Gold', 'Diadem', 'Followers', 'Princess', 'Trusty Steed']
+    prizes = (c[name] for name in prizeNames)
+
+    for prize in prizes
+      state.specialSupply[prize] = 1
+
+    state.cardState[this] =
+      copy: -> prizes: @prizes.concat()
+      prizes: prizes
+
   playEffect:
     (state) ->
       # All Provinces are automatically revealed.
@@ -2349,10 +2418,13 @@ makeCard 'Tournament', action, {
         discardProvince = state.current.ai.choose('tournamentDiscard', state, [yes, no])
         if discardProvince
           state.doDiscard(state.current, c.Province)
-          choices = state.prizes.slice(0)
+          prizes = state.cardState[this].prizes
+          choices = (prize for prize in prizes when state.specialSupply[prize] > 0)
+
           if state.supply[c.Duchy] > 0
             choices.push(c.Duchy)
           choice = state.gainOneOf(state.current, choices, 'draw')
+
           if choice isnt null
             state.log("...putting the #{choice} on top of the deck.")
       if not opposingProvince
@@ -2364,8 +2436,19 @@ makeCard "Trade Route", action, {
   cost: 3
   buys: 1
   trash: 1
+
+  startGameEffect: (state) ->
+    state.cardState[this] =
+      copy: -> mat: @mat.concat()
+      mat: []
+
+  globalGainEffect: (state, player, card, source) ->
+    mat = state.cardState[this].mat
+    if card.isVictory and source == 'supply' and card not in mat
+      mat.push(card)
+
   getCoins: (state) ->
-    state.tradeRouteValue
+    state.cardState[this].mat.length
 }
 
 makeCard "Trader", action, {
@@ -2435,15 +2518,23 @@ makeCard 'Treasure Map', action, {
 
 makeCard 'Treasury', c.Market, {
   buys: 0
+
+  playEffect: (state) ->
+    state.cardState[this] =
+      mayReturnTreasury: yes
   
   buyInPlayEffect: (state, card) ->
+    # FIXME: This is incorrect in one highly unlikely edge case - if you buy
+    #        a victory card from the Black Market, then you play a Treasury,
+    #        you are not allowed to return the treasury to the top of the deck
+    #        even though the treasury wasn't in play when you bought the card.
     if card.isVictory
-      state.current.mayReturnTreasury = no
-      
+      state.cardState[this].mayReturnTreasury = no
+
   cleanupEffect: (state) ->    
-    if state.current.mayReturnTreasury
+    if state.cardState[this].mayReturnTreasury
       transferCardToTop(c.Treasury, state.current.discard, state.current.draw)
-      state.log("#{state.current.ai} returns a Treasury to the top of the deck.")    
+      state.log("#{state.current.ai} returns a Treasury to the top of the deck.")
 }
 
 makeCard 'Tribute', action, {
