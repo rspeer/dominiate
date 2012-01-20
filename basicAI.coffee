@@ -633,7 +633,7 @@ class BasicAI
       for card in my.hand
         if (card.isTreasure) and (not (card in treasures))
           treasures.push card
-      treasures.sort( (x, y) -> x.coins - y.coins)
+      treasures.sort( (x, y) -> y.coins - x.coins)
 
       # Get the margin of how much money we're willing to discard.
       margin = my.ai.coinLossMargin(state)
@@ -1115,7 +1115,7 @@ class BasicAI
   # TODO: do we need an equivalent for potions?
   coinLossMargin: (state) ->
     newState = this.pessimisticBuyPhase(state)
-    coins = newState.coins
+    coins = newState.current.coins
     cardToBuy = newState.getSingleBuyDecision()
     return 0 if cardToBuy is null
     [coinsCost, potionsCost] = cardToBuy.getCost(newState)
