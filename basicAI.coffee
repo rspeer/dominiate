@@ -82,13 +82,15 @@ class BasicAI
       choiceSet = {}
       for choice in choices
         choiceSet[choice] = choice
+
+      nullable = null in choices
       
       # Get the priority list.
-      priority = priorityfunc.bind(this)(state, my)
+      priority = priorityfunc.call(this, state, my)
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
       for preference in priority
-        if preference is null and null in choices
+        if preference is null and nullable
           return null
         if choiceSet[preference]?
           return choiceSet[preference]
@@ -103,7 +105,7 @@ class BasicAI
         if (choice is null) or (choice is no)
           value = 0
         else
-          value = valuefunc.bind(this)(state, choice, my)
+          value = valuefunc.call(this, state, choice, my)
         if value > bestValue
           bestValue = value
           bestChoice = choice
