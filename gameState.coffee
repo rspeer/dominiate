@@ -1380,9 +1380,43 @@ countStr = (list, elt) ->
 numericSort = (array) ->
   array.sort( (a, b) -> (a-b) )
 
-# Make JavaScript's lists not suck.
-Array.prototype.toString = ->
-  '[' + this.join(', ') + ']'
+# When modifying built-in methods of core types, we need to play nice with
+# other libraries.  For instance, our Array#toString method modifies the
+# behavior in a way that breaks the CoffeeScript compiler.
+
+# Modifies built-in methods of core Javascript types in a way that's reversible
+modifyCoreTypes = ->
+  # Make Array#toString output more readable
+  Array::_originalToString ||= Array::toString
+  Array::toString = ->
+    '[' + this.join(', ') + ']'
+
+# Reverses modifications to core Javascript types
+restoreCoreTypes = ->
+  Array::toString = Array::_originalToString if Array::_originalToString?
+  delete Array::_originalToString
+
+# useCoreTypeMods takes an object and the name of a method.  It then wraps
+# that method so that it correctly uses and restores our core type
+# modifications.  The modifications are visible within the method body and
+# any child method calls, but they are cleaned up when leaving the method
+useCoreTypeMods = (object, method) ->
+  originalMethod = "_original_#{method}"
+  unless object[originalMethod]?
+    object[originalMethod] = object[method]
+    object[method] = ->
+      try
+        modifyCoreTypes()
+        this[originalMethod](arguments...)
+      finally
+        restoreCoreTypes()
+
+# Use our core type modifications within the State object.  These three
+# methods are the ones called by external functions to set up and play
+# a game.
+useCoreTypeMods(State::, 'setUpWithOptions')
+useCoreTypeMods(State::, 'gameIsOver')
+useCoreTypeMods(State::, 'doPlay')
 
 # Exports
 # -------
