@@ -91,13 +91,6 @@
             <span>Include Colony and Platinum</span>
           </label>
         </li>
-        <li>
-          <label>
-            <input type="checkbox" name="optionsCheckboxes" value="fast"
-            id="fast" />
-            <span>Play fast (without much output)</span>
-          </label>
-        </li>
       </ul>
       <a id="playButton" href="#" class="btn success">
         Start playing
@@ -236,7 +229,6 @@ $ ->
       log: log
       colonies: $('#colonies').is(':checked')
       randomizeOrder: $('#randomize').is(':checked')
-      fast: $('#fast').is(':checked')
       tracker: tracker
       grapher: grapher
     }
@@ -255,32 +247,30 @@ $ ->
       log: log
       colonies: $('#colonies').is(':checked')
       randomizeOrder: $('#randomize').is(':checked')
-      fast: $('#fast').is(':checked')
       tracker: tracker
       grapher: grapher
     }
     playCount = 0
     begunPlaying()
+    timeControlStarted = new Date()
     playLoop = (result) ->
       singleGameResult(result)
       if condition() or (playCount >= count) or (not window.playing)
         donePlaying(playCount)
       else
-        if (not options.fast) then multiLog.addPageQuietly('')
-        nextIteration = ->
-          playCount++
-          playGame(compiled, options, playLoop)
-          if (not options.fast) and (playCount % 10 == 0)
-            grapher.updateGraphs()
-          if (not options.fast) or (playCount % 20 == 0)
-            tracker.updateScoresOnPage()
-        if (not options.fast) or (playCount % 10) == 0
-          window.setZeroTimeout(nextIteration)
+        multiLog.addPageQuietly('')
+        msWithControl = new Date() - timeControlStarted
+        playCount++
+        if msWithControl > 250
+          tracker.updateScoresOnPage()
+          grapher.updateGraphs()
+          window.setZeroTimeout ->
+            timeControlStarted = new Date()
+            playGame(compiled, options, playLoop)
         else
-          # no time to stop and give control to the Web browser!
-          nextIteration()
+          playGame(compiled, options, playLoop)
 
-    if (not options.fast) then multiLog.addPageQuietly('')
+    multiLog.addPageQuietly('')
     playGame(compiled, options, playLoop)
   
   $('#playButton').click (event) -> 
