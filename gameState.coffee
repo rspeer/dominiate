@@ -708,7 +708,7 @@ class State
       return false
     if ( hypMy.ai.toString() in hypState.getWinners() )
       return false
-    state.log("Forbid buying #{card}!")
+    state.log("Buying #{card} will cause #{player.ai} to lose the game")
     return true
    
 
