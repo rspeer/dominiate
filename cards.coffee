@@ -735,7 +735,7 @@ makeCard 'Tactician', duration, {
       state.cardState[this].activeTacticians--
     else
       state.log("#{state.current.ai} discards an inactive Tactician.")
-      transferCard(c.Tactician, state.current.duration, state.current.discard)
+      transferCard(c.Tactician, state.current.inPlay, state.current.discard)
       state.handleDiscards(state.current, [c.Tactician])
 }
 
@@ -1393,7 +1393,7 @@ makeCard 'Alchemist', action, {
   cleanupEffect:
     (state) ->
       if c.Potion in state.current.inPlay
-        transferCardToTop(c.Alchemist, state.current.discard, state.current.draw)
+        transferCardToTop(c.Alchemist, state.current.inPlay, state.current.draw)
 }
 
 makeCard 'Apothecary', action, {
@@ -2533,7 +2533,7 @@ makeCard 'Treasury', c.Market, {
 
   cleanupEffect: (state) ->    
     if state.cardState[this].mayReturnTreasury
-      transferCardToTop(c.Treasury, state.current.discard, state.current.draw)
+      transferCardToTop(c.Treasury, state.current.inPlay, state.current.draw)
       state.log("#{state.current.ai} returns a Treasury to the top of the deck.")
 }
 

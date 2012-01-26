@@ -495,7 +495,10 @@ class State
   #   left undefined.
   # - `log
   setUpWithOptions: (ais, options) ->
-    tableau = options.require ? []
+    tableau = []
+    if options.require?
+      for card in options.require
+        tableau.push(c[card])
     for ai in ais
       if ai.requires?
         for card in ai.requires
@@ -896,8 +899,10 @@ class State
     # Handle effects of cleaning up the card, which may involve moving it
     # somewhere else.  We do this before removing cards from play because
     # cards such as Scheme and Herbalist need to consider cards in play.
-    cardsToCleanup = @current.inPlay.concat()
-    card.onCleanup(this) for card in cardsToCleanup
+    cardsToCleanup = @current.inPlay.concat().reverse()
+    for i in [cardsToCleanup.length-1...-1]
+      card = cardsToCleanup[i]
+      card.onCleanup(this)
 
     # Clean up cards in play.
     while @current.inPlay.length > 0
