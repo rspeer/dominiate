@@ -21,6 +21,12 @@ class MultiLog
   getCurrent: ->
     @pages[@currentPage-1]
 
+  getCurrentPage: ->
+    @currentPage
+
+  getLastPage: ->
+    @pages.length
+
   updateOutput: ->
     if @pages[@currentPage-1]?
       @outputElt.html(@pages[@currentPage-1])
@@ -39,10 +45,16 @@ class MultiLog
       "next page"
 
   updatePaginator: ->
+    # Avoid updating the DOM if the new pages are the same as the old
+    pages = @pagesShown()
+    oldPages = @pagesRendered
+    if oldPages? and oldPages.length == pages.length and pages[0] == oldPages[0]
+      return if @currentPage == @renderedPage
+
     prev = "<li class='#{this.prevButtonClass()}'><a href='#'>&larr; Previous</a></li>"
     next = "<li class='#{this.nextButtonClass()}'><a href='#'>Next &rarr;</a></li>"
     items = [prev]
-    for pageNum in this.pagesShown()
+    for pageNum in pages
       if pageNum == @currentPage
         item = "<li class='active page'><a href='#'>#{pageNum}</a></li>"
       else
@@ -51,6 +63,8 @@ class MultiLog
     items.push(next)
     @paginatorElt.html('<ul>' + items.join('') + '</ul>')
     this.updateEvents()
+    @pagesRendered = pages
+    @renderedPage = @currentPage
 
   updateEvents: ->
     $('.page').click (event) =>

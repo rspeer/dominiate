@@ -82,13 +82,15 @@ class BasicAI
       choiceSet = {}
       for choice in choices
         choiceSet[choice] = choice
+
+      nullable = null in choices
       
       # Get the priority list.
-      priority = priorityfunc.bind(this)(state, my)
+      priority = priorityfunc.call(this, state, my)
       # Now look up all the preferences in that list. The moment we encounter
       # a valid choice, we can return it.
       for preference in priority
-        if preference is null and null in choices
+        if preference is null and nullable
           return null
         if choiceSet[preference]?
           return choiceSet[preference]
@@ -103,7 +105,7 @@ class BasicAI
         if (choice is null) or (choice is no)
           value = 0
         else
-          value = valuefunc.bind(this)(state, choice, my)
+          value = valuefunc.call(this, state, choice, my)
         if value > bestValue
           bestValue = value
           bestChoice = choice
@@ -272,6 +274,7 @@ class BasicAI
     "Conspirator" if my.inPlay.length >= 2 or multiplier > 1
     "Familiar"
     "Highway"
+    "Scheme"
     "Wishing Well"
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Spice Merchant" if state.cardInfo.Copper in my.hand
@@ -300,7 +303,7 @@ class BasicAI
     # 7: Let's insert here an overly simplistic idea of how to play Crossroads.
     # Or if we don't have a Crossroads, play a Great Hall that we might otherwise
     # have played in priority level 5.
-    "Crossroads" unless my.crossroadsPlayed
+    "Crossroads" unless my.countInPlay(state.cardInfo.Crossroads) > 0
     "Great Hall"
 
     # 8: card-cycling that might improve the hand.
@@ -435,7 +438,7 @@ class BasicAI
     "Treasure Map"
     "Ambassador"
     "Throne Room"
-  ]
+    ]
   
   # `multipliedActionPriority` is similar to `actionPriority`, but is used when
   # we have played a Throne Room or King's Court.
@@ -452,9 +455,10 @@ class BasicAI
       "Mountebank"
       "Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Sea Hag" if my.actions > 0 and state.countInSupply("Curse") >= 2
-      "Crossroads" if (not my.crossroadsPlayed) or (my.actions > 0)
+      "Crossroads" if my.actions > 0 or my.countInPlay(state.cardInfo.Crossroads) == 0
       "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Young Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
+      "Scheme" if my.countInDeck("King's Court") >= 2
       "Scrying Pool"
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0
@@ -631,7 +635,7 @@ class BasicAI
       for card in my.hand
         if (card.isTreasure) and (not (card in treasures))
           treasures.push card
-      treasures.sort( (x, y) -> x.coins - y.coins)
+      treasures.sort( (x, y) -> y.coins - x.coins)
 
       # Get the margin of how much money we're willing to discard.
       margin = my.ai.coinLossMargin(state)
@@ -881,6 +885,19 @@ class BasicAI
 
     return this.upgradeValue(state, [card, gained], my)
 
+  # Scheme uses the same priority function as multiplied actions.  Good actions
+  # to multiply this turn are typically good actions to have around next turn.
+  schemePriority: (state, my) ->
+    # Project a little of what the state will look like at the beginning of the
+    # next turn.  This keeps multipliedActionPriority from evaluating a card
+    # as though it will be used in the current (finished) turn.
+    myNext = {}
+    myNext[key] = value for key, value of my
+    myNext.actions = 1
+    myNext.buys = 1
+    myNext.coins = 0
+    this.multipliedActionPriority(state, myNext)
+
   # `scryingPoolDiscardValue` is like `discardValue`, except it strongly
   # prefers to discard non-actions.
   scryingPoolDiscardValue: (state, card, my) ->
@@ -1100,7 +1117,7 @@ class BasicAI
   # TODO: do we need an equivalent for potions?
   coinLossMargin: (state) ->
     newState = this.pessimisticBuyPhase(state)
-    coins = newState.coins
+    coins = newState.current.coins
     cardToBuy = newState.getSingleBuyDecision()
     return 0 if cardToBuy is null
     [coinsCost, potionsCost] = cardToBuy.getCost(newState)
