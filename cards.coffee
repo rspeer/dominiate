@@ -153,6 +153,8 @@ basicCard = {
   shuffleEffect: (state) ->
   # - What happens when this card is in hand and an opponent plays an attack?
   reactToAttack: (state, player, attackEvent) ->
+  # - What happens when this card is in the duration pile and an opponent plays an attack?
+  durationReactToAttack: (state, player, attackEvent) ->  
   # - What happens when this card is in hand and its owner gains a card?
   reactToGain: (state, player, card) ->
   # - What happens when this card is in hand and someone else gains a card?
@@ -692,7 +694,7 @@ makeCard 'Lighthouse', duration, {
   coins: +1
   durationCoins: +1
 
-  reactToAttack: (state, player, attackEvent) ->
+  durationReactToAttack: (state, player, attackEvent) ->
     # Don't bother blocking the attack if it's already blocked (avoid log spam)
     unless attackEvent.blocked
       state.log("#{player.ai} is protected by the Lighthouse.")

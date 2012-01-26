@@ -293,7 +293,7 @@ class PlayerState
 
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
-    @hand = @hand.concat(drawn)
+    Array::push.apply @hand, drawn
     this.log("#{@ai} draws #{drawn.length} cards: #{drawn}.")
     return drawn
 
@@ -667,6 +667,55 @@ class State
       total += count
     total += @trash.length
     total
+    
+  buyCausesToLose: (player, state, card) ->
+    if (state.gainsToEndGame() > 1)
+      return false
+    if (not card?)
+      return false
+    
+    # One level of recursion is enough for first
+    if (this.depth==0)
+      [hypState, hypMy] = state.hypothetical(player.ai)
+    else
+      return false
+
+    # try to buy this card
+    # C&P from below
+    #
+    [coinCost, potionCost] = card.getCost(this)
+    hypMy.coins -= coinCost
+    hypMy.potions -= potionCost
+    hypMy.buys -= 1
+
+    hypState.gainCard(hypMy, card, 'discard', true)
+    card.onBuy(hypState)
+      
+
+    for i in [hypMy.inPlay.length-1...-1]
+        cardInPlay = hypMy.inPlay[i]
+      if cardInPlay?
+        cardInPlay.buyInPlayEffect(hypState, card)
+
+      goonses = hypMy.countInPlay('Goons')
+      if goonses > 0
+        this.log("...gaining #{goonses} VP.")
+        hypMy.chips += goonses
+    #
+    # C&P until here
+    
+    #finish buyPhase
+    hypState.doBuyPhase()
+    
+    # find out if game ended and who if we have won it
+    hypState.phase = 'start'
+    if not hypState.gameIsOver() 
+      return false
+    if ( hypMy.ai.toString() in hypState.getWinners() )
+      return false
+    state.log("Buying #{card} will cause #{player.ai} to lose the game")
+    return true
+   
 
   #### Playing a turn
   #
@@ -822,7 +871,13 @@ class State
         [coinCost, potionCost] = card.getCost(this)
         if coinCost <= @current.coins and potionCost <= @current.potions
           buyable.push(card)
+
+    # Don't allow cards that will lose us the game
+    #
+    # Note that this just cares for the buyPhase, gains by other means (Workshop) are not covered
     
+    buyable = (card for card in buyable when (not this.buyCausesToLose(@current, this, card)) )
+        
     # Ask the AI for its choice.
     this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
     choice = @current.ai.chooseGain(this, buyable)
@@ -1188,11 +1243,11 @@ class State
     # Reaction cards in the hand can react to the attack
     reactionCards = (card for card in player.hand when card.isReaction)
 
-    # Duration cards such as Lighthouse can also react
-    reactionCards = reactionCards.concat(player.duration)
-
     for card in reactionCards
       card.reactToAttack(this, player, attackEvent)
+    
+    for card in player.duration
+      card.durationReactToAttack(this, player, attackEvent)
     
     # Apply the attack's effect unless it's been blocked by a card such as
     # Moat or Lighthouse

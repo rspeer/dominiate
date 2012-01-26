@@ -26,7 +26,7 @@ playGame = (filenames) ->
     colonies: false
     randomizeOrder: true
     log: console.log
-    require: []
+    require: ['Horse Traders']
   })
   until st.gameIsOver()
     st.doPlay()
