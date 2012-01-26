@@ -36,6 +36,12 @@
     MultiLog.prototype.getCurrent = function() {
       return this.pages[this.currentPage - 1];
     };
+    MultiLog.prototype.getCurrentPage = function() {
+      return this.currentPage;
+    };
+    MultiLog.prototype.getLastPage = function() {
+      return this.pages.length;
+    };
     MultiLog.prototype.updateOutput = function() {
       if (this.pages[this.currentPage - 1] != null) {
         this.outputElt.html(this.pages[this.currentPage - 1]);
@@ -57,13 +63,19 @@
       }
     };
     MultiLog.prototype.updatePaginator = function() {
-      var item, items, next, pageNum, prev, _i, _len, _ref;
+      var item, items, next, oldPages, pageNum, pages, prev, _i, _len;
+      pages = this.pagesShown();
+      oldPages = this.pagesRendered;
+      if ((oldPages != null) && oldPages.length === pages.length && pages[0] === oldPages[0]) {
+        if (this.currentPage === this.renderedPage) {
+          return;
+        }
+      }
       prev = "<li class='" + (this.prevButtonClass()) + "'><a href='#'>&larr; Previous</a></li>";
       next = "<li class='" + (this.nextButtonClass()) + "'><a href='#'>Next &rarr;</a></li>";
       items = [prev];
-      _ref = this.pagesShown();
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        pageNum = _ref[_i];
+      for (_i = 0, _len = pages.length; _i < _len; _i++) {
+        pageNum = pages[_i];
         if (pageNum === this.currentPage) {
           item = "<li class='active page'><a href='#'>" + pageNum + "</a></li>";
         } else {
@@ -73,7 +85,9 @@
       }
       items.push(next);
       this.paginatorElt.html('<ul>' + items.join('') + '</ul>');
-      return this.updateEvents();
+      this.updateEvents();
+      this.pagesRendered = pages;
+      return this.renderedPage = this.currentPage;
     };
     MultiLog.prototype.updateEvents = function() {
       return $('.page').click(__bind(function(event) {
