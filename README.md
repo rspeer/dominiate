@@ -61,6 +61,12 @@ downloaded from the Internet, you of course run this at your own risk.)
 Running `windows/compile.bat` should do the Right Thing, but I haven't tested
 it. See `windows/README` for more information.
 
+Genetic algorithm version
+-------------------------
+Dr. Mitchell Morris is working on an exciting version of Dominiate that can evolve
+new strategies using genetic algorithms. You can find this version at
+https://github.com/Narmical/dominiate.
+
 Roadmap
 -------
 Short-term planned features include:
