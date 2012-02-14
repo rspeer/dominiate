@@ -2455,6 +2455,7 @@ makeCard "Trade Route", action, {
 
 makeCard "Trader", action, {
   cost: 4
+  isReaction: true
   playEffect: (state) ->
     trashed = state.requireTrash(state.current, 1)[0]
     if trashed?
