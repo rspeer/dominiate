@@ -3601,6 +3601,7 @@
   });
   makeCard("Trader", action, {
     cost: 4,
+    isReaction: true,
     playEffect: function(state) {
       var coins, i, potions, trashed, _ref, _results;
       trashed = state.requireTrash(state.current, 1)[0];
@@ -4582,25 +4583,36 @@
       return total;
     };
     State.prototype.buyCausesToLose = function(player, state, card) {
-      var cardInPlay, coinCost, goonses, hypMy, hypState, i, potionCost, _ref2, _ref3, _ref4, _ref5;
-      if (state.gainsToEndGame() > 1) {
+      var cardInPlay, coinCost, goonses, hypMy, hypState, i, maxOpponentScore, myScore, name, potionCost, score, status, turns, _i, _len, _ref2, _ref3, _ref4, _ref5, _ref6;
+      if (!(card != null) || this.supply[card] > 1 || state.gainsToEndGame() > 1) {
         return false;
       }
-      if (!(card != null)) {
+      maxOpponentScore = -Infinity;
+      _ref2 = this.getFinalStatus();
+      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+        status = _ref2[_i];
+        name = status[0], score = status[1], turns = status[2];
+        if (name === player.ai.toString()) {
+          myScore = score + card.getVP(player);
+        } else if (score > maxOpponentScore) {
+          maxOpponentScore = score;
+        }
+      }
+      if (myScore > maxOpponentScore) {
         return false;
       }
       if (this.depth === 0) {
-        _ref2 = state.hypothetical(player.ai), hypState = _ref2[0], hypMy = _ref2[1];
+        _ref3 = state.hypothetical(player.ai), hypState = _ref3[0], hypMy = _ref3[1];
       } else {
         return false;
       }
-      _ref3 = card.getCost(this), coinCost = _ref3[0], potionCost = _ref3[1];
+      _ref4 = card.getCost(this), coinCost = _ref4[0], potionCost = _ref4[1];
       hypMy.coins -= coinCost;
       hypMy.potions -= potionCost;
       hypMy.buys -= 1;
       hypState.gainCard(hypMy, card, 'discard', true);
       card.onBuy(hypState);
-      for (i = _ref4 = hypMy.inPlay.length - 1; _ref4 <= -1 ? i < -1 : i > -1; _ref4 <= -1 ? i++ : i--) {
+      for (i = _ref5 = hypMy.inPlay.length - 1; _ref5 <= -1 ? i < -1 : i > -1; _ref5 <= -1 ? i++ : i--) {
         cardInPlay = hypMy.inPlay[i];
       }
       if (cardInPlay != null) {
@@ -4616,7 +4628,7 @@
       if (!hypState.gameIsOver()) {
         return false;
       }
-      if ((_ref5 = hypMy.ai.toString(), __indexOf.call(hypState.getWinners(), _ref5) >= 0)) {
+      if ((_ref6 = hypMy.ai.toString(), __indexOf.call(hypState.getWinners(), _ref6) >= 0)) {
         return false;
       }
       state.log("Buying " + card + " will cause " + player.ai + " to lose the game");
