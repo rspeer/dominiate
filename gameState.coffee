@@ -669,11 +669,21 @@ class State
     total
     
   buyCausesToLose: (player, state, card) ->
-    if (state.gainsToEndGame() > 1)
+    if not card? || @supply[card] > 1 || state.gainsToEndGame() > 1
       return false
-    if (not card?)
+
+    # Check to see if the player would be in the lead after buying this card
+    maxOpponentScore = -Infinity
+    for status in this.getFinalStatus()
+      [name, score, turns] = status
+      if name == player.ai.toString()
+        myScore = score + card.getVP(player)
+      else if score > maxOpponentScore
+        maxOpponentScore = score
+
+    if myScore > maxOpponentScore
       return false
-    
+
     # One level of recursion is enough for first
     if (this.depth==0)
       [hypState, hypMy] = state.hypothetical(player.ai)
