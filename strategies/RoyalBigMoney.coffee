@@ -1,6 +1,6 @@
 {
   name: 'Royal Big Money'
-  requires: ['Big Money']
+  requires: ['Royal Seal']
   gainPriority: (state, my) -> 
     if state.supply.Colony?
       [
