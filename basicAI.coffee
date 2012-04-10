@@ -786,9 +786,12 @@ class BasicAI
     else
       [no]  
 
-  # Do you want to gain a copper from Ill-Gotten Gains? It's quite possible
-  # in endgame situations, but for now the answer is no.
-  gainCopperPriority: (state, my) -> [no]
+  # Do you want to gain a copper from Ill-Gotten Gains? Yes, we want if that improves our buy
+  gainCopperPriority: (state, my) ->
+    if my.ai.coinGainMargin(state) <= my.countInHand("Ill-Gotten Gains")
+      [yes]
+    else
+      [no]
 
   # The `herbalist` decision puts a treasure card back on the deck. It sounds
   # the same as `putOnDeck`, but it's for a different
