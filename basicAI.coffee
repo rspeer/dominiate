@@ -788,7 +788,7 @@ class BasicAI
 
   # Do you want to gain a copper from Ill-Gotten Gains? Yes, we want if that improves our buy
   gainCopperPriority: (state, my) ->
-    if my.ai.coinGainMargin(state) <= my.countInHand("Ill-Gotten Gains")
+    if my.ai.coinGainMargin(state) <= my.countInHand("Ill-Gotten Gains")+1
       [yes]
     else
       [no]
