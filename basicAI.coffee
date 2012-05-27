@@ -276,6 +276,7 @@ class BasicAI
     "Highway"
     "Scheme"
     "Wishing Well"
+    "Golem"  # seems to be reasonable to expect +1 action from Golem
     "Great Hall" if state.cardInfo.Crossroads not in my.hand
     "Spice Merchant" if state.cardInfo.Copper in my.hand
     "Stables" if this.choose('stablesDiscard', state, my.hand.concat([null]))
