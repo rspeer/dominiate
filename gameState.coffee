@@ -22,17 +22,16 @@ class PlayerState
     @buys = 1
     @coins = 0
     @potions = 0
-    @mats = {
-      pirateShip: 0
-      nativeVillage: []
-      island: []
-    }
-    @setAsideByHaven = []
     @multipliedDurations = []
     @chips = 0
     @hand = []
     @discard = [c.Copper, c.Copper, c.Copper, c.Copper, c.Copper,
                 c.Copper, c.Copper, c.Estate, c.Estate, c.Estate]
+
+    # A mat is a place where cards can store inter-turn state for a player.
+    # It can correspond to a physical mat, like the Island or Pirate Ship
+    # Mat or just a place to set things aside for cards like Haven.
+    @mats = {}
     
     # If you want to ask what's in a player's draw pile, be sure to only do
     # it to a *hypothetical* PlayerState that you retrieve with
@@ -43,11 +42,6 @@ class PlayerState
     @duration = []
     @setAside = []
     @gainedThisTurn = []
-    @moatProtected = no
-    @tacticians = 0  # number of Tacticians that will go to the duration area
-    @crossroadsPlayed = 0
-    @foolsGoldInPlay = no
-    @mayReturnTreasury = yes
     @turnsTaken = 0
 
     # To stack various card effects, we'll have to keep track of the location
@@ -94,8 +88,14 @@ class PlayerState
   # `getDeck()` returns all the cards in the player's deck, even those in
   # strange places such as the Island mat.
   getDeck: () ->
-    @draw.concat @discard.concat @hand.concat @inPlay.concat @duration.concat @setAside.concat @mats.nativeVillage.concat @mats.island.concat @setAsideByHaven
-  
+    result = [].concat(@draw, @discard, @hand, @inPlay, @duration, @setAside)
+
+    for own name, contents of @mats when contents?
+      # If contents is a card or an array containing cards, add it to the list
+      if contents.hasOwnProperty('playEffect') || contents[0]?.hasOwnProperty('playEffect')
+        result = result.concat(contents)
+    result
+
   # `getCurrentAction()` returns the action being resolved that is on the
   # top of the stack.
   getCurrentAction: () ->
@@ -293,7 +293,7 @@ class PlayerState
 
   drawCards: (nCards) ->
     drawn = this.getCardsFromDeck(nCards)
-    @hand = @hand.concat(drawn)
+    Array::push.apply @hand, drawn
     this.log("#{@ai} draws #{drawn.length} cards: #{drawn}.")
     return drawn
 
@@ -385,12 +385,15 @@ class PlayerState
     other.buys = @buys
     other.coins = @coins
     other.potions = @potions
-    other.setAsideByHaven = @setAsideByHaven.slice(0)
     other.multipliedDurations = @multipliedDurations.slice(0)
+
+    # Clone mat contents, deep-copying arrays of cards
     other.mats = {}
-    other.mats.pirateShip = @mats.pirateShip
-    other.mats.nativeVillage = @mats.nativeVillage.slice(0)
-    other.mats.island = @mats.island.slice(0)
+    for own name, contents of @mats
+      if contents instanceof Array
+        contents = contents.concat()
+      other.mats[name] = contents
+
     other.chips = @chips
     other.hand = @hand.slice(0)
     other.draw = @draw.slice(0)
@@ -398,16 +401,11 @@ class PlayerState
     other.inPlay = @inPlay.slice(0)
     other.duration = @duration.slice(0)
     other.setAside = @setAside.slice(0)
-    other.moatProtected = @moatProtected
     other.gainedThisTurn = @gainedThisTurn.slice(0)
-    other.foolsGoldInPlay = no
-    other.mayReturnTreasury = @mayReturnTreasury
     other.playLocation = @playLocation
     other.gainLocation = @gainLocation
     other.actionStack = @actionStack.slice(0)
     other.actionsPlayed = @actionsPlayed
-    other.tacticians = @tacticians
-    other.crossroadsPlayed = @crossroadsPlayed
     other.ai = @ai
     other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
@@ -450,30 +448,33 @@ class State
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
+    # Cards like Tournament or Black Market may put cards in a special supply
+    @specialSupply = {}
     @trash = []
-    @prizes = [c["Bag of Gold"], c.Diadem, c.Followers, c.Princess, c["Trusty Steed"]]
-    @tradeRouteMat = []
-    @tradeRouteValue = 0
 
-    @bridges = 0
-    @highways = 0
-    @princesses = 0
-    @quarries = 0
+    # A map of Card to state object that allows cards to define lasting state.
+    @cardState = {}
+
+    # A list of objects which have a "modify" method that takes a card and returns
+    # a modification to its cost.  Objects must also have a "source" property that
+    # specifies which card caused the cost modification.
+    @costModifiers = []
+
     @copperValue = 1
     @phase = 'start'
     @extraturn = false
     
     @cache = {}
     
-    if c["Young Witch"] in tableau
-      @bane = tableau[10]
-    else
-      @bane = null
-
     # The `depth` indicates how deep into hypothetical situations we are. A depth of 0
     # indicates the state of the actual game.
     @depth = 0
     this.log("Tableau: #{tableau}")
+
+    # Let cards in the tableau know the game is starting so they can perform
+    # any necessary initialization
+    for card in tableau
+      card.startGameEffect(this)
 
     # `totalCards` tracks the total number of cards that are in the game. If it changes,
     # we screwed up.
@@ -494,7 +495,10 @@ class State
   #   left undefined.
   # - `log
   setUpWithOptions: (ais, options) ->
-    tableau = options.require ? []
+    tableau = []
+    if options.require?
+      for card in options.require
+        tableau.push(c[card])
     for ai in ais
       if ai.requires?
         for card in ai.requires
@@ -514,11 +518,10 @@ class State
     index = 0
     moreCards = c.allCards.slice(0)
     shuffle(moreCards)
-    while (tableau.length < 10) or (c["Young Witch"] in tableau and tableau.length < 11)
+    while tableau.length < 10
       card = c[moreCards[index]]
       if not (card in tableau or card in this.basicSupply or card in this.extraSupply or card.isPrize)
-        if not (tableau.length == 10 and (card.cost > 3 or card.costPotion > 0))
-          tableau.push(card)
+        tableau.push(card)
       index++
 
     if options.colonies
@@ -660,9 +663,69 @@ class State
       total += player.numCardsInDeck()
     for card, count of @supply
       total += count
+    for card, count of @specialSupply
+      total += count
     total += @trash.length
-    total += @prizes.length
     total
+    
+  buyCausesToLose: (player, state, card) ->
+    if not card? || @supply[card] > 1 || state.gainsToEndGame() > 1
+      return false
+
+    # Check to see if the player would be in the lead after buying this card
+    maxOpponentScore = -Infinity
+    for status in this.getFinalStatus()
+      [name, score, turns] = status
+      if name == player.ai.toString()
+        myScore = score + card.getVP(player)
+      else if score > maxOpponentScore
+        maxOpponentScore = score
+
+    if myScore > maxOpponentScore
+      return false
+
+    # One level of recursion is enough for first
+    if (this.depth==0)
+      [hypState, hypMy] = state.hypothetical(player.ai)
+    else
+      return false
+
+    # try to buy this card
+    # C&P from below
+    #
+    [coinCost, potionCost] = card.getCost(this)
+    hypMy.coins -= coinCost
+    hypMy.potions -= potionCost
+    hypMy.buys -= 1
+
+    hypState.gainCard(hypMy, card, 'discard', true)
+    card.onBuy(hypState)
+      
+
+    for i in [hypMy.inPlay.length-1...-1]
+        cardInPlay = hypMy.inPlay[i]
+      if cardInPlay?
+        cardInPlay.buyInPlayEffect(hypState, card)
+
+      goonses = hypMy.countInPlay('Goons')
+      if goonses > 0
+        this.log("...gaining #{goonses} VP.")
+        hypMy.chips += goonses
+    #
+    # C&P until here
+    
+    #finish buyPhase
+    hypState.doBuyPhase()
+    
+    # find out if game ended and who if we have won it
+    hypState.phase = 'start'
+    if not hypState.gameIsOver() 
+      return false
+    if ( hypMy.ai.toString() in hypState.getWinners() )
+      return false
+    state.log("Buying #{card} will cause #{player.ai} to lose the game")
+    return true
+   
 
   #### Playing a turn
   #
@@ -818,7 +881,13 @@ class State
         [coinCost, potionCost] = card.getCost(this)
         if coinCost <= @current.coins and potionCost <= @current.potions
           buyable.push(card)
+
+    # Don't allow cards that will lose us the game
+    #
+    # Note that this just cares for the buyPhase, gains by other means (Workshop) are not covered
     
+    buyable = (card for card in buyable when (not this.buyCausesToLose(@current, this, card)) )
+        
     # Ask the AI for its choice.
     this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
     choice = @current.ai.chooseGain(this, buyable)
@@ -853,12 +922,6 @@ class State
         # Talisman, Quarry, Border Village, and Mandarin.
         if cardInPlay?
           cardInPlay.buyInPlayEffect(this, choice)
-
-      # Gain victory for each Goons in play.
-      goonses = @current.countInPlay('Goons')
-      if goonses > 0
-        this.log("...gaining #{goonses} VP.")
-        @current.chips += goonses
   
   # Handle all the things that happen at the end of the turn.
   doCleanupPhase: () ->
@@ -897,6 +960,15 @@ class State
         @current.duration.push(card)
         @current.multipliedDurations.splice(i, 1)
 
+
+    # Handle effects of cleaning up the card, which may involve moving it
+    # somewhere else.  We do this before removing cards from play because
+    # cards such as Scheme and Herbalist need to consider cards in play.
+    cardsToCleanup = @current.inPlay.concat().reverse()
+    for i in [cardsToCleanup.length-1...-1]
+      card = cardsToCleanup[i]
+      card.onCleanup(this)
+
     # Clean up cards in play.
     while @current.inPlay.length > 0
       card = @current.inPlay[0]
@@ -907,9 +979,6 @@ class State
         @current.duration.push(card)
       else
         @current.discard.push(card)
-      # Handle effects of cleaning up the card, which may involve moving it
-      # somewhere else.
-      card.onCleanup(this)
 
     # Discard the remaining cards in hand.
     @current.discard = @current.discard.concat(@current.hand)
@@ -920,16 +989,10 @@ class State
     @current.buys = 1
     @current.coins = 0
     @current.potions = 0
-    @current.tacticians = 0
-    @current.crossroadsPlayed = 0
     @current.actionsPlayed = 0
-    @current.foolsGoldInPlay = no
-    @current.mayReturnTreasury = yes
     @copperValue = 1
-    @bridges = 0
-    @highways = 0
-    @princesses = 0
-    @quarries = 0
+
+    @costModifiers = []
 
     #Announce extra turn
     if @extraturn       
@@ -965,7 +1028,7 @@ class State
   # be one of the objects in the `@players` array.
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
     delete @cache.gainsToEndGame
-    if card in @prizes or @supply[card] > 0
+    if @supply[card] > 0 or @specialSupply[card] > 0
       for i in [player.hand.length-1...-1]
         reactCard = player.hand[i]
         if reactCard? and reactCard.isReaction and reactCard.reactReplacingGain?
@@ -985,27 +1048,31 @@ class State
       location = player[gainLocation]
       location.unshift(card)
 
-      # Remove the card from the supply or the prize list, as appropriate.
-      if card in @prizes
-        @prizes.remove(card)
-      else
+      # Remove the card from the supply
+      if @supply[card] > 0
         @supply[card] -= 1
-      
+        gainSource = 'supply'
+      else
+        @specialSupply[card] -= 1
+        gainSource = 'specialSupply'
+
       # Delegate to `handleGainCard` to deal with reactions.
-      this.handleGainCard(player, card, gainLocation)
+      this.handleGainCard(player, card, gainLocation, gainSource)
     else
       this.log("There is no #{card} to gain.")
   
   # `handleGainCard` deals with the reactions that result from gaining a card.
   # A card effect such as Thief needs to call this explicitly after gaining a
   # card from someplace that is not the supply or the prize list.
-  handleGainCard: (player, card, gainLocation='discard') ->
+  handleGainCard: (player, card, gainLocation='discard', gainSource='supply') ->
     # Remember where the card was gained, so that reactions can find it.
     player.gainLocation = gainLocation
 
-    if @supply["Trade Route"]? and card.isVictory and card not in @tradeRouteMat
-      @tradeRouteMat.push(card)
-      @tradeRouteValue += 1
+    for own supplyCard, quantity of @supply
+      c[supplyCard].globalGainEffect(this, player, card, gainSource)
+
+    for own supplyCard, quantity of @specialSupply
+      c[supplyCard].globalGainEffect(this, player, card, gainSource)
     
     # Handle cards such as Royal Seal that respond to gains while they are
     # in play.
@@ -1179,25 +1246,22 @@ class State
   # `attackPlayer` does the work of attacking a particular player, including
   # handling their reactions to attacks.
   attackPlayer: (player, effect) ->
-    # The most straightforward reaction is Moat, which cancels the attack.
-    # Set a flag on the PlayerState that indicates that the player has not
-    # yet revealed a Moat.
-    player.moatProtected = no
+    # attackEvent gets passed to each reactToAttack method.  Any card
+    # may block the attack by setting attackEvent.blocked to true
+    attackEvent = {}
+
+    # Reaction cards in the hand can react to the attack
+    reactionCards = (card for card in player.hand when card.isReaction)
+
+    for card in reactionCards
+      card.reactToAttack(this, player, attackEvent)
     
-    # Iterate backwards, because we might be removing things from the list.
-    for i in [player.hand.length-1...-1]
-      card = player.hand[i]
-      if card.isReaction
-        card.reactToAttack(this, player)
+    for card in player.duration
+      card.durationReactToAttack(this, player, attackEvent)
     
-    # If the player has revealed a Moat, or has Lighthouse in the duration
-    # area, the attack is averted. Otherwise, it happens.
-    if player.moatProtected
-      this.log("#{player.ai} is protected by a Moat.")
-    else if c.Lighthouse in player.duration
-      this.log("#{player.ai} is protected by the Lighthouse.")
-    else
-      effect(player)
+    # Apply the attack's effect unless it's been blocked by a card such as
+    # Moat or Lighthouse
+    effect(player) unless attackEvent.blocked
   
   #### Bookkeeping
   # `copy()` makes a copy of this state that can be safely mutated
@@ -1212,6 +1276,10 @@ class State
     for key, value of @supply
       newSupply[key] = value
     
+    newSpecialSupply = {}
+    for key, value of @specialSupply
+      newSpecialSupply[key] = value
+
     newState = new State()
     # If something overrode the log function, make sure that's preserved.
     newState.logFunc = @logFunc
@@ -1221,22 +1289,34 @@ class State
       playerCopy = player.copy()
       playerCopy.logFunc = (obj) ->
       newPlayers.push(playerCopy)
+
+    # Copy card-specific state
+    newCardState = {}
+    for card, state of @cardState
+      # If the card state has a copy method, call it, otherwise just shallow
+      # copy the state
+      if state.copy?
+        # Objects with a copy method
+        newCardState[card] = state.copy?()
+      else if typeof state == 'object'
+        # Objects with no copy method
+        newCardState[card] = copy = {}
+        copy[k] = v for k, v of state
+      else
+        # Simple types
+        newCardState[card] = state
     
     newState.players = newPlayers
     newState.supply = newSupply
+    newState.specialSupply = newSpecialSupply
+    newState.cardState = newCardState
     newState.trash = @trash.slice(0)
     newState.current = newPlayers[0]
     newState.nPlayers = @nPlayers
-    newState.tradeRouteMat = @tradeRouteMat.slice(0)
-    newState.tradeRouteValue = @tradeRouteValue
-    newState.bridges = @bridges
-    newState.highways = @highways
-    newState.princesses = @princesses
-    newState.quarries = @quarries
+    newState.costModifiers = @costModifiers.concat()
     newState.copperValue = @copperValue
     newState.phase = @phase
     newState.cache = {}
-    newState.prizes = @prizes.slice(0)
 
     newState
 
@@ -1370,9 +1450,43 @@ countStr = (list, elt) ->
 numericSort = (array) ->
   array.sort( (a, b) -> (a-b) )
 
-# Make JavaScript's lists not suck.
-Array.prototype.toString = ->
-  '[' + this.join(', ') + ']'
+# When modifying built-in methods of core types, we need to play nice with
+# other libraries.  For instance, our Array#toString method modifies the
+# behavior in a way that breaks the CoffeeScript compiler.
+
+# Modifies built-in methods of core Javascript types in a way that's reversible
+modifyCoreTypes = ->
+  # Make Array#toString output more readable
+  Array::_originalToString ||= Array::toString
+  Array::toString = ->
+    '[' + this.join(', ') + ']'
+
+# Reverses modifications to core Javascript types
+restoreCoreTypes = ->
+  Array::toString = Array::_originalToString if Array::_originalToString?
+  delete Array::_originalToString
+
+# useCoreTypeMods takes an object and the name of a method.  It then wraps
+# that method so that it correctly uses and restores our core type
+# modifications.  The modifications are visible within the method body and
+# any child method calls, but they are cleaned up when leaving the method
+useCoreTypeMods = (object, method) ->
+  originalMethod = "_original_#{method}"
+  unless object[originalMethod]?
+    object[originalMethod] = object[method]
+    object[method] = ->
+      try
+        modifyCoreTypes()
+        this[originalMethod](arguments...)
+      finally
+        restoreCoreTypes()
+
+# Use our core type modifications within the State object.  These three
+# methods are the ones called by external functions to set up and play
+# a game.
+useCoreTypeMods(State::, 'setUpWithOptions')
+useCoreTypeMods(State::, 'gameIsOver')
+useCoreTypeMods(State::, 'doPlay')
 
 # Exports
 # -------

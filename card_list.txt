@@ -1,4 +1,4 @@
-Cards that are done (157)
+Cards that are done (158)
 =========================
 Adventurer
 Alchemist
@@ -117,6 +117,7 @@ Salvager
 Scout
 Scrying Pool
 Sea Hag
+Secret Chamber
 Shanty Town
 Silk Road
 Silver
@@ -158,7 +159,7 @@ Worker's Village
 Workshop
 Young Witch
 
-Cards that still need to be coded (13)
+Cards that still need to be coded (12)
 ======================================
 
 Possibly easy cards
@@ -178,7 +179,7 @@ to write.
 Black Market (requires a new setup step)
 Develop (the hard part is making the list of choices)
 Embargo (the trick is guessing what your opponent wants)
-Forge
+Forge (exponentially increasing number of choices!)
 Inn
 Native Village
 
@@ -187,6 +188,5 @@ Difficult cards
 In estimated order of difficulty:
 
 Scheme (adds a new sub-phase to cleanup)
-Secret Chamber (avoid infinite loops)
 Stash (requires a decision mid-shuffle)
 Possession (will require entirely new kinds of AI decisions)

@@ -19,7 +19,7 @@
 </div>
 
 <div id="news">
-  <b>News</b>: Only 13 cards left to implement! The remaining cards are now listed on our
+  <b>News</b>: Scheme and the no-suicide rule are in. 11 cards left! The remaining cards are now listed on our
   <a href="https://github.com/rspeer/dominiate/issues">bug tracker</a>.
 </div>
 
@@ -89,13 +89,6 @@
             <input type="checkbox" name="optionsCheckboxes" value="colonies"
             id="colonies" />
             <span>Include Colony and Platinum</span>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="optionsCheckboxes" value="fast"
-            id="fast" />
-            <span>Play fast (without much output)</span>
           </label>
         </li>
       </ul>
@@ -203,22 +196,27 @@ $ ->
   singleGameResult = (state) =>
     result = state.getWinners().toString() + " wins!"
     multiLog.addLineToEnd(result)
-    multiLog.updateOutput()
+    # Avoid refreshing the output if it's not visible
+    multiLog.updateOutput() if multiLog.getCurrentPage() == multiLog.getLastPage()
     tracker.recordGame(state)
 
   errorHandler = (error) => alert(error.message)
   
+  startTime = null
+
   begunPlaying = ->
     window.playing = true
     $('#playButton').removeClass('success').addClass('danger')
     $('#playButton').text('Stop playing')
+    startTime = new Date()
   
-  donePlaying = ->
+  donePlaying = (count) ->
     window.playing = false
     grapher.updateGraphs()
     tracker.updateScoresOnPage()
     $('#playButton').removeClass('danger').addClass('success')
     $('#playButton').text('Start playing')
+    console?.log?("Played #{count} games in #{(new Date() - startTime) / 1000.0}s");
   window.donePlaying = donePlaying
 
   playOneGame = ->
@@ -231,7 +229,6 @@ $ ->
       log: log
       colonies: $('#colonies').is(':checked')
       randomizeOrder: $('#randomize').is(':checked')
-      fast: $('#fast').is(':checked')
       tracker: tracker
       grapher: grapher
     }
@@ -241,6 +238,7 @@ $ ->
 
 
   playUntil = (condition, count) ->
+    startTime = new Date();
     scripts = [leftEd.getValue(), rightEd.getValue()]
     compiled = compileStrategies(scripts, errorHandler)
     return if not compiled
@@ -249,32 +247,30 @@ $ ->
       log: log
       colonies: $('#colonies').is(':checked')
       randomizeOrder: $('#randomize').is(':checked')
-      fast: $('#fast').is(':checked')
       tracker: tracker
       grapher: grapher
     }
     playCount = 0
     begunPlaying()
+    timeControlStarted = new Date()
     playLoop = (result) ->
       singleGameResult(result)
       if condition() or (playCount >= count) or (not window.playing)
-        donePlaying()
+        donePlaying(playCount)
       else
-        if (not options.fast) then multiLog.addPageQuietly('')
-        nextIteration = ->
-          playCount++
-          playGame(compiled, options, playLoop)
-          if (not options.fast) and (playCount % 10 == 0)
-            grapher.updateGraphs()
-          if (not options.fast) or (playCount % 20 == 0)
-            tracker.updateScoresOnPage()
-        if (not options.fast) or (playCount % 10) == 0
-          window.setZeroTimeout(nextIteration)
+        multiLog.addPageQuietly('')
+        msWithControl = new Date() - timeControlStarted
+        playCount++
+        if msWithControl > 250
+          tracker.updateScoresOnPage()
+          grapher.updateGraphs()
+          window.setZeroTimeout ->
+            timeControlStarted = new Date()
+            playGame(compiled, options, playLoop)
         else
-          # no time to stop and give control to the Web browser!
-          nextIteration()
+          playGame(compiled, options, playLoop)
 
-    if (not options.fast) then multiLog.addPageQuietly('')
+    multiLog.addPageQuietly('')
     playGame(compiled, options, playLoop)
   
   $('#playButton').click (event) -> 
