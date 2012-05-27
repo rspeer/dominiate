@@ -10,7 +10,7 @@ web-strategies:
 	coffee compileStrategies.coffee
 
 css:
-	lessc web/dominiate.less web/dominiate.css
+	node_modules/.bin/lessc web/dominiate.less web/dominiate.css
 
 doc:
 	docco *.coffee
