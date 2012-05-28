@@ -299,7 +299,7 @@ class BasicAI
     "Smithy" if my.actions > 1
     "Embassy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
-    "Library" if my.actions > 1 and my.hand.length <= 5
+    "Library" if my.actions > 1 and my.hand.length <= 5 # 620
     "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
     "Oracle" if my.actions > 1
 
@@ -331,21 +331,21 @@ class BasicAI
     "Nobles"
     "Treasure Map" if my.countInHand("Treasure Map") >= 2
     "Followers"
-    "Mountebank"
+    "Mountebank" # 290
     "Witch"
-    "Torturer"
-    "Margrave"
     "Sea Hag"
+    "Torturer"
     "Young Witch"
     "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
+    "Margrave" # 280
     "Goons"
     "Wharf"
     # Tactician needs a play condition, but I don't know what it would be.
-    "Tactician" # 290
-    "Masquerade"
-    "Vault" # 280
+    "Tactician" 
+    "Masquerade" # 270
+    "Vault" 
     "Ghost Ship"
-    "Princess" # 270
+    "Princess" 
     "Explorer" if my.countInHand("Province") >= 1
     "Library" if my.hand.length <= 3  # 260
     "Jester"
@@ -363,7 +363,7 @@ class BasicAI
     "Mine"
     "Coppersmith" if countInHandCopper >= 3
     "Library" if my.hand.length <= 4  # 210
-    "Rabble"
+    "Rabble"2
     "Envoy"
     "Smithy"   # 200
     "Embassy"
@@ -388,7 +388,6 @@ class BasicAI
     "Counting House"
     "Coppersmith" if countInHandCopper >= 2
     "Outpost" if state.extraturn == false
-    # Play an Ambassador if our hand has something we'd want to discard.
     "Ambassador" if wantsToTrash # 150
     "Trading Post" if wantsToTrash + my.countInHand("Silver") >= 2 * multiplier
     "Chapel" if wantsToTrash
@@ -407,7 +406,6 @@ class BasicAI
     "Herbalist"
     "Moat"  # 120
     "Library" if my.hand.length <= 6
-    "Watchtower" if my.hand.length <= 5
     "Ironworks" # should have higher priority if condition can see it will gain an Action card
     "Workshop"
     "Smugglers" if state.smugglerChoices().length > 1 # 110
@@ -416,19 +414,20 @@ class BasicAI
     "Coppersmith"
     "Saboteur"
     "Duchess"
-    "Library" if my.hand.length <= 7 # 101
+    "Library" if my.hand.length <= 7
 
     # 11: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler, trigger Conspirator, or something. (20-99)
     "Treasure Map" if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
     "Spice Merchant"
     "Shanty Town"
-    "Stables"
+    "Stables" # 50
     "Chapel"
     "Library"
 
     # 12: Conspirator when +actions remain. (10)
     "Conspirator"
+    #    "Baron"
 
     # At this point, we take no action if that choice is available.
     null
@@ -436,10 +435,18 @@ class BasicAI
     #
     # Last priority: cards that are actively harmful to play at this point,
     # in order of increasing badness.
+    "Baron"
+    "Mint"
     "Watchtower"
+    "Outpost"
+    "Ambassador" # -20
+    "Trader"
+    "Transmute"
     "Trade Route"
-    "Treasure Map"
-    "Ambassador"
+    "Upgrade"  # -30
+    "Remake"
+    "Trading Post"
+    "Treasure Map" # -40
     "Throne Room"
     ]
   
@@ -451,50 +458,50 @@ class BasicAI
   # usual actionPriority list.
   multipliedActionPriority: (state, my) ->
     [
-      "King's Court"
+      "King's Court"  # 1000
       "Throne Room"
       "Followers" if my.actions > 0
       "Grand Market"
-      "Mountebank"
+      "Mountebank" if my.actions > 0   # 900
       "Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Sea Hag" if my.actions > 0 and state.countInSupply("Curse") >= 2
-      "Crossroads" if my.actions > 0 or my.countInPlay(state.cardInfo.Crossroads) == 0
       "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Young Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
+      "Crossroads" if my.actions > 0 or my.countInPlay(state.cardInfo.Crossroads) == 0  # 800
       "Scheme" if my.countInDeck("King's Court") >= 2
       "Scrying Pool"
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0
-      "Minion"
+      "Minion"  # 700
       "Ghost Ship" if my.actions > 0
       "Jester" if my.actions > 0
       "Horse Traders" if my.actions > 0
       "Mandarin" if my.actions > 0
-      "Rabble" if my.actions > 0
+      "Rabble" if my.actions > 0  # 600
       "Council Room" if my.actions > 0
       "Margrave" if my.actions > 0
       "Smithy" if my.actions > 0
       "Embassy" if my.actions > 0
-      "Merchant Ship" if my.actions > 0
+      "Merchant Ship" if my.actions > 0  # 600
       "Pirate Ship" if my.actions > 0
       "Saboteur" if my.actions > 0
       "Noble Brigand" if my.actions > 0
       "Thief" if my.actions > 0
-      "Monument" if my.actions > 0
+      "Monument" if my.actions > 0  # 500
       "Conspirator"
       "Feast" if my.actions > 0
       "Nobles"
-      "Tribute" # after Cursers but before other terminals, there is probably a better spot for it
-      "Steward" if my.actions > 0
+      "Tribute"
+      "Steward" if my.actions > 0  # 400
       "Goons" if my.actions > 0
       "Mine" if my.actions > 0
       "Masquerade" if my.actions > 0
       "Vault" if my.actions > 0
-      "Oracle" if my.actions > 0
+      "Oracle" if my.actions > 0  # 300
       "Cutpurse" if my.actions > 0
       "Coppersmith" if my.actions > 0 and my.countInHand("Copper") >= 2
       "Ambassador" if my.actions > 0 and this.wantsToTrash(state)
-      "wait"
+      "wait"  # 0
       # We could add here some more cards that would be nice to play with a
       # multiplier. Nicer than Lookout, let's say, which appears pretty high
       # on the regular action priority list.
@@ -1051,6 +1058,34 @@ class BasicAI
       if this.chooseDiscard(state, [card, null]) is card
         discardableCards += 1
     return discardableCards
+  
+  multiplierChoices: (state) ->
+    mults = (card for card in my.hand when card.isMultiplier)
+    if mults.length > 0
+      # We've got a multiplier in hand. Figure out if we want to play it.
+      mult = mults[0]
+      choices = my.hand.slice(0)
+      choices.remove(mult)
+      choices.push(null)
+      return choices
+    else
+      return []
+
+  okayToPlayMultiplier: (state) ->
+    choices = this.multiplierChoices(state)
+    if this.choose('multipliedAction', state, choices)?
+      return true
+    else
+      return false
+
+  wantsToPlayMultiplier: (state) ->
+    choices = this.multiplierChoices(state)
+    if choices.length > 1
+      choices.push("wait")
+      choice = this.choose('multipliedAction', state, choices)
+      if choice != "wait"
+        return true
+    return false
   
   # `goingGreen`: determine when we're playing for victory points. By default,
   # it's if there are any Colonies, Provinces, or Duchies in the deck.

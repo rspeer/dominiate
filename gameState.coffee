@@ -101,6 +101,16 @@ class PlayerState
   getCurrentAction: () ->
     @actionStack[@actionStack.length - 1]
 
+  # `getMultiplier()` gets the value of the multipier that is currently being
+  # played: 1 in most cases, 2 after playing Throne Room, 3 after playing
+  # King's Court.
+  getMultiplier: () ->
+    action = my.getCurrentAction
+    if action?
+      return action.getMultiplier
+    else
+      return 1
+
   # `countInDeck(card)` counts the number of copies of a card in the deck.
   # The card may be specified either by name or as a card object.
   countInDeck: (card) ->
