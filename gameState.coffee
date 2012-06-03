@@ -148,12 +148,12 @@ class PlayerState
   countVP: this.getVP
   
   # `getTotalMoney()` adds up the total money in the player's deck,
-  # including *all* cards that provide a constant number of +$, not just
-  # Treasure.
+  # including both Treasure and +$x, +y Actions cards.
   getTotalMoney: () ->
     total = 0
     for card in this.getDeck()
-      total += card.coins
+      if card.isTreasure or card.actions >= 1
+        total += card.coins
     total
   totalMoney: this.getTotalMoney
 
@@ -592,11 +592,14 @@ class State
     return false if @phase != 'start'
 
     # Check all the conditions in which empty piles can end the game.
+    # Add a fake game-ending condition, too, which is a stalemate the SillyAI
+    # sometimes ends up in.
     emptyPiles = this.emptyPiles()
     if emptyPiles.length >= this.totalPilesToEndGame() \
         or (@nPlayers < 5 and emptyPiles.length >= 3) \
         or 'Province' in emptyPiles \
-        or 'Colony' in emptyPiles
+        or 'Colony' in emptyPiles \
+        or ('Curse' in emptyPiles and 'Copper' in emptyPiles and @current.turnsTaken >= 100)
       this.log("Empty piles: #{emptyPiles}")
       for [playerName, vp, turns] in this.getFinalStatus()
         this.log("#{playerName} took #{turns} turns and scored #{vp} points.")
