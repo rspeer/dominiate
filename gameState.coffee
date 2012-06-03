@@ -458,10 +458,10 @@ class State
     @players = []
     playerNum = 0
     for ai in ais
-      playerNum += 1
-      if ai.name[2] == ':'
-        ai.name = ai.name[3...]
-      ai.name = "P#{playerNum}:#{ai.name}"
+      #playerNum += 1
+      #if ai.name[2] == ':'
+      #  ai.name = ai.name[3...]
+      #ai.name = "P#{playerNum}:#{ai.name}"
       player = new PlayerState().initialize(ai, this.logFunc)
       @players.push(player)
 
