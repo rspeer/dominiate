@@ -105,9 +105,9 @@ class PlayerState
   # played: 1 in most cases, 2 after playing Throne Room, 3 after playing
   # King's Court.
   getMultiplier: () ->
-    action = my.getCurrentAction
+    action = this.getCurrentAction()
     if action?
-      return action.getMultiplier
+      return action.getMultiplier()
     else
       return 1
 
@@ -455,6 +455,16 @@ class State
   initialize: (ais, tableau, logFunc) ->
     this.logFunc = logFunc
     @players = (new PlayerState().initialize(ai, this.logFunc) for ai in ais)
+    @players = []
+    playerNum = 0
+    for ai in ais
+      playerNum += 1
+      if ai.name[2] == ':'
+        ai.name = ai.name[3...]
+      ai.name = "P#{playerNum}:#{ai.name}"
+      player = new PlayerState().initialize(ai, this.logFunc)
+      @players.push(player)
+
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)

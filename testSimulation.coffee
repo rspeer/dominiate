@@ -12,7 +12,9 @@ basicAI = require('./basicAI')
 {loadStrategy} = require('./play')
 
 this['game is initialized correctly'] = (test) ->
-  st = new gameState.State().initialize([null, null], gameState.tableaux.moneyOnly)
+  ai1 = new basicAI.BasicAI()
+  ai2 = new basicAI.BasicAI() 
+  st = new gameState.State().initialize([ai1, ai2], gameState.tableaux.moneyOnly)
   test.equal st.players.length, 2 
   test.equal st.current.getVP(), 3
   test.equal st.current.hand.length, 5
@@ -48,9 +50,9 @@ this['game phases proceed as expected'] = (test) ->
 
 this['2-player smoke test'] = (test) ->
   ais = (loadStrategy('strategies/SillyAI.coffee') for i in [1..2])
-  noLog = console.warn
+  noLog = (message) ->
   for i in [0...100]
-    st = new gameState.State().setUpWithOptions(ais, {log: noLog})
+    st = new gameState.State().setUpWithOptions(ais, {log: console.warn, require: []})
     until st.gameIsOver()
       st.doPlay()
   test.done()

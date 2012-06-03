@@ -28,12 +28,7 @@
 class BasicAI
   name: 'Basic AI'
   author: 'rspeer'
-  
-  # used for not calling actionPriority to often when result would not change
-  # for caching, use chacheActionPriority(state, my)
-  # use cachedActionPriority(state, my) to obtain cache
-  @cachedAP = []
-  
+    
   # Referring to `state.current` to find information about one's own state is
   # not always safe! Some of these decisions may be made during other players'
   # turns. In those cases, what we want is `this.myPlayer(state)`.
@@ -46,7 +41,7 @@ class BasicAI
       if player.ai is this
         return player
     throw new Error("#{this} is being asked to make a decision, but isn't playing the game...?")
-
+  
   # Decision-making machinery
   # -------------------------
   # Make the AI's preferred choice, first by checking its explicit priority
@@ -63,10 +58,7 @@ class BasicAI
   #
   # If a choice should be made entirely using the value function, make the
   # priority function return an empty list.
-  #
-  # This function replaces two older functions called `choosePriority` and
-  # `chooseValue`.
-  chooseByPriorityAndValue: (state, choices, priorityfunc, valuefunc) ->
+  choose: (type, state, choices) ->
     my = this.myPlayer(state)
     
     # Are there no choices? We follow the rule that makes the null choice
@@ -76,6 +68,7 @@ class BasicAI
 
     # First, try the priority function. If the priority function reaches
     # the end of its list, it is treated as "none of the above".
+    priorityfunc = this[type+'Priority']
     if priorityfunc?
       # Construct an object with the choices as keys, so we can look them
       # up quickly.
@@ -96,76 +89,76 @@ class BasicAI
           return choiceSet[preference]
   
     # The priority list doesn't want any of these choices (perhaps because
-    # it doesn't exist). Now try the value list.
-    if valuefunc?
-      bestChoice = null
-      bestValue = -Infinity
-    
-      for choice in choices
-        if (choice is null) or (choice is no)
-          value = 0
-        else
-          value = valuefunc.call(this, state, choice, my)
-        if value > bestValue
-          bestValue = value
-          bestChoice = choice
+    # it doesn't exist). Now try the value function.
+    bestChoice = null
+    bestValue = -Infinity
+  
+    for choice in choices
+      value = this.getChoiceValue(type, state, choice, my)
+      if value > bestValue
+        bestValue = value
+        bestChoice = choice
       
-      # If we got a valid choice, return it.
-      if bestChoice in choices
-        return bestChoice
+    # If we got a valid choice, return it.
+    if bestChoice in choices
+      return bestChoice
     
     # If we get here, the AI probably wants to choose none of the above.
     if null in choices
       return null
-    
-    # Hmm. None of the above isn't an option, and neither the priority list nor
-    # the value list gave us anything. First complain about it, then make an
-    # arbitrary choice.
-    state.warn("#{this} has no idea what to choose from #{choices}")
-    return choices[0]
+
+    throw new Error("#{this} somehow failed to make a choice")
   
+  getChoiceValue: (type, state, choice, my) ->
+    if choice is null or choice is no
+      return 0
+
+    specificValueFunc = this[type+'Value']
+    if specificValueFunc?
+      result = specificValueFunc.call(this, state, choice, my)
+      if result is undefined
+        throw new Error("#{this} has an undefined #{type} value for #{choice}")
+      if result isnt null
+        return result
+
+    defaultValueFunc = choice['ai_'+type+'Value']
+    if defaultValueFunc?
+      result = defaultValueFunc.call(choice, state, my)
+      if result is undefined
+        throw new Error("#{this} has an undefined #{type} value for #{choice}")
+      if result isnt null
+        return result
+
+    state.warn("#{this} doesn't know how to make a #{type} decision for #{choice}")
+    return -1000
+
   # Sometimes we need to compare choices in a strictly numeric way. This takes
   # a particular choice for a particular choice type, and gets its numeric value.
-  # If the value comes from a priority list, it will be 1000 - (index in list).
+  # If the value comes from a priority list, it will be 100 * (distance from end
+  # of list).
   #
   # So, for example, the default choiceToValue of discarding a Colony is 999, while
   # the choiceToValue of discarding an extra terminal is 1.
   choiceToValue: (type, state, choice) ->
-    return 0 if choice is null
+    return 0 if choice is null or choice is no
     my = this.myPlayer(state)
     priorityfunc = this[type+'Priority']
-    valuefunc = this[type+'Value']
     if priorityfunc?
       priority = priorityfunc.bind(this)(state, my)
     else
       priority = []
-
     index = priority.indexOf(stringify(choice))
     if index != -1
       return (priority.length - index) * 100
-    else if valuefunc?
-      return valuefunc.bind(this)(state, choice, my)
     else
-      return 0
- 
-  # The top-level "choose" function takes a decision type, the current state,
-  # and a list of choices. It delegates to other functions with the appropriate
-  # names automatically: for example, if the type is 'foo', the AI will check
-  # its fooValue and fooPriority functions.
-  choose: (type, state, choices) ->
-    # Get the priority and value functions. If one doesn't exist, that's okay,
-    # we'll pass on the 'undefined' value and chooseByPriorityAndValue will
-    # know what to do.
-    priorityfunc = this[type+'Priority']
-    valuefunc = this[type+'Value']
-    this.chooseByPriorityAndValue(state, choices, priorityfunc, valuefunc)
-  
+      return this.getChoiceValue(type, state, choice, my)
+   
   #### Backwards-compatible choices
   # 
   # To avoid having to rewrite all the code at once, we support these functions
   # that pass `chooseAction` onto `choose('action')`, and so on.
-  chooseAction: (state, choices) -> this.choose('action', state, choices)
-  chooseTreasure: (state, choices) -> this.choose('treasure', state, choices)
+  chooseAction: (state, choices) -> this.choose('play', state, choices)
+  chooseTreasure: (state, choices) -> this.choose('play', state, choices)
   chooseGain: (state, choices) -> this.choose('gain', state, choices)
   chooseDiscard: (state, choices) -> this.choose('discard', state, choices)
   chooseTrash: (state, choices) -> this.choose('trash', state, choices)
@@ -194,9 +187,9 @@ class BasicAI
   gainValue: (state, card, my) ->
     card.cost + 2*card.costPotion + card.isTreasure + card.isAction - 20
   
-  # The default action-playing strategy, which aims to include a usable plan
-  # for playing every action card, so that most AIs don't need to override it.
-  actionPriority: (state, my, skipMultipliers = false) -> 
+  # This used to be the default action-playing priority. Now the value of playing
+  # a card is defined on the "ai_playValue" function of each card.
+  old_actionPriority: (state, my, skipMultipliers = false) -> 
     wantsToTrash = this.wantsToTrash(state)
     countInHandCopper = my.countInHand("Copper")
     currentAction = my.getCurrentAction()
@@ -300,6 +293,7 @@ class BasicAI
     "Embassy" if my.actions > 1
     "Watchtower" if my.actions > 1 and my.hand.length <= 4
     "Library" if my.actions > 1 and my.hand.length <= 5 # 620
+    "Council Room" if my.actions > 1
     "Courtyard" if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
     "Oracle" if my.actions > 1
 
@@ -363,7 +357,7 @@ class BasicAI
     "Mine"
     "Coppersmith" if countInHandCopper >= 3
     "Library" if my.hand.length <= 4  # 210
-    "Rabble"2
+    "Rabble"
     "Envoy"
     "Smithy"   # 200
     "Embassy"
@@ -415,6 +409,7 @@ class BasicAI
     "Saboteur"
     "Duchess"
     "Library" if my.hand.length <= 7
+    "Thief"  # 100
 
     # 11: cards that have become useless. Maybe they'll decrease
     # the cost of Peddler, trigger Conspirator, or something. (20-99)
@@ -456,63 +451,64 @@ class BasicAI
   # This list emphasizes cards that are really good when multiplied, especially
   # terminals when there are +actions left. At the end, it falls back on the
   # usual actionPriority list.
-  multipliedActionPriority: (state, my) ->
+  old_multipliedActionPriority: (state, my) ->
     [
-      "King's Court"  # 1000
-      "Throne Room"
-      "Followers" if my.actions > 0
+      "King's Court"  # 2000
+      "Throne Room"   # 1900
+      "Followers" if my.actions > 0 
       "Grand Market"
-      "Mountebank" if my.actions > 0   # 900
+      "Mountebank" if my.actions > 0
       "Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Sea Hag" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Torturer" if my.actions > 0 and state.countInSupply("Curse") >= 2
       "Young Witch" if my.actions > 0 and state.countInSupply("Curse") >= 2
-      "Crossroads" if my.actions > 0 or my.countInPlay(state.cardInfo.Crossroads) == 0  # 800
+      "Crossroads" if my.actions > 0 or my.countInPlay(state.cardInfo.Crossroads) == 0  # 1800
       "Scheme" if my.countInDeck("King's Court") >= 2
-      "Scrying Pool"
+      # Scrying Pool was here once, but I think you'd rather use it to *draw*
+      # actions for your KC
       "Wharf" if my.actions > 0
       "Bridge" if my.actions > 0
-      "Minion"  # 700
+      "Minion"  # 1700
       "Ghost Ship" if my.actions > 0
       "Jester" if my.actions > 0
       "Horse Traders" if my.actions > 0
       "Mandarin" if my.actions > 0
-      "Rabble" if my.actions > 0  # 600
+      "Rabble" if my.actions > 0  # 1600
       "Council Room" if my.actions > 0
       "Margrave" if my.actions > 0
       "Smithy" if my.actions > 0
       "Embassy" if my.actions > 0
-      "Merchant Ship" if my.actions > 0  # 600
+      "Merchant Ship" if my.actions > 0  # 1500
       "Pirate Ship" if my.actions > 0
       "Saboteur" if my.actions > 0
       "Noble Brigand" if my.actions > 0
       "Thief" if my.actions > 0
-      "Monument" if my.actions > 0  # 500
-      "Conspirator"
+      "Monument" if my.actions > 0  # 1400
       "Feast" if my.actions > 0
+      "Conspirator"
       "Nobles"
       "Tribute"
-      "Steward" if my.actions > 0  # 400
+      "Steward" if my.actions > 0  # 1300
       "Goons" if my.actions > 0
       "Mine" if my.actions > 0
       "Masquerade" if my.actions > 0
       "Vault" if my.actions > 0
-      "Oracle" if my.actions > 0  # 300
+      "Oracle" if my.actions > 0  # 1200
       "Cutpurse" if my.actions > 0
       "Coppersmith" if my.actions > 0 and my.countInHand("Copper") >= 2
-      "Ambassador" if my.actions > 0 and this.wantsToTrash(state)
-      "wait"  # 0
+      "Ambassador" if my.actions > 0 and this.wantsToTrash(state)  # 1100
+      "wait"
       # We could add here some more cards that would be nice to play with a
       # multiplier. Nicer than Lookout, let's say, which appears pretty high
       # on the regular action priority list.
       #
       # But at this point, just fall back on that priority list.
-    ].concat(this.actionPriority(state, my, skipMultipliers=true))
+    ].concat(this.old_actionPriority(state, my, skipMultipliers=true))
   
   # `treasurePriority` determines what order to play treasures in.
   # Most of the order has no effect on gameplay. The
   # important part is that Bank and Horn of Plenty are last.
-  treasurePriority: (state, my) -> [
+  old_treasurePriority: (state, my) -> [
     "Platinum"
     "Diadem"
     "Philosopher's Stone"
@@ -526,9 +522,9 @@ class BasicAI
     "Quarry"
     "Talisman"
     "Copper"
-    "Potion"
-    "Loan"
-    "Venture"
+    "Potion"  # 100 from here up
+    "Loan"    # 90
+    "Venture" # 80
     "Ill-Gotten Gains"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
@@ -615,37 +611,29 @@ class BasicAI
   # Changed Priorities for putting cards back on deck.  Only works well for putting back 1 card, and for 1 buy.
   #
   putOnDeckPriority: (state, my) -> 
-    putBack = []
-    # 1) If no actions left, put back the best Action.
-    #    Take card from hand which are actions, sort them by ActionPriority.
-    #
-    if my.countPlayableTerminals(state) == 0
-      # take actions from hand
-      # and sort them by actionPriority (highest first)
-      
-      putBackOptions = (card for card in my.hand when card.isAction)
-      
-    # 2) If not enough actions left, put back best Terminal you can't play.
-    #    Take cards from hand which are Actions and Terminals, sort them by ActionPriority.
-    #    Then, ignore as many terminals as you can play this turn; return the others.
-    #
-    else
-      putBackOptions = (card for card in my.hand \
-                        when (card.isAction and card.getActions(state)==0))
-    
-    putBack = (card for card in my.ai.actionPriority(state, my) \
-                    when (state.cardInfo[card] in putBackOptions))
+    # Make a priority order of:
+    # 
+    # 1. Actions we can't or don't intend to play, from best to worst
+    # 2. Treasures we can afford to put back
+    # 3. Junk cards
 
-    putBack = putBack[my.countPlayableTerminals(state) ... putBack.length]
+    # 1) Actions
+    actions = (card for card in my.hand when card.isAction)
+    getChoiceValue = this.getChoiceValue
+    byPlayValue = (x, y) ->
+      getChoiceValue('play', state, y, my) - getChoiceValue('play', state, x, my)
 
-    # 3) Put back as much money as you can
+    actions.sort(byPlayValue)
+    putBack = actions[my.countPlayableTerminals(state) ...]
+
+    # 2) Put back as much money as you can
     if putBack.length == 0
       # Get a list of all distinct treasures in hand, in order.
       treasures = []
       for card in my.hand
         if (card.isTreasure) and (not (card in treasures))
           treasures.push card
-      treasures.sort( (x, y) -> y.coins - x.coins)
+      treasures.sort( (x, y) -> y.coins - x.coins )
 
       # Get the margin of how much money we're willing to discard.
       margin = my.ai.coinLossMargin(state)
@@ -660,10 +648,10 @@ class BasicAI
         if "Potion" in putBack
           putBack.remove(state.cardInfo["Potion"])
     
-    # 4) Put back the worst card (take priority for discard)
-    #
-    if putBack.length==0
-      putBack = [my.ai.chooseDiscard(state, my.hand)]
+    # 3) Put back the worst card (take priority for discard)
+    if putBack.length == 0
+      putBack = [my.ai.choose('discard', state, my.hand)]
+
     putBack
   
   putOnDeckValue: (state, card, my) =>
@@ -723,7 +711,9 @@ class BasicAI
       "[Copper, 0]"
       "[Potion, 2]"
       "[Potion, 1]"
-    ].concat ("[#{card}, 1]" for card in my.ai.trashPriority(state, my) when card?)
+      null
+    ].concat ("[#{card}, 1]" for card in my.ai.trashPriority(state, my) when card?)\
+    .concat ("[#{card}, 0]" for card in my.hand)
   
   apprenticeTrashPriority: (state, my) ->
     "Border Village"
@@ -897,7 +887,7 @@ class BasicAI
 
   # Scheme uses the same priority function as multiplied actions.  Good actions
   # to multiply this turn are typically good actions to have around next turn.
-  schemePriority: (state, my) ->
+  schemeValue: (state, card, my) ->
     # Project a little of what the state will look like at the beginning of the
     # next turn.  This keeps multipliedActionPriority from evaluating a card
     # as though it will be used in the current (finished) turn.
@@ -906,7 +896,7 @@ class BasicAI
     myNext.actions = 1
     myNext.buys = 1
     myNext.coins = 0
-    this.multipliedActionPriority(state, myNext)
+    return this.getChoiceValue('multiplied', state, card, myNext)
 
   # `scryingPoolDiscardValue` is like `discardValue`, except it strongly
   # prefers to discard non-actions.
@@ -918,10 +908,18 @@ class BasicAI
 
   spiceMerchantTrashPriority: (state, my) -> [
     "Copper",
+    "Potion",
     "Loan",
     "Ill-Gotten Gains",
     "Fool's Gold" if my.countInDeck("Fool's Gold") == 1,
-    "Silver" if my.getTotalMoney() >= 8
+    "Silver" if my.getTotalMoney() >= 8,
+    null,
+    "Silver",
+    "Venture",
+    "Cache",
+    "Gold",
+    "Harem",
+    "Platinum"
   ]
 
   # Which treasure, if any, should be discarded to feed Stables? Defaults
@@ -933,6 +931,12 @@ class BasicAI
     "Ill-Gotten Gains"
     "Silver"
     "Horn of Plenty"
+    null
+    "Potion"
+    "Venture"
+    "Cache"
+    "Gold"
+    "Platinum"
   ]
    
   # Do you want to discard a Province to win a Tournament? The answer is
@@ -1060,11 +1064,11 @@ class BasicAI
     return discardableCards
   
   multiplierChoices: (state) ->
+    my = this.myPlayer(state)
     mults = (card for card in my.hand when card.isMultiplier)
     if mults.length > 0
-      # We've got a multiplier in hand. Figure out if we want to play it.
       mult = mults[0]
-      choices = my.hand.slice(0)
+      choices = (card for card in my.hand when card.isAction)
       choices.remove(mult)
       choices.push(null)
       return choices
@@ -1073,18 +1077,23 @@ class BasicAI
 
   okayToPlayMultiplier: (state) ->
     choices = this.multiplierChoices(state)
-    if this.choose('multipliedAction', state, choices)?
+    if this.choose('multiplied', state, choices)?
       return true
     else
       return false
 
   wantsToPlayMultiplier: (state) ->
+    my = this.myPlayer(state)
     choices = this.multiplierChoices(state)
     if choices.length > 1
-      choices.push("wait")
-      choice = this.choose('multipliedAction', state, choices)
-      if choice != "wait"
-        return true
+      choice = this.choose('multiplied', state, choices)
+      multipliedValue = this.getChoiceValue('multiplied', state, choice, my)
+      if choice? and choice.isMultiplier
+        # prevent infinite loops
+        unmultipliedValue = 0
+      else
+        unmultipliedValue = this.getChoiceValue('play', state, choice, my)
+      return (multipliedValue > unmultipliedValue)
     return false
   
   # `goingGreen`: determine when we're playing for victory points. By default,
