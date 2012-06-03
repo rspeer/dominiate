@@ -508,7 +508,7 @@ class BasicAI
   # `treasurePriority` determines what order to play treasures in.
   # Most of the order has no effect on gameplay. The
   # important part is that Bank and Horn of Plenty are last.
-  old_treasurePriority: (state, my) -> [
+  treasurePriority: (state, my) -> [
     "Platinum"
     "Diadem"
     "Philosopher's Stone"

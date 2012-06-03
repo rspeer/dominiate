@@ -261,7 +261,7 @@ $ ->
         multiLog.addPageQuietly('')
         msWithControl = new Date() - timeControlStarted
         playCount++
-        if msWithControl > 250
+        if msWithControl > 1000
           tracker.updateScoresOnPage()
           grapher.updateGraphs()
           window.setZeroTimeout ->

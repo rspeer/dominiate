@@ -2217,7 +2217,8 @@ makeCard "Horse Traders", action, {
   
   reactToAttack:
     (state, player, attackEvent) ->
-      transferCard(c['Horse Traders'], player.hand, player.duration)
+      if c['Horse Traders'] in player.hand
+        transferCard(c['Horse Traders'], player.hand, player.duration)
 
   ai_playValue: (state, my) -> 240
   ai_multipliedValue: (state, my) ->

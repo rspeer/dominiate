@@ -891,6 +891,7 @@ class State
   # wants to buy in the current state.
   getSingleBuyDecision: () ->
     buyable = [null]
+    checkSuicide = (this.depth == 0 and this.gainsToEndGame() <= 2)
     for cardname, count of @supply
       # Because the supply must reference cards by their names, we use
       # `c[cardname]` to get the actual object for the card.
@@ -905,8 +906,8 @@ class State
     # Don't allow cards that will lose us the game
     #
     # Note that this just cares for the buyPhase, gains by other means (Workshop) are not covered
-    
-    buyable = (card for card in buyable when (not this.buyCausesToLose(@current, this, card)) )
+    if checkSuicide
+      buyable = (card for card in buyable when (not this.buyCausesToLose(@current, this, card)))
         
     # Ask the AI for its choice.
     this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
@@ -1047,7 +1048,8 @@ class State
   # is the appropriate PlayerState object to affect. This must, of course,
   # be one of the objects in the `@players` array.
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
-    delete @cache.gainsToEndGame
+    if this.depth == 0
+      delete @cache.gainsToEndGame
     if @supply[card] > 0 or @specialSupply[card] > 0
       for i in [player.hand.length-1...-1]
         reactCard = player.hand[i]
