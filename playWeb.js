@@ -97,7 +97,6 @@
     }
     BasicAI.prototype.name = 'Basic AI';
     BasicAI.prototype.author = 'rspeer';
-    BasicAI.cachedAP = [];
     BasicAI.prototype.myPlayer = function(state) {
       var player, _i, _len, _ref;
       _ref = state.players;
@@ -109,12 +108,13 @@
       }
       throw new Error("" + this + " is being asked to make a decision, but isn't playing the game...?");
     };
-    BasicAI.prototype.chooseByPriorityAndValue = function(state, choices, priorityfunc, valuefunc) {
-      var bestChoice, bestValue, choice, choiceSet, my, nullable, preference, priority, value, _i, _j, _k, _len, _len2, _len3;
+    BasicAI.prototype.choose = function(type, state, choices) {
+      var bestChoice, bestValue, choice, choiceSet, my, nullable, preference, priority, priorityfunc, value, _i, _j, _k, _len, _len2, _len3;
       my = this.myPlayer(state);
       if (choices.length === 0) {
         return null;
       }
+      priorityfunc = this[type + 'Priority'];
       if (priorityfunc != null) {
         choiceSet = {};
         for (_i = 0, _len = choices.length; _i < _len; _i++) {
@@ -133,39 +133,59 @@
           }
         }
       }
-      if (valuefunc != null) {
-        bestChoice = null;
-        bestValue = -Infinity;
-        for (_k = 0, _len3 = choices.length; _k < _len3; _k++) {
-          choice = choices[_k];
-          if ((choice === null) || (choice === false)) {
-            value = 0;
-          } else {
-            value = valuefunc.call(this, state, choice, my);
-          }
-          if (value > bestValue) {
-            bestValue = value;
-            bestChoice = choice;
-          }
+      bestChoice = null;
+      bestValue = -Infinity;
+      for (_k = 0, _len3 = choices.length; _k < _len3; _k++) {
+        choice = choices[_k];
+        value = this.getChoiceValue(type, state, choice, my);
+        if (value > bestValue) {
+          bestValue = value;
+          bestChoice = choice;
         }
-        if (__indexOf.call(choices, bestChoice) >= 0) {
-          return bestChoice;
-        }
+      }
+      if (__indexOf.call(choices, bestChoice) >= 0) {
+        return bestChoice;
       }
       if (__indexOf.call(choices, null) >= 0) {
         return null;
       }
-      state.warn("" + this + " has no idea what to choose from " + choices);
-      return choices[0];
+      throw new Error("" + this + " somehow failed to make a choice");
+    };
+    BasicAI.prototype.getChoiceValue = function(type, state, choice, my) {
+      var defaultValueFunc, result, specificValueFunc;
+      if (choice === null || choice === false) {
+        return 0;
+      }
+      specificValueFunc = this[type + 'Value'];
+      if (specificValueFunc != null) {
+        result = specificValueFunc.call(this, state, choice, my);
+        if (result === void 0) {
+          throw new Error("" + this + " has an undefined " + type + " value for " + choice);
+        }
+        if (result !== null) {
+          return result;
+        }
+      }
+      defaultValueFunc = choice['ai_' + type + 'Value'];
+      if (defaultValueFunc != null) {
+        result = defaultValueFunc.call(choice, state, my);
+        if (result === void 0) {
+          throw new Error("" + this + " has an undefined " + type + " value for " + choice);
+        }
+        if (result !== null) {
+          return result;
+        }
+      }
+      state.warn("" + this + " doesn't know how to make a " + type + " decision for " + choice);
+      return -1000;
     };
     BasicAI.prototype.choiceToValue = function(type, state, choice) {
-      var index, my, priority, priorityfunc, valuefunc;
-      if (choice === null) {
+      var index, my, priority, priorityfunc;
+      if (choice === null || choice === false) {
         return 0;
       }
       my = this.myPlayer(state);
       priorityfunc = this[type + 'Priority'];
-      valuefunc = this[type + 'Value'];
       if (priorityfunc != null) {
         priority = priorityfunc.bind(this)(state, my);
       } else {
@@ -174,23 +194,15 @@
       index = priority.indexOf(stringify(choice));
       if (index !== -1) {
         return (priority.length - index) * 100;
-      } else if (valuefunc != null) {
-        return valuefunc.bind(this)(state, choice, my);
       } else {
-        return 0;
+        return this.getChoiceValue(type, state, choice, my);
       }
     };
-    BasicAI.prototype.choose = function(type, state, choices) {
-      var priorityfunc, valuefunc;
-      priorityfunc = this[type + 'Priority'];
-      valuefunc = this[type + 'Value'];
-      return this.chooseByPriorityAndValue(state, choices, priorityfunc, valuefunc);
-    };
     BasicAI.prototype.chooseAction = function(state, choices) {
-      return this.choose('action', state, choices);
+      return this.choose('play', state, choices);
     };
     BasicAI.prototype.chooseTreasure = function(state, choices) {
-      return this.choose('treasure', state, choices);
+      return this.choose('play', state, choices);
     };
     BasicAI.prototype.chooseGain = function(state, choices) {
       return this.choose('gain', state, choices);
@@ -208,7 +220,7 @@
     BasicAI.prototype.gainValue = function(state, card, my) {
       return card.cost + 2 * card.costPotion + card.isTreasure + card.isAction - 20;
     };
-    BasicAI.prototype.actionPriority = function(state, my, skipMultipliers) {
+    BasicAI.prototype.old_actionPriority = function(state, my, skipMultipliers) {
       var card, choice, choice1, choices, countInHandCopper, currentAction, mult, multiplier, mults, okayToPlayMultiplier, wantsToPlayMultiplier, wantsToTrash, _ref, _ref2, _ref3;
       if (skipMultipliers == null) {
         skipMultipliers = false;
@@ -253,11 +265,11 @@
           }
         }
       }
-      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, wantsToPlayMultiplier ? "Throne Room" : void 0, wantsToPlayMultiplier ? "King's Court" : void 0, state.gainsToEndGame() >= 5 || (_ref = state.cardInfo.Curse, __indexOf.call(my.draw, _ref) >= 0) ? "Lookout" : void 0, "Cartographer", "Bag of Gold", "Apothecary", "Scout", "Scrying Pool", "Spy", "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Border Village", "Mining Village", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Treasury", my.inPlay.length >= 2 || multiplier > 1 ? "Conspirator" : void 0, "Familiar", "Highway", "Scheme", "Wishing Well", "Golem", (_ref2 = state.cardInfo.Crossroads, __indexOf.call(my.hand, _ref2) < 0) ? "Great Hall" : void 0, (_ref3 = state.cardInfo.Copper, __indexOf.call(my.hand, _ref3) >= 0) ? "Spice Merchant" : void 0, this.choose('stablesDiscard', state, my.hand.concat([null])) ? "Stables" : void 0, "Apprentice", "Pearl Diver", "Hamlet", "Lighthouse", "Haven", "Minion", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Torturer" : void 0, my.actions > 1 ? "Margrave" : void 0, my.actions > 1 ? "Rabble" : void 0, my.actions > 1 ? "Witch" : void 0, my.actions > 1 ? "Ghost Ship" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 ? "Embassy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, my.actions > 1 && (my.discard.length + my.draw.length) <= 3 ? "Courtyard" : void 0, my.actions > 1 ? "Oracle" : void 0, !(my.countInPlay(state.cardInfo.Crossroads) > 0) ? "Crossroads" : void 0, "Great Hall", wantsToTrash >= multiplier ? "Upgrade" : void 0, "Oasis", "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, this.choose('spiceMerchantTrash', state, my.hand.concat([null])) ? "Spice Merchant" : void 0, "King's Court", okayToPlayMultiplier ? "Throne Room" : void 0, "Tournament", "Menagerie", my.actions < 2 ? "Shanty Town" : void 0, "Crossroads", "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Torturer", "Margrave", "Sea Hag", "Young Witch", "Tribute", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Ghost Ship", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, my.hand.length <= 3 ? "Library" : void 0, "Jester", "Militia", "Cutpurse", "Bridge", "Bishop", "Horse Traders", "Jack of All Trades", "Steward", countInHandCopper >= 1 ? "Moneylender" : void 0, "Expand", "Remodel", "Salvager", "Mine", countInHandCopper >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, "Rabble", "Envoy", "Smithy", "Embassy", my.hand.length <= 3 ? "Watchtower" : void 0, "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, (my.discard.length + my.draw.length) > 0 ? "Courtyard" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Oracle", wantsToTrash >= multiplier * 2 ? "Remake" : void 0, "Adventurer", "Harvest", "Haggler", "Mandarin", "Explorer", "Woodcutter", "Nomad Camp", "Chancellor", "Counting House", countInHandCopper >= 2 ? "Coppersmith" : void 0, state.extraturn === false ? "Outpost" : void 0, wantsToTrash ? "Ambassador" : void 0, wantsToTrash + my.countInHand("Silver") >= 2 * multiplier ? "Trading Post" : void 0, wantsToTrash ? "Chapel" : void 0, wantsToTrash >= multiplier ? "Trader" : void 0, wantsToTrash >= multiplier ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Secret Chamber", "Pirate Ship", "Noble Brigand", "Thief", "Island", "Fortune Teller", "Bureaucrat", "Navigator", my.actions < 2 ? "Conspirator" : void 0, "Herbalist", "Moat", my.hand.length <= 6 ? "Library" : void 0, my.hand.length <= 5 ? "Watchtower" : void 0, "Ironworks", "Workshop", state.smugglerChoices().length > 1 ? "Smugglers" : void 0, "Feast", wantsToTrash >= multiplier ? "Transmute" : void 0, "Coppersmith", "Saboteur", "Duchess", my.hand.length <= 7 ? "Library" : void 0, my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Spice Merchant", "Shanty Town", "Stables", "Chapel", "Library", "Conspirator", null, "Watchtower", "Trade Route", "Treasure Map", "Ambassador", "Throne Room"];
+      return [my.menagerieDraws() === 3 ? "Menagerie" : void 0, my.shantyTownDraws(true) === 2 ? "Shanty Town" : void 0, my.countInHand("Province") > 0 ? "Tournament" : void 0, my.hand.length <= 3 && my.actions > 1 ? "Library" : void 0, wantsToPlayMultiplier ? "Throne Room" : void 0, wantsToPlayMultiplier ? "King's Court" : void 0, state.gainsToEndGame() >= 5 || (_ref = state.cardInfo.Curse, __indexOf.call(my.draw, _ref) >= 0) ? "Lookout" : void 0, "Cartographer", "Bag of Gold", "Apothecary", "Scout", "Scrying Pool", "Spy", "Trusty Steed", "Festival", "University", "Farming Village", "Bazaar", "Worker's Village", "City", "Walled Village", "Fishing Village", "Village", "Border Village", "Mining Village", "Grand Market", "Hunting Party", "Alchemist", "Laboratory", "Caravan", "Market", "Peddler", "Treasury", my.inPlay.length >= 2 || multiplier > 1 ? "Conspirator" : void 0, "Familiar", "Highway", "Scheme", "Wishing Well", "Golem", (_ref2 = state.cardInfo.Crossroads, __indexOf.call(my.hand, _ref2) < 0) ? "Great Hall" : void 0, (_ref3 = state.cardInfo.Copper, __indexOf.call(my.hand, _ref3) >= 0) ? "Spice Merchant" : void 0, this.choose('stablesDiscard', state, my.hand.concat([null])) ? "Stables" : void 0, "Apprentice", "Pearl Diver", "Hamlet", "Lighthouse", "Haven", "Minion", my.actions > 1 && my.hand.length <= 4 ? "Library" : void 0, my.actions > 1 ? "Torturer" : void 0, my.actions > 1 ? "Margrave" : void 0, my.actions > 1 ? "Rabble" : void 0, my.actions > 1 ? "Witch" : void 0, my.actions > 1 ? "Ghost Ship" : void 0, my.actions > 1 ? "Smithy" : void 0, my.actions > 1 ? "Embassy" : void 0, my.actions > 1 && my.hand.length <= 4 ? "Watchtower" : void 0, my.actions > 1 && my.hand.length <= 5 ? "Library" : void 0, my.actions > 1 ? "Council Room" : void 0, my.actions > 1 && (my.discard.length + my.draw.length) <= 3 ? "Courtyard" : void 0, my.actions > 1 ? "Oracle" : void 0, !(my.countInPlay(state.cardInfo.Crossroads) > 0) ? "Crossroads" : void 0, "Great Hall", wantsToTrash >= multiplier ? "Upgrade" : void 0, "Oasis", "Pawn", "Warehouse", "Cellar", my.actions > 1 && my.hand.length <= 6 ? "Library" : void 0, this.choose('spiceMerchantTrash', state, my.hand.concat([null])) ? "Spice Merchant" : void 0, "King's Court", okayToPlayMultiplier ? "Throne Room" : void 0, "Tournament", "Menagerie", my.actions < 2 ? "Shanty Town" : void 0, "Crossroads", "Nobles", my.countInHand("Treasure Map") >= 2 ? "Treasure Map" : void 0, "Followers", "Mountebank", "Witch", "Sea Hag", "Torturer", "Young Witch", "Tribute", "Margrave", "Goons", "Wharf", "Tactician", "Masquerade", "Vault", "Ghost Ship", "Princess", my.countInHand("Province") >= 1 ? "Explorer" : void 0, my.hand.length <= 3 ? "Library" : void 0, "Jester", "Militia", "Cutpurse", "Bridge", "Bishop", "Horse Traders", "Jack of All Trades", "Steward", countInHandCopper >= 1 ? "Moneylender" : void 0, "Expand", "Remodel", "Salvager", "Mine", countInHandCopper >= 3 ? "Coppersmith" : void 0, my.hand.length <= 4 ? "Library" : void 0, "Rabble", "Envoy", "Smithy", "Embassy", my.hand.length <= 3 ? "Watchtower" : void 0, "Council Room", my.hand.length <= 5 ? "Library" : void 0, my.hand.length <= 4 ? "Watchtower" : void 0, (my.discard.length + my.draw.length) > 0 ? "Courtyard" : void 0, "Merchant Ship", my.countInHand("Estate") >= 1 ? "Baron" : void 0, "Monument", "Oracle", wantsToTrash >= multiplier * 2 ? "Remake" : void 0, "Adventurer", "Harvest", "Haggler", "Mandarin", "Explorer", "Woodcutter", "Nomad Camp", "Chancellor", "Counting House", countInHandCopper >= 2 ? "Coppersmith" : void 0, state.extraturn === false ? "Outpost" : void 0, wantsToTrash ? "Ambassador" : void 0, wantsToTrash + my.countInHand("Silver") >= 2 * multiplier ? "Trading Post" : void 0, wantsToTrash ? "Chapel" : void 0, wantsToTrash >= multiplier ? "Trader" : void 0, wantsToTrash >= multiplier ? "Trade Route" : void 0, my.ai.choose('mint', state, my.hand) ? "Mint" : void 0, "Secret Chamber", "Pirate Ship", "Noble Brigand", "Thief", "Island", "Fortune Teller", "Bureaucrat", "Navigator", my.actions < 2 ? "Conspirator" : void 0, "Herbalist", "Moat", my.hand.length <= 6 ? "Library" : void 0, "Ironworks", "Workshop", state.smugglerChoices().length > 1 ? "Smugglers" : void 0, "Feast", wantsToTrash >= multiplier ? "Transmute" : void 0, "Coppersmith", "Saboteur", "Duchess", my.hand.length <= 7 ? "Library" : void 0, "Thief", my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1 ? "Treasure Map" : void 0, "Spice Merchant", "Shanty Town", "Stables", "Chapel", "Library", "Conspirator", null, "Baron", "Mint", "Watchtower", "Outpost", "Ambassador", "Trader", "Transmute", "Trade Route", "Upgrade", "Remake", "Trading Post", "Treasure Map", "Throne Room"];
     };
-    BasicAI.prototype.multipliedActionPriority = function(state, my) {
+    BasicAI.prototype.old_multipliedActionPriority = function(state, my) {
       var skipMultipliers;
-      return ["King's Court", "Throne Room", my.actions > 0 ? "Followers" : void 0, "Grand Market", "Mountebank", my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Witch" : void 0, my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Sea Hag" : void 0, my.actions > 0 || my.countInPlay(state.cardInfo.Crossroads) === 0 ? "Crossroads" : void 0, my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Torturer" : void 0, my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Young Witch" : void 0, my.countInDeck("King's Court") >= 2 ? "Scheme" : void 0, "Scrying Pool", my.actions > 0 ? "Wharf" : void 0, my.actions > 0 ? "Bridge" : void 0, "Minion", my.actions > 0 ? "Ghost Ship" : void 0, my.actions > 0 ? "Jester" : void 0, my.actions > 0 ? "Horse Traders" : void 0, my.actions > 0 ? "Mandarin" : void 0, my.actions > 0 ? "Rabble" : void 0, my.actions > 0 ? "Council Room" : void 0, my.actions > 0 ? "Margrave" : void 0, my.actions > 0 ? "Smithy" : void 0, my.actions > 0 ? "Embassy" : void 0, my.actions > 0 ? "Merchant Ship" : void 0, my.actions > 0 ? "Pirate Ship" : void 0, my.actions > 0 ? "Saboteur" : void 0, my.actions > 0 ? "Noble Brigand" : void 0, my.actions > 0 ? "Thief" : void 0, my.actions > 0 ? "Monument" : void 0, "Conspirator", my.actions > 0 ? "Feast" : void 0, "Nobles", "Tribute", my.actions > 0 ? "Steward" : void 0, my.actions > 0 ? "Goons" : void 0, my.actions > 0 ? "Mine" : void 0, my.actions > 0 ? "Masquerade" : void 0, my.actions > 0 ? "Vault" : void 0, my.actions > 0 ? "Oracle" : void 0, my.actions > 0 ? "Cutpurse" : void 0, my.actions > 0 && my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, my.actions > 0 && this.wantsToTrash(state) ? "Ambassador" : void 0, "wait"].concat(this.actionPriority(state, my, skipMultipliers = true));
+      return ["King's Court", "Throne Room", my.actions > 0 ? "Followers" : void 0, "Grand Market", my.actions > 0 ? "Mountebank" : void 0, my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Witch" : void 0, my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Sea Hag" : void 0, my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Torturer" : void 0, my.actions > 0 && state.countInSupply("Curse") >= 2 ? "Young Witch" : void 0, my.actions > 0 || my.countInPlay(state.cardInfo.Crossroads) === 0 ? "Crossroads" : void 0, my.countInDeck("King's Court") >= 2 ? "Scheme" : void 0, my.actions > 0 ? "Wharf" : void 0, my.actions > 0 ? "Bridge" : void 0, "Minion", my.actions > 0 ? "Ghost Ship" : void 0, my.actions > 0 ? "Jester" : void 0, my.actions > 0 ? "Horse Traders" : void 0, my.actions > 0 ? "Mandarin" : void 0, my.actions > 0 ? "Rabble" : void 0, my.actions > 0 ? "Council Room" : void 0, my.actions > 0 ? "Margrave" : void 0, my.actions > 0 ? "Smithy" : void 0, my.actions > 0 ? "Embassy" : void 0, my.actions > 0 ? "Merchant Ship" : void 0, my.actions > 0 ? "Pirate Ship" : void 0, my.actions > 0 ? "Saboteur" : void 0, my.actions > 0 ? "Noble Brigand" : void 0, my.actions > 0 ? "Thief" : void 0, my.actions > 0 ? "Monument" : void 0, my.actions > 0 ? "Feast" : void 0, "Conspirator", "Nobles", "Tribute", my.actions > 0 ? "Steward" : void 0, my.actions > 0 ? "Goons" : void 0, my.actions > 0 ? "Mine" : void 0, my.actions > 0 ? "Masquerade" : void 0, my.actions > 0 ? "Vault" : void 0, my.actions > 0 ? "Oracle" : void 0, my.actions > 0 ? "Cutpurse" : void 0, my.actions > 0 && my.countInHand("Copper") >= 2 ? "Coppersmith" : void 0, my.actions > 0 && this.wantsToTrash(state) ? "Ambassador" : void 0, "wait"].concat(this.old_actionPriority(state, my, skipMultipliers = true));
     };
     BasicAI.prototype.treasurePriority = function(state, my) {
       return ["Platinum", "Diadem", "Philosopher's Stone", "Gold", "Cache", "Hoard", "Royal Seal", "Harem", "Silver", "Fool's Gold", "Quarry", "Talisman", "Copper", "Potion", "Loan", "Venture", "Ill-Gotten Gains", "Bank", my.numUniqueCardsInPlay() >= 2 ? "Horn of Plenty" : void 0];
@@ -316,48 +328,25 @@
       }
     };
     BasicAI.prototype.putOnDeckPriority = function(state, my) {
-      var card, margin, putBack, putBackOptions, treasures, _i, _j, _len, _len2, _ref;
-      putBack = [];
-      if (my.countPlayableTerminals(state) === 0) {
-        putBackOptions = (function() {
-          var _i, _len, _ref, _results;
-          _ref = my.hand;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            card = _ref[_i];
-            if (card.isAction) {
-              _results.push(card);
-            }
-          }
-          return _results;
-        })();
-      } else {
-        putBackOptions = (function() {
-          var _i, _len, _ref, _results;
-          _ref = my.hand;
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            card = _ref[_i];
-            if (card.isAction && card.getActions(state) === 0) {
-              _results.push(card);
-            }
-          }
-          return _results;
-        })();
-      }
-      putBack = (function() {
-        var _i, _len, _ref, _ref2, _results;
-        _ref = my.ai.actionPriority(state, my);
+      var actions, byPlayValue, card, getChoiceValue, margin, putBack, treasures, _i, _j, _len, _len2, _ref;
+      actions = (function() {
+        var _i, _len, _ref, _results;
+        _ref = my.hand;
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           card = _ref[_i];
-          if ((_ref2 = state.cardInfo[card], __indexOf.call(putBackOptions, _ref2) >= 0)) {
+          if (card.isAction) {
             _results.push(card);
           }
         }
         return _results;
       })();
-      putBack = putBack.slice(my.countPlayableTerminals(state), putBack.length);
+      getChoiceValue = this.getChoiceValue;
+      byPlayValue = function(x, y) {
+        return getChoiceValue('play', state, y, my) - getChoiceValue('play', state, x, my);
+      };
+      actions.sort(byPlayValue);
+      putBack = actions.slice(my.countPlayableTerminals(state));
       if (putBack.length === 0) {
         treasures = [];
         _ref = my.hand;
@@ -384,7 +373,7 @@
         }
       }
       if (putBack.length === 0) {
-        putBack = [my.ai.chooseDiscard(state, my.hand)];
+        putBack = [my.ai.choose('discard', state, my.hand)];
       }
       return putBack;
     };
@@ -423,7 +412,7 @@
     };
     BasicAI.prototype.ambassadorPriority = function(state, my) {
       var card;
-      return ["[Curse, 2]", "[Curse, 1]", "[Curse, 0]", "[Ambassador, 2]", "[Estate, 2]", "[Estate, 1]", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "[Copper, 2]" : void 0, my.getTreasureInHand() >= 5 ? "[Copper, 2]" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "[Copper, 2]" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "[Copper, 1]" : void 0, my.getTreasureInHand() >= 4 ? "[Copper, 1]" : void 0, "[Estate, 0]", "[Copper, 0]", "[Potion, 2]", "[Potion, 1]"].concat((function() {
+      return ["[Curse, 2]", "[Curse, 1]", "[Curse, 0]", "[Ambassador, 2]", "[Estate, 2]", "[Estate, 1]", my.getTreasureInHand() < 3 && my.getTotalMoney() >= 5 ? "[Copper, 2]" : void 0, my.getTreasureInHand() >= 5 ? "[Copper, 2]" : void 0, my.getTreasureInHand() === 3 && my.getTotalMoney() >= 7 ? "[Copper, 2]" : void 0, my.getTreasureInHand() < 3 && my.getTotalMoney() >= 4 ? "[Copper, 1]" : void 0, my.getTreasureInHand() >= 4 ? "[Copper, 1]" : void 0, "[Estate, 0]", "[Copper, 0]", "[Potion, 2]", "[Potion, 1]", null].concat(((function() {
         var _i, _len, _ref, _results;
         _ref = my.ai.trashPriority(state, my);
         _results = [];
@@ -434,7 +423,16 @@
           }
         }
         return _results;
-      })());
+      })()).concat((function() {
+        var _i, _len, _ref, _results;
+        _ref = my.hand;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          card = _ref[_i];
+          _results.push("[" + card + ", 0]");
+        }
+        return _results;
+      })()));
     };
     BasicAI.prototype.apprenticeTrashPriority = function(state, my) {
       "Border Village";
@@ -561,7 +559,7 @@
       gained = buyState.getSingleBuyDecision();
       return this.upgradeValue(state, [card, gained], my);
     };
-    BasicAI.prototype.schemePriority = function(state, my) {
+    BasicAI.prototype.schemeValue = function(state, card, my) {
       var key, myNext, value;
       myNext = {};
       for (key in my) {
@@ -571,7 +569,7 @@
       myNext.actions = 1;
       myNext.buys = 1;
       myNext.coins = 0;
-      return this.multipliedActionPriority(state, myNext);
+      return this.getChoiceValue('multiplied', state, card, myNext);
     };
     BasicAI.prototype.scryingPoolDiscardValue = function(state, card, my) {
       if (!card.isAction) {
@@ -581,10 +579,10 @@
       }
     };
     BasicAI.prototype.spiceMerchantTrashPriority = function(state, my) {
-      return ["Copper", "Loan", "Ill-Gotten Gains", my.countInDeck("Fool's Gold") === 1 ? "Fool's Gold" : void 0, my.getTotalMoney() >= 8 ? "Silver" : void 0];
+      return ["Copper", "Potion", "Loan", "Ill-Gotten Gains", my.countInDeck("Fool's Gold") === 1 ? "Fool's Gold" : void 0, my.getTotalMoney() >= 8 ? "Silver" : void 0, null, "Silver", "Venture", "Cache", "Gold", "Harem", "Platinum"];
     };
     BasicAI.prototype.stablesDiscardPriority = function(state, my) {
-      return ["Copper", my.countInPlay(state.cardInfo["Alchemist"]) === 0 ? "Potion" : void 0, "Ill-Gotten Gains", "Silver", "Horn of Plenty"];
+      return ["Copper", my.countInPlay(state.cardInfo["Alchemist"]) === 0 ? "Potion" : void 0, "Ill-Gotten Gains", "Silver", "Horn of Plenty", null, "Potion", "Venture", "Cache", "Gold", "Platinum"];
     };
     BasicAI.prototype.tournamentDiscardPriority = function(state, my) {
       return [true];
@@ -677,6 +675,67 @@
         }
       }
       return discardableCards;
+    };
+    BasicAI.prototype.multiplierChoices = function(state) {
+      var card, choices, mult, mults, my;
+      my = this.myPlayer(state);
+      mults = (function() {
+        var _i, _len, _ref, _results;
+        _ref = my.hand;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          card = _ref[_i];
+          if (card.isMultiplier) {
+            _results.push(card);
+          }
+        }
+        return _results;
+      })();
+      if (mults.length > 0) {
+        mult = mults[0];
+        choices = (function() {
+          var _i, _len, _ref, _results;
+          _ref = my.hand;
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            card = _ref[_i];
+            if (card.isAction) {
+              _results.push(card);
+            }
+          }
+          return _results;
+        })();
+        choices.remove(mult);
+        choices.push(null);
+        return choices;
+      } else {
+        return [];
+      }
+    };
+    BasicAI.prototype.okayToPlayMultiplier = function(state) {
+      var choices;
+      choices = this.multiplierChoices(state);
+      if (this.choose('multiplied', state, choices) != null) {
+        return true;
+      } else {
+        return false;
+      }
+    };
+    BasicAI.prototype.wantsToPlayMultiplier = function(state) {
+      var choice, choices, multipliedValue, my, unmultipliedValue;
+      my = this.myPlayer(state);
+      choices = this.multiplierChoices(state);
+      if (choices.length > 1) {
+        choice = this.choose('multiplied', state, choices);
+        multipliedValue = this.getChoiceValue('multiplied', state, choice, my);
+        if ((choice != null) && choice.isMultiplier) {
+          unmultipliedValue = 0;
+        } else {
+          unmultipliedValue = this.getChoiceValue('play', state, choice, my);
+        }
+        return multipliedValue > unmultipliedValue;
+      }
+      return false;
     };
     BasicAI.prototype.goingGreen = function(state) {
       var bigGreen, my;
@@ -946,6 +1005,13 @@
     getVP: function(player) {
       return this.vp;
     },
+    getMultiplier: function() {
+      if (this.isMultiplier) {
+        return this.multiplier;
+      } else {
+        return 1;
+      }
+    },
     getPotion: function(state) {
       return 0;
     },
@@ -1000,6 +1066,14 @@
     },
     toString: function() {
       return this.name;
+    },
+    ai_multipliedValue: function(state, my) {
+      var result;
+      if (this.ai_playValue == null) {
+        throw new Error("no ai_playValue for " + this);
+      }
+      result = this.ai_playValue(state, my);
+      return result;
     }
   };
   makeCard('Curse', basicCard, {
@@ -1072,6 +1146,9 @@
     coins: 2,
     startingSupply: function(state) {
       return 40;
+    },
+    ai_playValue: function(state, my) {
+      return 100;
     }
   });
   makeCard('Copper', c.Silver, {
@@ -1115,46 +1192,81 @@
   makeCard('Village', action, {
     cost: 3,
     actions: 2,
-    cards: 1
+    cards: 1,
+    ai_playValue: function(state, my) {
+      return 820;
+    }
   });
   makeCard("Worker's Village", action, {
     cost: 4,
     actions: 2,
     cards: 1,
-    buys: 1
+    buys: 1,
+    ai_playValue: function(state, my) {
+      return 832;
+    }
   });
   makeCard('Laboratory', action, {
     cost: 5,
     actions: 1,
-    cards: 2
+    cards: 2,
+    ai_playValue: function(state, my) {
+      return 782;
+    }
   });
   makeCard('Smithy', action, {
     cost: 4,
-    cards: 3
+    cards: 3,
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 665;
+      } else {
+        return 200;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1540;
+      } else {
+        return -1;
+      }
+    }
   });
   makeCard('Festival', action, {
     cost: 5,
     actions: 2,
     coins: 2,
-    buys: 1
+    buys: 1,
+    ai_playValue: function(state, my) {
+      return 845;
+    }
   });
   makeCard('Woodcutter', action, {
     cost: 3,
     coins: 2,
-    buys: 1
+    buys: 1,
+    ai_playValue: function(state, my) {
+      return 164;
+    }
   });
   makeCard('Market', action, {
     cost: 5,
     actions: 1,
     cards: 1,
     coins: 1,
-    buys: 1
+    buys: 1,
+    ai_playValue: function(state, my) {
+      return 775;
+    }
   });
   makeCard('Bazaar', action, {
     cost: 5,
     actions: 2,
     cards: 1,
-    coins: 1
+    coins: 1,
+    ai_playValue: function(state, my) {
+      return 835;
+    }
   });
   makeCard('Duke', c.Estate, {
     cost: 5,
@@ -1207,13 +1319,27 @@
     isAction: true,
     cost: 3,
     cards: +1,
-    actions: +1
+    actions: +1,
+    ai_playValue: function(state, my) {
+      var _ref;
+      if (_ref = c.Crossroads, __indexOf.call(my.hand, _ref) >= 0) {
+        return 520;
+      } else {
+        return 742;
+      }
+    }
   });
   makeCard('Harem', c.Estate, {
     isTreasure: true,
     cost: 6,
     coins: 2,
-    vp: 2
+    vp: 2,
+    startingSupply: function(state) {
+      return 8;
+    },
+    ai_playValue: function(state, my) {
+      return 100;
+    }
   });
   makeCard('Island', c.Estate, {
     isAction: true,
@@ -1243,6 +1369,9 @@
         state.current.inPlay.remove(this);
         return state.current.mats.island.push(this);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 132;
     }
   });
   makeCard('Nobles', c.Estate, {
@@ -1259,6 +1388,12 @@
         }
       ]);
       return applyBenefit(state, benefit);
+    },
+    ai_playValue: function(state, my) {
+      return 296;
+    },
+    ai_multipliedValue: function(state, my) {
+      return 1340;
     }
   });
   makeCard('Silk Road', c.Estate, {
@@ -1306,6 +1441,9 @@
     },
     playEffect: function(state) {
       return state.log("...which is worth " + (this.getCoins(state)) + ".");
+    },
+    ai_playValue: function(state, my) {
+      return 20;
     }
   });
   makeCard('Cache', treasure, {
@@ -1368,6 +1506,13 @@
         transferCard(this, state.current.inPlay, state.trash);
         return state.log("..." + state.current.ai + " trashes the Horn of Plenty.");
       }
+    },
+    aiPlayValue: function(state, my) {
+      if (my.numUniqueCardsInPlay() >= 2) {
+        return 10;
+      } else {
+        return -10;
+      }
     }
   });
   makeCard('Ill-Gotten Gains', treasure, {
@@ -1406,6 +1551,9 @@
           return state.handleDiscards(state.current, [treasure]);
         }
       }
+    },
+    ai_playValue: function(state, my) {
+      return 70;
     }
   });
   makeCard("Philosopher's Stone", treasure, {
@@ -1474,6 +1622,9 @@
         state.current.inPlay.push(treasure);
         return treasure.onPlay(state);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 80;
     }
   });
   duration = makeCard('duration', action, {
@@ -1526,38 +1677,70 @@
         state.log("" + state.current.ai + " picks up a " + cardFromHaven + " from Haven.");
         return state.current.hand.unshift(cardFromHaven);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 710;
     }
   });
   makeCard('Caravan', duration, {
     cost: 4,
     cards: +1,
     actions: +1,
-    durationCards: +1
+    durationCards: +1,
+    ai_playValue: function(state, my) {
+      return 780;
+    }
   });
   makeCard('Fishing Village', duration, {
     cost: 3,
     coins: +1,
     actions: +2,
     durationActions: +1,
-    durationCoins: +1
+    durationCoins: +1,
+    ai_playValue: function(state, my) {
+      return 823;
+    }
   });
   makeCard('Wharf', duration, {
     cost: 5,
     cards: +2,
     buys: +1,
     durationCards: +2,
-    durationBuys: +1
+    durationBuys: +1,
+    ai_playValue: function(state, my) {
+      return 275;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1740;
+      } else {
+        return -1;
+      }
+    }
   });
   makeCard('Merchant Ship', duration, {
     cost: 5,
     coins: +2,
-    durationCoins: +2
+    durationCoins: +2,
+    ai_playValue: function(state, my) {
+      return 186;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1500;
+      } else {
+        return -1;
+      }
+    }
   });
   makeCard('Lighthouse', duration, {
     cost: 2,
     actions: +1,
     coins: +1,
     durationCoins: +1,
+    ai_playValue: function(state, my) {
+      return 715;
+    },
     durationReactToAttack: function(state, player, attackEvent) {
       if (!attackEvent.blocked) {
         state.log("" + player.ai + " is protected by the Lighthouse.");
@@ -1566,7 +1749,14 @@
     }
   });
   makeCard('Outpost', duration, {
-    cost: 5
+    cost: 5,
+    ai_playValue: function(state, my) {
+      if (state.extraTurn) {
+        return -15;
+      } else {
+        return 154;
+      }
+    }
   });
   makeCard('Tactician', duration, {
     cost: 5,
@@ -1598,6 +1788,9 @@
         transferCard(c.Tactician, state.current.inPlay, state.current.discard);
         return state.handleDiscards(state.current, [c.Tactician]);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 272;
     }
   });
   makeCard('Remodel', action, {
@@ -1631,12 +1824,18 @@
           return state.gainCard(state.current, newCard);
         }
       }
+    },
+    ai_playValue: function(state, my) {
+      return 223;
     }
   });
   makeCard('Expand', c.Remodel, {
     cost: 7,
     costFunction: function(coins) {
       return coins + 3;
+    },
+    ai_playValue: function(state, my) {
+      return 226;
     }
   });
   makeCard('Upgrade', c.Remodel, {
@@ -1646,6 +1845,16 @@
     exactCostUpgrade: true,
     costFunction: function(coins) {
       return coins + 1;
+    },
+    ai_playValue: function(state, my) {
+      var multiplier, wantsToTrash;
+      multiplier = my.getMultiplier();
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (wantsToTrash >= multiplier) {
+        return 490;
+      } else {
+        return -30;
+      }
     }
   });
   makeCard('Remake', c.Remodel, {
@@ -1663,6 +1872,16 @@
         _results.push(choice !== null ? ((oldCard = choice[0], newCard = choice[1], choice), state.doTrash(state.current, oldCard), newCard !== null ? state.gainCard(state.current, newCard) : void 0) : void 0);
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      var multiplier, wantsToTrash;
+      multiplier = my.getMultiplier();
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (wantsToTrash >= multiplier * 2) {
+        return 178;
+      } else {
+        return -35;
+      }
     }
   });
   makeCard('Mine', c.Remodel, {
@@ -1682,6 +1901,16 @@
         state.doTrash(state.current, oldCard);
         return state.gainCard(state.current, newCard, 'hand');
       }
+    },
+    ai_playValue: function(state, my) {
+      return 217;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1260;
+      } else {
+        return -1;
+      }
     }
   });
   prize = makeCard('prize', basicCard, {
@@ -1700,6 +1929,9 @@
     playEffect: function(state) {
       state.gainCard(state.current, c.Gold, 'draw');
       return state.log("...putting the Gold on top of the deck.");
+    },
+    ai_playValue: function(state, my) {
+      return 885;
     }
   });
   makeCard('Diadem', prize, {
@@ -1720,6 +1952,16 @@
           return state.requireDiscard(opp, opp.hand.length - 3);
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 292;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1890;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Princess', prize, {
@@ -1731,6 +1973,9 @@
           return -2;
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 264;
     }
   });
   makeCard('Trusty Steed', prize, {
@@ -1758,6 +2003,9 @@
         }
       ]);
       return applyBenefit(state, benefit);
+    },
+    ai_playValue: function(state, my) {
+      return 848;
     }
   });
   attack = makeCard('attack', action, {
@@ -1804,6 +2052,24 @@
           return state.log("...but " + cardName + " is not in the Supply.");
         }
       }
+    },
+    ai_playValue: function(state, my) {
+      var wantsToTrash;
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (wantsToTrash > 0) {
+        return 150;
+      } else {
+        return -20;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      var wantsToTrash;
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (my.actions > 0 && wantsToTrash > 0) {
+        return 1100;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Bureaucrat', attack, {
@@ -1813,10 +2079,6 @@
       return state.attackOpponents(function(opp) {
         var card, choice, victory, _i, _len, _ref;
         victory = [];
-        if (!(opp.hand != null)) {
-          state.log(opp);
-          throw new Error("" + opp + " has no hand attribute");
-        }
         _ref = opp.hand;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           card = _ref[_i];
@@ -1833,6 +2095,9 @@
           return state.log("" + opp.ai + " returns " + choice + " to the top of the deck.");
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 128;
     }
   });
   makeCard('Cutpurse', attack, {
@@ -1848,6 +2113,16 @@
           return state.revealHand(opp);
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 250;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1180;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Familiar', attack, {
@@ -1859,6 +2134,9 @@
       return state.attackOpponents(function(opp) {
         return state.gainCard(opp, c.Curse);
       });
+    },
+    ai_playValue: function(state, my) {
+      return 755;
     }
   });
   makeCard('Fortune Teller', attack, {
@@ -1876,6 +2154,9 @@
           return state.log("..." + opp.ai + " puts " + card + " on top of the deck.");
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 130;
     }
   });
   makeCard('Ghost Ship', attack, {
@@ -1893,6 +2174,20 @@
         }
         return _results;
       });
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 670;
+      } else {
+        return 266;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1680;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Jester', attack, {
@@ -1912,6 +2207,16 @@
           }
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 258;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1660;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Margrave', attack, {
@@ -1925,6 +2230,20 @@
           return state.requireDiscard(opp, opp.hand.length - 3);
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 685;
+      } else {
+        return 280;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1560;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard("Militia", attack, {
@@ -1936,6 +2255,9 @@
           return state.requireDiscard(opp, opp.hand.length - 3);
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 254;
     }
   });
   makeCard("Goons", c.Militia, {
@@ -1944,6 +2266,16 @@
     buyInPlayEffect: function(state, card) {
       state.log("...getting +1 ▼.");
       return state.current.chips += 1;
+    },
+    ai_playValue: function(state, my) {
+      return 278;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1280;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard("Minion", attack, {
@@ -1972,6 +2304,16 @@
         });
         return player.coins += 2;
       }
+    },
+    ai_playValue: function(state, my) {
+      return 705;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1700;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard("Mountebank", attack, {
@@ -1987,6 +2329,16 @@
           return state.gainCard(opp, c.Curse);
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 290;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1870;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Noble Brigand', attack, {
@@ -2036,6 +2388,16 @@
       opp.discard = opp.discard.concat(drawn);
       state.handleDiscards(opp, [drawn]);
       return state.log("..." + opp.ai + " discards " + drawn + ".");
+    },
+    ai_playValue: function(state, my) {
+      return 134;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1440;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Oracle', attack, {
@@ -2068,6 +2430,20 @@
         }
       });
       return state.drawCards(player, 2);
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 610;
+      } else {
+        return 180;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1200;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Pirate Ship', attack, {
@@ -2120,6 +2496,16 @@
           return state.log("..." + state.current.ai + " takes a Coin token (" + state.current.mats.pirateShip + " on the mat).");
         }
       }
+    },
+    ai_playValue: function(state, my) {
+      return 136;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1480;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Rabble', attack, {
@@ -2147,6 +2533,20 @@
           return opp.setAside = [];
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 680;
+      } else {
+        return 206;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1600;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Saboteur', attack, {
@@ -2179,6 +2579,16 @@
           }
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 104;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1460;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Scrying Pool', attack, {
@@ -2199,6 +2609,9 @@
         }
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      return 870;
     }
   });
   makeCard('Sea Hag', attack, {
@@ -2209,6 +2622,16 @@
         state.gainCard(opp, c.Curse, 'draw');
         return state.log("...putting the Curse on top of the deck.");
       });
+    },
+    ai_playValue: function(state, my) {
+      return 286;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0 && state.countInSupply('Curse') >= 2) {
+        return 1850;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Spy', attack, {
@@ -2220,6 +2643,9 @@
       return state.attackOpponents(function(opp) {
         return spyDecision(state.current, opp, state, 'discardFromOpponentDeck');
       });
+    },
+    ai_playValue: function(state, my) {
+      return 860;
     }
   });
   makeCard('Thief', attack, {
@@ -2251,9 +2677,19 @@
         state.handleDiscards(opp, [drawn]);
         return state.log("..." + opp.ai + " discards " + drawn + ".");
       });
+    },
+    ai_playValue: function(state, my) {
+      return 100;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1420;
+      } else {
+        return -1;
+      }
     }
   });
-  makeCard('Torturer', attack, {
+  makeCard("Torturer", attack, {
     cost: 5,
     cards: +3,
     playEffect: function(state) {
@@ -2264,6 +2700,20 @@
           return state.requireDiscard(opp, 2);
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 690;
+      } else {
+        return 284;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0 && state.countInSupply('Curse') >= 2) {
+        return 1840;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Witch', attack, {
@@ -2273,6 +2723,20 @@
       return state.attackOpponents(function(opp) {
         return state.gainCard(opp, c.Curse);
       });
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 675;
+      } else {
+        return 288;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0 && state.countInSupply("Curse") >= 2) {
+        return 1860;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Young Witch', attack, {
@@ -2307,6 +2771,16 @@
           return state.gainCard(opp, c.Curse);
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 282;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0 && state.countInSupply('Curse') >= 2) {
+        return 1830;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Adventurer', action, {
@@ -2321,6 +2795,9 @@
         state.current.hand = state.current.hand.concat(treasures);
         return state.log("..." + state.current.ai + " draws " + treasures + ".");
       }
+    },
+    ai_playValue: function(state, my) {
+      return 176;
     }
   });
   makeCard('Alchemist', action, {
@@ -2329,10 +2806,13 @@
     actions: +1,
     cards: +2,
     cleanupEffect: function(state) {
-      var _ref;
-      if (_ref = c.Potion, __indexOf.call(state.current.inPlay, _ref) >= 0) {
+      var _ref, _ref2;
+      if ((_ref = c.Potion, __indexOf.call(state.current.inPlay, _ref) >= 0) && (_ref2 = c.Alchemist, __indexOf.call(state.current.inPlay, _ref2) >= 0)) {
         return transferCardToTop(c.Alchemist, state.current.inPlay, state.current.draw);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 785;
     }
   });
   makeCard('Apothecary', action, {
@@ -2359,6 +2839,9 @@
         state.current.draw = order.concat(state.current.draw);
         return state.current.setAside = [];
       }
+    },
+    ai_playValue: function(state, my) {
+      return 880;
     }
   });
   makeCard('Apprentice', action, {
@@ -2372,6 +2855,9 @@
         state.doTrash(state.current, toTrash);
         return state.drawCards(state.current, coins + 2 * potions);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 730;
     }
   });
   makeCard('Baron', action, {
@@ -2388,6 +2874,18 @@
         return state.current.coins += 4;
       } else {
         return state.gainCard(state.current, c.Estate);
+      }
+    },
+    ai_playValue: function(state, my) {
+      var _ref;
+      if (_ref = c.Estate, __indexOf.call(my.hand, _ref) >= 0) {
+        return 184;
+      } else {
+        if (my.ai.cardInDeckValue(state, c.Estate, my) > 0) {
+          return 5;
+        } else {
+          return -5;
+        }
       }
     }
   });
@@ -2413,6 +2911,9 @@
         _results.push(state.allowTrash(opp, 1));
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      return 243;
     }
   });
   makeCard('Border Village', c.Village, {
@@ -2430,6 +2931,9 @@
         }
       }
       return state.gainOneOf(player, choices);
+    },
+    ai_playValue: function(state, my) {
+      return 817;
     }
   });
   makeCard('Bridge', action, {
@@ -2443,6 +2947,16 @@
           return -1;
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 246;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1720;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Cartographer', action, {
@@ -2468,6 +2982,9 @@
       order = player.ai.chooseOrderOnDeck(state, kept, player);
       state.log("" + player.ai + " puts " + order + " back on the deck.");
       return player.draw = order.concat(player.draw);
+    },
+    ai_playValue: function(state, my) {
+      return 890;
     }
   });
   makeCard('Cellar', action, {
@@ -2479,6 +2996,9 @@
       state.allowDiscard(state.current, Infinity);
       numDiscarded = startingCards - state.current.hand.length;
       return state.drawCards(state.current, numDiscarded);
+    },
+    ai_playValue: function(state, my) {
+      return 450;
     }
   });
   makeCard('Chancellor', action, {
@@ -2494,12 +3014,24 @@
         player.discard = player.discard.concat(draw);
         return state.handleDiscards(state.current, draw);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 160;
     }
   });
   makeCard('Chapel', action, {
     cost: 2,
     playEffect: function(state) {
       return state.allowTrash(state.current, 4);
+    },
+    ai_playValue: function(state, my) {
+      var wantsToTrash;
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (wantsToTrash > 0) {
+        return 146;
+      } else {
+        return 30;
+      }
     }
   });
   makeCard('City', action, {
@@ -2526,6 +3058,9 @@
       } else {
         return 0;
       }
+    },
+    ai_playValue: function(state, my) {
+      return 829;
     }
   });
   makeCard('Conspirator', action, {
@@ -2544,12 +3079,43 @@
       } else {
         return 0;
       }
+    },
+    ai_playValue: function(state, my) {
+      var _ref;
+      if (my.inPlay.length >= 2 || ((_ref = my.getCurrentAction()) != null ? _ref.isMultiplier : void 0)) {
+        return 760;
+      } else if (my.actions < 2) {
+        return 124;
+      } else {
+        return 10;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      return 1380;
     }
   });
   makeCard('Coppersmith', action, {
     cost: 4,
     playEffect: function(state) {
       return state.copperValue += 1;
+    },
+    ai_playValue: function(state, my) {
+      switch (my.countInHand("Copper")) {
+        case 0:
+        case 1:
+          return 105;
+        case 2:
+          return 156;
+        default:
+          return 213;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0 && my.countInHand('Copper') >= 2) {
+        return 1140;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Council Room', action, {
@@ -2565,6 +3131,20 @@
         _results.push(state.drawCards(opp, 1));
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 0) {
+        return 619;
+      } else {
+        return 194;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1580;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Counting House', action, {
@@ -2597,6 +3177,9 @@
       })();
       Array.prototype.push.apply(state.current.hand, coppersFromDiscard);
       return state.log(("" + state.current.ai + " puts ") + coppersFromDiscard.length + " Coppers into his hand.");
+    },
+    ai_playValue: function(state, my) {
+      return 158;
     }
   });
   makeCard('Courtyard', action, {
@@ -2607,6 +3190,13 @@
       if (state.current.hand.length > 0) {
         card = state.current.ai.choose('putOnDeck', state, state.current.hand);
         return state.doPutOnDeck(state.current, card);
+      }
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1 && (my.discard.length + my.draw.length) <= 3) {
+        return 615;
+      } else {
+        return 188;
       }
     }
   });
@@ -2631,6 +3221,20 @@
         return _results;
       })()).length;
       return state.drawCards(state.current, nVictory);
+    },
+    ai_playValue: function(state, my) {
+      if (my.countInPlay(state.cardInfo.Crossroads) > 0) {
+        return 298;
+      } else {
+        return 580;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0 || my.countInPlay(c.Crossroads) === 0) {
+        return 1800;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Duchess', action, {
@@ -2647,6 +3251,9 @@
         _results.push(drawn != null ? (discarded = pl.ai.choose('discard', state, [drawn, null]), discarded != null ? (state.log("...choosing to discard it."), pl.discard.push(drawn)) : (state.log("...choosing to put it back."), pl.draw.unshift(drawn))) : void 0);
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      return 102;
     }
   });
   makeCard('Embassy', action, {
@@ -2664,6 +3271,20 @@
         _results.push(pl !== player ? state.gainCard(pl, c.Silver) : void 0);
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        return 660;
+      } else {
+        return 198;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1520;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Envoy', action, {
@@ -2679,6 +3300,9 @@
         transferCard(choice, drawn, state.current.discard);
         return Array.prototype.push.apply(state.current.hand, drawn);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 203;
     }
   });
   makeCard('Explorer', action, {
@@ -2696,6 +3320,13 @@
       } else {
         return state.log("…but there are no " + cardToGain + "s available to gain.");
       }
+    },
+    ai_playValue: function(state, my) {
+      if (my.countInHand("Province") > 1) {
+        return 282;
+      } else {
+        return 166;
+      }
     }
   });
   makeCard('Farming Village', action, {
@@ -2711,6 +3342,9 @@
         state.log("..." + state.current.ai + " draws " + card + ".");
         return state.current.hand.push(card);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 838;
     }
   });
   makeCard("Feast", action, {
@@ -2731,6 +3365,16 @@
         }
       }
       return state.gainOneOf(state.current, choices);
+    },
+    ai_playValue: function(state, my) {
+      return 108;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1390;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Golem', action, {
@@ -2742,7 +3386,7 @@
         return card.isAction && card.name !== 'Golem';
       }, 2);
       if (drawn.length > 0) {
-        firstAction = state.current.ai.choose('action', state, drawn);
+        firstAction = state.current.ai.choose('play', state, drawn);
         drawn.remove(firstAction);
         secondAction = drawn[0];
         actions = [firstAction, secondAction];
@@ -2753,6 +3397,9 @@
         }
         return _results;
       }
+    },
+    ai_playValue: function(state, my) {
+      return 743;
     }
   });
   makeCard("Grand Market", c.Market, {
@@ -2764,6 +3411,12 @@
     mayBeBought: function(state) {
       var _ref;
       return !(_ref = c.Copper, __indexOf.call(state.current.inPlay, _ref) >= 0);
+    },
+    ai_playValue: function(state, my) {
+      return 795;
+    },
+    ai_playValue: function(state, my) {
+      return 880;
     }
   });
   makeCard('Haggler', action, {
@@ -2783,6 +3436,9 @@
         }
       }
       return state.gainOneOf(state.current, choices);
+    },
+    ai_playValue: function(state, my) {
+      return 170;
     }
   });
   makeCard("Hamlet", action, {
@@ -2807,6 +3463,9 @@
         ]);
         return applyBenefit(state, benefit);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 720;
     }
   });
   makeCard("Harvest", action, {
@@ -2823,6 +3482,9 @@
       }
       state.current.coins += unique.length;
       return state.log("...gaining +$" + unique.length + ".");
+    },
+    ai_playValue: function(state, my) {
+      return 174;
     }
   });
   makeCard("Herbalist", action, {
@@ -2845,6 +3507,9 @@
         state.log("" + state.current.ai + " uses Herbalist to put " + choice + " back on the deck.");
         return transferCardToTop(choice, state.current.inPlay, state.current.draw);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 122;
     }
   });
   makeCard("Highway", action, {
@@ -2858,6 +3523,9 @@
           return -1;
         }
       });
+    },
+    ai_playValue: function(state, my) {
+      return 750;
     }
   });
   makeCard("Horse Traders", action, {
@@ -2873,7 +3541,20 @@
       return state.drawCards(state.current, 1);
     },
     reactToAttack: function(state, player, attackEvent) {
-      return transferCard(c['Horse Traders'], player.hand, player.duration);
+      var _ref;
+      if (_ref = c['Horse Traders'], __indexOf.call(player.hand, _ref) >= 0) {
+        return transferCard(c['Horse Traders'], player.hand, player.duration);
+      }
+    },
+    ai_playValue: function(state, my) {
+      return 240;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1640;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Hunting Party', action, {
@@ -2891,6 +3572,9 @@
         state.log("..." + state.current.ai + " draws " + card + ".");
         return state.current.hand.push(card);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 790;
     }
   });
   makeCard('Ironworks', action, {
@@ -2915,6 +3599,9 @@
       if (gained.isVictory) {
         return state.current.drawCards(1);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 115;
     }
   });
   makeCard('Jack of All Trades', action, {
@@ -2952,6 +3639,9 @@
       if (choice != null) {
         return state.doTrash(state.current, choice);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 236;
     }
   });
   makeCard("King's Court", action, {
@@ -2979,7 +3669,7 @@
         if (this.optional) {
           choices.push(null);
         }
-        action = state.current.ai.choose('multipliedAction', state, choices);
+        action = state.current.ai.choose('multiplied', state, choices);
         if (action === null) {
           return state.log("...choosing not to play an action.");
         } else {
@@ -3016,9 +3706,19 @@
         }
       }
     },
-    durationEffect: function(state) {}
+    durationEffect: function(state) {},
+    ai_playValue: function(state, my) {
+      if (my.ai.wantsToPlayMultiplier(state)) {
+        return 910;
+      } else {
+        return 390;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      return 2000;
+    }
   });
-  makeCard('Library', action, {
+  makeCard("Library", action, {
     cost: 5,
     playEffect: function(state) {
       var card, discards, drawn, player;
@@ -3047,6 +3747,45 @@
       player.discard = player.discard.concat(discards);
       player.setAside = [];
       return state.handleDiscards(state.current, discards);
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        switch (my.hand.length) {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+            return 955;
+          case 4:
+            return 695;
+          case 5:
+            return 620;
+          case 6:
+            return 420;
+          case 7:
+            return 101;
+          default:
+            return 20;
+        }
+      } else {
+        switch (my.hand.length) {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+            return 260;
+          case 4:
+            return 210;
+          case 5:
+            return 192;
+          case 6:
+            return 118;
+          case 7:
+            return 101;
+          default:
+            return 20;
+        }
+      }
     }
   });
   makeCard("Lookout", action, {
@@ -3071,6 +3810,14 @@
       state.log("...putting " + drawn + " back on the deck.");
       state.current.draw = state.current.setAside.concat(state.current.draw);
       return state.current.setAside = [];
+    },
+    ai_playValue: function(state, my) {
+      var _ref;
+      if (state.gainsToEndGame >= 5 || (_ref = state.cardInfo.Curse, __indexOf.call(my.draw, _ref) >= 0)) {
+        return 895;
+      } else {
+        return -5;
+      }
     }
   });
   makeCard("Mandarin", action, {
@@ -3106,6 +3853,16 @@
         state.log("...putting " + order + " back on the deck.");
         return player.draw = order.concat(player.draw);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 168;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1620;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard("Masquerade", action, {
@@ -3130,6 +3887,16 @@
         }
       }
       return state.allowTrash(state.current, 1);
+    },
+    ai_playValue: function(state, my) {
+      return 270;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1240;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard("Menagerie", action, {
@@ -3138,6 +3905,13 @@
     playEffect: function(state) {
       state.revealHand(state.current);
       return state.drawCards(state.current, state.current.menagerieDraws());
+    },
+    ai_playValue: function(state, my) {
+      if (my.menagerieDraws() === 3) {
+        return 980;
+      } else {
+        return 340;
+      }
     }
   });
   makeCard("Mining Village", c.Village, {
@@ -3151,6 +3925,9 @@
           return state.current.coins += 2;
         }
       }
+    },
+    ai_playValue: function(state, my) {
+      return 814;
     }
   });
   makeCard("Mint", action, {
@@ -3191,6 +3968,16 @@
       if (choice !== null) {
         return state.gainCard(state.current, choice);
       }
+    },
+    ai_playValue: function(state, my) {
+      var multiplier, wantsToTrash;
+      multiplier = my.getMultiplier();
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (my.ai.choose('mint', state, my.hand)) {
+        return 140;
+      } else {
+        return -7;
+      }
     }
   });
   makeCard("Moat", action, {
@@ -3202,6 +3989,9 @@
         state.log("" + player.ai + " is protected by a Moat.");
         return attackEvent.blocked = true;
       }
+    },
+    ai_playValue: function(state, my) {
+      return 120;
     }
   });
   makeCard('Moneylender', action, {
@@ -3212,6 +4002,9 @@
         state.doTrash(state.current, c.Copper);
         return state.current.coins += 3;
       }
+    },
+    ai_playValue: function(state, my) {
+      return 230;
     }
   });
   makeCard("Monument", action, {
@@ -3219,6 +4012,16 @@
     coins: 2,
     playEffect: function(state) {
       return state.current.chips += 1;
+    },
+    ai_playValue: function(state, my) {
+      return 182;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1400;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Nomad Camp', c.Woodcutter, {
@@ -3229,6 +4032,9 @@
         player.gainLocation = 'draw';
         return state.log("...putting the Nomad Camp on top of the deck.");
       }
+    },
+    ai_playValue: function(state, my) {
+      return 162;
     }
   });
   makeCard('Navigator', action, {
@@ -3247,6 +4053,9 @@
         Array.prototype.push.apply(state.current.discard, drawn);
         return state.handleDiscards(state.current, drawn);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 126;
     }
   });
   makeCard('Oasis', action, {
@@ -3256,6 +4065,9 @@
     coins: +1,
     playEffect: function(state) {
       return state.requireDiscard(state.current, 1);
+    },
+    ai_playValue: function(state, my) {
+      return 480;
     }
   });
   makeCard('Pawn', action, {
@@ -3284,6 +4096,9 @@
         }
       ]);
       return applyBenefit(state, benefit);
+    },
+    ai_playValue: function(state, my) {
+      return 470;
     }
   });
   makeCard('Pearl Diver', action, {
@@ -3306,6 +4121,9 @@
       } else {
         return state.log("...but the draw pile is empty.");
       }
+    },
+    ai_playValue: function(state, my) {
+      return 725;
     }
   });
   makeCard('Peddler', action, {
@@ -3323,6 +4141,9 @@
         }
       }
       return cost;
+    },
+    ai_playValue: function(state, my) {
+      return 770;
     }
   });
   makeCard('Salvager', action, {
@@ -3336,6 +4157,9 @@
         state.doTrash(state.current, toTrash);
         return state.current.coins += coins;
       }
+    },
+    ai_playValue: function(state, my) {
+      return 220;
     }
   });
   makeCard('Scheme', action, {
@@ -3362,6 +4186,16 @@
         state.log("" + state.current.ai + " uses Scheme to put " + choice + " back on the deck.");
         return transferCardToTop(choice, state.current.inPlay, state.current.draw);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 745;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.countInDeck("King's Court") > 2) {
+        return 1780;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Scout', action, {
@@ -3386,6 +4220,9 @@
         state.current.draw = order.concat(state.current.draw);
         return state.current.setAside = [];
       }
+    },
+    ai_playValue: function(state, my) {
+      return 875;
     }
   });
   makeCard("Secret Chamber", action, {
@@ -3409,6 +4246,9 @@
       if (card !== null) {
         return state.doPutOnDeck(player, card);
       }
+    },
+    ai_playValue: function(state, my) {
+      return 138;
     }
   });
   makeCard('Shanty Town', action, {
@@ -3417,12 +4257,24 @@
     playEffect: function(state) {
       state.revealHand(state.current);
       return state.drawCards(state.current, state.current.shantyTownDraws());
+    },
+    ai_playValue: function(state, my) {
+      if (my.shantyTownDraws(true) === 2) {
+        return 970;
+      } else if (my.actions < 2) {
+        return 340;
+      } else {
+        return 70;
+      }
     }
   });
   makeCard('Smugglers', action, {
     cost: 3,
     playEffect: function(state) {
       return state.gainOneOf(state.current, state.smugglerChoices());
+    },
+    ai_playValue: function(state, my) {
+      return 110;
     }
   });
   makeCard('Spice Merchant', action, {
@@ -3456,6 +4308,31 @@
         ]);
         return applyBenefit(state, benefit);
       }
+    },
+    ai_playValue: function(state, my) {
+      var card, trashChoices, _ref;
+      if (_ref = c.Copper, __indexOf.call(my.hand, _ref) >= 0) {
+        return 740;
+      } else {
+        trashChoices = (function() {
+          var _i, _len, _ref2, _results;
+          _ref2 = state.current.hand;
+          _results = [];
+          for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+            card = _ref2[_i];
+            if (card.isTreasure) {
+              _results.push(card);
+            }
+          }
+          return _results;
+        })();
+        trashChoices.push(null);
+        if (my.ai.choose('spiceMerchantTrash', state, trashChoices)) {
+          return 410;
+        } else {
+          return 80;
+        }
+      }
     }
   });
   makeCard('Stables', action, {
@@ -3481,6 +4358,27 @@
         state.drawCards(state.current, 3);
         return state.current.actions += 1;
       }
+    },
+    ai_playValue: function(state, my) {
+      var card, discardChoices;
+      discardChoices = (function() {
+        var _i, _len, _ref, _results;
+        _ref = state.current.hand;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          card = _ref[_i];
+          if (card.isTreasure) {
+            _results.push(card);
+          }
+        }
+        return _results;
+      })();
+      discardChoices.push(null);
+      if (my.ai.choose('stablesDiscard', state, discardChoices)) {
+        return 735;
+      } else {
+        return 50;
+      }
     }
   });
   makeCard('Steward', action, {
@@ -3497,12 +4395,34 @@
         }
       ]);
       return applyBenefit(state, benefit);
+    },
+    ai_playValue: function(state, my) {
+      return 233;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1300;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Throne Room', c["King's Court"], {
     cost: 4,
     multiplier: 2,
-    optional: false
+    optional: false,
+    ai_playValue: function(state, my) {
+      if (my.ai.wantsToPlayMultiplier(state)) {
+        return 920;
+      } else if (my.ai.okayToPlayMultiplier(state)) {
+        return 380;
+      } else {
+        return -50;
+      }
+    },
+    ai_multipliedValue: function(state, my) {
+      return 1900;
+    }
   });
   makeCard('Tournament', action, {
     cost: 4,
@@ -3572,6 +4492,13 @@
         state.current.coins += 1;
         return state.current.drawCards(1);
       }
+    },
+    ai_playValue: function(state, my) {
+      if (my.countInHand('Province') === 3) {
+        return 960;
+      } else {
+        return 360;
+      }
     }
   });
   makeCard("Trade Route", action, {
@@ -3597,6 +4524,16 @@
     },
     getCoins: function(state) {
       return state.cardState[this].mat.length;
+    },
+    ai_playValue: function(state, my) {
+      var multiplier, wantsToTrash;
+      multiplier = my.getMultiplier();
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (wantsToTrash >= multiplier) {
+        return 160;
+      } else {
+        return -25;
+      }
     }
   });
   makeCard("Trader", action, {
@@ -3617,6 +4554,16 @@
     reactReplacingGain: function(state, player, card) {
       card = player.ai.choose('gain', state, [c.Silver, card]);
       return c[card];
+    },
+    ai_playValue: function(state, my) {
+      var multiplier, wantsToTrash;
+      multiplier = my.getMultiplier();
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (wantsToTrash >= multiplier) {
+        return 142;
+      } else {
+        return -22;
+      }
     }
   });
   makeCard("Trading Post", action, {
@@ -3625,6 +4572,16 @@
       state.requireTrash(state.current, 2);
       state.gainCard(state.current, c.Silver, 'hand');
       return state.log("...gaining a Silver in hand.");
+    },
+    ai_playValue: function(state, my) {
+      var multiplier, wantsToTrash;
+      multiplier = my.getMultiplier();
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (wantsToTrash >= multiplier * 2) {
+        return 148;
+      } else {
+        return -38;
+      }
     }
   });
   makeCard("Transmute", action, {
@@ -3645,6 +4602,16 @@
         if (trashed.isVictory) {
           return state.gainCard(state.current, c.Gold);
         }
+      }
+    },
+    ai_playValue: function(state, my) {
+      var multiplier, wantsToTrash;
+      multiplier = my.getMultiplier();
+      wantsToTrash = my.ai.wantsToTrash(state);
+      if (my.ai.choose('mint', state, my.hand)) {
+        return 106;
+      } else {
+        return -27;
       }
     }
   });
@@ -3673,6 +4640,15 @@
         }
         return state.log("…gaining " + numGolds + " Golds, putting them on top of the deck.");
       }
+    },
+    ai_playValue: function(state, my) {
+      if (my.countInHand("Treasure Map") >= 2) {
+        return 294;
+      } else if (my.countInDeck("Gold") >= 4 && state.current.countInDeck("Treasure Map") === 1) {
+        return 90;
+      } else {
+        return -40;
+      }
     }
   });
   makeCard('Treasury', c.Market, {
@@ -3688,10 +4664,14 @@
       }
     },
     cleanupEffect: function(state) {
-      if (state.cardState[this].mayReturnTreasury) {
+      var _ref;
+      if (state.cardState[this].mayReturnTreasury && (_ref = c.Treasury, __indexOf.call(state.current.inPlay, _ref) >= 0)) {
         transferCardToTop(c.Treasury, state.current.inPlay, state.current.draw);
         return state.log("" + state.current.ai + " returns a Treasury to the top of the deck.");
       }
+    },
+    ai_playValue: function(state, my) {
+      return 765;
     }
   });
   makeCard('Tribute', action, {
@@ -3718,6 +4698,12 @@
         _results.push(card.isVictory ? state.current.drawCards(2) : void 0);
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      return 281;
+    },
+    ai_multipliedValue: function(state, my) {
+      return 1320;
     }
   });
   makeCard('University', action, {
@@ -3735,6 +4721,9 @@
         }
       }
       return state.gainOneOf(state.current, choices);
+    },
+    ai_playValue: function(state, my) {
+      return 842;
     }
   });
   makeCard('Vault', action, {
@@ -3752,10 +4741,23 @@
         _results.push(opp.ai.wantsToDiscard(state) >= 2 ? (discarded = state.requireDiscard(opp, 2), discarded.length === 2 ? state.drawCards(opp, 1) : void 0) : void 0);
       }
       return _results;
+    },
+    ai_playValue: function(state, my) {
+      return 268;
+    },
+    ai_multipliedValue: function(state, my) {
+      if (my.actions > 0) {
+        return 1220;
+      } else {
+        return -1;
+      }
     }
   });
   makeCard('Walled Village', c.Village, {
-    cost: 4
+    cost: 4,
+    ai_playValue: function(state, my) {
+      return 826;
+    }
   });
   makeCard('Warehouse', action, {
     cost: 3,
@@ -3763,6 +4765,9 @@
     playEffect: function(state) {
       state.drawCards(state.current, 3);
       return state.requireDiscard(state.current, 3);
+    },
+    ai_playValue: function(state, my) {
+      return 460;
     }
   });
   makeCard('Watchtower', action, {
@@ -3789,6 +4794,32 @@
         state.log("" + player.ai + " reveals a Watchtower and puts the " + card + " on the deck.");
         player.gainLocation = 'draw';
         return transferCardToTop(card, source, player.draw);
+      }
+    },
+    ai_playValue: function(state, my) {
+      if (my.actions > 1) {
+        switch (my.hand.length) {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+          case 4:
+            return 650;
+          default:
+            return -1;
+        }
+      } else {
+        switch (my.hand.length) {
+          case 0:
+          case 1:
+          case 2:
+          case 3:
+            return 196;
+          case 4:
+            return 190;
+          default:
+            return -1;
+        }
       }
     }
   });
@@ -3819,6 +4850,9 @@
       } else {
         return state.log("...drawing nothing.");
       }
+    },
+    ai_playValue: function(state, my) {
+      return 745;
     }
   });
   makeCard('Workshop', action, {
@@ -3834,6 +4868,9 @@
         }
       }
       return state.gainOneOf(state.current, choices);
+    },
+    ai_playValue: function(state, my) {
+      return 112;
     }
   });
   transferCard = function(card, fromList, toList) {
@@ -3990,6 +5027,14 @@
     PlayerState.prototype.getCurrentAction = function() {
       return this.actionStack[this.actionStack.length - 1];
     };
+    PlayerState.prototype.getMultiplier = function() {
+      action = this.getCurrentAction();
+      if (action != null) {
+        return action.getMultiplier();
+      } else {
+        return 1;
+      }
+    };
     PlayerState.prototype.countInDeck = function(card) {
       var card2, count, _i, _len, _ref2;
       count = 0;
@@ -4038,7 +5083,9 @@
       _ref2 = this.getDeck();
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
         card = _ref2[_i];
-        total += card.coins;
+        if (card.isTreasure || card.actions >= 1) {
+          total += card.coins;
+        }
       }
       return total;
     };
@@ -4339,7 +5386,7 @@
     State.prototype.extraSupply = [c.Potion, c.Platinum, c.Colony];
     State.prototype.cardInfo = c;
     State.prototype.initialize = function(ais, tableau, logFunc) {
-      var ai, card, _i, _len;
+      var ai, card, player, playerNum, _i, _j, _len, _len2;
       this.logFunc = logFunc;
       this.players = (function() {
         var _i, _len, _results;
@@ -4350,6 +5397,13 @@
         }
         return _results;
       }).call(this);
+      this.players = [];
+      playerNum = 0;
+      for (_i = 0, _len = ais.length; _i < _len; _i++) {
+        ai = ais[_i];
+        player = new PlayerState().initialize(ai, this.logFunc);
+        this.players.push(player);
+      }
       this.nPlayers = this.players.length;
       this.current = this.players[0];
       this.supply = this.makeSupply(tableau);
@@ -4363,8 +5417,8 @@
       this.cache = {};
       this.depth = 0;
       this.log("Tableau: " + tableau);
-      for (_i = 0, _len = tableau.length; _i < _len; _i++) {
-        card = tableau[_i];
+      for (_j = 0, _len2 = tableau.length; _j < _len2; _j++) {
+        card = tableau[_j];
         card.startGameEffect(this);
       }
       this.totalCards = this.countTotalCards();
@@ -4463,7 +5517,7 @@
         return false;
       }
       emptyPiles = this.emptyPiles();
-      if (emptyPiles.length >= this.totalPilesToEndGame() || (this.nPlayers < 5 && emptyPiles.length >= 3) || __indexOf.call(emptyPiles, 'Province') >= 0 || __indexOf.call(emptyPiles, 'Colony') >= 0) {
+      if (emptyPiles.length >= this.totalPilesToEndGame() || (this.nPlayers < 5 && emptyPiles.length >= 3) || __indexOf.call(emptyPiles, 'Province') >= 0 || __indexOf.call(emptyPiles, 'Colony') >= 0 || (__indexOf.call(emptyPiles, 'Curse') >= 0 && __indexOf.call(emptyPiles, 'Copper') >= 0 && this.current.turnsTaken >= 100)) {
         this.log("Empty piles: " + emptyPiles);
         _ref2 = this.getFinalStatus();
         for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
@@ -4752,8 +5806,9 @@
       return treasure.onPlay(this);
     };
     State.prototype.getSingleBuyDecision = function() {
-      var buyable, card, cardname, choice, coinCost, count, potionCost, _ref2, _ref3;
+      var buyable, card, cardname, checkSuicide, choice, coinCost, count, potionCost, _ref2, _ref3;
       buyable = [null];
+      checkSuicide = this.depth === 0 && this.gainsToEndGame() <= 2;
       _ref2 = this.supply;
       for (cardname in _ref2) {
         count = _ref2[cardname];
@@ -4765,17 +5820,19 @@
           }
         }
       }
-      buyable = (function() {
-        var _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = buyable.length; _i < _len; _i++) {
-          card = buyable[_i];
-          if (!this.buyCausesToLose(this.current, this, card)) {
-            _results.push(card);
+      if (checkSuicide) {
+        buyable = (function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = buyable.length; _i < _len; _i++) {
+            card = buyable[_i];
+            if (!this.buyCausesToLose(this.current, this, card)) {
+              _results.push(card);
+            }
           }
-        }
-        return _results;
-      }).call(this);
+          return _results;
+        }).call(this);
+      }
       this.log("Coins: " + this.current.coins + ", Potions: " + this.current.potions + ", Buys: " + this.current.buys);
       choice = this.current.ai.chooseGain(this, buyable);
       return choice;
@@ -4888,7 +5945,9 @@
       if (suppressMessage == null) {
         suppressMessage = false;
       }
-      delete this.cache.gainsToEndGame;
+      if (this.depth === 0) {
+        delete this.cache.gainsToEndGame;
+      }
       if (this.supply[card] > 0 || this.specialSupply[card] > 0) {
         for (i = _ref2 = player.hand.length - 1; _ref2 <= -1 ? i < -1 : i > -1; _ref2 <= -1 ? i++ : i--) {
           reactCard = player.hand[i];
