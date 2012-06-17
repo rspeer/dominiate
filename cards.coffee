@@ -794,7 +794,7 @@ makeCard 'Develop', action, {
     return Math.abs(oldCard.getCost(state)[0] - newCard.getCost(state)[0])==1 and (oldCard.getCost(state)[1] == newCard.getCost(state)[1])
     
   playEffect: (state) ->
-    oldChoices = state.current.hand
+    oldChoices = state.current.hand.unique()
     choices = []
     for oldCard in oldChoices
       newCards = []
@@ -2737,6 +2737,13 @@ transferCardToTop = (card, fromList, toList) ->
     throw new Error("#{fromList} does not contain #{card}")
   fromList.remove(card)
   toList.unshift(card)
+
+# `Array::unique` returns the unique keys from a given array
+Array::unique = ->
+  output = {}
+  output[@[key]] = @[key] for key in [0...@length]
+  value for key, value of output
+
 
 # Some cards give you a constant benefit, such as +cards or +actions,
 # every time you play them; these benefits are defined directly on the card
