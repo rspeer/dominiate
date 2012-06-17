@@ -108,6 +108,9 @@ basicCard = {
   getBuys: (state) -> this.buys
   getTrash: (state) -> this.trash
   getVP: (player) -> this.vp
+  getMultiplier: () ->
+    if this.isMultiplier then this.multiplier
+    else 1
   
   # getPotion says whether the card provides a potion. There is only one
   # card for which this is true, which is Potion.
@@ -200,6 +203,13 @@ basicCard = {
   # `card` that may be a string or a card object, you can ensure that it is
   # a card object by looking up `c[card]`.
   toString: () -> this.name
+
+  # `ai_` methods define the default AI preferences for this card.
+  ai_multipliedValue: (state, my) ->
+    unless this.ai_playValue?
+      throw new Error("no ai_playValue for #{this}")
+    result = this.ai_playValue(state, my)
+    return result
 }
 
 # Base cards
@@ -260,6 +270,7 @@ makeCard 'Silver', basicCard, {
   isTreasure: true
   coins: 2
   startingSupply: (state) -> 40
+  ai_playValue: (state, my) -> 100
 }
 
 # Copper is actually more complex than Silver: its value can vary when modified
@@ -300,22 +311,44 @@ makeCard 'Potion', c.Silver, {
 # Action cards may derive from the virtual card called `action`.
 action = makeCard 'action', basicCard, {isAction: true}, true
 
-makeCard 'Village', action, {cost: 3, actions: 2, cards: 1}
+makeCard 'Village', action, {
+  cost: 3, actions: 2, cards: 1
+  ai_playValue: (state, my) -> 820
+}
 makeCard "Worker's Village", action, {
   cost: 4
   actions: 2
   cards: 1
   buys: 1
+  ai_playValue: (state, my) -> 832
 }
-makeCard 'Laboratory', action, {cost: 5, actions: 1, cards: 2}
-makeCard 'Smithy', action, {cost: 4, cards: 3}
-makeCard 'Festival', action, {cost: 5, actions: 2, coins: 2, buys: 1}
-makeCard 'Woodcutter', action, {cost: 3, coins: 2, buys: 1}
+makeCard 'Laboratory', action, {
+  cost: 5, actions: 1, cards: 2
+  ai_playValue: (state, my) -> 782
+}
+makeCard 'Smithy', action, {
+  cost: 4
+  cards: 3
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 665 else 200
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1540 else -1
+}
+makeCard 'Festival', action, {
+  cost: 5, actions: 2, coins: 2, buys: 1
+  ai_playValue: (state, my) -> 845
+}
+makeCard 'Woodcutter', action, {
+  cost: 3, coins: 2, buys: 1
+  ai_playValue: (state, my) -> 164
+}
 makeCard 'Market', action, {
   cost: 5, actions: 1, cards: 1, coins: 1, buys: 1
+  ai_playValue: (state, my) -> 775
 }
 makeCard 'Bazaar', action, {
   cost: 5, actions: 2, cards: 1, coins: 1
+  ai_playValue: (state, my) -> 835
 }
 
 # Kingdom Victory cards
@@ -370,6 +403,13 @@ makeCard 'Great Hall', c.Estate, {
   cost: 3
   cards: +1
   actions: +1
+
+  ai_playValue: (state, my) ->
+    if c.Crossroads in my.hand
+      520
+    else
+      742
+
 }
 
 makeCard 'Harem', c.Estate, {
@@ -377,6 +417,8 @@ makeCard 'Harem', c.Estate, {
   cost: 6
   coins: 2
   vp: 2
+  startingSupply: (state) -> 8
+  ai_playValue: (state, my) -> 100
 }
 
 makeCard 'Island', c.Estate, {
@@ -402,6 +444,8 @@ makeCard 'Island', c.Estate, {
     if this in state.current.inPlay
       state.current.inPlay.remove(this)
       state.current.mats.island.push(this)
+
+  ai_playValue: (state, my) -> 132
 }
 
 makeCard 'Nobles', c.Estate, {
@@ -413,13 +457,15 @@ makeCard 'Nobles', c.Estate, {
   # simple effects. We implement this using the `choose('benefit')` AI method,
   # which is passed a list of benefit objects, one of which it will choose
   # to apply to the state.
-  playEffect:
-    (state) ->
-      benefit = state.current.ai.choose('benefit', state, [
-        {actions: 2},
-        {cards: 3}
-      ])
-      applyBenefit(state, benefit)
+  playEffect: (state) ->
+    benefit = state.current.ai.choose('benefit', state, [
+      {actions: 2},
+      {cards: 3}
+    ])
+    applyBenefit(state, benefit)
+
+  ai_playValue: (state, my) -> 296
+  ai_multipliedValue: (state, my) -> 1340
 }
 
 makeCard 'Silk Road', c.Estate, {
@@ -464,6 +510,8 @@ makeCard 'Bank', treasure, {
     coins
   playEffect: (state) ->
     state.log("...which is worth #{this.getCoins(state)}.")
+
+  ai_playValue: (state, my) -> 20
 }
 
 makeCard 'Cache', treasure, {
@@ -520,6 +568,12 @@ makeCard "Horn of Plenty", treasure, {
     if choice.isVictory
       transferCard(this, state.current.inPlay, state.trash)
       state.log("...#{state.current.ai} trashes the Horn of Plenty.")
+
+  aiPlayValue: (state, my) ->
+    if my.numUniqueCardsInPlay() >= 2
+      10
+    else
+      -10
 }
 
 makeCard 'Ill-Gotten Gains', treasure, {
@@ -551,6 +605,8 @@ makeCard 'Loan', treasure, {
         state.log("...discarding the #{treasure}.")
         state.current.discard.push(treasure)
         state.handleDiscards(state.current, [treasure])
+
+  ai_playValue: (state, my) -> 70
 }
 
 makeCard "Philosopher's Stone", treasure, {
@@ -608,6 +664,8 @@ makeCard 'Venture', treasure, {
       state.log("...playing #{treasure}.")
       state.current.inPlay.push(treasure)
       treasure.onPlay(state)
+
+  ai_playValue: (state, my) -> 80
 }
 
 # Duration cards
@@ -657,6 +715,8 @@ makeCard 'Haven', duration, {
     if cardFromHaven?
       state.log("#{state.current.ai} picks up a #{cardFromHaven} from Haven.")
       state.current.hand.unshift(cardFromHaven)
+
+  ai_playValue: (state, my) -> 710
 }
 
 makeCard 'Caravan', duration, {
@@ -664,6 +724,7 @@ makeCard 'Caravan', duration, {
   cards: +1
   actions: +1
   durationCards: +1
+  ai_playValue: (state, my) -> 780
 }
 
 makeCard 'Fishing Village', duration, {
@@ -672,6 +733,7 @@ makeCard 'Fishing Village', duration, {
   actions: +2
   durationActions: +1
   durationCoins: +1
+  ai_playValue: (state, my) -> 823
 }
 
 makeCard 'Wharf', duration, {
@@ -680,12 +742,20 @@ makeCard 'Wharf', duration, {
   buys: +1
   durationCards: +2
   durationBuys: +1
+
+  ai_playValue: (state, my) -> 275
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1740 else -1
 }
 
 makeCard 'Merchant Ship', duration, {
   cost: 5
   coins: +2
   durationCoins: +2
+
+  ai_playValue: (state, my) -> 186
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1500 else -1
 }
 
 makeCard 'Lighthouse', duration, {
@@ -693,6 +763,7 @@ makeCard 'Lighthouse', duration, {
   actions: +1
   coins: +1
   durationCoins: +1
+  ai_playValue: (state, my) -> 715
 
   durationReactToAttack: (state, player, attackEvent) ->
     # Don't bother blocking the attack if it's already blocked (avoid log spam)
@@ -704,6 +775,12 @@ makeCard 'Lighthouse', duration, {
 makeCard 'Outpost', duration, {
   cost: 5
   #effect implemented by gameState
+
+  ai_playValue: (state, my) ->
+    if state.extraTurn
+      -15
+    else
+      154
 } 
 
 makeCard 'Tactician', duration, {
@@ -739,6 +816,11 @@ makeCard 'Tactician', duration, {
       state.log("#{state.current.ai} discards an inactive Tactician.")
       transferCard(c.Tactician, state.current.inPlay, state.current.discard)
       state.handleDiscards(state.current, [c.Tactician])
+
+  ai_playValue: (state, my) ->
+    # FIXME: playing Tactician is extremely situational and this doesn't take
+    # it into account.
+    272
 }
 
 # Trash-for-gain cards
@@ -776,6 +858,8 @@ makeCard 'Remodel', action, {
       state.doTrash(state.current, oldCard)
       if newCard isnt null
         state.gainCard(state.current, newCard)
+
+  ai_playValue: (state, my) -> 223
 }
 
 
@@ -830,6 +914,7 @@ makeCard 'Expand', c.Remodel, {
   cost: 7
 
   costFunction: (coins) -> coins + 3
+  ai_playValue: (state, my) -> 226
 }
 
 makeCard 'Upgrade', c.Remodel, {
@@ -839,6 +924,14 @@ makeCard 'Upgrade', c.Remodel, {
 
   exactCostUpgrade: true
   costFunction: (coins) -> coins + 1
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if wantsToTrash >= multiplier
+      490
+    else
+      -30
 }
 
 makeCard 'Remake', c.Remodel, {
@@ -855,6 +948,15 @@ makeCard 'Remake', c.Remodel, {
         state.doTrash(state.current, oldCard)
         if newCard isnt null
           state.gainCard(state.current, newCard)  
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if wantsToTrash >= multiplier*2
+      178
+    else
+      -35
+
 }
 
 makeCard 'Mine', c.Remodel, {
@@ -874,6 +976,10 @@ makeCard 'Mine', c.Remodel, {
       [oldCard, newCard] = choice
       state.doTrash(state.current, oldCard)
       state.gainCard(state.current, newCard, 'hand')
+
+  ai_playValue: (state, my) -> 217
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1260 else -1
 }
 
 # Prize cards
@@ -896,6 +1002,8 @@ makeCard 'Bag of Gold', prize, {
   playEffect: (state) ->
     state.gainCard(state.current, c.Gold, 'draw')
     state.log("...putting the Gold on top of the deck.")
+
+  ai_playValue: (state, my) -> 885
 }
 
 makeCard 'Diadem', prize, {
@@ -913,6 +1021,10 @@ makeCard 'Followers', prize, {
       state.gainCard(opp, c.Curse)
       if opp.hand.length > 3
         state.requireDiscard(opp, opp.hand.length - 3)
+
+  ai_playValue: (state, my) -> 292
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1890 else -1
 }
 
 # Since there is only one Princess card, and Princess's cost
@@ -924,6 +1036,9 @@ makeCard 'Princess', prize, {
       state.costModifiers.push
         source: this
         modify: (card) -> -2
+
+  ai_playValue: (state, my) -> 264
+
 }
 
 makeCard 'Trusty Steed', prize, {
@@ -937,6 +1052,8 @@ makeCard 'Trusty Steed', prize, {
       {coins: 2, horseEffect: yes}
     ])
     applyBenefit(state, benefit)
+
+  ai_playValue: (state, my) -> 848
 }
 
 # Attack cards
@@ -978,6 +1095,19 @@ makeCard 'Ambassador', attack, {
           state.gainCard(opp, card)
       else
         state.log("...but #{cardName} is not in the Supply.")
+
+  ai_playValue: (state, my) ->
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if wantsToTrash > 0
+      150
+    else
+      -20
+  ai_multipliedValue: (state, my) ->
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if my.actions > 0 and wantsToTrash > 0
+      1100
+    else
+      -1
 }
 
 makeCard 'Bureaucrat', attack, {
@@ -986,9 +1116,6 @@ makeCard 'Bureaucrat', attack, {
     state.gainCard(state.current, c.Silver, 'draw')
     state.attackOpponents (opp) ->
       victory = []
-      if not opp.hand?
-        state.log(opp)
-        throw new Error("#{opp} has no hand attribute")
       for card in opp.hand
         if card.isVictory
           victory.push(card)
@@ -999,6 +1126,8 @@ makeCard 'Bureaucrat', attack, {
         choice = opp.ai.choose('putOnDeck', state, victory)
         transferCardToTop(choice, opp.hand, opp.draw)
         state.log("#{opp.ai} returns #{choice} to the top of the deck.")
+
+  ai_playValue: (state, my) -> 128
 }
 
 makeCard 'Cutpurse', attack, {
@@ -1011,6 +1140,10 @@ makeCard 'Cutpurse', attack, {
         else
           state.log("#{opp.ai} has no Copper in hand.")
           state.revealHand(opp)
+
+  ai_playValue: (state, my) -> 250
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1180 else -1
 }
 
 makeCard 'Familiar', attack, {
@@ -1021,6 +1154,7 @@ makeCard 'Familiar', attack, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       state.gainCard(opp, c.Curse)
+  ai_playValue: (state, my) -> 755
 }
 
 makeCard 'Fortune Teller', attack, {
@@ -1035,6 +1169,8 @@ makeCard 'Fortune Teller', attack, {
         card = drawn[0]
         transferCardToTop(card, drawn, opp.draw)
         state.log("...#{opp.ai} puts #{card} on top of the deck.")
+
+  ai_playValue: (state, my) -> 130
 }
 
 makeCard 'Ghost Ship', attack, {
@@ -1051,6 +1187,12 @@ makeCard 'Ghost Ship', attack, {
         putBack = opp.ai.choose('putOnDeck', state, choices)
         state.log("...#{opp.ai} puts #{putBack} on top of the deck.")
         transferCardToTop(putBack, opp.hand, opp.draw)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 670 else 266
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1680 else -1
+
 }
 
 makeCard 'Jester', attack, {
@@ -1067,6 +1209,11 @@ makeCard 'Jester', attack, {
           state.gainCard(state.current, card)
         else
           state.gainCard(opp, card)
+
+  ai_playValue: (state, my) -> 258
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1660 else -1
+
 }
 
 makeCard 'Margrave', attack, {
@@ -1078,6 +1225,11 @@ makeCard 'Margrave', attack, {
       state.drawCards(opp, 1)
       if opp.hand.length > 3
         state.requireDiscard(opp, opp.hand.length - 3)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 685 else 280
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1560 else -1
 }
 
 makeCard "Militia", attack, {
@@ -1087,11 +1239,13 @@ makeCard "Militia", attack, {
   #
   # All attack effects are wrapped in the `state.attackOpponents`
   # method, to give opponents a chance to play reaction cards.
-  playEffect:
-    (state) ->
-      state.attackOpponents (opp) ->
-        if opp.hand.length > 3
-          state.requireDiscard(opp, opp.hand.length - 3)
+  playEffect: (state) ->
+    state.attackOpponents (opp) ->
+      if opp.hand.length > 3
+        state.requireDiscard(opp, opp.hand.length - 3)
+
+  ai_playValue: (state, my) -> 254
+
 }
 
 makeCard "Goons", c.Militia, {
@@ -1101,6 +1255,10 @@ makeCard "Goons", c.Militia, {
   buyInPlayEffect: (state, card) ->
     state.log("...getting +1 ▼.")
     state.current.chips += 1
+
+  ai_playValue: (state, my) -> 278
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1280 else -1
 }
 
 makeCard "Minion", attack, {
@@ -1124,6 +1282,11 @@ makeCard "Minion", attack, {
     else
       state.attackOpponents (opp) -> null
       player.coins += 2
+
+  ai_playValue: (state, my) ->
+    705
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1700 else -1
 }
 
 makeCard "Mountebank", attack, {
@@ -1137,6 +1300,9 @@ makeCard "Mountebank", attack, {
       else
         state.gainCard(opp, c.Copper)
         state.gainCard(opp, c.Curse)
+  ai_playValue: (state, my) -> 290
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1870 else -1
 }
 
 # Because attacking on buy does not count as playing an Attack, Noble Brigand's
@@ -1179,6 +1345,10 @@ makeCard 'Noble Brigand', attack, {
     opp.discard = opp.discard.concat(drawn)
     state.handleDiscards(opp, [drawn])
     state.log("...#{opp.ai} discards #{drawn}.")     
+
+  ai_playValue: (state, my) -> 134
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1440 else -1
 }
 
 makeCard 'Oracle', attack, {
@@ -1210,6 +1380,12 @@ makeCard 'Oracle', attack, {
         Array::unshift.apply(opp.draw, cards)
 
     state.drawCards(player, 2)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 610 else 180
+
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1200 else -1
 }
 
 makeCard 'Pirate Ship', attack, {
@@ -1248,6 +1424,10 @@ makeCard 'Pirate Ship', attack, {
       if attackSuccess
         state.current.mats.pirateShip += 1
         state.log("...#{state.current.ai} takes a Coin token (#{state.current.mats.pirateShip} on the mat).")
+
+  ai_playValue: (state, my) -> 136
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1480 else -1
 }
 
 makeCard 'Rabble', attack, {
@@ -1271,6 +1451,11 @@ makeCard 'Rabble', attack, {
         state.log("...putting #{order} back on the deck.")
         opp.draw = order.concat(opp.draw)
         opp.setAside = []
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 680 else 206
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1600 else -1
 }
 
 makeCard 'Saboteur', attack, {
@@ -1297,6 +1482,10 @@ makeCard 'Saboteur', attack, {
           state.log("...#{opp.ai} gains #{newCard}.")
         else
           state.log("...#{opp.ai} gains nothing.")
+
+  ai_playValue: (state, my) -> 104
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1460 else -1
 }
 
 makeCard 'Scrying Pool', attack, {
@@ -1313,6 +1502,8 @@ makeCard 'Scrying Pool', attack, {
     loop
       drawn = state.drawCards(state.current, 1)[0]
       break if (not drawn?) or (not drawn.isAction)
+
+  ai_playValue: (state, my) -> 870
 }
 
 makeCard 'Sea Hag', attack, {
@@ -1322,6 +1513,13 @@ makeCard 'Sea Hag', attack, {
       state.discardFromDeck(opp, 1)
       state.gainCard(opp, c.Curse, 'draw')
       state.log("...putting the Curse on top of the deck.")
+
+  ai_playValue: (state, my) -> 286
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 and state.countInSupply('Curse') >= 2
+      1850
+    else
+      -1
 }
 
 makeCard 'Spy', attack, {
@@ -1334,6 +1532,9 @@ makeCard 'Spy', attack, {
 
     state.attackOpponents (opp) ->
       spyDecision(state.current, opp, state, 'discardFromOpponentDeck')
+
+  ai_playValue: (state, my) -> 860
+
 }
 
 makeCard 'Thief', attack, {
@@ -1359,9 +1560,13 @@ makeCard 'Thief', attack, {
       opp.discard = opp.discard.concat(drawn)
       state.handleDiscards(opp, [drawn])
       state.log("...#{opp.ai} discards #{drawn}.")
+  
+  ai_playValue: (state, my) -> 100
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1420 else -1
 }
 
-makeCard 'Torturer', attack, {
+makeCard "Torturer", attack, {
   cost: 5
   cards: +3
   playEffect: (state) ->
@@ -1370,6 +1575,15 @@ makeCard 'Torturer', attack, {
         state.gainCard(opp, c.Curse, 'hand')
       else
         state.requireDiscard(opp, 2)
+  
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 690 else 284
+
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 and state.countInSupply('Curse') >= 2
+      1840
+    else
+      -1
 }
 
 makeCard 'Witch', attack, {
@@ -1378,6 +1592,15 @@ makeCard 'Witch', attack, {
   playEffect: (state) ->
     state.attackOpponents (opp) ->
       state.gainCard(opp, c.Curse)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 675 else 288
+
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 and state.countInSupply("Curse") >= 2
+      1860
+    else
+      -1
 }
 
 makeCard 'Young Witch', attack, {
@@ -1412,7 +1635,14 @@ makeCard 'Young Witch', attack, {
         state.log("#{opp.ai} is protected by the Bane card, #{bane}.")
       else
         state.gainCard(opp, c.Curse)
-    
+
+  ai_playValue: (state, my) -> 282    
+
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 and state.countInSupply('Curse') >= 2
+      1830
+    else
+      -1
 }
 
 # Miscellaneous cards
@@ -1432,6 +1662,9 @@ makeCard 'Adventurer', action, {
       treasures = drawn
       state.current.hand = state.current.hand.concat(treasures)
       state.log("...#{state.current.ai} draws #{treasures}.")
+
+  ai_playValue: (state, my) -> 176
+
 }
 
 makeCard 'Alchemist', action, {
@@ -1442,8 +1675,10 @@ makeCard 'Alchemist', action, {
 
   cleanupEffect:
     (state) ->
-      if c.Potion in state.current.inPlay
+      if c.Potion in state.current.inPlay and c.Alchemist in state.current.inPlay
         transferCardToTop(c.Alchemist, state.current.inPlay, state.current.draw)
+
+  ai_playValue: (state, my) -> 785
 }
 
 makeCard 'Apothecary', action, {
@@ -1470,6 +1705,8 @@ makeCard 'Apothecary', action, {
       state.log("...putting #{order} back on the deck.")
       state.current.draw = order.concat(state.current.draw)
       state.current.setAside = []
+
+  ai_playValue: (state, my) -> 880
 }
 
 makeCard 'Apprentice', action, {
@@ -1482,6 +1719,7 @@ makeCard 'Apprentice', action, {
       [coins, potions] = toTrash.getCost(state)
       state.doTrash(state.current, toTrash)
       state.drawCards(state.current, coins+2*potions)
+  ai_playValue: (state, my) -> 730
 }
 
 makeCard 'Baron', action, {
@@ -1496,6 +1734,16 @@ makeCard 'Baron', action, {
       state.current.coins += 4
     else
       state.gainCard(state.current, c.Estate)
+
+  ai_playValue: (state, my) ->
+    if c.Estate in my.hand
+      184
+    else 
+      if my.ai.cardInDeckValue(state, c.Estate, my) > 0
+        5
+      else
+        -5
+
 }
 
 makeCard 'Bishop', action, {
@@ -1515,6 +1763,8 @@ makeCard 'Bishop', action, {
 
     for opp in state.players[1...]
       state.allowTrash(opp, 1)
+
+  ai_playValue: (state, my) -> 243
 }
 
 makeCard 'Border Village', c.Village, {
@@ -1529,6 +1779,7 @@ makeCard 'Border Village', c.Village, {
         if potions <= myPotions and coins < myCoins
           choices.push(c[card])
     state.gainOneOf(player, choices)
+  ai_playValue: (state, my) -> 817
 }
 
 makeCard 'Bridge', action, {
@@ -1539,6 +1790,9 @@ makeCard 'Bridge', action, {
     state.costModifiers.push
       source: this
       modify: (card) -> -1
+  ai_playValue: (state, my) -> 246
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1720 else -1
 }
 
 makeCard 'Cartographer', action, {
@@ -1562,6 +1816,9 @@ makeCard 'Cartographer', action, {
     order = player.ai.chooseOrderOnDeck(state, kept, player)
     state.log("#{player.ai} puts #{order} back on the deck.")
     player.draw = order.concat(player.draw)
+
+  ai_playValue: (state, my) -> 890
+
 }
 
 makeCard 'Cellar', action, {
@@ -1572,6 +1829,8 @@ makeCard 'Cellar', action, {
     state.allowDiscard(state.current, Infinity)
     numDiscarded = startingCards - state.current.hand.length
     state.drawCards(state.current, numDiscarded)
+
+  ai_playValue: (state, my) -> 450
 }
 
 makeCard 'Chancellor', action, {
@@ -1587,6 +1846,9 @@ makeCard 'Chancellor', action, {
       player.draw = []
       player.discard = player.discard.concat(draw)
       state.handleDiscards(state.current, draw)
+
+  ai_playValue: (state, my) -> 160
+
 }
 
 makeCard 'Chapel', action, {
@@ -1594,6 +1856,13 @@ makeCard 'Chapel', action, {
   playEffect:
     (state) ->
       state.allowTrash(state.current, 4)
+
+  ai_playValue: (state, my) ->
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if wantsToTrash > 0
+      146
+    else
+      30
 }
 
 makeCard 'City', action, {
@@ -1618,6 +1887,8 @@ makeCard 'City', action, {
       1
     else
       0
+
+  ai_playValue: (state, my) -> 829
 }
 
 makeCard 'Conspirator', action, {
@@ -1634,6 +1905,15 @@ makeCard 'Conspirator', action, {
       1
     else
       0
+
+  ai_playValue: (state, my) ->
+    if my.inPlay.length >= 2 or my.getCurrentAction()?.isMultiplier
+      760
+    else if my.actions < 2
+      124
+    else
+      10
+  ai_multipliedValue: (state, my) -> 1380
 }
 
 makeCard 'Coppersmith', action, {
@@ -1641,6 +1921,17 @@ makeCard 'Coppersmith', action, {
   playEffect:
     (state) ->
       state.copperValue += 1
+
+  ai_playValue: (state, my) ->
+    switch my.countInHand("Copper")
+      when 0, 1 then 105
+      when 2 then 156
+      else 213
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 and my.countInHand('Copper') >= 2
+      1140
+    else
+      -1
 }
 
 makeCard 'Council Room', action, {
@@ -1650,6 +1941,11 @@ makeCard 'Council Room', action, {
   playEffect: (state) ->
     for opp in state.players[1...]
       state.drawCards(opp, 1)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 0 then 619 else 194
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1580 else -1
 }
 
 makeCard 'Counting House', action, {
@@ -1659,6 +1955,9 @@ makeCard 'Counting House', action, {
     state.current.discard = (card for card in state.current.discard when card!=c.Copper)
     Array::push.apply state.current.hand, coppersFromDiscard
     state.log("#{state.current.ai} puts " + coppersFromDiscard.length + " Coppers into his hand.")
+
+  ai_playValue: (state, my) -> 158
+
 }
 
 makeCard 'Courtyard', action, {
@@ -1668,6 +1967,12 @@ makeCard 'Courtyard', action, {
     if state.current.hand.length > 0
       card = state.current.ai.choose('putOnDeck', state, state.current.hand)
       state.doPutOnDeck(state.current, card)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1 and (my.discard.length + my.draw.length) <= 3
+      return 615
+    else
+      return 188
 }
 
 makeCard 'Crossroads', action, {
@@ -1683,6 +1988,21 @@ makeCard 'Crossroads', action, {
 
     nVictory = (card for card in state.current.hand when card.isVictory).length
     state.drawCards(state.current, nVictory)
+
+  ai_playValue: (state, my) ->
+    # FIXME: This represents a particularly dumb strategy. It doesn't even take
+    # into account whether it has any victory cards, or whether it could draw
+    # more.
+    if my.countInPlay(state.cardInfo.Crossroads) > 0
+      return 298
+    else
+      return 580
+
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 or my.countInPlay(c.Crossroads) == 0
+      1800
+    else
+      -1
 }
 
 makeCard 'Duchess', action, {
@@ -1701,6 +2021,8 @@ makeCard 'Duchess', action, {
         else
           state.log("...choosing to put it back.")
           pl.draw.unshift(drawn)
+
+  ai_playValue: (state, my) -> 102
 }
 
 makeCard 'Embassy', action, {
@@ -1713,6 +2035,11 @@ makeCard 'Embassy', action, {
     for pl in state.players
       if pl isnt player
         state.gainCard(pl, c.Silver)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 660 else 198
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1520 else -1
 }
 
 makeCard 'Envoy', action, {
@@ -1729,6 +2056,8 @@ makeCard 'Envoy', action, {
       state.log("#{neighbor.ai} chooses for #{state.current.ai} to discard #{choice}.")
       transferCard(choice, drawn, state.current.discard)
       Array::push.apply state.current.hand, drawn
+
+  ai_playValue: (state, my) -> 203
 }
 
 makeCard 'Explorer', action, {
@@ -1746,6 +2075,12 @@ makeCard 'Explorer', action, {
       state.log("…and gaining a #{cardToGain}, putting it in the hand.")
     else
       state.log("…but there are no #{cardToGain}s available to gain.")
+
+  ai_playValue: (state, my) ->
+    if my.countInHand("Province") > 1
+      282
+    else
+      166
 }
 
 makeCard 'Farming Village', action, {
@@ -1759,6 +2094,7 @@ makeCard 'Farming Village', action, {
       card = drawn[0]
       state.log("...#{state.current.ai} draws #{card}.")
       state.current.hand.push(card)
+  ai_playValue: (state, my) -> 838
 }
 
 makeCard "Feast", action, {
@@ -1779,6 +2115,10 @@ makeCard "Feast", action, {
       if potions == 0 and coins <= 5
         choices.push(card)
     state.gainOneOf(state.current, choices)
+
+  ai_playValue: (state, my) -> 108
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1390 else -1
 }
 
 makeCard 'Golem', action, {
@@ -1790,7 +2130,7 @@ makeCard 'Golem', action, {
       2
     )
     if drawn.length > 0
-      firstAction = state.current.ai.choose('action', state, drawn)
+      firstAction = state.current.ai.choose('play', state, drawn)
       drawn.remove(firstAction)
       secondAction = drawn[0]
       actions = [firstAction, secondAction]
@@ -1800,6 +2140,8 @@ makeCard 'Golem', action, {
           state.current.inPlay.push(card)
           state.current.playLocation = 'inPlay'
           state.resolveAction(card)
+
+  ai_playValue: (state, my) -> 743
 }
 
 makeCard "Grand Market", c.Market, {
@@ -1811,6 +2153,8 @@ makeCard "Grand Market", c.Market, {
   # Grand Market is the only card with a non-constant mayBeBought value.
   mayBeBought: (state) ->
     not(c.Copper in state.current.inPlay)
+  ai_playValue: (state, my) -> 795
+  ai_playValue: (state, my) -> 880
 }
 
 makeCard 'Haggler', action, {
@@ -1827,6 +2171,9 @@ makeCard 'Haggler', action, {
       else if (potions2 < potions1) and (coins2 == coins1) and not card2.isVictory
         choices.push(card2)        
     state.gainOneOf(state.current, choices)
+
+  ai_playValue: (state, my) -> 170
+
 }
 
 makeCard "Hamlet", action, {
@@ -1850,6 +2197,7 @@ makeCard "Hamlet", action, {
         {cards: 1}
       ])
       applyBenefit(state, benefit)
+  ai_playValue: (state, my) -> 720
 }
 
 makeCard "Harvest", action, {
@@ -1862,6 +2210,8 @@ makeCard "Harvest", action, {
         unique.push(card)
     state.current.coins += unique.length
     state.log("...gaining +$#{unique.length}.")
+
+  ai_playValue: (state, my) -> 174
 }
 
 makeCard "Herbalist", action, {
@@ -1880,6 +2230,7 @@ makeCard "Herbalist", action, {
       state.log("#{state.current.ai} uses Herbalist to put #{choice} back on the deck.")
       transferCardToTop(choice, state.current.inPlay, state.current.draw)
       
+  ai_playValue: (state, my) -> 122
 }
 
 makeCard "Highway", action, {
@@ -1891,6 +2242,8 @@ makeCard "Highway", action, {
     state.costModifiers.push
       source: this
       modify: (card) -> -1
+
+  ai_playValue: (state, my) -> 750
 }
 
 makeCard "Horse Traders", action, {
@@ -1912,7 +2265,13 @@ makeCard "Horse Traders", action, {
   
   reactToAttack:
     (state, player, attackEvent) ->
-      transferCard(c['Horse Traders'], player.hand, player.duration)
+      if c['Horse Traders'] in player.hand
+        transferCard(c['Horse Traders'], player.hand, player.duration)
+
+  ai_playValue: (state, my) -> 240
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1640 else -1
+
 }
 
 # So far Hunting Party is the only card that digs for something 
@@ -1930,6 +2289,8 @@ makeCard 'Hunting Party', action, {
       card = drawn[0]
       state.log("...#{state.current.ai} draws #{card}.")
       state.current.hand.push(card)
+
+  ai_playValue: (state, my) -> 790
 }
 
 makeCard 'Ironworks', action, {
@@ -1949,6 +2310,10 @@ makeCard 'Ironworks', action, {
       state.current.coins += 1
     if gained.isVictory
       state.current.drawCards(1)
+
+  # FIXME: The current ai_playValue assumes that Ironworks is a terminal.
+  # If it wants to gain an action, it should have a higher value.
+  ai_playValue: (state, my) -> 115
 }
 
 # Jack of All Trades is a complex card made up of steps that are simple
@@ -1982,6 +2347,7 @@ makeCard 'Jack of All Trades', action, {
     if choice?
       state.doTrash(state.current, choice)
 
+  ai_playValue: (state, my) -> 236
 }
 
 makeCard "King's Court", action, {
@@ -1996,7 +2362,7 @@ makeCard "King's Court", action, {
       state.log("...but has no action to play with the #{this}.")
     else
       choices.push(null) if @optional
-      action = state.current.ai.choose('multipliedAction', state, choices)
+      action = state.current.ai.choose('multiplied', state, choices)
       if action is null
         state.log("...choosing not to play an action.")
       else
@@ -2041,9 +2407,14 @@ makeCard "King's Court", action, {
     # the number of times it happens is not strictly related to the number of
     # multipliers in the duration area. It took a very long BGG thread to
     # figure this out.
+
+  ai_playValue: (state, my) ->
+    if my.ai.wantsToPlayMultiplier(state) then 910 else 390
+
+  ai_multipliedValue: (state, my) -> 2000
 }
 
-makeCard 'Library', action, {
+makeCard "Library", action, {
   cost: 5
 
   playEffect: (state) ->
@@ -2076,6 +2447,24 @@ makeCard 'Library', action, {
     player.setAside = []
     state.handleDiscards(state.current, discards)
 
+  ai_playValue: (state, my) ->
+    if my.actions > 1
+      switch my.hand.length
+        when 0, 1, 2, 3 then 955
+        when 4 then 695
+        when 5 then 620
+        when 6 then 420
+        when 7 then 101
+        else 20
+    else
+      switch my.hand.length
+        when 0, 1, 2, 3 then 260
+        when 4 then 210
+        when 5 then 192
+        when 6 then 118
+        when 7 then 101
+        else 20
+
 }
 
 makeCard "Lookout", action, {
@@ -2103,6 +2492,13 @@ makeCard "Lookout", action, {
     state.log("...putting #{drawn} back on the deck.")
     state.current.draw = state.current.setAside.concat(state.current.draw)
     state.current.setAside = []
+
+  ai_playValue: (state, my) ->
+    if state.gainsToEndGame >= 5 or state.cardInfo.Curse in my.draw
+      895
+    else
+      -5
+
 }
 
 makeCard "Mandarin", action, {
@@ -2122,6 +2518,11 @@ makeCard "Mandarin", action, {
       order = player.ai.chooseOrderOnDeck(state, treasures, state.current)
       state.log("...putting #{order} back on the deck.")
       player.draw = order.concat(player.draw)
+
+  ai_playValue: (state, my) -> 168
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1620 else -1
+
 }
 
 makeCard "Masquerade", action, {
@@ -2146,6 +2547,11 @@ makeCard "Masquerade", action, {
 
     # Allow the Masquerade player to trash a card.
     state.allowTrash(state.current, 1)
+
+  ai_playValue: (state, my) -> 270
+
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1240 else -1
 }
 
 makeCard "Menagerie", action, {
@@ -2154,6 +2560,10 @@ makeCard "Menagerie", action, {
   playEffect: (state) ->
     state.revealHand(state.current)
     state.drawCards(state.current, state.current.menagerieDraws())
+  
+  ai_playValue: (state, my) ->
+    if my.menagerieDraws() == 3 then 980 else 340
+
 }
 
 makeCard "Mining Village", c.Village, {
@@ -2165,6 +2575,8 @@ makeCard "Mining Village", c.Village, {
         state.current.playLocation = 'trash'
         state.log("...trashing the Mining Village for +$2.")
         state.current.coins += 2
+
+  ai_playValue: (state, my) -> 814
 }
 
 makeCard "Mint", action, {
@@ -2188,6 +2600,14 @@ makeCard "Mint", action, {
     choice = state.current.ai.choose('mint', state, treasures)
     if choice isnt null
       state.gainCard(state.current, choice)
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if my.ai.choose('mint', state, my.hand)
+      140
+    else
+      -7
 }
 
 makeCard "Moat", action, {
@@ -2200,6 +2620,8 @@ makeCard "Moat", action, {
     unless attackEvent.blocked
       state.log("#{player.ai} is protected by a Moat.")
       attackEvent.blocked = true
+
+  ai_playValue: (state, my) -> 120
 }
 
 makeCard 'Moneylender', action, {
@@ -2209,6 +2631,8 @@ makeCard 'Moneylender', action, {
     if c.Copper in state.current.hand
       state.doTrash(state.current, c.Copper)
       state.current.coins += 3
+
+  ai_playValue: (state, my) -> 230
 }
 
 makeCard "Monument", action, {
@@ -2217,6 +2641,10 @@ makeCard "Monument", action, {
   playEffect:
     (state) ->
       state.current.chips += 1
+
+  ai_playValue: (state, my) -> 182
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1400 else -1
 }
 
 makeCard 'Nomad Camp', c.Woodcutter, {
@@ -2227,6 +2655,8 @@ makeCard 'Nomad Camp', c.Woodcutter, {
       transferCardToTop(c['Nomad Camp'], player[player.gainLocation], player.draw)
       player.gainLocation = 'draw'
       state.log("...putting the Nomad Camp on top of the deck.")
+
+  ai_playValue: (state, my) -> 162
 }
 
 makeCard 'Navigator', action, {
@@ -2244,6 +2674,8 @@ makeCard 'Navigator', action, {
       state.log("...discarding #{drawn}.")
       Array::push.apply state.current.discard, drawn
       state.handleDiscards(state.current, drawn)
+
+  ai_playValue: (state, my) -> 126
 }
 
 makeCard 'Oasis', action, {
@@ -2254,6 +2686,8 @@ makeCard 'Oasis', action, {
 
   playEffect: (state) ->
     state.requireDiscard(state.current, 1)
+
+  ai_playValue: (state, my) -> 480
 }
 
 makeCard 'Pawn', action, {
@@ -2269,6 +2703,8 @@ makeCard 'Pawn', action, {
         {buys: 1, coins: 1}
       ])
       applyBenefit(state, benefit)
+
+  ai_playValue: (state, my) -> 470
 }
 
 makeCard 'Pearl Diver', action, {
@@ -2288,6 +2724,8 @@ makeCard 'Pearl Diver', action, {
         player.draw.unshift(bottomCard)
     else
       state.log("...but the draw pile is empty.")
+  ai_playValue: (state, my) -> 725
+
 }
 
 makeCard 'Peddler', action, {
@@ -2302,6 +2740,7 @@ makeCard 'Peddler', action, {
       if cost < 0
         cost = 0
     cost
+  ai_playValue: (state, my) -> 770
 }
 
 makeCard 'Salvager', action, {
@@ -2314,6 +2753,8 @@ makeCard 'Salvager', action, {
       [coins, potions] = toTrash.getCost(state)
       state.doTrash(state.current, toTrash)
       state.current.coins += coins
+
+  ai_playValue: (state, my) -> 220
 }
 
 makeCard 'Scheme', action, {
@@ -2327,6 +2768,10 @@ makeCard 'Scheme', action, {
     if choice isnt null
       state.log("#{state.current.ai} uses Scheme to put #{choice} back on the deck.")
       transferCardToTop(choice, state.current.inPlay, state.current.draw)
+  
+  ai_playValue: (state, my) -> 745
+  ai_multipliedValue: (state, my) ->
+    if my.countInDeck("King's Court") > 2 then 1780 else -1
 }
 
 makeCard 'Scout', action, {
@@ -2350,10 +2795,13 @@ makeCard 'Scout', action, {
       state.log("...putting #{order} back on the deck.")
       state.current.draw = order.concat(state.current.draw)
       state.current.setAside = []
+
+  ai_playValue: (state, my) -> 875
+
 }
 
-# Secret Chamber
-# Initial code by Jorbles
+# Secret Chamber -- Initial code by Jorbles
+#
 # This is far from optimal, but I believe it does what the card
 # is supposed to do without breaking any rules. I may have to come
 # back to this when my coffee skills are stronger. And I have a 
@@ -2379,6 +2827,8 @@ makeCard "Secret Chamber", action, {
     card = player.ai.choose('putOnDeck', state, player.hand)
     if card isnt null
       state.doPutOnDeck(player, card)
+
+  ai_playValue: (state, my) -> 138
 }
 
 makeCard 'Shanty Town', action, {
@@ -2387,12 +2837,23 @@ makeCard 'Shanty Town', action, {
   playEffect: (state) ->
     state.revealHand(state.current)
     state.drawCards(state.current, state.current.shantyTownDraws())
+
+  ai_playValue: (state, my) ->
+    if my.shantyTownDraws(true) == 2
+      970
+    else if my.actions < 2
+      340
+    else
+      70
 }
 
 makeCard 'Smugglers', action, {
   cost: 3
   playEffect: (state) ->
     state.gainOneOf(state.current, state.smugglerChoices())
+
+  ai_playValue: (state, my) -> 110
+
 }
 
 makeCard 'Spice Merchant', action, {
@@ -2408,6 +2869,18 @@ makeCard 'Spice Merchant', action, {
         {coins: 2, buys: 1}
       ])
       applyBenefit(state, benefit)
+
+  ai_playValue: (state, my) ->
+    if c.Copper in my.hand 
+      740
+    else
+      trashChoices = (card for card in state.current.hand when card.isTreasure)
+      trashChoices.push(null)
+
+      if my.ai.choose('spiceMerchantTrash', state, trashChoices)
+        410
+      else
+        80
 }
 
 makeCard 'Stables', action, {
@@ -2420,6 +2893,13 @@ makeCard 'Stables', action, {
       state.doDiscard(state.current, discarded)
       state.drawCards(state.current, 3)
       state.current.actions += 1
+  ai_playValue: (state, my) ->
+    discardChoices = (card for card in state.current.hand when card.isTreasure)
+    discardChoices.push(null)
+    if my.ai.choose('stablesDiscard', state, discardChoices)
+      735
+    else
+      50
 }
 
 makeCard 'Steward', action, {
@@ -2432,12 +2912,26 @@ makeCard 'Steward', action, {
         {trash: 2}
       ])
       applyBenefit(state, benefit)
+
+  ai_playValue: (state, my) -> 233
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1300 else -1
 }
 
 makeCard 'Throne Room', c["King's Court"], {
   cost: 4
   multiplier: 2
   optional: false
+
+  ai_playValue: (state, my) ->
+    if my.ai.wantsToPlayMultiplier(state)
+      920
+    else if my.ai.okayToPlayMultiplier(state)
+      380
+    else
+      -50
+  
+  ai_multipliedValue: (state, my) -> 1900
 }
 
 makeCard 'Tournament', action, {
@@ -2480,6 +2974,10 @@ makeCard 'Tournament', action, {
       if not opposingProvince
         state.current.coins += 1
         state.current.drawCards(1)
+
+  ai_playValue: (state, my) ->
+    if my.countInHand('Province') == 3 then 960 else 360
+
 }
 
 makeCard "Trade Route", action, {
@@ -2499,6 +2997,14 @@ makeCard "Trade Route", action, {
 
   getCoins: (state) ->
     state.cardState[this].mat.length
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if wantsToTrash >= multiplier
+      160
+    else
+      -25
 }
 
 makeCard "Trader", action, {
@@ -2516,6 +3022,14 @@ makeCard "Trader", action, {
   reactReplacingGain: (state, player, card) ->
     card = player.ai.choose('gain', state, [c.Silver, card])
     return c[card]
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if wantsToTrash >= multiplier
+      142
+    else
+      -22
 }
 
 makeCard "Trading Post", action, {
@@ -2524,6 +3038,15 @@ makeCard "Trading Post", action, {
     state.requireTrash(state.current, 2)
     state.gainCard(state.current, c.Silver, 'hand')
     state.log("...gaining a Silver in hand.")    
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if wantsToTrash >= multiplier*2
+      148
+    else
+      -38
+
 }
 
 makeCard "Transmute", action, {
@@ -2540,6 +3063,14 @@ makeCard "Transmute", action, {
         state.gainCard(state.current, c.Transmute)
       if trashed.isVictory
         state.gainCard(state.current, c.Gold)
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state)
+    if my.ai.choose('mint', state, my.hand)
+      106
+    else
+      -27
 }
 
 makeCard 'Treasure Map', action, {
@@ -2564,7 +3095,15 @@ makeCard 'Treasure Map', action, {
         if state.countInSupply(c.Gold) > 0
           state.gainCard(state.current, c.Gold, 'draw')
           numGolds += 1
-      state.log("…gaining #{numGolds} Golds, putting them on top of the deck.")      
+      state.log("…gaining #{numGolds} Golds, putting them on top of the deck.")
+
+  ai_playValue: (state, my) ->
+    if my.countInHand("Treasure Map") >= 2
+      294
+    else if my.countInDeck("Gold") >= 4 and state.current.countInDeck("Treasure Map") == 1
+      90
+    else
+      -40
 }
 
 makeCard 'Treasury', c.Market, {
@@ -2583,9 +3122,11 @@ makeCard 'Treasury', c.Market, {
       state.cardState[this].mayReturnTreasury = no
 
   cleanupEffect: (state) ->    
-    if state.cardState[this].mayReturnTreasury
+    if state.cardState[this].mayReturnTreasury and c.Treasury in state.current.inPlay
       transferCardToTop(c.Treasury, state.current.inPlay, state.current.draw)
       state.log("#{state.current.ai} returns a Treasury to the top of the deck.")
+
+  ai_playValue: (state, my) -> 765
 }
 
 makeCard 'Tribute', action, {
@@ -2606,6 +3147,11 @@ makeCard 'Tribute', action, {
         state.current.coins += 2
       if card.isVictory
         state.current.drawCards(2)
+
+  ai_playValue: (state, my) ->
+    # after Cursers but before other terminals; there is probably a better spot for it
+    281
+  ai_multipliedValue: (state, my) -> 1320
 }
 
 makeCard 'University', action, {
@@ -2620,6 +3166,7 @@ makeCard 'University', action, {
       if potions == 0 and coins <= 5 and card.isAction
         choices.push(card)
     state.gainOneOf(state.current, choices)
+  ai_playValue: (state, my) -> 842
 }
 
 makeCard 'Vault', action, {
@@ -2636,10 +3183,15 @@ makeCard 'Vault', action, {
         discarded = state.requireDiscard(opp, 2)
         if discarded.length == 2
           state.drawCards(opp, 1)
+
+  ai_playValue: (state, my) -> 268
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1220 else -1
 }
 
 makeCard 'Walled Village', c.Village, {
   cost: 4
+  ai_playValue: (state, my) -> 826
   
   #Clean up effect defined in `State.doCleanupPhase`
 }
@@ -2650,6 +3202,8 @@ makeCard 'Warehouse', action, {
   playEffect: (state) ->
     state.drawCards(state.current, 3)
     state.requireDiscard(state.current, 3)
+
+  ai_playValue: (state, my) -> 460
 }
 
 makeCard 'Watchtower', action, {
@@ -2677,6 +3231,17 @@ makeCard 'Watchtower', action, {
       state.log("#{player.ai} reveals a Watchtower and puts the #{card} on the deck.")
       player.gainLocation = 'draw'
       transferCardToTop(card, source, player.draw)
+
+  ai_playValue: (state, my) ->
+    if my.actions > 1
+      switch my.hand.length
+        when 0, 1, 2, 3, 4 then 650
+        else -1
+    else
+      switch my.hand.length
+        when 0, 1, 2, 3 then 196
+        when 4 then 190
+        else -1
 }
 
 makeCard 'Wishing Well', action, {
@@ -2701,6 +3266,8 @@ makeCard 'Wishing Well', action, {
         state.current.draw.unshift(card)
     else
       state.log("...drawing nothing.")
+
+  ai_playValue: (state, my) -> 745
 }
 
 makeCard 'Workshop', action, {
@@ -2713,6 +3280,8 @@ makeCard 'Workshop', action, {
       if potions == 0 and coins <= 4 and state.supply[cardName] > 0
         choices.push(card)
     state.gainOneOf(state.current, choices)
+
+  ai_playValue: (state, my) -> 112
 }
 
 # Utility functions

@@ -101,6 +101,16 @@ class PlayerState
   getCurrentAction: () ->
     @actionStack[@actionStack.length - 1]
 
+  # `getMultiplier()` gets the value of the multipier that is currently being
+  # played: 1 in most cases, 2 after playing Throne Room, 3 after playing
+  # King's Court.
+  getMultiplier: () ->
+    action = this.getCurrentAction()
+    if action?
+      return action.getMultiplier()
+    else
+      return 1
+
   # `countInDeck(card)` counts the number of copies of a card in the deck.
   # The card may be specified either by name or as a card object.
   countInDeck: (card) ->
@@ -138,12 +148,12 @@ class PlayerState
   countVP: this.getVP
   
   # `getTotalMoney()` adds up the total money in the player's deck,
-  # including *all* cards that provide a constant number of +$, not just
-  # Treasure.
+  # including both Treasure and +$x, +y Actions cards.
   getTotalMoney: () ->
     total = 0
     for card in this.getDeck()
-      total += card.coins
+      if card.isTreasure or card.actions >= 1
+        total += card.coins
     total
   totalMoney: this.getTotalMoney
 
@@ -445,6 +455,16 @@ class State
   initialize: (ais, tableau, logFunc) ->
     this.logFunc = logFunc
     @players = (new PlayerState().initialize(ai, this.logFunc) for ai in ais)
+    @players = []
+    playerNum = 0
+    for ai in ais
+      #playerNum += 1
+      #if ai.name[2] == ':'
+      #  ai.name = ai.name[3...]
+      #ai.name = "P#{playerNum}:#{ai.name}"
+      player = new PlayerState().initialize(ai, this.logFunc)
+      @players.push(player)
+
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
@@ -580,11 +600,14 @@ class State
     return false if @phase != 'start'
 
     # Check all the conditions in which empty piles can end the game.
+    # Add a fake game-ending condition, too, which is a stalemate the SillyAI
+    # sometimes ends up in.
     emptyPiles = this.emptyPiles()
     if emptyPiles.length >= this.totalPilesToEndGame() \
         or (@nPlayers < 5 and emptyPiles.length >= 3) \
         or 'Province' in emptyPiles \
-        or 'Colony' in emptyPiles
+        or 'Colony' in emptyPiles \
+        or ('Curse' in emptyPiles and 'Copper' in emptyPiles and @current.turnsTaken >= 100)
       this.log("Empty piles: #{emptyPiles}")
       for [playerName, vp, turns] in this.getFinalStatus()
         this.log("#{playerName} took #{turns} turns and scored #{vp} points.")
@@ -879,6 +902,7 @@ class State
   # wants to buy in the current state.
   getSingleBuyDecision: () ->
     buyable = [null]
+    checkSuicide = (this.depth == 0 and this.gainsToEndGame() <= 2)
     for cardname, count of @supply
       # Because the supply must reference cards by their names, we use
       # `c[cardname]` to get the actual object for the card.
@@ -893,8 +917,8 @@ class State
     # Don't allow cards that will lose us the game
     #
     # Note that this just cares for the buyPhase, gains by other means (Workshop) are not covered
-    
-    buyable = (card for card in buyable when (not this.buyCausesToLose(@current, this, card)) )
+    if checkSuicide
+      buyable = (card for card in buyable when (not this.buyCausesToLose(@current, this, card)))
         
     # Ask the AI for its choice.
     this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
@@ -1035,7 +1059,8 @@ class State
   # is the appropriate PlayerState object to affect. This must, of course,
   # be one of the objects in the `@players` array.
   gainCard: (player, card, gainLocation='discard', suppressMessage=false) ->
-    delete @cache.gainsToEndGame
+    if this.depth == 0
+      delete @cache.gainsToEndGame
     if @supply[card] > 0 or @specialSupply[card] > 0
       for i in [player.hand.length-1...-1]
         reactCard = player.hand[i]
