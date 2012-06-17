@@ -815,7 +815,6 @@ makeCard 'Develop', action, {
             for partnerCard in partnerCards
               choices.push([oldCard, [newCard,partnerCard]] )
     
-    state.log("#{choices}")
     choice = state.current.ai.choose('develop', state, choices)
     if choice isnt null
       [oldCard, [newCard1, newCard2]] = choice

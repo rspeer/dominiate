@@ -573,6 +573,12 @@ class BasicAI
   trashValue: (state, card, my) ->
     0 - card.vp - card.cost
 
+  #developPriority: (state, my) => 
+  #   trashPriority(state, my)
+     
+  #developValue: (state, card, my) =>
+  #  this.trashValue(state, card, my)
+
   # Some cards give you a choice to discard an opponent's deck. These are
   # evaluated with `discardFromOpponentDeckValue`.
   discardFromOpponentDeckValue: (state, card, my) ->
@@ -988,6 +994,15 @@ class BasicAI
     return my.ai.cardInDeckValue(state, newCard, my) - \
            my.ai.cardInDeckValue(state, oldCard, my)
   
+  # developValue measures the benefit of choices Develop,
+  # where you exchange one card for two.
+  # 
+  # So here's a really basic thing that might work.
+  developValue: (state, choice, my) ->
+    [oldCard, [newCard1, newCard2]] = choice
+    return my.ai.cardInDeckValue(state, newCard1, my) + \
+           my.ai.cardInDeckValue(state, newCard2, my) - \
+           my.ai.cardInDeckValue(state, oldCard, my)  
 
   # `chooseOrderOnDeck` handles situations where multiple cards are returned
   # to the deck, such as Scout and Apothecary.
@@ -1089,12 +1104,13 @@ class BasicAI
         state.phase = 'buy'
     
     [hypothesis, hypothetically_my] = state.hypothetical(this)
-    #  We need to save draw and discard before emptying and restore them before buyPhase, to be able to choose the right buys in actionPriority(state)
+    
     return this.fastForwardToBuy(hypothesis, hypothetically_my)
 
   fastForwardToBuy: (state, my) ->
     if state.depth == 0
       throw new Error("Can only fast-forward in a hypothetical state")
+    #We need to save draw and discard before emptying and restore them before buyPhase, to be able to choose the right buys in actionPriority(state)
     oldDraws   = my.draw.slice(0)
     oldDiscard = my.discard.slice(0)
     my.draw = []
