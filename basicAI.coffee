@@ -407,6 +407,7 @@ class BasicAI
     "Transmute" if wantsToTrash >= multiplier
     "Coppersmith"
     "Saboteur"
+    "Poor House"
     "Duchess"
     "Library" if my.hand.length <= 7
     "Thief"  # 100
@@ -600,11 +601,12 @@ class BasicAI
       total += my.ai.compareByDiscarding(state, randomHand, hand)
     return total
     
-  # Prefer to gain action and treasure cards on the deck. Give other cards
-  # a value of -1 so that `null` is a better choice.
+  # Prefer to gain action and treasure cards on the deck, assuming we want
+  # them at all. Give other cards a value of -1 so that `null` is a better
+  # choice.
   gainOnDeckValue: (state, card, my) ->
     if (card.isAction or card.isTreasure)
-      1
+      this.getChoiceValue('gain', state, card, my)
     else
       -1
   

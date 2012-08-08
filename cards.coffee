@@ -204,7 +204,13 @@ basicCard = {
   # a card object by looking up `c[card]`.
   toString: () -> this.name
 
-  # `ai_` methods define the default AI preferences for this card.
+  # `ai_` methods define the default AI preferences for this card. A prominent
+  # example is ai_playValue, which tells the AI how much to prefer playing this
+  # card (and of course changes with the state of the game). The higher the
+  # ai_playValue, the more it prefers playing it before other cards.
+  #
+  # `ai_multipliedValue` is similar, but it can be higher when it's playing an
+  # action with a Throne Room or King's Court.
   ai_multipliedValue: (state, my) ->
     unless this.ai_playValue?
       throw new Error("no ai_playValue for #{this}")
@@ -296,8 +302,6 @@ makeCard 'Platinum', c.Silver, {
 makeCard 'Potion', c.Silver, {
   cost: 4
   coins: 0
-  # Deleted playEffect. Potions where counted twice.
-  # OnPlay() already increases @current.potions via getPotion(state)
   getPotion: (state) -> 1
   startingSupply: (state) -> 16
 }
@@ -839,16 +843,24 @@ makeCard 'Remodel', action, {
   costFunction: (coins) -> coins + 2
 
   upgradeFilter: (state, oldCard, newCard) ->
+    # Given two cards, return whether upgrading from oldCard to newCard is allowed.
     [coins1, potions1] = oldCard.getCost(state)
     [coins2, potions2] = newCard.getCost(state)
+
+    # We'll leave the cost check in `this.costFunction`, so we can reuse this code
+    # for many upgrading cards with different cost requirements.
     if this.exactCostUpgrade
-      return (potions1 >= potions2) and (this.costFunction(coins1) == coins2)
+      return (potions1 == potions2) and (this.costFunction(coins1) == coins2)
     else
       return (potions1 >= potions2) and (this.costFunction(coins1) >= coins2)
 
   playEffect: (state) ->
+    # Find the pairs of cards we're allowed to upgrade from and to.
     choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this))
     if this.exactCostUpgrade
+      # If the card requires upgrading to a card with an *exact* cost, then
+      # we'll likely have the option to upgrade a card to nothing. Add in
+      # those choices.
       choices2 = nullUpgradeChoices(state, state.current.hand, this.costFunction.bind(this))
       choices = choices.concat(choices2)
 
@@ -867,6 +879,48 @@ makeCard 'Expand', c.Remodel, {
 
   costFunction: (coins) -> coins + 3
   ai_playValue: (state, my) -> 226
+}
+
+# New in Dark Ages.
+makeCard 'Graverobber', c.Remodel, {
+  cost: 5
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return oldCard.isAction and (potions1 >= potions2) and (coins1 + 3 >= coins2)
+
+  # I'll suppose this card is a bit better to play than Remodel and worse than
+  # Expand, but I really don't know.
+  ai_playValue: (state, my) -> 225
+
+  playEffect: (state) ->
+    # Find the pairs of cards we're allowed to upgrade from and to.
+    choices = upgradeChoices(state, state.current.hand, this.upgradeFilter.bind(this))
+
+    # We can instead choose to gain cards costing 3 to 6 from the trash onto the deck.
+    # Consider those as "upgrades" from nothing to that card, so we can compare them
+    # to our upgrade choices.
+    #
+    # FIXME: This doesn't take into account the benefit (or drawback) of gaining a card
+    # on the deck.
+    for card in state.trash
+      [coins, potions] = card.getCost(state)
+      if 3 <= coins <= 6 and potions == 0
+        choices.push [null, card]
+
+    choice = state.current.ai.choose('upgrade', state, choices)
+    if choice isnt null
+      [oldCard, newCard] = choice
+      if oldCard isnt null
+        state.doTrash(state.current, oldCard)
+      if newCard isnt null
+        if oldCard is null
+          state.log("...gaining #{newCard} from the trash and putting it on top of the deck.")
+          state.gainCard(state.current, newCard, 'draw', true)
+        else
+          state.gainCard(state.current, newCard, 'discard')
+
 }
 
 makeCard 'Upgrade', c.Remodel, {
@@ -2106,7 +2160,7 @@ makeCard "Grand Market", c.Market, {
   mayBeBought: (state) ->
     not(c.Copper in state.current.inPlay)
   ai_playValue: (state, my) -> 795
-  ai_playValue: (state, my) -> 880
+  ai_multipliedValue: (state, my) -> 880
 }
 
 makeCard 'Haggler', action, {
@@ -2249,19 +2303,20 @@ makeCard 'Ironworks', action, {
   cost: 4
   playEffect: (state) ->
     choices = []
-    for cardName of state.supply
+    for cardName, count of state.supply
       card = c[cardName]
       [coins, potions] = card.getCost(state)
-      if potions == 0 and coins <= 4
+      if potions == 0 and coins <= 4 and count > 0
         choices.push(card)
     gained = state.gainOneOf(state.current, choices)
-    
-    if gained.isAction
-      state.current.actions += 1
-    if gained.isTreasure
-      state.current.coins += 1
-    if gained.isVictory
-      state.current.drawCards(1)
+
+    if gained isnt null
+      if gained.isAction
+        state.current.actions += 1
+      if gained.isTreasure
+        state.current.coins += 1
+      if gained.isVictory
+        state.current.drawCards(1)
 
   # FIXME: The current ai_playValue assumes that Ironworks is a terminal.
   # If it wants to gain an action, it should have a higher value.
@@ -2693,6 +2748,45 @@ makeCard 'Peddler', action, {
         cost = 0
     cost
   ai_playValue: (state, my) -> 770
+}
+
+# New in Dark Ages.
+makeCard 'Poor House', action, {
+  cost: 1
+  coins: +4
+
+  playEffect: (state) ->
+    my = state.current
+    state.revealHand(my)
+
+    for card in my.hand
+      if card.isTreasure
+        my.coins -= 1
+
+    if my.coins < 0
+      my.coins = 0
+
+  ai_playValue: (state, my) -> 103
+}
+
+# Also new in Dark Ages.
+makeCard 'Sage', action, {
+  cost: 3
+  actions: +1
+
+  playEffect: (state) ->
+    my = state.current
+    drawn = state.current.dig(state,
+      (state, card) ->
+        [coins, potions] = card.getCost(state)
+        return coins >= 3
+    )
+    if drawn.length > 0
+      card = drawn[0]
+      state.log("...#{state.current.ai} draws #{card}.")
+      state.current.hand.push(card)
+
+  ai_playValue: (state, my) -> 746
 }
 
 makeCard 'Salvager', action, {
