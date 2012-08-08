@@ -138,10 +138,12 @@ basicCard = {
   # - What happens when the card is bought?
   buyEffect: (state) ->
   # - What happens when the card is gained?
-  gainEffect: (state) ->
+  gainEffect: (state, player) ->
   # - What happens (besides the simple effects defined above) when the card is
   #   played?
   playEffect: (state) ->
+  # - What happens when this card is trashed?
+  trashEffect: (state, player) ->
   # - What happens when this card is in play and another card is gained?
   gainInPlayEffect: (state, card) ->
   # - What happens when this card is in play and another card is specifically
@@ -196,6 +198,9 @@ basicCard = {
   
   onGain: (state, player) ->
     this.gainEffect(state, player)
+
+  onTrash: (state, player) ->
+    this.trashEffect(state, player)
   
   # A card's string representation is its name.
   #
@@ -396,6 +401,14 @@ makeCard 'Farmland', c.Estate, {
       state.gainCard(state.current, newCard)    
 }
 
+makeCard 'Feodum', c.Estate, {
+  cost: 4
+  getVP: (player) -> Math.floor(player.countInDeck('Silver') / 3)
+  trashEffect: (state, player) ->
+    state.gainCard(player, c.Silver)
+    state.gainCard(player, c.Silver)
+    state.gainCard(player, c.Silver)
+}
 
 makeCard 'Gardens', c.Estate, {
   cost: 4
@@ -522,9 +535,9 @@ makeCard 'Cache', treasure, {
   cost: 5
   coins: 3
   
-  gainEffect: (state) ->
-    state.gainCard(state.current, c.Copper)
-    state.gainCard(state.current, c.Copper)
+  gainEffect: (state, player) ->
+    state.gainCard(player, c.Copper)
+    state.gainCard(player, c.Copper)
 }
 
 makeCard "Fool's Gold", treasure, {
@@ -587,10 +600,11 @@ makeCard 'Ill-Gotten Gains', treasure, {
     if state.current.ai.choose('gainCopper', state, [yes, no])
       state.gainCard(state.current, c.Copper, 'hand')
   
-  gainEffect: (state) ->
-    # For each player but the current: gain a curse.
-    for i in [1...state.nPlayers]
-      state.gainCard(state.players[i], c.Curse)
+  gainEffect: (state, player) ->
+    # For each player but the gainer: gain a curse.
+    for i in [0...state.nPlayers]
+      if state.players[i] != player
+        state.gainCard(state.players[i], c.Curse)
 }
 
 makeCard 'Loan', treasure, {
@@ -917,6 +931,8 @@ makeCard 'Graverobber', c.Remodel, {
       if newCard isnt null
         if oldCard is null
           state.log("...gaining #{newCard} from the trash and putting it on top of the deck.")
+          state.supply[newCard] += 1
+          state.trash.remove(newCard)
           state.gainCard(state.current, newCard, 'draw', true)
         else
           state.gainCard(state.current, newCard, 'discard')

@@ -721,6 +721,7 @@ class BasicAI
     "Border Village"
     "Mandarin"
     "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
+    "Feodum"
     "Estate"
     "Curse"
     "Apprentice"
@@ -741,6 +742,7 @@ class BasicAI
     "Duchy" if this.goingGreen(state) < 3
     "Border Village"
     "Mandarin"
+    "Feodum"
     "Bishop"
     "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
     "Curse"
@@ -870,6 +872,7 @@ class BasicAI
     "Border Village"
     "Mandarin"
     "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
+    "Feodum"
     "Salvager"
   ]
   
