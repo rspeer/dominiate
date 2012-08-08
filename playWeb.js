@@ -439,6 +439,7 @@
       "Mandarin";      if (this.coinLossMargin(state) > 0) {
         "Ill-Gotten Gains";
       }
+      "Feodum";
       "Estate";
       "Curse";
       return "Apprentice";
@@ -454,7 +455,7 @@
       return [true];
     };
     BasicAI.prototype.bishopTrashPriority = function(state, my) {
-      return ["Farmland", this.goingGreen(state) < 3 ? "Duchy" : void 0, "Border Village", "Mandarin", "Bishop", this.coinLossMargin(state) > 0 ? "Ill-Gotten Gains" : void 0, "Curse"];
+      return ["Farmland", this.goingGreen(state) < 3 ? "Duchy" : void 0, "Border Village", "Mandarin", "Feodum", "Bishop", this.coinLossMargin(state) > 0 ? "Ill-Gotten Gains" : void 0, "Curse"];
     };
     BasicAI.prototype.bishopTrashValue = function(state, card, my) {
       var coins, potions, value, _ref;
@@ -546,7 +547,7 @@
       return [state.current.mats.pirateShip >= 5 && state.current.getAvailableMoney() + state.current.mats.pirateShip >= 8 ? 'coins' : void 0, 'attack'];
     };
     BasicAI.prototype.salvagerTrashPriority = function(state, card, my) {
-      return ["Border Village", "Mandarin", this.coinLossMargin(state) > 0 ? "Ill-Gotten Gains" : void 0, "Salvager"];
+      return ["Border Village", "Mandarin", this.coinLossMargin(state) > 0 ? "Ill-Gotten Gains" : void 0, "Feodum", "Salvager"];
     };
     BasicAI.prototype.salvagerTrashValue = function(state, card, my) {
       var buyState, coins, gained, hypothesis, hypothetically_my, potions, _ref, _ref2;
@@ -1023,8 +1024,9 @@
     },
     startGameEffect: function(state) {},
     buyEffect: function(state) {},
-    gainEffect: function(state) {},
+    gainEffect: function(state, player) {},
     playEffect: function(state) {},
+    trashEffect: function(state, player) {},
     gainInPlayEffect: function(state, card) {},
     buyInPlayEffect: function(state, card) {},
     cleanupEffect: function(state) {},
@@ -1063,6 +1065,9 @@
     },
     onGain: function(state, player) {
       return this.gainEffect(state, player);
+    },
+    onTrash: function(state, player) {
+      return this.trashEffect(state, player);
     },
     toString: function() {
       return this.name;
@@ -1309,6 +1314,17 @@
       }
     }
   });
+  makeCard('Feodum', c.Estate, {
+    cost: 4,
+    getVP: function(player) {
+      return Math.floor(player.countInDeck('Silver') / 3);
+    },
+    trashEffect: function(state, player) {
+      state.gainCard(player, c.Silver);
+      state.gainCard(player, c.Silver);
+      return state.gainCard(player, c.Silver);
+    }
+  });
   makeCard('Gardens', c.Estate, {
     cost: 4,
     getVP: function(player) {
@@ -1449,9 +1465,9 @@
   makeCard('Cache', treasure, {
     cost: 5,
     coins: 3,
-    gainEffect: function(state) {
-      state.gainCard(state.current, c.Copper);
-      return state.gainCard(state.current, c.Copper);
+    gainEffect: function(state, player) {
+      state.gainCard(player, c.Copper);
+      return state.gainCard(player, c.Copper);
     }
   });
   makeCard("Fool's Gold", treasure, {
@@ -1523,11 +1539,11 @@
         return state.gainCard(state.current, c.Copper, 'hand');
       }
     },
-    gainEffect: function(state) {
+    gainEffect: function(state, player) {
       var i, _ref, _results;
       _results = [];
-      for (i = 1, _ref = state.nPlayers; 1 <= _ref ? i < _ref : i > _ref; 1 <= _ref ? i++ : i--) {
-        _results.push(state.gainCard(state.players[i], c.Curse));
+      for (i = 0, _ref = state.nPlayers; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+        _results.push(state.players[i] !== player ? state.gainCard(state.players[i], c.Curse) : void 0);
       }
       return _results;
     }
@@ -1869,6 +1885,8 @@
         if (newCard !== null) {
           if (oldCard === null) {
             state.log("...gaining " + newCard + " from the trash and putting it on top of the deck.");
+            state.supply[newCard] += 1;
+            state.trash.remove(newCard);
             return state.gainCard(state.current, newCard, 'draw', true);
           } else {
             return state.gainCard(state.current, newCard, 'discard');
@@ -6144,6 +6162,7 @@
       }
       this.log("" + player.ai + " trashes " + card + ".");
       player.hand.remove(card);
+      card.onTrash(this, player);
       return this.trash.push(card);
     };
     State.prototype.doPutOnDeck = function(player, card) {
