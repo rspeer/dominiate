@@ -3415,7 +3415,7 @@
     ai_playValue: function(state, my) {
       return 795;
     },
-    ai_playValue: function(state, my) {
+    ai_multipliedValue: function(state, my) {
       return 880;
     }
   });
