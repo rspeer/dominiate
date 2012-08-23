@@ -2385,16 +2385,16 @@ makeCard "King's Court", action, {
       state.log("...but has no action to play with the #{this}.")
     else
       choices.push(null) if @optional
-      action = state.current.ai.choose('multiplied', state, choices)
-      if action is null
+      chosenAction = state.current.ai.choose('multiplied', state, choices)
+      if chosenAction is null
         state.log("...choosing not to play an action.")
       else
-        transferCard(action, state.current.hand, state.current.inPlay)
+        transferCard(chosenAction, state.current.hand, state.current.inPlay)
 
         for i in [0...@multiplier]
-          return if action is null
-          state.log("...playing #{action} (#{i+1} of #{@multiplier}).")
-          state.resolveAction(action)
+          return if chosenAction is null
+          state.log("...playing #{chosenAction} (#{i+1} of #{@multiplier}).")
+          state.resolveAction(chosenAction)
         
         # Determine whether this multiplier is going to go to the duration area
         # during the cleanup phase.
@@ -2408,16 +2408,16 @@ makeCard "King's Court", action, {
           neverPutInDuration = true
 
         unless neverPutInDuration
-          if action.isMultiplier
+          if chosenAction.isMultiplier
             # Mark the multiplier as if it were a multiplied Duration, which is
             # a flag to not clean it up (as if it were a Duration) later.
             if md.length > 0 and not (md[md.length - 1].isMultiplier)
               putInDuration = true
-          if action.isDuration and action.name != 'Tactician'
+          if chosenAction.isDuration and chosenAction.name != 'Tactician'
             putInDuration = true
             # Store virtual copies of a multiplied duration card in `multipliedDurations`.
             for i in [0...@multiplier-1]
-              md.push(action)
+              md.push(chosenAction)
         
         if putInDuration
           # Mark it by putting it in multipliedDurations. This also signals that
