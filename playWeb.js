@@ -3711,7 +3711,7 @@
     multiplier: 3,
     optional: true,
     playEffect: function(state) {
-      var card, choices, i, md, neverPutInDuration, putInDuration, _ref, _ref2;
+      var card, choices, chosenAction, i, md, neverPutInDuration, putInDuration, _ref, _ref2;
       choices = (function() {
         var _i, _len, _ref, _results;
         _ref = state.current.hand;
@@ -3730,17 +3730,17 @@
         if (this.optional) {
           choices.push(null);
         }
-        action = state.current.ai.choose('multiplied', state, choices);
-        if (action === null) {
+        chosenAction = state.current.ai.choose('multiplied', state, choices);
+        if (chosenAction === null) {
           return state.log("...choosing not to play an action.");
         } else {
-          transferCard(action, state.current.hand, state.current.inPlay);
+          transferCard(chosenAction, state.current.hand, state.current.inPlay);
           for (i = 0, _ref = this.multiplier; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
-            if (action === null) {
+            if (chosenAction === null) {
               return;
             }
-            state.log("...playing " + action + " (" + (i + 1) + " of " + this.multiplier + ").");
-            state.resolveAction(action);
+            state.log("...playing " + chosenAction + " (" + (i + 1) + " of " + this.multiplier + ").");
+            state.resolveAction(chosenAction);
           }
           putInDuration = false;
           neverPutInDuration = false;
@@ -3749,15 +3749,15 @@
             neverPutInDuration = true;
           }
           if (!neverPutInDuration) {
-            if (action.isMultiplier) {
+            if (chosenAction.isMultiplier) {
               if (md.length > 0 && !md[md.length - 1].isMultiplier) {
                 putInDuration = true;
               }
             }
-            if (action.isDuration && action.name !== 'Tactician') {
+            if (chosenAction.isDuration && chosenAction.name !== 'Tactician') {
               putInDuration = true;
               for (i = 0, _ref2 = this.multiplier - 1; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
-                md.push(action);
+                md.push(chosenAction);
               }
             }
           }
