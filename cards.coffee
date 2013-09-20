@@ -2373,6 +2373,36 @@ makeCard 'Jack of All Trades', action, {
   ai_playValue: (state, my) -> 236
 }
 
+makeCard 'Journeyman', action, {
+  cost: 5
+
+  playEffect: (state) ->
+    unique = []
+    deck = state.current.getDeck()
+    for card in deck
+      if card not in unique
+        unique.push(card)
+    choices = unique
+    choice = state.current.ai.choose('skip', state, choices)
+    my = state.current
+    drawn = state.current.dig(state,
+      (state, card) -> return card != choice,
+      3
+    )
+
+    if drawn.length > 0
+      newcards = drawn
+      state.current.hand = state.current.hand.concat(newcards)
+      state.log("...#{state.current.ai} draws #{newcards}.")
+
+  ai_playValue: (state, my) ->
+    wantsToJM = my.ai.wantsToJM(state, my)
+    if wantsToJM > 0
+      146
+    else
+      0
+}
+
 makeCard "King's Court", action, {
   cost: 7
   isMultiplier: true
@@ -2783,6 +2813,37 @@ makeCard 'Poor House', action, {
       my.coins = 0
 
   ai_playValue: (state, my) -> 103
+}
+
+makeCard 'Rebuild', action, {
+  cost: 5
+  actions: +1
+
+  upgradeFilter: (state, oldCard, newCard) ->
+    [coins1, potions1] = oldCard.getCost(state)
+    [coins2, potions2] = newCard.getCost(state)
+    return newCard.isVictory and coins2 <= coints1 + 3
+
+  playEffect: (state) ->
+    my = state.current
+    namedcard = 
+    drawn = my.dig(state,
+      (state, card) -> card.isVictory and card != namedcard
+    )
+    if drawn.length > 0
+      cardToTrash = drawn[0]
+      state.log("...#{state.current.ai} trashes #{state.current.ai}'s #{cardToTrash}.")
+      state.trash.push(drawn[0])
+
+      choices = upgradeChoices(state, drawn, c.Rebuild.upgradeFilter)
+      state.log(choices)
+      choice = opp.ai.choose('rebuild', state, choices)
+      newCard = choice[1]
+      if newCard?
+        state.gainCard(opp, newCard, 'discard', true)
+        state.log("...#{state.current.ai} gains #{newCard}.")
+      else
+        state.log("...#{state.current.ai} gains nothing.")
 }
 
 # Also new in Dark Ages.
