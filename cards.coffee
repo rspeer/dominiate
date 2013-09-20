@@ -2844,6 +2844,8 @@ makeCard 'Rebuild', action, {
         state.log("...#{state.current.ai} gains #{newCard}.")
       else
         state.log("...#{state.current.ai} gains nothing.")
+
+  ai_playValue: (state, my) -> 1000
 }
 
 # Also new in Dark Ages.
