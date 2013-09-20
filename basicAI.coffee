@@ -868,6 +868,13 @@ class BasicAI
     'attack'
   ]
 
+  rebuildPriority: (state, my) -> [
+    "Colony"
+    "Province"
+    "Duchy"
+    "Estate"
+  ]
+
   salvagerTrashPriority: (state, card, my) -> [
     "Border Village"
     "Mandarin"
