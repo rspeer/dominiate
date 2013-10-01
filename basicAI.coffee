@@ -177,7 +177,7 @@ class BasicAI
     "Silver"
     "Copper" if state.gainsToEndGame() <= 3
   ]
-  
+
   # gainValue covers cases where a strategy has to gain a card that isn't in
   # its priority list. The default is to favor more expensive cards,
   # particularly action and treasure cards.
@@ -868,12 +868,13 @@ class BasicAI
     'attack'
   ]
 
-  rebuildPriority: (state, my) -> [
-    "Colony"
-    "Province"
-    "Duchy"
-    "Estate"
-  ]
+  rogueGainValue: (state, card, my) ->
+    [coins, potions] = card.getCost(state)
+    return coins
+
+  rogueTrashValue: (state, card, my) ->
+    [coins, potions] = card.getCost(state)
+    return coins
 
   salvagerTrashPriority: (state, card, my) -> [
     "Border Village"

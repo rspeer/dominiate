@@ -50,8 +50,7 @@ class ScoreTracker
   # but N>=40 is probably Gaussian enough
   decisiveWinner: =>
     for i in [0...@players.length]
-      if @proportions[i] - this.errorMargin() > 1 / @scores.length \
-      and @scores.length >= 40
+      if @proportions[i] - this.errorMargin() > 1 / @scores.length
         return @players[i]
     return null
 
