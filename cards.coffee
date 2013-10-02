@@ -1825,6 +1825,17 @@ makeCard 'Baron', action, {
 
 }
 
+makeCard 'Beggar', action, {
+  cost: 2
+
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Copper, 'hand')
+    state.gainCard(state.current, c.Copper, 'hand')
+    state.gainCard(state.current, c.Copper, 'hand')
+
+  ai_playValue: (state, my) -> 243
+}
+
 makeCard 'Bishop', action, {
   cost: 4
   coins: +1
@@ -2900,15 +2911,14 @@ makeCard 'Rebuild', action, {
 
   playEffect: (state) ->
     my = state.current
-    uniqueVP = []
-    for cardname in ["Estate", "Duchy", "Province", "Colony"]
+    choices = []
+    for cardname in ["Estate", "Duchy", "Duke", "Province", "Colony"]
       card = c[cardname]
-      uniqueVP.push(cardname)
+      choices.push(cardname)
     for card in my.getDeck()
-      if card not in uniqueVP and card.isVictory
-        uniqueVP.push(card)
-    choices = uniqueVP
-    choices.push("Black Lotus")
+      if card not in choices and card.isVictory
+        choices.push(card)
+    choices.push(c.Copper)
     namedcard = my.ai.choose('nameVP', state, choices)
     state.log("...#{my.ai} names #{namedcard}.")
     drawn = my.dig(state,
@@ -2921,7 +2931,7 @@ makeCard 'Rebuild', action, {
       state.trash.push(drawn[0])
 
       vpChoices = []
-      for cardname in ["Estate", "Duchy", "Province", "Colony"]
+      for cardname in ["Estate", "Duchy", "Duke", "Province", "Colony"]
         card = c[cardname]
         if state.supply[card] > 0
           [coins1, potions1] = cardToTrash.getCost(state)
