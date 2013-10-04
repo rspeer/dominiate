@@ -76,9 +76,6 @@ body {
   left: 60%;
 }
 #editor-left {
-  position: absolute;
-  top: 105px;
-  position: absolute;
   top: 105px;
   border-radius: 3px;
   -webkit-border-radius: 3px;
@@ -91,9 +88,6 @@ body {
   left: 5%;
 }
 #editor-right {
-  position: absolute;
-  top: 105px;
-  position: absolute;
   top: 105px;
   border-radius: 3px;
   -webkit-border-radius: 3px;

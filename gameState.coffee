@@ -1174,17 +1174,13 @@ class State
         card.reactToDiscard(this, player)
 
   # `doTrash` causes the player to trash a particular card.
-  #
-  # For bookkeeping,
-  # it puts it in the `@trash` list; if we start using `@trash` consistently,
-  # we can count the total number of cards in the game, making sure that it's
-  # constant and cards aren't being dropped on the floor.
   doTrash: (player, card) ->
     if card not in player.hand
       this.warn("#{player.ai} has no #{card} to trash")
       return
     this.log("#{player.ai} trashes #{card}.")
     player.hand.remove(card)
+    card.onTrash(this, player)
     @trash.push(card)
   
   # `doPutOnDeck` puts a particular card from the player's hand on top of

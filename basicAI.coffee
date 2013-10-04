@@ -177,7 +177,7 @@ class BasicAI
     "Silver"
     "Copper" if state.gainsToEndGame() <= 3
   ]
-  
+
   # gainValue covers cases where a strategy has to gain a card that isn't in
   # its priority list. The default is to favor more expensive cards,
   # particularly action and treasure cards.
@@ -407,6 +407,7 @@ class BasicAI
     "Transmute" if wantsToTrash >= multiplier
     "Coppersmith"
     "Saboteur"
+    "Poor House"
     "Duchess"
     "Library" if my.hand.length <= 7
     "Thief"  # 100
@@ -606,11 +607,12 @@ class BasicAI
       total += my.ai.compareByDiscarding(state, randomHand, hand)
     return total
     
-  # Prefer to gain action and treasure cards on the deck. Give other cards
-  # a value of -1 so that `null` is a better choice.
+  # Prefer to gain action and treasure cards on the deck, assuming we want
+  # them at all. Give other cards a value of -1 so that `null` is a better
+  # choice.
   gainOnDeckValue: (state, card, my) ->
     if (card.isAction or card.isTreasure)
-      1
+      this.getChoiceValue('gain', state, card, my)
     else
       -1
   
@@ -725,6 +727,7 @@ class BasicAI
     "Border Village"
     "Mandarin"
     "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
+    "Feodum"
     "Estate"
     "Curse"
     "Apprentice"
@@ -745,6 +748,7 @@ class BasicAI
     "Duchy" if this.goingGreen(state) < 3
     "Border Village"
     "Mandarin"
+    "Feodum"
     "Bishop"
     "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
     "Curse"
@@ -873,10 +877,19 @@ class BasicAI
     'attack'
   ]
 
+  rogueGainValue: (state, card, my) ->
+    [coins, potions] = card.getCost(state)
+    return coins
+
+  rogueTrashValue: (state, card, my) ->
+    [coins, potions] = card.getCost(state)
+    return coins
+
   salvagerTrashPriority: (state, card, my) -> [
     "Border Village"
     "Mandarin"
     "Ill-Gotten Gains" if this.coinLossMargin(state) > 0
+    "Feodum"
     "Salvager"
   ]
   
