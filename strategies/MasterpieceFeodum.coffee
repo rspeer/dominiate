@@ -6,7 +6,8 @@
   gainPriority: (state, my) -> [
     "Masterpiece" if my.coins >= 5
     "Feodum" if my.countInDeck("Silver") > 8
-    "Estate" if state.countInSupply("Gardens") == 0
+    "Duchy" if my.countInDeck("Feodum") > 0
+    "Estate" if state.countInSupply("Feodum") == 0
     "Silver"
     "Estate"
     "Copper"
