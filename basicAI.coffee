@@ -1029,13 +1029,9 @@ class BasicAI
     
     choice = cards.slice(0)
     return choice.sort(sorter)
-
-	### Overpay  decisions
-	
-	
-	# Best guess for Masterpiece is probably to get as many Silvers as possible
-	chooseOverpayMasterpiece: (state, choices) ->
-		return Math.max(choices)
+  
+  chooseOverpayMasterpiece: (state, maxAmount) ->
+    return maxAmount
 
   #### Informational methods
 

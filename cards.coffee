@@ -1255,16 +1255,14 @@ makeCard 'Margrave', attack, {
 }
 
 makeCard 'Masterpiece', treasure, {
-	cost: 3
-	coins: 1
+  cost: 3
+  coins: 1
 
-	buyEffect: (state) ->
-	  choices = [0 .. state.current.ai.coins - 3]
-
-		amountOverpayed = state.current.ai.choose('overpayMasterpiece', state, choices)
-		state.log("overpaying for #{amountOverpayed} and gaining #{amountOverpayed} Silvers")
-		for i in [1..amounteOverpayed]
-			state.gainCard(state.current, c['Silver'], 'discard', true)
+  buyEffect: (state) ->
+    amountOverpayed = state.current.ai.chooseOverpayMasterpiece(state, state.current.coins)
+    state.log("overpaying for #{amountOverpayed} and gaining #{amountOverpayed} Silvers")
+    for i in [1 .. amountOverpayed]
+      state.gainCard(state.current, c['Silver'], 'discard', true)
 }
 
 makeCard "Militia", attack, {
