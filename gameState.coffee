@@ -585,6 +585,14 @@ class State
   numEmptyPiles: () ->
     this.emptyPiles().length
   
+  # `filledPiles()` determines which supply piles are not empty.
+  filledPiles: () ->
+    piles = []
+    for key, value of @supply
+      if value > 0
+        piles.push(key)
+    piles
+  
   # `gameIsOver()` returns whether the game is over.
   gameIsOver: () ->
     # The game can only end after a player has taken a full turn. Check that
