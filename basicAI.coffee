@@ -523,6 +523,7 @@ class BasicAI
     "Quarry"
     "Talisman"
     "Copper"
+    "Masterpiece"
     "Potion"  # 100 from here up
     "Loan"    # 90
     "Venture" # 80
@@ -1046,6 +1047,9 @@ class BasicAI
     
     choice = cards.slice(0)
     return choice.sort(sorter)
+  
+  chooseOverpayMasterpiece: (state, maxAmount) ->
+    return maxAmount
 
   #### Informational methods
 
