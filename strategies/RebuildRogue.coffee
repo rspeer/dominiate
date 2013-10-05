@@ -19,7 +19,7 @@
 
   rogueGainValue: (state, card, my) ->
     if state.gainsToEndGame() <= 4
-      return card.getVP(my.getDeck())
+      return card.getVP(my)
     else
       [coins, potions] = card.getCost(state)
       return coins
