@@ -1,11 +1,14 @@
 {
   name: 'BeggarGardens'
-  author: 'ragingduckd'
+  author: 'ragingduckd', 'DStu'
   requires: ['Beggar', 'Gardens']
   
   gainPriority: (state, my) ->  
     if state.supply["Rebuild"]?
-      return this.gainPriorityRebuild(state, my)
+      if my.turnsTaken < 3 or state.countInSupply("Rebuild") < 10
+        return this.gainPriorityRebuild(state, my)
+      else
+        return this.gainPriorityDefault(state, my)
     else
       return this.gainPriorityDefault(state, my)
   
