@@ -93,6 +93,7 @@ basicCard = {
   actions: 0
   cards: 0
   coins: 0
+  coinTokens: 0
   buys: 0
   vp: 0
   trash: 0        # if the card requires trashing for no further effect
@@ -105,6 +106,7 @@ basicCard = {
   getActions: (state) -> this.actions
   getCards: (state) -> this.cards
   getCoins: (state) -> this.coins
+  getCoinTokens: (state) -> this.coinTokens
   getBuys: (state) -> this.buys
   getTrash: (state) -> this.trash
   getVP: (player) -> this.vp
@@ -176,6 +178,7 @@ basicCard = {
     state.current.actions += this.getActions(state)
     state.current.coins += this.getCoins(state)
     state.current.potions += this.getPotion(state)
+    state.current.coinTokens += this.getCoinTokens(state)
     state.current.buys += this.getBuys(state)
     cardsToDraw = this.getCards(state)
     cardsToTrash = this.getTrash(state)
@@ -183,6 +186,8 @@ basicCard = {
       state.drawCards(state.current, cardsToDraw)
     if cardsToTrash > 0
       state.requireTrash(state.current, cardsToTrash)
+    if (ct = this.getCoinTokens(state)) > 0
+      state.log("#{state.current.ai} gains #{ct} Coin Token#{if ct > 1 then "s" else ""}")
     this.playEffect(state)
   
   # Similarly, these are other ways for the game state to interact
@@ -1860,6 +1865,19 @@ makeCard 'Apprentice', action, {
   ai_playValue: (state, my) -> 730
 }
 
+makeCard 'Baker', action, {
+  cost: 5
+  actions: 1
+  cards: 1
+  coinTokens: 1
+  
+  startGameEffect: (state) ->
+    for player in state.players
+      player.coinTokens += 1
+  
+  ai_playValue: (state, my) -> 774
+}
+
 makeCard 'Baron', action, {
   cost: 4
   buys: +1
@@ -1881,7 +1899,6 @@ makeCard 'Baron', action, {
         5
       else
         -5
-
 }
 
 makeCard 'Beggar', action, {
