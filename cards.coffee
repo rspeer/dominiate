@@ -2767,6 +2767,20 @@ makeCard "Menagerie", action, {
 
 }
 
+makeCard "Merchant Guild", action, {
+  cost: 5
+  buys: 1
+  coins: 1
+  
+  buyInPlayEffect: (state, card) ->
+    state.current.coinTokens += 1
+    state.log("#{state.current.ai} gains 1 Coin Token")
+  
+  ai_playValue: (state, my) ->
+    269
+    
+}
+
 makeCard "Mining Village", c.Village, {
   cost: 4
   playEffect: (state) ->
