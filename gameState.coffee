@@ -23,6 +23,7 @@ class PlayerState
     @coins = 0
     @potions = 0
     @coinTokens = 0
+    @coinTokensSpendThisTurn = 0
     @multipliedDurations = []
     @chips = 0
     @hand = []
@@ -422,6 +423,7 @@ class PlayerState
     other.ai = @ai
     other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
+    other.coinTokensSpendThisTurn = @coinTokensSpendThisTurn
     other
   
   # Games can provide output using the `log` function.
@@ -907,7 +909,7 @@ class State
     else
       if (ct > 0)
         this.log("#{@current.ai} spends #{ct} Coin Token#{if ct > 1 then "s" else ""}")
-    @current.ai.coinTokensSpendThisTurn = ct
+    @current.coinTokensSpendThisTurn = ct
     return ct
     
   

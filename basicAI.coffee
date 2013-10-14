@@ -1064,10 +1064,13 @@ class BasicAI
       [hypState, hypMy] = state.hypothetical(this)
       
       hypMy.coins += ct
+      hypMy.coinTokensSpendThisTurn = ct
       cardsBought = []
       while hypMy.buys > 0
         cardBought = hypState.getSingleBuyDecision()
-        Array.push cardsBought cardBought
+        hypMy.buys -= 1
+        cardsBought.push cardBought
+      state.log("#{cardsBought}")
       if ((ct < my.coinTokens) and (cardsBought != cardsBoughtOld))
         ct += 1
         break
@@ -1325,8 +1328,6 @@ class BasicAI
 
   toString: () -> this.name
   
-  # Memory to remember how many coin Tokens you have spend
-  @coinTokensSpendThisTurn = 0
 this.BasicAI = BasicAI
 
 # Utility functions
