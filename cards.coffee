@@ -364,6 +364,10 @@ makeCard 'Bazaar', action, {
   cost: 5, actions: 2, cards: 1, coins: 1
   ai_playValue: (state, my) -> 835
 }
+makeCard 'Candlestick Maker', action, {
+  cost: 2, actions: 1, coinTokens: 1
+  ai_playValue: (state, my) -> 734
+}
 
 # Kingdom Victory cards
 # ---------------------
