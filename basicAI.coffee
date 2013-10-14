@@ -1058,14 +1058,16 @@ class BasicAI
   # Try to buy the 'best' card you can afford, and spend as less as possible for this
   #
   spendCoinTokens: (state, my) ->
-    cardsBoughtOld = ""
+    cardsBoughtOld = []
     ct = my.coinTokens      
     loop
       [hypState, hypMy] = state.hypothetical(this)
       
-      # only single buy support until now
       hypMy.coins += ct
-      cardsBought = hypState.getSingleBuyDecision()
+      cardsBought = []
+      while hypMy.buys > 0
+        cardBought = hypState.getSingleBuyDecision()
+        Array.push cardsBought cardBought
       if ((ct < my.coinTokens) and (cardsBought != cardsBoughtOld))
         ct += 1
         break
