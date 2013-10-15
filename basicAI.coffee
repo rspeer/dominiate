@@ -1048,8 +1048,40 @@ class BasicAI
     choice = cards.slice(0)
     return choice.sort(sorter)
   
+  # How much do we want to overpay for Masterpiece?
+  # If we care to buy it probably as much as possible
+  #
   chooseOverpayMasterpiece: (state, maxAmount) ->
     return maxAmount
+
+  # How many Coin Tokens do we want to spend?
+  # Try to buy the 'best' card you can afford, and spend as less as possible for this
+  #
+  spendCoinTokens: (state, my) ->
+    cardsBoughtOld = []
+    ct = my.coinTokens      
+    loop
+      [hypState, hypMy] = state.hypothetical(this)
+      
+      hypMy.coins += ct
+      hypMy.coinTokensSpendThisTurn = ct
+      cardsBought = []
+      while hypMy.buys > 0
+        cardBought = hypState.getSingleBuyDecision()
+        if cardBought?
+          [coinCost, potionCost] = cardBought.getCost(hypState)
+          hypMy.coins -= coinCost
+          hypMy.potions -= potionCost
+          cardsBought.push cardBought
+        hypMy.buys -= 1
+      if ((ct < my.coinTokens) and not (arrayEqual(cardsBought, cardsBoughtOld)))
+        ct += 1
+        break
+      if ct == 0
+        break
+      ct -= 1
+      cardsBoughtOld = cardsBought
+    return ct
 
   #### Informational methods
 
@@ -1298,6 +1330,7 @@ class BasicAI
     @cachedAP = my.ai.actionPriority(state, my)
 
   toString: () -> this.name
+  
 this.BasicAI = BasicAI
 
 # Utility functions
@@ -1327,3 +1360,7 @@ shuffle = (v) ->
     v[i] = v[j]
     v[j] = temp
   v
+  
+# compare Arrays
+arrayEqual = (a, b) ->
+  a.length is b.length and a.every (elem, i) -> elem is b[i]
