@@ -1070,7 +1070,6 @@ class BasicAI
         cardBought = hypState.getSingleBuyDecision()
         hypMy.buys -= 1
         cardsBought.push cardBought
-      state.log("#{cardsBought}")
       if ((ct < my.coinTokens) and (cardsBought != cardsBoughtOld))
         ct += 1
         break
