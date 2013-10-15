@@ -1068,9 +1068,13 @@ class BasicAI
       cardsBought = []
       while hypMy.buys > 0
         cardBought = hypState.getSingleBuyDecision()
+        if cardBought?
+          [coinCost, potionCost] = cardBought.getCost(hypState)
+          hypMy.coins -= coinCost
+          hypMy.potions -= potionCost
+          cardsBought.push cardBought
         hypMy.buys -= 1
-        cardsBought.push cardBought
-      if ((ct < my.coinTokens) and (cardsBought != cardsBoughtOld))
+      if ((ct < my.coinTokens) and not (arrayEqual(cardsBought, cardsBoughtOld)))
         ct += 1
         break
       if ct == 0
@@ -1356,3 +1360,7 @@ shuffle = (v) ->
     v[i] = v[j]
     v[j] = temp
   v
+  
+# compare Arrays
+arrayEqual = (a, b) ->
+  a.length is b.length and a.every (elem, i) -> elem is b[i]
