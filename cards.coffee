@@ -2958,6 +2958,25 @@ makeCard 'Peddler', action, {
   ai_playValue: (state, my) -> 770
 }
 
+makeCard 'Plaza', c.Village, {
+  cost: 4
+  
+  playEffect: (state) ->
+    numStartingCards = state.current.hand.length
+    state.log("#{state.current.hand}")
+    possibleDiscards = (card for card in state.current.hand when card.isTreasure)
+    possibleDiscards.push(null)
+    state.log("#{possibleDiscards}")
+    choice = state.current.ai.choose('plazaDiscard', state, possibleDiscards)
+    state.log("choice: #{choice}")
+    if choice?
+      if choice in possibleDiscards
+        state.requireDiscard(state.current, 1, (card) -> card.name == choice)
+        state.current.coinTokens += 1
+        state.log("#{state.current.ai} discards a #{choice}")
+        state.log("... gaining a Coin Token")
+}
+
 # New in Dark Ages.
 makeCard 'Poor House', action, {
   cost: 1
