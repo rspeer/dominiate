@@ -1232,8 +1232,7 @@ class State
     while discarded.length < num
       # In `allowDiscard`, valid discards are the entire hand, plus `null`
       # to stop discarding.
-      validDiscards = ( card for card in player.hand when typeFunc(card) ).slice(0)
-      this.log("Valid: #{validDiscards}")
+      validDiscards = ( card for card in player.hand when typeFunc(card?) ).slice(0)
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
       return discarded if choice is null
@@ -1246,8 +1245,8 @@ class State
   requireDiscard: (player, num, typeFunc = (card) -> true) ->
     discarded = []
     while discarded.length < num
-      this.log("#{player.hand}")
-      validDiscards = ( card for card in player.hand when typeFunc(card?) ).slice(0)
+      validDiscards = ( card for card in player.hand when typeFunc(card) ).slice(0)
+      this.log("Valid: #{validDiscards}")
       return discarded if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
       discarded.push(choice)
