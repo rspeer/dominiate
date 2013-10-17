@@ -93,6 +93,7 @@ basicCard = {
   actions: 0
   cards: 0
   coins: 0
+  coinTokens: 0
   buys: 0
   vp: 0
   trash: 0        # if the card requires trashing for no further effect
@@ -105,6 +106,7 @@ basicCard = {
   getActions: (state) -> this.actions
   getCards: (state) -> this.cards
   getCoins: (state) -> this.coins
+  getCoinTokens: (state) -> this.coinTokens
   getBuys: (state) -> this.buys
   getTrash: (state) -> this.trash
   getVP: (player) -> this.vp
@@ -176,6 +178,7 @@ basicCard = {
     state.current.actions += this.getActions(state)
     state.current.coins += this.getCoins(state)
     state.current.potions += this.getPotion(state)
+    state.current.coinTokens += this.getCoinTokens(state)
     state.current.buys += this.getBuys(state)
     cardsToDraw = this.getCards(state)
     cardsToTrash = this.getTrash(state)
@@ -183,6 +186,8 @@ basicCard = {
       state.drawCards(state.current, cardsToDraw)
     if cardsToTrash > 0
       state.requireTrash(state.current, cardsToTrash)
+    if (ct = this.getCoinTokens(state)) > 0
+      state.log("#{state.current.ai} gains #{ct} Coin Token#{if ct > 1 then "s" else ""}")
     this.playEffect(state)
   
   # Similarly, these are other ways for the game state to interact
@@ -358,6 +363,10 @@ makeCard 'Market', action, {
 makeCard 'Bazaar', action, {
   cost: 5, actions: 2, cards: 1, coins: 1
   ai_playValue: (state, my) -> 835
+}
+makeCard 'Candlestick Maker', action, {
+  cost: 2, actions: 1, coinTokens: 1, buys: 1
+  ai_playValue: (state, my) -> 734
 }
 
 # Kingdom Victory cards
@@ -888,6 +897,54 @@ makeCard 'Remodel', action, {
   ai_playValue: (state, my) -> 223
 }
 
+
+makeCard 'Develop', action, {
+  cost: 3
+  
+#  exactCostUpgrade: true
+  
+#  upgradeFilter:  (state, oldCard, [newCard1, newCard2]) ->
+#    [coins0, potion0] = oldCard.getCost(state)
+#    [coins1, potion1] = newCard1.getCost(state)
+#    [coins2, potion2] = newCard2.getCost(state)
+ 
+    
+  developTarget: (state, oldCard, newCard) ->
+    return Math.abs(oldCard.getCost(state)[0] - newCard.getCost(state)[0])==1 and (oldCard.getCost(state)[1] == newCard.getCost(state)[1])
+    
+  playEffect: (state) ->
+    oldChoices = state.current.hand.unique()
+    choices = []
+    for oldCard in oldChoices
+      newCards = []
+      for card in state.filledPiles() 
+        if (this.developTarget(state, oldCard, c[card]))
+          newCards.push(c[card])
+      if newCards.length==0
+        choices.push([oldCard, [null, null]])
+      else 
+        for newCard in newCards
+          partnerCards = []
+          for card in state.filledPiles() 
+            if (this.developTarget(state, oldCard, c[card]) and c[card].getCost(state)[0] != c[newCard].getCost(state)[0])
+              partnerCards.push(c[card])
+          if partnerCards.length==0
+            choices.push([oldCard, [newCard, null]])
+          else
+            for partnerCard in partnerCards
+              choices.push([oldCard, [newCard,partnerCard]] )
+    
+    choice = state.current.ai.choose('develop', state, choices)
+    if choice isnt null
+      [oldCard, [newCard1, newCard2]] = choice
+      state.doTrash(state.current, oldCard)
+      if newCard1 isnt null
+        state.gainCard(state.current, newCard1, 'draw')
+      if newCard2 isnt null
+        state.gainCard(state.current, newCard2, 'draw')
+ 
+}
+
 makeCard 'Expand', c.Remodel, {
   cost: 7
 
@@ -1252,6 +1309,17 @@ makeCard 'Margrave', attack, {
     if my.actions > 1 then 685 else 280
   ai_multipliedValue: (state, my) ->
     if my.actions > 0 then 1560 else -1
+}
+
+makeCard 'Masterpiece', treasure, {
+  cost: 3
+  coins: 1
+
+  buyEffect: (state) ->
+    amountOverpayed = state.current.ai.chooseOverpayMasterpiece(state, state.current.coins)
+    state.log("overpaying for #{amountOverpayed} and gaining #{amountOverpayed} Silvers")
+    for i in [1 .. amountOverpayed]
+      state.gainCard(state.current, c['Silver'], 'discard', true)
 }
 
 makeCard "Militia", attack, {
@@ -1801,6 +1869,19 @@ makeCard 'Apprentice', action, {
   ai_playValue: (state, my) -> 730
 }
 
+makeCard 'Baker', action, {
+  cost: 5
+  actions: 1
+  cards: 1
+  coinTokens: 1
+  
+  startGameEffect: (state) ->
+    for player in state.players
+      player.coinTokens += 1
+  
+  ai_playValue: (state, my) -> 774
+}
+
 makeCard 'Baron', action, {
   cost: 4
   buys: +1
@@ -1822,7 +1903,6 @@ makeCard 'Baron', action, {
         5
       else
         -5
-
 }
 
 makeCard 'Beggar', action, {
@@ -2687,6 +2767,20 @@ makeCard "Menagerie", action, {
 
 }
 
+makeCard "Merchant Guild", action, {
+  cost: 5
+  buys: 1
+  coins: 1
+  
+  buyInPlayEffect: (state, card) ->
+    state.current.coinTokens += 1
+    state.log("#{state.current.ai} gains 1 Coin Token")
+  
+  ai_playValue: (state, my) ->
+    269
+    
+}
+
 makeCard "Mining Village", c.Village, {
   cost: 4
   playEffect: (state) ->
@@ -3535,6 +3629,13 @@ transferCardToTop = (card, fromList, toList) ->
     throw new Error("#{fromList} does not contain #{card}")
   fromList.remove(card)
   toList.unshift(card)
+
+# `Array::unique` returns the unique keys from a given array
+Array::unique = ->
+  output = {}
+  output[@[key]] = @[key] for key in [0...@length]
+  value for key, value of output
+
 
 # Some cards give you a constant benefit, such as +cards or +actions,
 # every time you play them; these benefits are defined directly on the card
