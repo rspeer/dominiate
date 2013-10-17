@@ -530,6 +530,8 @@ class BasicAI
     "Ill-Gotten Gains"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
+    "Spoils" if this.wantsToPlaySpoils(state)
+    null
   ]
   
   # The default `discardPriority` is tuned for Big Money where the decisions
@@ -1162,6 +1164,11 @@ class BasicAI
         unmultipliedValue = this.getChoiceValue('play', state, choice, my)
       return (multipliedValue > unmultipliedValue)
     return false
+  
+  # to be improved...
+  wantsToPlaySpoils: (state) ->
+    state.log("WHY?")  
+    return true
   
   # `goingGreen`: determine when we're playing for victory points. By default,
   # it's if there are any Colonies, Provinces, or Duchies in the deck.
