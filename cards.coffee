@@ -2968,9 +2968,7 @@ makeCard 'Plaza', c.Village, {
     choice = state.current.ai.choose('plazaDiscard', state, possibleDiscards)
     if choice?
       if choice in possibleDiscards
-        state.log("A: #{state.current.hand}")
         state.requireDiscard(state.current, 1, (card) -> card == choice)
-        state.log("B: #{state.current.hand}")
         state.current.coinTokens += 1
         state.log("#{state.current.ai} discards a #{choice}")
         state.log("... gaining a Coin Token")

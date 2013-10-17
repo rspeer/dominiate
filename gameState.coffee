@@ -1246,7 +1246,6 @@ class State
     discarded = []
     while discarded.length < num
       validDiscards = ( card for card in player.hand when typeFunc(card) ).slice(0)
-      this.log("Valid: #{validDiscards}")
       return discarded if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
       discarded.push(choice)
