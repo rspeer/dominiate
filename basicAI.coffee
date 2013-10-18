@@ -1163,6 +1163,10 @@ class BasicAI
       return (multipliedValue > unmultipliedValue)
     return false
   
+  
+  wantsToDiscardBeggar: (state) ->
+    return true
+  
   # `goingGreen`: determine when we're playing for victory points. By default,
   # it's if there are any Colonies, Provinces, or Duchies in the deck.
   #

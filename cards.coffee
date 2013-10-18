@@ -1907,11 +1907,18 @@ makeCard 'Baron', action, {
 
 makeCard 'Beggar', action, {
   cost: 2
+  isReaction: true
 
   playEffect: (state) ->
     state.gainCard(state.current, c.Copper, 'hand')
     state.gainCard(state.current, c.Copper, 'hand')
     state.gainCard(state.current, c.Copper, 'hand')
+
+  reactToAttack: (state, player, attackEvent) ->
+    if player.ai.wantsToDiscardBeggar(state, player)
+      state.doDiscard(player, c.Beggar)
+      state.gainCard(player, c.Silver, 'draw')
+      state.gainCard(player, c.Silver, 'draw')
 
   ai_playValue: (state, my) -> 243
 }
