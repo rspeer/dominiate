@@ -879,6 +879,12 @@ class BasicAI
     'coins' if state.current.mats.pirateShip >= 5 and state.current.getAvailableMoney()+state.current.mats.pirateShip >= 8
     'attack'
   ]
+  
+  # might want to think about something more clever, but for first, just discard Coppers
+  plazaDiscardPriority: (state, my) -> [
+    "Copper"
+    null
+  ]       
 
   rogueGainValue: (state, card, my) ->
     [coins, potions] = card.getCost(state)
