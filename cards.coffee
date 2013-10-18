@@ -670,6 +670,25 @@ makeCard 'Royal Seal', treasure, {
       transferCardToTop(card, source, player.draw)
 }
 
+makeCard 'Spoils', treasure, {
+  cost: 0
+  coins: 3
+  
+  mayBeBought: (state) -> false
+  startingSupply: (state) -> 0
+  
+  playEffect: (state) ->
+    state.current.inPlay.remove(this)
+    state.specialSupply['Spoils'] += 1
+    state.log("#{state.specialSupply['Spoils']} Spoils in the supply")
+   
+  ai_playValue: (state, my) ->
+    if my.ai.wantsToPlaySpoils(state) 
+      81
+    else
+      null    
+}
+
 makeCard 'Talisman', treasure, {
   cost: 4
   coins: 1
@@ -1880,6 +1899,19 @@ makeCard 'Baker', action, {
       player.coinTokens += 1
   
   ai_playValue: (state, my) -> 774
+}
+
+makeCard 'Bandit Camp', c.Village, {
+  cost: 5
+  
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Spoils)
+    
+  startGameEffect: (state) ->
+    state.specialSupply['Spoils'] = 15
+    
+  ai_playValue: (state, my) -> 821
+  
 }
 
 makeCard 'Baron', action, {
