@@ -1226,12 +1226,13 @@ class State
     player.getCardsFromDeck(num)
 
   # `allowDiscard` allows a player to discard 0 through `num` cards.
-  allowDiscard: (player, num) ->
+  # added typeFunc to only allow discards of certain type of cards.
+  allowDiscard: (player, num, typeFunc = (card) -> true) ->
     discarded = []
     while discarded.length < num
       # In `allowDiscard`, valid discards are the entire hand, plus `null`
       # to stop discarding.
-      validDiscards = player.hand.slice(0)
+      validDiscards = ( card for card in player.hand when typeFunc(card?) ).slice(0)
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
       return discarded if choice is null
@@ -1241,10 +1242,10 @@ class State
   
   # `requireDiscard` requires the player to discard exactly `num` cards,
   # except that it stops if the player has 0 cards in hand.
-  requireDiscard: (player, num) ->
+  requireDiscard: (player, num, typeFunc = (card) -> true) ->
     discarded = []
     while discarded.length < num
-      validDiscards = player.hand.slice(0)
+      validDiscards = ( card for card in player.hand when typeFunc(card) ).slice(0)
       return discarded if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
       discarded.push(choice)

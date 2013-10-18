@@ -33,4 +33,10 @@
     "Estate"
     "Copper"
   ]
+  
+  wantsToDiscardBeggar: (state, my) ->
+    if my.countInHand("Beggar") > 1
+      return true
+    else
+      return false
 }

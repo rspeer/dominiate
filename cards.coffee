@@ -670,6 +670,25 @@ makeCard 'Royal Seal', treasure, {
       transferCardToTop(card, source, player.draw)
 }
 
+makeCard 'Spoils', treasure, {
+  cost: 0
+  coins: 3
+  
+  mayBeBought: (state) -> false
+  startingSupply: (state) -> 0
+  
+  playEffect: (state) ->
+    state.current.inPlay.remove(this)
+    state.specialSupply['Spoils'] += 1
+    state.log("#{state.specialSupply['Spoils']} Spoils in the supply")
+   
+  ai_playValue: (state, my) ->
+    if my.ai.wantsToPlaySpoils(state) 
+      81
+    else
+      null    
+}
+
 makeCard 'Talisman', treasure, {
   cost: 4
   coins: 1
@@ -1882,6 +1901,19 @@ makeCard 'Baker', action, {
   ai_playValue: (state, my) -> 774
 }
 
+makeCard 'Bandit Camp', c.Village, {
+  cost: 5
+  
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Spoils)
+    
+  startGameEffect: (state) ->
+    state.specialSupply['Spoils'] = 15
+    
+  ai_playValue: (state, my) -> 821
+  
+}
+
 makeCard 'Baron', action, {
   cost: 4
   buys: +1
@@ -1907,11 +1939,18 @@ makeCard 'Baron', action, {
 
 makeCard 'Beggar', action, {
   cost: 2
+  isReaction: true
 
   playEffect: (state) ->
     state.gainCard(state.current, c.Copper, 'hand')
     state.gainCard(state.current, c.Copper, 'hand')
     state.gainCard(state.current, c.Copper, 'hand')
+
+  reactToAttack: (state, player, attackEvent) ->
+    if player.ai.wantsToDiscardBeggar(state, player)
+      state.doDiscard(player, c.Beggar)
+      state.gainCard(player, c.Silver, 'draw')
+      state.gainCard(player, c.Silver, 'draw')
 
   ai_playValue: (state, my) -> 243
 }
@@ -2956,6 +2995,22 @@ makeCard 'Peddler', action, {
         cost = 0
     cost
   ai_playValue: (state, my) -> 770
+}
+
+makeCard 'Plaza', c.Village, {
+  cost: 4
+  
+  playEffect: (state) ->
+    numStartingCards = state.current.hand.length
+    possibleDiscards = (card for card in state.current.hand when card.isTreasure)
+    possibleDiscards.push(null)
+    choice = state.current.ai.choose('plazaDiscard', state, possibleDiscards)
+    if choice?
+      if choice in possibleDiscards
+        state.requireDiscard(state.current, 1, (card) -> card == choice)
+        state.current.coinTokens += 1
+        state.log("#{state.current.ai} discards a #{choice}")
+        state.log("... gaining a Coin Token")
 }
 
 # New in Dark Ages.

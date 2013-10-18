@@ -530,6 +530,8 @@ class BasicAI
     "Ill-Gotten Gains"
     "Bank"
     "Horn of Plenty" if my.numUniqueCardsInPlay() >= 2
+    "Spoils" if this.wantsToPlaySpoils(state)
+    null
   ]
   
   # The default `discardPriority` is tuned for Big Money where the decisions
@@ -877,6 +879,12 @@ class BasicAI
     'coins' if state.current.mats.pirateShip >= 5 and state.current.getAvailableMoney()+state.current.mats.pirateShip >= 8
     'attack'
   ]
+  
+  # might want to think about something more clever, but for first, just discard Coppers
+  plazaDiscardPriority: (state, my) -> [
+    "Copper"
+    null
+  ]       
 
   rogueGainValue: (state, card, my) ->
     [coins, potions] = card.getCost(state)
@@ -1162,6 +1170,26 @@ class BasicAI
         unmultipliedValue = this.getChoiceValue('play', state, choice, my)
       return (multipliedValue > unmultipliedValue)
     return false
+  
+  # play Spoils if it changes your buys this turn.  Or if in hypothetical state to solve recursion
+  wantsToPlaySpoils: (state) ->
+    if state.depth > 0
+      return true
+    else
+      cardsGainedWithout = this.pessimisticCardsGained(state)
+      [hypState, hypMy] = state.hypothetical(this)
+      hypState.current.hand.remove(c["Spoils"])
+      cardsGainedWith = this.pessimisticCardsGained(hypState)
+      if arrayEqual(cardsGainedWithout, cardsGainedWith)
+        return false
+      else
+        return true
+      
+      
+    
+  
+  wantsToDiscardBeggar: (state) ->
+    return true
   
   # `goingGreen`: determine when we're playing for victory points. By default,
   # it's if there are any Colonies, Provinces, or Duchies in the deck.

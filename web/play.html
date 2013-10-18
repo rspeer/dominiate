@@ -70,6 +70,10 @@
           <span>Play 1000 games</span>
         </label></li>
         <li><label>
+          <input type="radio" name="playUntil" value="play10000" id="play10000" />
+          <span>Play 10000 games</span>
+        </label></li>
+        <li><label>
           <input type="radio" name="playUntil" value="playUntilDecisive" id="playUntilDecisive" checked="checked" />
           <span>Play until winner is clear</span>
         </label></li>
@@ -280,6 +284,7 @@ $ ->
     else if $('#playOne').is(':checked') then playOneGame()
     else if $('#play100').is(':checked') then playUntil((-> false), 100)
     else if $('#play1000').is(':checked') then playUntil((-> false), 1000)
+    else if $('#play10000').is(':checked') then playUntil((-> false), 10000)
     else if $('#playUntilDecisive').is(':checked')
       playUntil(tracker.decisiveWinner, Infinity)
     return false
