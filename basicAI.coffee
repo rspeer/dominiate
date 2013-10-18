@@ -1165,10 +1165,22 @@ class BasicAI
       return (multipliedValue > unmultipliedValue)
     return false
   
-  # to be improved...
+  # play Spoils if it changes your buys this turn.  Or if in hypothetical state to solve recursion
   wantsToPlaySpoils: (state) ->
-    state.log("WHY?")  
-    return true
+    if state.depth > 0
+      return true
+    else
+      cardsGainedWithout = this.pessimisticCardsGained(state)
+      [hypState, hypMy] = state.hypothetical(this)
+      hypState.current.hand.remove(c["Spoils"])
+      cardsGainedWith = this.pessimisticCardsGained(hypState)
+      if arrayEqual(cardsGainedWithout, cardsGainedWith)
+        return false
+      else
+        return true
+      
+      
+    
   
   # `goingGreen`: determine when we're playing for victory points. By default,
   # it's if there are any Colonies, Provinces, or Duchies in the deck.
