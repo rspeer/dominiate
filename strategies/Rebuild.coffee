@@ -1,15 +1,15 @@
 {
-  name: 'RebuildMirror' #Only use this against another Rebuild strategy
+  name: 'Rebuild' 
   author: 'ragingduckd', 'SheCantSayNo'
   requires: ['Rebuild']
   gainPriority: (state, my) -> [
     "Province"
     "Rebuild" if my.countInDeck("Rebuild") < 2
+    "Rebuild" if my.countInDeck("Rebuild") < 3 and state.countInSupply("Rebuild") == 8
     "Duchy"
     "Estate" if state.gainsToEndGame() <= 1
     "Estate" if state.gainsToEndGame() == 2 and my.ai.getScore(state, my) > -8
-    "Gold" if my.countInDeck("Estate") > 0
-    "Gold" if my.countInDeck("Duchy") + my.countInDeck("Province") <= 4
+    "Gold"
     "Estate" if state.gainsToEndGame() <= 2
     "Rebuild" if (my.countInDeck("Duchy") > 0 or my.ai.getScore(state, my) > 2)\
                 and (state.countInSupply("Rebuild") > 2 or my.ai.getScore(state, my) > 3 \
@@ -38,16 +38,11 @@
     return my.countInDeck(card) - my.countInHand(card) - my.countInDiscard(card)
 
   wantsToRebuild: (state, my) ->
-    answer = 1
-    if state.countInSupply("Duchy") == 0 \
-       and my.ai.countInDraw(my, "Estate") > 0 \
-       and my.ai.countInDraw(my, "Duchy") == 0 \
-       and my.ai.countInDraw(my, "Province") > 0 \
-       and my.ai.countInDraw(my, "Rebuild") > 0 \
-       and my.ai.getScore(state, my) < 2
-          answer = 0
+    if my.countInHand("Rebuild") >= state.countInSupply("Province") \
+       and my.ai.getScore(state, my) > 0
+          answer = 1
     else if state.countInSupply("Province") == 1 \
-            and my.ai.getScore(state, my) < -3
+            and my.ai.getScore(state, my) < -4
               answer = 0
     else if state.countInSupply("Duchy") == 0 \
             and my.ai.countNotInHand(my, "Duchy") == 0\
@@ -82,8 +77,11 @@
              and my.ai.getScore(state, my) > 0
     "Estate" if state.countInSupply("Duchy") == 0 \
              and my.ai.countInDraw(my, "Estate") > 0 \
-             and my.ai.countInDraw(my, "Duchy") > 0 \
              and my.ai.countInDraw(my, "Province") == 0
+    "Province" if state.countInSupply("Duchy") == 0 \
+               and my.ai.countInDraw(my, "Duchy") > 0 \
+               and my.ai.countInDraw(my, "Province") > \
+               my.ai.countInDraw(my, "Estate") 
     "Estate" if state.countInSupply("Duchy") == 0 \
              and my.ai.countInDraw(my, "Estate") > 0 \
              and my.ai.countInDraw(my, "Province") > 0 \
