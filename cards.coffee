@@ -2502,6 +2502,30 @@ makeCard 'Hunting Party', action, {
   ai_playValue: (state, my) -> 790
 }
 
+
+makeCard 'Hunting Grounds', action, {
+  cost: 6
+  cards: 4
+  
+  trashEffect: (state, player) ->
+    state.log("Starting trashEffect HG")
+    choice = ai.chooseHuntingGroundsGain(state, player)
+    if choice == "Estates"
+      state.gainCard(player, c.Estate)
+      state.gainCard(player, c.Estate)
+      state.gainCard(player, c.Estate)
+    else if choice == "Duchy"
+      state.gainCard(player, c.Duchy)
+    else
+      state.log("Invalid choice for HuntingGroundsGain: #{choice}!")
+      state.gainCard(player, c.Duchy)
+  
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 666 else 201
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1542 else -1
+}
+
 makeCard 'Ironworks', action, {
   cost: 4
   playEffect: (state) ->
