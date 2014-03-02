@@ -812,6 +812,13 @@ class BasicAI
   herbalistValue: (state, card, my) =>
     this.mintValue(state, card, my)
 
+
+  huntingGroundsGainPriority: (state, my) -> [
+    "Duchy"
+    "Estates"
+  ]
+  
+
   # islandPriority chooses which card to set aside with Island. At present this
   # list is incomplete, but covers just about everything that we would want to set aside
   # with an Island.
@@ -1185,7 +1192,9 @@ class BasicAI
       else
         return true
       
-      
+  # method was missing, just quickfix default to false
+  wantsToJM: (state, my) ->
+    false    
     
   
   wantsToDiscardBeggar: (state) ->

@@ -1621,6 +1621,7 @@ makeCard 'Saboteur', attack, {
         cardToTrash = drawn[0]
         state.log("...#{state.current.ai} trashes #{opp.ai}'s #{cardToTrash}.")
         state.trash.push(drawn[0])
+        drawn[0].trashEffect(state, state.current)
         choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
         choices.push([cardToTrash,null])
         choice = opp.ai.choose('upgrade', state, choices)
@@ -2500,6 +2501,29 @@ makeCard 'Hunting Party', action, {
       state.current.hand.push(card)
 
   ai_playValue: (state, my) -> 790
+}
+
+
+makeCard 'Hunting Grounds', action, {
+  cost: 6
+  cards: 4
+  
+  trashEffect: (state, player) ->
+    choice = player.ai.choose('huntingGroundsGain', state, ["Estates", "Duchy"])
+    if choice == "Estates"
+      state.gainCard(player, c.Estate)
+      state.gainCard(player, c.Estate)
+      state.gainCard(player, c.Estate)
+    else if choice == "Duchy"
+      state.gainCard(player, c.Duchy)
+    else
+      state.log("Invalid choice for HuntingGroundsGain: #{choice}!")
+      state.gainCard(player, c.Duchy)
+  
+  ai_playValue: (state, my) ->
+    if my.actions > 1 then 666 else 201
+  ai_multipliedValue: (state, my) ->
+    if my.actions > 0 then 1542 else -1
 }
 
 makeCard 'Ironworks', action, {
