@@ -1621,6 +1621,7 @@ makeCard 'Saboteur', attack, {
         cardToTrash = drawn[0]
         state.log("...#{state.current.ai} trashes #{opp.ai}'s #{cardToTrash}.")
         state.trash.push(drawn[0])
+        drawn[0].trashEffect(state, state.current)
         choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
         choices.push([cardToTrash,null])
         choice = opp.ai.choose('upgrade', state, choices)
@@ -2508,8 +2509,7 @@ makeCard 'Hunting Grounds', action, {
   cards: 4
   
   trashEffect: (state, player) ->
-    state.log("Starting trashEffect HG")
-    choice = ai.chooseHuntingGroundsGain(state, player)
+    choice = player.ai.choose('huntingGroundsGain', state, ["Estates", "Duchy"])
     if choice == "Estates"
       state.gainCard(player, c.Estate)
       state.gainCard(player, c.Estate)
