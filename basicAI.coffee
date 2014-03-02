@@ -1185,7 +1185,9 @@ class BasicAI
       else
         return true
       
-      
+  # method was missing, just quickfix default to false
+  wantsToJM: (state, my) ->
+    false    
     
   
   wantsToDiscardBeggar: (state) ->
