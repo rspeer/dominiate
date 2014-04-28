@@ -5,8 +5,9 @@ cards.js
 gameState.js
 heuristics.js
 grapher.js
-geronimoo
+testSimulation.js
 .idea
+node_modules
 web/grapher.js
 web/playWeb.js
 web/multiLog.js
