@@ -22,6 +22,8 @@ class PlayerState
     @buys = 1
     @coins = 0
     @potions = 0
+    @coinTokens = 0
+    @coinTokensSpendThisTurn = 0
     @multipliedDurations = []
     @chips = 0
     @hand = []
@@ -154,6 +156,7 @@ class PlayerState
     for card in this.getDeck()
       if card.isTreasure or card.actions >= 1
         total += card.coins
+#        total += card.coinTokens
     total
   totalMoney: this.getTotalMoney
 
@@ -395,6 +398,7 @@ class PlayerState
     other.buys = @buys
     other.coins = @coins
     other.potions = @potions
+    other.coinTokens = @coinTokens
     other.multipliedDurations = @multipliedDurations.slice(0)
 
     # Clone mat contents, deep-copying arrays of cards
@@ -419,6 +423,7 @@ class PlayerState
     other.ai = @ai
     other.logFunc = @logFunc
     other.turnsTaken = @turnsTaken
+    other.coinTokensSpendThisTurn = @coinTokensSpendThisTurn
     other
   
   # Games can provide output using the `log` function.
@@ -592,6 +597,14 @@ class State
   # `numEmptyPiles()` simply returns the number of empty piles.
   numEmptyPiles: () ->
     this.emptyPiles().length
+  
+  # `filledPiles()` determines which supply piles are not empty.
+  filledPiles: () ->
+    piles = []
+    for key, value of @supply
+      if value > 0
+        piles.push(key)
+    piles
   
   # `gameIsOver()` returns whether the game is over.
   gameIsOver: () ->
@@ -885,14 +898,30 @@ class State
       
       # Ask the AI for its choice.
       treasure = @current.ai.chooseTreasure(this, validTreasures)
-      return if treasure is null
+      break if treasure is null
       this.log("#{@current.ai} plays #{treasure}.")
 
       # Remove the treasure from the hand and put it in the play area.
       if treasure not in @current.hand
         this.warn("#{@current.ai} chose an invalid treasure")
-        return
+        break
       this.playTreasure(treasure)
+    
+    while (ctd = this.getCoinTokenDecision()) > 0
+      @current.coins += ctd
+      @current.coinTokens -= ctd
+  
+  getCoinTokenDecision: () ->
+    ct = @current.ai.spendCoinTokens(this, @current)
+    if (ct > @current.coinTokens)
+      this.log("#{@current.ai} wants to spend more Coin Tokens as it possesses (#{ct}/#{@current.coinTokens})")
+      ct = @current.coinTokens
+    else
+      if (ct > 0)
+        this.log("#{@current.ai} spends #{ct} Coin Token#{if ct > 1 then "s" else ""}")
+    @current.coinTokensSpendThisTurn = ct
+    return ct
+    
   
   playTreasure: (treasure) ->
     @current.hand.remove(treasure)
@@ -924,6 +953,7 @@ class State
         
     # Ask the AI for its choice.
     this.log("Coins: #{@current.coins}, Potions: #{@current.potions}, Buys: #{@current.buys}")
+    this.log("Coin Tokens left: #{@current.coinTokens}")
     choice = @current.ai.chooseGain(this, buyable)
     return choice
 
@@ -1207,12 +1237,13 @@ class State
     player.getCardsFromDeck(num)
 
   # `allowDiscard` allows a player to discard 0 through `num` cards.
-  allowDiscard: (player, num) ->
+  # added typeFunc to only allow discards of certain type of cards.
+  allowDiscard: (player, num, typeFunc = (card) -> true) ->
     discarded = []
     while discarded.length < num
       # In `allowDiscard`, valid discards are the entire hand, plus `null`
       # to stop discarding.
-      validDiscards = player.hand.slice(0)
+      validDiscards = ( card for card in player.hand when typeFunc(card?) ).slice(0)
       validDiscards.push(null)
       choice = player.ai.chooseDiscard(this, validDiscards)
       return discarded if choice is null
@@ -1222,10 +1253,10 @@ class State
   
   # `requireDiscard` requires the player to discard exactly `num` cards,
   # except that it stops if the player has 0 cards in hand.
-  requireDiscard: (player, num) ->
+  requireDiscard: (player, num, typeFunc = (card) -> true) ->
     discarded = []
     while discarded.length < num
-      validDiscards = player.hand.slice(0)
+      validDiscards = ( card for card in player.hand when typeFunc(card) ).slice(0)
       return discarded if validDiscards.length == 0
       choice = player.ai.chooseDiscard(this, validDiscards)
       discarded.push(choice)

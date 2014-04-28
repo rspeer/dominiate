@@ -46,6 +46,7 @@ playGame = (strategies, options, ret) ->
       errorHandler = options.errorHandler ? (alert ? console.log)
       errorHandler(err.message)
       window.donePlaying()
+      throw err
   ret(state)
 
 this.compileStrategies = compileStrategies
