@@ -468,8 +468,6 @@ class State
     @nPlayers = @players.length
     @current = @players[0]
     @supply = this.makeSupply(tableau)
-    @totalSupplyCards = []
-    this.updateTotalSupplyCards()
     # Cards like Tournament or Black Market may put cards in a special supply
     @specialSupply = {}
     @trash = []
@@ -504,12 +502,6 @@ class State
 
     return this
   
-  updateTotalSupplyCards: () ->
-    total = 0
-    for card, count of @supply
-      total += count
-    @totalSupplyCards.push(total)
-
   # `setUpWithOptions` is the function I'd like to use as the primary way of setting up
   # a new game, doing the work of choosing a set of kingdom and extra cards (what I call
   # the tableau) with the cards they require plus random cards, and handling options.
@@ -603,13 +595,11 @@ class State
     # Add a fake game-ending condition, too, which is a stalemate the SillyAI
     # sometimes ends up in.
     emptyPiles = this.emptyPiles()
-    totalLen = @totalSupplyCards.length
     if emptyPiles.length >= this.totalPilesToEndGame() \
         or (@nPlayers < 5 and emptyPiles.length >= 3) \
         or 'Province' in emptyPiles \
         or 'Colony' in emptyPiles \
-        or (totalLen > 100 * @nPlayers and
-            @totalSupplyCards[totalLen - 1] > @totalSupplyCards[totalLen - 100] - 5)
+        or ('Curse' in emptyPiles and 'Copper' in emptyPiles and @current.turnsTaken >= 100)
       this.log("Empty piles: #{emptyPiles}")
       for [playerName, vp, turns] in this.getFinalStatus()
         this.log("#{playerName} took #{turns} turns and scored #{vp} points.")
@@ -1050,7 +1040,6 @@ class State
   rotatePlayer: () ->
     @players = @players[1...@nPlayers].concat [@players[0]]
     @current = @players[0]
-    this.updateTotalSupplyCards()
     @phase = 'start'
   
   #### Small-scale effects
