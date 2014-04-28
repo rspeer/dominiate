@@ -5893,8 +5893,6 @@
       this.nPlayers = this.players.length;
       this.current = this.players[0];
       this.supply = this.makeSupply(tableau);
-      this.totalSupplyCards = [];
-      this.updateTotalSupplyCards();
       this.specialSupply = {};
       this.trash = [];
       this.cardState = {};
@@ -5911,17 +5909,6 @@
       }
       this.totalCards = this.countTotalCards();
       return this;
-    };
-
-    State.prototype.updateTotalSupplyCards = function() {
-      var card, count, total, _ref1;
-      total = 0;
-      _ref1 = this.supply;
-      for (card in _ref1) {
-        count = _ref1[card];
-        total += count;
-      }
-      return this.totalSupplyCards.push(total);
     };
 
     State.prototype.setUpWithOptions = function(ais, options) {
@@ -6016,13 +6003,12 @@
     };
 
     State.prototype.gameIsOver = function() {
-      var emptyPiles, playerName, totalLen, turns, vp, _i, _len, _ref1, _ref2;
+      var emptyPiles, playerName, turns, vp, _i, _len, _ref1, _ref2;
       if (this.phase !== 'start') {
         return false;
       }
       emptyPiles = this.emptyPiles();
-      totalLen = this.totalSupplyCards.length;
-      if (emptyPiles.length >= this.totalPilesToEndGame() || (this.nPlayers < 5 && emptyPiles.length >= 3) || __indexOf.call(emptyPiles, 'Province') >= 0 || __indexOf.call(emptyPiles, 'Colony') >= 0 || (totalLen > 100 * this.nPlayers && this.totalSupplyCards[totalLen - 1] > this.totalSupplyCards[totalLen - 100] - 5)) {
+      if (emptyPiles.length >= this.totalPilesToEndGame() || (this.nPlayers < 5 && emptyPiles.length >= 3) || __indexOf.call(emptyPiles, 'Province') >= 0 || __indexOf.call(emptyPiles, 'Colony') >= 0 || (__indexOf.call(emptyPiles, 'Curse') >= 0 && __indexOf.call(emptyPiles, 'Copper') >= 0 && this.current.turnsTaken >= 100)) {
         this.log("Empty piles: " + emptyPiles);
         _ref1 = this.getFinalStatus();
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
@@ -6450,7 +6436,6 @@
     State.prototype.rotatePlayer = function() {
       this.players = this.players.slice(1, this.nPlayers).concat([this.players[0]]);
       this.current = this.players[0];
-      this.updateTotalSupplyCards();
       return this.phase = 'start';
     };
 
