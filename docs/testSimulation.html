@@ -1,59 +1,146 @@
-<!DOCTYPE html>  <html> <head>   <title>testSimulation.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="basicAI.html">                 basicAI.coffee               </a>                                           <a class="source" href="cards.html">                 cards.coffee               </a>                                           <a class="source" href="compileStrategies.html">                 compileStrategies.coffee               </a>                                           <a class="source" href="gameState.html">                 gameState.coffee               </a>                                           <a class="source" href="heuristics.html">                 heuristics.coffee               </a>                                           <a class="source" href="play.html">                 play.coffee               </a>                                           <a class="source" href="playWeb.html">                 playWeb.coffee               </a>                                           <a class="source" href="testSimulation.html">                 testSimulation.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               testSimulation.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>               <p>This isn't a standalone file that can be run with the "coffee" interpreter.
-It's a unit test file.</p>
+<!DOCTYPE html>
 
-<p>You can run it through "nodeunit" (<code>npm install nodeunit</code>), which now has
+<html>
+<head>
+  <title>testSimulation.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="basicAI.html">
+                basicAI.coffee
+              </a>
+            
+              
+              <a class="source" href="cards.html">
+                cards.coffee
+              </a>
+            
+              
+              <a class="source" href="compileStrategies.html">
+                compileStrategies.coffee
+              </a>
+            
+              
+              <a class="source" href="gameState.html">
+                gameState.coffee
+              </a>
+            
+              
+              <a class="source" href="heuristics.html">
+                heuristics.coffee
+              </a>
+            
+              
+              <a class="source" href="play.html">
+                play.coffee
+              </a>
+            
+              
+              <a class="source" href="playWeb.html">
+                playWeb.coffee
+              </a>
+            
+              
+              <a class="source" href="testSimulation.html">
+                testSimulation.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>testSimulation.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <p>This isn’t a standalone file that can be run with the “coffee” interpreter.
+It’s a unit test file.</p>
+<p>You can run it through “nodeunit” (<code>npm install nodeunit</code>), which now has
 built-in support for CoffeeScript:</p>
-
 <pre><code>nodeunit testSimulation.coffee
-</code></pre>             </td>             <td class="code">               <div class="highlight"><pre><span class="nv">c = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./cards&#39;</span><span class="p">)</span>
-<span class="nv">gameState = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./gameState&#39;</span><span class="p">)</span>
-<span class="nv">basicAI = </span><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./basicAI&#39;</span><span class="p">)</span>
-<span class="p">{</span><span class="nx">loadStrategy</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./play&#39;</span><span class="p">)</span>
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+c = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./cards'</span>)
+gameState = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./gameState'</span>)
+basicAI = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./basicAI'</span>)
+{loadStrategy} = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./play'</span>)
 
-<span class="k">this</span><span class="p">[</span><span class="s1">&#39;game is initialized correctly&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nf">(test) -&gt;</span>
-  <span class="nv">ai1 = </span><span class="k">new</span> <span class="nx">basicAI</span><span class="p">.</span><span class="nx">BasicAI</span><span class="p">()</span>
-  <span class="nv">ai2 = </span><span class="k">new</span> <span class="nx">basicAI</span><span class="p">.</span><span class="nx">BasicAI</span><span class="p">()</span> 
-  <span class="nv">st = </span><span class="k">new</span> <span class="nx">gameState</span><span class="p">.</span><span class="nx">State</span><span class="p">().</span><span class="nx">initialize</span><span class="p">([</span><span class="nx">ai1</span><span class="p">,</span> <span class="nx">ai2</span><span class="p">],</span> <span class="nx">gameState</span><span class="p">.</span><span class="nx">tableaux</span><span class="p">.</span><span class="nx">moneyOnly</span><span class="p">)</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">players</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="mi">2</span> 
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">getVP</span><span class="p">(),</span> <span class="mi">3</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">hand</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="mi">5</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">draw</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="mi">5</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">discard</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="mi">0</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">current</span><span class="p">.</span><span class="nx">getDeck</span><span class="p">().</span><span class="nx">length</span><span class="p">,</span> <span class="mi">10</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">gameIsOver</span><span class="p">(),</span> <span class="kc">false</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">done</span><span class="p">()</span>
+<span class="hljs-keyword">this</span>[<span class="hljs-string">'game is initialized correctly'</span>] = <span class="hljs-function"><span class="hljs-params">(test)</span> -&gt;</span>
+  ai1 = <span class="hljs-keyword">new</span> basicAI.BasicAI()
+  ai2 = <span class="hljs-keyword">new</span> basicAI.BasicAI() 
+  st = <span class="hljs-keyword">new</span> gameState.State().initialize([ai1, ai2], gameState.tableaux.moneyOnly)
+  test.equal st.players.length, <span class="hljs-number">2</span> 
+  test.equal st.current.getVP(), <span class="hljs-number">3</span>
+  test.equal st.current.hand.length, <span class="hljs-number">5</span>
+  test.equal st.current.draw.length, <span class="hljs-number">5</span>
+  test.equal st.current.discard.length, <span class="hljs-number">0</span>
+  test.equal st.current.getDeck().length, <span class="hljs-number">10</span>
+  test.equal st.phase, <span class="hljs-string">'start'</span>
+  test.equal st.gameIsOver(), <span class="hljs-literal">false</span>
+  test.done()
 
-<span class="k">this</span><span class="p">[</span><span class="s1">&#39;game phases proceed as expected&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nf">(test) -&gt;</span>
-  <span class="nv">ai1 = </span><span class="k">new</span> <span class="nx">basicAI</span><span class="p">.</span><span class="nx">BasicAI</span><span class="p">()</span>
-  <span class="nv">ai2 = </span><span class="k">new</span> <span class="nx">basicAI</span><span class="p">.</span><span class="nx">BasicAI</span><span class="p">()</span>
-  <span class="nv">st = </span><span class="k">new</span> <span class="nx">gameState</span><span class="p">.</span><span class="nx">State</span><span class="p">().</span><span class="nx">setUpWithOptions</span><span class="p">([</span><span class="nx">ai1</span><span class="p">,</span> <span class="nx">ai2</span><span class="p">],</span> <span class="p">{})</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;treasure&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;buy&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;cleanup&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;treasure&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;buy&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;cleanup&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;start&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;action&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;treasure&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;buy&#39;</span>
-  <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">();</span> <span class="nx">test</span><span class="p">.</span><span class="nx">equal</span> <span class="nx">st</span><span class="p">.</span><span class="nx">phase</span><span class="p">,</span> <span class="s1">&#39;cleanup&#39;</span>
-  <span class="nx">until</span> <span class="nx">st</span><span class="p">.</span><span class="nx">gameIsOver</span><span class="p">()</span>
-    <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">()</span>
-  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">([</span><span class="nx">player</span><span class="p">.</span><span class="nx">ai</span><span class="p">.</span><span class="nx">toString</span><span class="p">(),</span> <span class="nx">player</span><span class="p">.</span><span class="nx">getVP</span><span class="p">(</span><span class="nx">st</span><span class="p">),</span> <span class="nx">player</span><span class="p">.</span><span class="nx">turnsTaken</span><span class="p">]</span> <span class="k">for</span> <span class="nx">player</span> <span class="k">in</span> <span class="nx">st</span><span class="p">.</span><span class="nx">players</span><span class="p">)</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">done</span><span class="p">()</span>
+<span class="hljs-keyword">this</span>[<span class="hljs-string">'game phases proceed as expected'</span>] = <span class="hljs-function"><span class="hljs-params">(test)</span> -&gt;</span>
+  ai1 = <span class="hljs-keyword">new</span> basicAI.BasicAI()
+  ai2 = <span class="hljs-keyword">new</span> basicAI.BasicAI()
+  st = <span class="hljs-keyword">new</span> gameState.State().setUpWithOptions([ai1, ai2], {})
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'action'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'treasure'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'buy'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'cleanup'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'start'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'action'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'treasure'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'buy'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'cleanup'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'start'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'action'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'treasure'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'buy'</span>
+  st.doPlay(); test.equal st.phase, <span class="hljs-string">'cleanup'</span>
+  <span class="hljs-keyword">until</span> st.gameIsOver()
+    st.doPlay()
+  <span class="hljs-built_in">console</span>.log([player.ai.toString(), player.getVP(st), player.turnsTaken] <span class="hljs-keyword">for</span> player <span class="hljs-keyword">in</span> st.players)
+  test.done()
 
-<span class="k">this</span><span class="p">[</span><span class="s1">&#39;2-player smoke test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nf">(test) -&gt;</span>
-  <span class="nv">ais = </span><span class="p">(</span><span class="nx">loadStrategy</span><span class="p">(</span><span class="s1">&#39;strategies/SillyAI.coffee&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="nx">i</span> <span class="k">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">..</span><span class="mi">2</span><span class="p">])</span>
-  <span class="nv">noLog = </span><span class="nf">(message) -&gt;</span>
-  <span class="k">for</span> <span class="nx">i</span> <span class="k">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">...</span><span class="mi">100</span><span class="p">]</span>
-    <span class="nv">st = </span><span class="k">new</span> <span class="nx">gameState</span><span class="p">.</span><span class="nx">State</span><span class="p">().</span><span class="nx">setUpWithOptions</span><span class="p">(</span><span class="nx">ais</span><span class="p">,</span> <span class="p">{</span><span class="nv">log: </span><span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">,</span> <span class="nv">require: </span><span class="p">[</span><span class="s1">&#39;Graverobber&#39;</span><span class="p">,</span> <span class="s1">&#39;Ironworks&#39;</span><span class="p">]})</span>
-    <span class="nx">until</span> <span class="nx">st</span><span class="p">.</span><span class="nx">gameIsOver</span><span class="p">()</span>
-      <span class="nx">st</span><span class="p">.</span><span class="nx">doPlay</span><span class="p">()</span>
-  <span class="nx">test</span><span class="p">.</span><span class="nx">done</span><span class="p">()</span>
-
-</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+<span class="hljs-keyword">this</span>[<span class="hljs-string">'2-player smoke test'</span>] = <span class="hljs-function"><span class="hljs-params">(test)</span> -&gt;</span>
+  ais = (loadStrategy(<span class="hljs-string">'strategies/SillyAI.coffee'</span>) <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">1.</span><span class="hljs-number">.2</span>])
+  <span class="hljs-function"><span class="hljs-title">noLog</span> = <span class="hljs-params">(message)</span> -&gt;</span>
+  <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.<span class="hljs-number">.100</span>]
+    st = <span class="hljs-keyword">new</span> gameState.State().setUpWithOptions(ais, {<span class="hljs-attribute">log</span>: <span class="hljs-built_in">console</span>.warn, <span class="hljs-attribute">require</span>: [<span class="hljs-string">"King's Court"</span>]})
+    <span class="hljs-keyword">until</span> st.gameIsOver()
+      st.doPlay()
+  test.done()</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

@@ -1,14 +1,102 @@
-<!DOCTYPE html>  <html> <head>   <title>compileStrategies.coffee</title>   <meta http-equiv="content-type" content="text/html; charset=UTF-8">   <link rel="stylesheet" media="all" href="docco.css" /> </head> <body>   <div id="container">     <div id="background"></div>            <div id="jump_to">         Jump To &hellip;         <div id="jump_wrapper">           <div id="jump_page">                                           <a class="source" href="basicAI.html">                 basicAI.coffee               </a>                                           <a class="source" href="cards.html">                 cards.coffee               </a>                                           <a class="source" href="compileStrategies.html">                 compileStrategies.coffee               </a>                                           <a class="source" href="gameState.html">                 gameState.coffee               </a>                                           <a class="source" href="heuristics.html">                 heuristics.coffee               </a>                                           <a class="source" href="play.html">                 play.coffee               </a>                                           <a class="source" href="playWeb.html">                 playWeb.coffee               </a>                                           <a class="source" href="testSimulation.html">                 testSimulation.coffee               </a>                        </div>         </div>       </div>          <table cellpadding="0" cellspacing="0">       <thead>         <tr>           <th class="docs">             <h1>               compileStrategies.coffee             </h1>           </th>           <th class="code">           </th>         </tr>       </thead>       <tbody>                               <tr id="section-1">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-1">&#182;</a>               </div>                            </td>             <td class="code">               <div class="highlight"><pre><span class="c1">#!/usr/bin/env coffee</span>
-<span class="nv">fs = </span><span class="nx">require</span> <span class="s1">&#39;fs&#39;</span>
-<span class="nv">files = </span><span class="nx">fs</span><span class="p">.</span><span class="nx">readdirSync</span> <span class="s1">&#39;./strategies&#39;</span>
-<span class="nv">strategies = </span><span class="p">{}</span>
-<span class="k">for</span> <span class="nx">filename</span> <span class="k">in</span> <span class="nx">files</span>
-  <span class="nv">suffixPos = </span><span class="nx">filename</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">7</span>
-  <span class="k">if</span> <span class="nx">filename</span><span class="p">[</span><span class="nx">suffixPos</span><span class="p">...]</span> <span class="o">==</span> <span class="s1">&#39;.coffee&#39;</span>
-    <span class="nv">code = </span><span class="nx">fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="s1">&#39;./strategies/&#39;</span><span class="o">+</span><span class="nx">filename</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-    <span class="nx">strategies</span><span class="p">[</span><span class="nx">filename</span><span class="p">[...</span><span class="nx">suffixPos</span><span class="p">]]</span> <span class="o">=</span> <span class="nx">code</span>
+<!DOCTYPE html>
 
-<span class="nv">definition = </span><span class="s2">&quot;strategies = &quot;</span><span class="o">+</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">strategies</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;\n&#39;</span>
-<span class="nx">fs</span><span class="p">.</span><span class="nx">writeFileSync</span><span class="p">(</span><span class="s1">&#39;web/strategies.js&#39;</span><span class="p">,</span> <span class="nx">definition</span><span class="p">)</span>
+<html>
+<head>
+  <title>compileStrategies.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page">
+            
+              
+              <a class="source" href="basicAI.html">
+                basicAI.coffee
+              </a>
+            
+              
+              <a class="source" href="cards.html">
+                cards.coffee
+              </a>
+            
+              
+              <a class="source" href="compileStrategies.html">
+                compileStrategies.coffee
+              </a>
+            
+              
+              <a class="source" href="gameState.html">
+                gameState.coffee
+              </a>
+            
+              
+              <a class="source" href="heuristics.html">
+                heuristics.coffee
+              </a>
+            
+              
+              <a class="source" href="play.html">
+                play.coffee
+              </a>
+            
+              
+              <a class="source" href="playWeb.html">
+                playWeb.coffee
+              </a>
+            
+              
+              <a class="source" href="testSimulation.html">
+                testSimulation.coffee
+              </a>
+            
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>compileStrategies.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-comment">#!/usr/bin/env coffee</span>
+fs = <span class="hljs-built_in">require</span> <span class="hljs-string">'fs'</span>
+files = fs.readdirSync <span class="hljs-string">'./strategies'</span>
+strategies = {}
+<span class="hljs-keyword">for</span> filename <span class="hljs-keyword">in</span> files
+  suffixPos = filename.length - <span class="hljs-number">7</span>
+  <span class="hljs-keyword">if</span> filename[suffixPos...] == <span class="hljs-string">'.coffee'</span>
+    code = fs.readFileSync(<span class="hljs-string">'./strategies/'</span>+filename, <span class="hljs-string">'utf-8'</span>)
+    strategies[filename[...suffixPos]] = code
 
-</pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
+definition = <span class="hljs-string">"strategies = "</span>+JSON.stringify(strategies)+<span class="hljs-string">'\n'</span>
+fs.writeFileSync(<span class="hljs-string">'web/strategies.js'</span>, definition)</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
