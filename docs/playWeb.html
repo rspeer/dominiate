@@ -140,6 +140,7 @@ still in this order.</p>
       errorHandler = options.errorHandler ? (alert ? <span class="hljs-built_in">console</span>.log)
       errorHandler(err.message)
       <span class="hljs-built_in">window</span>.donePlaying()
+      <span class="hljs-keyword">throw</span> err
   ret(state)
 
 <span class="hljs-keyword">this</span>.compileStrategies = compileStrategies
