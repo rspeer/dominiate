@@ -2192,6 +2192,66 @@
     }
   });
 
+  makeCard('Develop', action, {
+    cost: 3,
+    developTarget: function(state, oldCard, newCard) {
+      return Math.abs(oldCard.getCost(state)[0] - newCard.getCost(state)[0]) === 1 && (oldCard.getCost(state)[1] === newCard.getCost(state)[1]);
+    },
+    playEffect: function(state) {
+      var card, choice, choices, newCard, newCard1, newCard2, newCards, oldCard, oldChoices, partnerCard, partnerCards, _i, _j, _k, _l, _len, _len1, _len2, _len3, _len4, _m, _ref, _ref1, _ref2;
+      oldChoices = state.current.hand.unique();
+      choices = [];
+      for (_i = 0, _len = oldChoices.length; _i < _len; _i++) {
+        oldCard = oldChoices[_i];
+        newCards = [];
+        _ref = state.filledPiles();
+        for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+          card = _ref[_j];
+          if (this.developTarget(state, oldCard, c[card])) {
+            newCards.push(c[card]);
+          }
+        }
+        if (newCards.length === 0) {
+          choices.push([oldCard, [null, null]]);
+        } else {
+          for (_k = 0, _len2 = newCards.length; _k < _len2; _k++) {
+            newCard = newCards[_k];
+            partnerCards = [];
+            _ref1 = state.filledPiles();
+            for (_l = 0, _len3 = _ref1.length; _l < _len3; _l++) {
+              card = _ref1[_l];
+              if (this.developTarget(state, oldCard, c[card]) && c[card].getCost(state)[0] !== c[newCard].getCost(state)[0]) {
+                partnerCards.push(c[card]);
+              }
+            }
+            if (partnerCards.length === 0) {
+              choices.push([oldCard, [newCard, null]]);
+            } else {
+              for (_m = 0, _len4 = partnerCards.length; _m < _len4; _m++) {
+                partnerCard = partnerCards[_m];
+                choices.push([oldCard, [newCard, partnerCard]]);
+              }
+            }
+          }
+        }
+      }
+      choice = state.current.ai.choose('develop', state, choices);
+      if (choice !== null) {
+        oldCard = choice[0], (_ref2 = choice[1], newCard1 = _ref2[0], newCard2 = _ref2[1]);
+        state.doTrash(state.current, oldCard);
+        if (newCard1 !== null) {
+          state.gainCard(state.current, newCard1, 'draw');
+        }
+        if (newCard2 !== null) {
+          return state.gainCard(state.current, newCard2, 'draw');
+        }
+      }
+    },
+    ai_playValue: function(state, my) {
+      return 271;
+    }
+  });
+
   makeCard('Expand', c.Remodel, {
     cost: 7,
     costFunction: function(coins) {
@@ -4986,8 +5046,8 @@
       }
     },
     ai_playValue: function(state, my) {
-      if (my.ai.wantsToPlayRats(state, my)) {
-        return 486;
+      if (my.ai.wantPlayRats(state, my)) {
+        return 1000;
       } else {
         return -1;
       }
