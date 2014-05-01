@@ -11,6 +11,6 @@
     "Copper" if state.gainsToEndGame() <= 3
   ]
 
-  wantPlayRats: (state, my) ->
+  wantsToPlayRats: (state, my) ->
     100 * Math.random() < 90
 }

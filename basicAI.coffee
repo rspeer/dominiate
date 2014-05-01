@@ -1,3 +1,5 @@
+{c} = require './cards' if exports?
+
 # The Basic AI
 # ------------
 # This class defines a rule-based AI of the kind that is popular
@@ -152,7 +154,27 @@ class BasicAI
       return (priority.length - index) * 100
     else
       return this.getChoiceValue(type, state, choice, my)
-   
+
+  # Originally implemented in the `Rebuild.coffee` strategy, this method gets
+  # the difference in score if the game were to end now.
+  getScoreDifference: (state, my) -> 
+    for status in state.getFinalStatus()
+      [name, score, turns] = status
+      if name == my.ai.toString()
+        myScore = score
+      else
+        opponentScore = score
+    return myScore - opponentScore
+
+  # More utilities from the Rebuild strategy.
+  countNotInHand: (my, card) ->
+    return my.countInDeck(card) - my.countInHand(card)
+
+  countInDraw: (my, card) ->
+    return my.countInDeck(card) - my.countInHand(card) - my.countInDiscard(card)
+
+
+
   #### Backwards-compatible choices
   # 
   # To avoid having to rewrite all the code at once, we support these functions
@@ -1134,6 +1156,12 @@ class BasicAI
       if this.chooseTrash(state, [card, null]) is card
         trashableCards += 1
     return trashableCards
+
+  # `wantsToPlayRats` is like `wantsToTrash` except that the answer is no.
+  #
+  # Come on, it's a first-order approximation of good strategy. If you've got
+  # a better idea, put it in a strategy file.
+  wantsToPlayRats: (state) -> no
   
   # `wantsToDiscard` returns the number of cards in hand that we would
   # freely discard.
@@ -1192,10 +1220,38 @@ class BasicAI
       else
         return true
       
-  # method was missing, just quickfix default to false
+  # wantsToRebuild and rebuildPriority: taken from the Rebuild strategy
+  wantsToRebuild: (state, my) ->
+    if my.countInHand("Rebuild") >= state.countInSupply("Province") \
+       and my.ai.getScoreDifference(state, my) > 0
+          answer = 1
+    else if state.countInSupply("Province") == 1 \
+            and my.ai.getScoreDifference(state, my) < -4
+              answer = 0
+    else if state.countInSupply("Duchy") == 0 \
+            and my.ai.countNotInHand(my, "Duchy") == 0\
+            and my.ai.getScoreDifference(state, my) < 0
+              answer = 0
+    else if my.getTreasureInHand() > 7 and state.countInSupply("Province") == 1
+              answer = 0
+    else
+          answer = state.countInSupply("Province") > 0
+    return answer
+
+  rebuildPriority: (state, my) -> [
+    "Province"
+    "Duchy"
+    "Estate"
+  ]
+
+  nameVPPriority: (state, my) -> [
+    "Colony" if my.countInDeck("Colony") > 0
+    "Province"
+  ]
+
+  # Assume we always want to play Journeyman
   wantsToJM: (state, my) ->
-    false    
-    
+    true
   
   wantsToDiscardBeggar: (state) ->
     return true
