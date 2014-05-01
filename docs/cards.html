@@ -277,6 +277,7 @@ They may only have constant numeric values.</p>
             <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">actions</span>: <span class="hljs-number">0</span>
   <span class="hljs-attribute">cards</span>: <span class="hljs-number">0</span>
   <span class="hljs-attribute">coins</span>: <span class="hljs-number">0</span>
+  <span class="hljs-attribute">coinTokens</span>: <span class="hljs-number">0</span>
   <span class="hljs-attribute">buys</span>: <span class="hljs-number">0</span>
   <span class="hljs-attribute">vp</span>: <span class="hljs-number">0</span>
   <span class="hljs-attribute">trash</span>: <span class="hljs-number">0</span>        <span class="hljs-comment"># if the card requires trashing for no further effect</span></pre></div></div>
@@ -301,6 +302,7 @@ don’t want to examine the state.</p>
             <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">getActions</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-keyword">this</span>.actions
   <span class="hljs-attribute">getCards</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-keyword">this</span>.cards
   <span class="hljs-attribute">getCoins</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-keyword">this</span>.coins
+  <span class="hljs-attribute">getCoinTokens</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-keyword">this</span>.coinTokens
   <span class="hljs-attribute">getBuys</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-keyword">this</span>.buys
   <span class="hljs-attribute">getTrash</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-keyword">this</span>.trash
   <span class="hljs-attribute">getVP</span>: <span class="hljs-function"><span class="hljs-params">(player)</span> -&gt;</span> <span class="hljs-keyword">this</span>.vp
@@ -668,6 +670,7 @@ should not override <code>onPlay</code>; they should override <code>playEffect</
     state.current.actions += <span class="hljs-keyword">this</span>.getActions(state)
     state.current.coins += <span class="hljs-keyword">this</span>.getCoins(state)
     state.current.potions += <span class="hljs-keyword">this</span>.getPotion(state)
+    state.current.coinTokens += <span class="hljs-keyword">this</span>.getCoinTokens(state)
     state.current.buys += <span class="hljs-keyword">this</span>.getBuys(state)
     cardsToDraw = <span class="hljs-keyword">this</span>.getCards(state)
     cardsToTrash = <span class="hljs-keyword">this</span>.getTrash(state)
@@ -675,6 +678,8 @@ should not override <code>onPlay</code>; they should override <code>playEffect</
       state.drawCards(state.current, cardsToDraw)
     <span class="hljs-keyword">if</span> cardsToTrash &gt; <span class="hljs-number">0</span>
       state.requireTrash(state.current, cardsToTrash)
+    <span class="hljs-keyword">if</span> (ct = <span class="hljs-keyword">this</span>.getCoinTokens(state)) &gt; <span class="hljs-number">0</span>
+      state.log(<span class="hljs-string">"<span class="hljs-subst">#{state.current.ai}</span> gains <span class="hljs-subst">#{ct}</span> Coin Token<span class="hljs-subst">#{<span class="hljs-keyword">if</span> ct &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"s"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>}</span>"</span>)
     <span class="hljs-keyword">this</span>.playEffect(state)</pre></div></div>
             
         </li>
@@ -989,6 +994,10 @@ makeCard <span class="hljs-string">'Market'</span>, action, {
 makeCard <span class="hljs-string">'Bazaar'</span>, action, {
   <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>, <span class="hljs-attribute">actions</span>: <span class="hljs-number">2</span>, <span class="hljs-attribute">cards</span>: <span class="hljs-number">1</span>, <span class="hljs-attribute">coins</span>: <span class="hljs-number">1</span>
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">835</span>
+}
+makeCard <span class="hljs-string">'Candlestick Maker'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">2</span>, <span class="hljs-attribute">actions</span>: <span class="hljs-number">1</span>, <span class="hljs-attribute">coinTokens</span>: <span class="hljs-number">1</span>, <span class="hljs-attribute">buys</span>: <span class="hljs-number">1</span>
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">734</span>
 }</pre></div></div>
             
         </li>
@@ -1385,6 +1394,25 @@ makeCard <span class="hljs-string">'Royal Seal'</span>, treasure, {
       state.log(<span class="hljs-string">"...putting the <span class="hljs-subst">#{card}</span> on top of the deck."</span>)
       player.gainLocation = <span class="hljs-string">'draw'</span>
       transferCardToTop(card, source, player.draw)
+}
+
+makeCard <span class="hljs-string">'Spoils'</span>, treasure, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">0</span>
+  <span class="hljs-attribute">coins</span>: <span class="hljs-number">3</span>
+  
+  <span class="hljs-attribute">mayBeBought</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-literal">false</span>
+  <span class="hljs-attribute">startingSupply</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-number">0</span>
+  
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    state.current.inPlay.remove(<span class="hljs-keyword">this</span>)
+    state.specialSupply[<span class="hljs-string">'Spoils'</span>] += <span class="hljs-number">1</span>
+    state.log(<span class="hljs-string">"<span class="hljs-subst">#{state.specialSupply[<span class="hljs-string">'Spoils'</span>]}</span> Spoils in the supply"</span>)
+   
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> my.ai.wantsToPlaySpoils(state) 
+      <span class="hljs-number">81</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-literal">null</span>    
 }
 
 makeCard <span class="hljs-string">'Talisman'</span>, treasure, {
@@ -1812,6 +1840,7 @@ those choices.</p>
 
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">223</span>
 }
+
 
 makeCard <span class="hljs-string">'Expand'</span>, c.Remodel, {
   <span class="hljs-attribute">cost</span>: <span class="hljs-number">7</span>
@@ -2336,6 +2365,17 @@ makeCard <span class="hljs-string">'Margrave'</span>, attack, {
     <span class="hljs-keyword">if</span> my.actions &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">1560</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>
 }
 
+makeCard <span class="hljs-string">'Masterpiece'</span>, treasure, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">3</span>
+  <span class="hljs-attribute">coins</span>: <span class="hljs-number">1</span>
+
+  <span class="hljs-attribute">buyEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    amountOverpayed = state.current.ai.chooseOverpayMasterpiece(state, state.current.coins)
+    state.log(<span class="hljs-string">"overpaying for <span class="hljs-subst">#{amountOverpayed}</span> and gaining <span class="hljs-subst">#{amountOverpayed}</span> Silvers"</span>)
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">1</span> .. amountOverpayed]
+      state.gainCard(state.current, c[<span class="hljs-string">'Silver'</span>], <span class="hljs-string">'discard'</span>, <span class="hljs-literal">true</span>)
+}
+
 makeCard <span class="hljs-string">"Militia"</span>, attack, {
   <span class="hljs-attribute">cost</span>: <span class="hljs-number">4</span>
   <span class="hljs-attribute">coins</span>: +<span class="hljs-number">2</span></pre></div></div>
@@ -2612,6 +2652,45 @@ makeCard <span class="hljs-string">'Rabble'</span>, attack, {
     <span class="hljs-keyword">if</span> my.actions &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">1600</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>
 }
 
+makeCard <span class="hljs-string">'Rogue'</span>, attack, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>
+  <span class="hljs-attribute">coins</span>: +<span class="hljs-number">2</span>
+
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    my = state.current
+    gainables = []
+    <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> state.trash
+      [coins, potions] = card.getCost(state)
+      <span class="hljs-keyword">if</span> coins &gt;= <span class="hljs-number">3</span> <span class="hljs-keyword">and</span> coins &lt;= <span class="hljs-number">6</span> <span class="hljs-keyword">and</span> potions == <span class="hljs-number">0</span>
+        gainables.push(card)
+    <span class="hljs-keyword">if</span> gainables.length &gt; <span class="hljs-number">0</span>
+      cardToGain = my.ai.choose(<span class="hljs-string">'rogueGain'</span>, state, gainables)
+      state.supply[cardToGain] += <span class="hljs-number">1</span>
+      state.trash.remove(cardToGain)
+      state.gainCard(state.current, cardToGain, <span class="hljs-string">'discard'</span>, <span class="hljs-literal">true</span>)
+      state.log(<span class="hljs-string">"...<span class="hljs-subst">#{my.ai}</span> gains <span class="hljs-subst">#{cardToGain}</span> from trash."</span>)
+    <span class="hljs-keyword">else</span>
+      state.attackOpponents <span class="hljs-function"><span class="hljs-params">(opp)</span> -&gt;</span>
+        drawn = opp.getCardsFromDeck(<span class="hljs-number">2</span>)
+        state.log(<span class="hljs-string">"...<span class="hljs-subst">#{opp.ai}</span> reveals <span class="hljs-subst">#{drawn}</span>."</span>)
+        drawnTrashables = []
+        <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> drawn
+          [coins, potions] = card.getCost(state)
+          <span class="hljs-keyword">if</span> coins &gt;= <span class="hljs-number">3</span> <span class="hljs-keyword">and</span> coins &lt;= <span class="hljs-number">6</span>
+            drawnTrashables.push(card)
+        cardToTrash = opp.ai.choose(<span class="hljs-string">'rogueTrash'</span>, state, drawnTrashables)
+        <span class="hljs-keyword">if</span> cardToTrash
+          transferCard(cardToTrash, drawn, state.trash)
+          state.log(<span class="hljs-string">"...<span class="hljs-subst">#{state.current.ai}</span> trashes <span class="hljs-subst">#{opp.ai}</span>'s <span class="hljs-subst">#{cardToTrash}</span>."</span>)
+        opp.discard = opp.discard.concat(drawn)
+        state.handleDiscards(opp, drawn)
+        state.log(<span class="hljs-string">"...<span class="hljs-subst">#{opp.ai}</span> discards <span class="hljs-subst">#{drawn}</span>."</span>)
+        
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">136</span>
+  <span class="hljs-attribute">ai_multipliedValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> my.actions &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">1480</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>
+}
+
 makeCard <span class="hljs-string">'Saboteur'</span>, attack, {
   <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>
   <span class="hljs-attribute">upgradeFilter</span>: <span class="hljs-function"><span class="hljs-params">(state, oldCard, newCard)</span> -&gt;</span>
@@ -2627,6 +2706,7 @@ makeCard <span class="hljs-string">'Saboteur'</span>, attack, {
         cardToTrash = drawn[<span class="hljs-number">0</span>]
         state.log(<span class="hljs-string">"...<span class="hljs-subst">#{state.current.ai}</span> trashes <span class="hljs-subst">#{opp.ai}</span>'s <span class="hljs-subst">#{cardToTrash}</span>."</span>)
         state.trash.push(drawn[<span class="hljs-number">0</span>])
+        drawn[<span class="hljs-number">0</span>].trashEffect(state, state.current)
         choices = upgradeChoices(state, drawn, c.Saboteur.upgradeFilter)
         choices.push([cardToTrash,<span class="hljs-literal">null</span>])
         choice = opp.ai.choose(<span class="hljs-string">'upgrade'</span>, state, choices)
@@ -2865,6 +2945,38 @@ methods such as <code>playEffect</code>.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>
+makeCard <span class="hljs-string">'Advisor'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">4</span>
+  <span class="hljs-attribute">actions</span>: +<span class="hljs-number">1</span>
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    drawn = state.current.getCardsFromDeck(<span class="hljs-number">3</span>)
+    state.log(<span class="hljs-string">"<span class="hljs-subst">#{state.current.ai}</span> draws <span class="hljs-subst">#{drawn}</span>."</span>)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-91">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-91">&#182;</a>
+              </div>
+              <p>Have the left-hand neighbor (or the AI itself in solitaire) choose a card
+to discard. Borrow the Envoy AI code for this. It’s not quite right b/c 
+Envoy is terminal, however.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    neighbor = state.players[<span class="hljs-number">1</span>] ? state.players[<span class="hljs-number">0</span>]
+    choice = neighbor.ai.choose(<span class="hljs-string">'envoy'</span>, state, drawn)
+    <span class="hljs-keyword">if</span> choice?
+      state.log(<span class="hljs-string">"<span class="hljs-subst">#{neighbor.ai}</span> chooses for <span class="hljs-subst">#{state.current.ai}</span> to discard <span class="hljs-subst">#{choice}</span>."</span>)
+      transferCard(choice, drawn, state.current.discard)
+      <span class="hljs-attribute">Array</span>::push.apply state.current.hand, drawn
+    
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">1000</span>
+}
+
 makeCard <span class="hljs-string">'Adventurer'</span>, action, {
   <span class="hljs-attribute">cost</span>: <span class="hljs-number">6</span>
   <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
@@ -2878,7 +2990,6 @@ makeCard <span class="hljs-string">'Adventurer'</span>, action, {
       state.log(<span class="hljs-string">"...<span class="hljs-subst">#{state.current.ai}</span> draws <span class="hljs-subst">#{treasures}</span>."</span>)
 
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">176</span>
-
 }
 
 makeCard <span class="hljs-string">'Alchemist'</span>, action, {
@@ -2907,11 +3018,11 @@ makeCard <span class="hljs-string">'Apothecary'</span>, action, {
         </li>
         
         
-        <li id="section-91">
+        <li id="section-92">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-91">&#182;</a>
+                <a class="pilcrow" href="#section-92">&#182;</a>
               </div>
               <p>Sort the cards into coppers and potions, which go to the hand,
 and others, which go temporarily to the setAside pile.</p>
@@ -2948,6 +3059,32 @@ makeCard <span class="hljs-string">'Apprentice'</span>, action, {
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">730</span>
 }
 
+makeCard <span class="hljs-string">'Baker'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>
+  <span class="hljs-attribute">actions</span>: <span class="hljs-number">1</span>
+  <span class="hljs-attribute">cards</span>: <span class="hljs-number">1</span>
+  <span class="hljs-attribute">coinTokens</span>: <span class="hljs-number">1</span>
+  
+  <span class="hljs-attribute">startGameEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    <span class="hljs-keyword">for</span> player <span class="hljs-keyword">in</span> state.players
+      player.coinTokens += <span class="hljs-number">1</span>
+  
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">774</span>
+}
+
+makeCard <span class="hljs-string">'Bandit Camp'</span>, c.Village, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>
+  
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    state.gainCard(state.current, c.Spoils)
+    
+  <span class="hljs-attribute">startGameEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    state.specialSupply[<span class="hljs-string">'Spoils'</span>] = <span class="hljs-number">15</span>
+    
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">821</span>
+  
+}
+
 makeCard <span class="hljs-string">'Baron'</span>, action, {
   <span class="hljs-attribute">cost</span>: <span class="hljs-number">4</span>
   <span class="hljs-attribute">buys</span>: +<span class="hljs-number">1</span>
@@ -2969,7 +3106,24 @@ makeCard <span class="hljs-string">'Baron'</span>, action, {
         <span class="hljs-number">5</span>
       <span class="hljs-keyword">else</span>
         -<span class="hljs-number">5</span>
+}
 
+makeCard <span class="hljs-string">'Beggar'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">2</span>
+  <span class="hljs-attribute">isReaction</span>: <span class="hljs-literal">true</span>
+
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    state.gainCard(state.current, c.Copper, <span class="hljs-string">'hand'</span>)
+    state.gainCard(state.current, c.Copper, <span class="hljs-string">'hand'</span>)
+    state.gainCard(state.current, c.Copper, <span class="hljs-string">'hand'</span>)
+
+  <span class="hljs-attribute">reactToAttack</span>: <span class="hljs-function"><span class="hljs-params">(state, player, attackEvent)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> player.ai.wantsToDiscardBeggar(state, player)
+      state.doDiscard(player, c.Beggar)
+      state.gainCard(player, c.Silver, <span class="hljs-string">'draw'</span>)
+      state.gainCard(player, c.Silver, <span class="hljs-string">'draw'</span>)
+
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">243</span>
 }
 
 makeCard <span class="hljs-string">'Bishop'</span>, action, {
@@ -3069,11 +3223,11 @@ makeCard <span class="hljs-string">'Chancellor'</span>, action, {
         </li>
         
         
-        <li id="section-92">
+        <li id="section-93">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-92">&#182;</a>
+                <a class="pilcrow" href="#section-93">&#182;</a>
               </div>
               <p>The AI has the option of reshuffling. Ask directly if it’ll take it.</p>
 
@@ -3137,11 +3291,11 @@ makeCard <span class="hljs-string">'Conspirator'</span>, action, {
         </li>
         
         
-        <li id="section-93">
+        <li id="section-94">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-93">&#182;</a>
+                <a class="pilcrow" href="#section-94">&#182;</a>
               </div>
               <p>don’t count Duration cards because they’re not “played this turn”</p>
 
@@ -3237,11 +3391,11 @@ makeCard <span class="hljs-string">'Crossroads'</span>, action, {
         </li>
         
         
-        <li id="section-94">
+        <li id="section-95">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-94">&#182;</a>
+                <a class="pilcrow" href="#section-95">&#182;</a>
               </div>
               <p>shortcut, because it doesn’t particularly matter whether just the
 victory cards are revealed</p>
@@ -3258,11 +3412,11 @@ victory cards are revealed</p>
         </li>
         
         
-        <li id="section-95">
+        <li id="section-96">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-95">&#182;</a>
+                <a class="pilcrow" href="#section-96">&#182;</a>
               </div>
               <p>FIXME: This represents a particularly dumb strategy. It doesn’t even take
 into account whether it has any victory cards, or whether it could draw
@@ -3329,11 +3483,11 @@ makeCard <span class="hljs-string">'Envoy'</span>, action, {
         </li>
         
         
-        <li id="section-96">
+        <li id="section-97">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-96">&#182;</a>
+                <a class="pilcrow" href="#section-97">&#182;</a>
               </div>
               <p>Have the left-hand neighbor (or the AI itself in solitaire) choose a card
 to discard.</p>
@@ -3395,11 +3549,11 @@ makeCard <span class="hljs-string">"Feast"</span>, action, {
         </li>
         
         
-        <li id="section-97">
+        <li id="section-98">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-97">&#182;</a>
+                <a class="pilcrow" href="#section-98">&#182;</a>
               </div>
               <p>Trash the Feast, unless it’s already been trashed.</p>
 
@@ -3413,11 +3567,11 @@ makeCard <span class="hljs-string">"Feast"</span>, action, {
         </li>
         
         
-        <li id="section-98">
+        <li id="section-99">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-98">&#182;</a>
+                <a class="pilcrow" href="#section-99">&#182;</a>
               </div>
               <p>Gain a card costing up to $5.</p>
 
@@ -3469,11 +3623,11 @@ makeCard <span class="hljs-string">"Grand Market"</span>, c.Market, {
         </li>
         
         
-        <li id="section-99">
+        <li id="section-100">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-99">&#182;</a>
+                <a class="pilcrow" href="#section-100">&#182;</a>
               </div>
               <p>Grand Market is the only card with a non-constant mayBeBought value.</p>
 
@@ -3515,11 +3669,11 @@ makeCard <span class="hljs-string">"Hamlet"</span>, action, {
         </li>
         
         
-        <li id="section-100">
+        <li id="section-101">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-100">&#182;</a>
+                <a class="pilcrow" href="#section-101">&#182;</a>
               </div>
               <p>We take a bit of a shortcut for now: we discard up to two cards, then if only
 one was discarded, decide whether to use it for +action or +buy.</p>
@@ -3597,11 +3751,11 @@ makeCard <span class="hljs-string">"Horse Traders"</span>, action, {
         </li>
         
         
-        <li id="section-101">
+        <li id="section-102">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-101">&#182;</a>
+                <a class="pilcrow" href="#section-102">&#182;</a>
               </div>
               <p>Horse Traders is not actually a duration card, but it resolves like one
 when it is set aside. There seems to be no harm in simplifying by
@@ -3615,11 +3769,11 @@ putting it in the duration area.</p>
         </li>
         
         
-        <li id="section-102">
+        <li id="section-103">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-102">&#182;</a>
+                <a class="pilcrow" href="#section-103">&#182;</a>
               </div>
               <p>Pick up Horse Traders and draw another card.</p>
 
@@ -3642,11 +3796,11 @@ putting it in the duration area.</p>
         </li>
         
         
-        <li id="section-103">
+        <li id="section-104">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-103">&#182;</a>
+                <a class="pilcrow" href="#section-104">&#182;</a>
               </div>
               <p>So far Hunting Party is the only card that digs for something 
 dependent on the game state.</p>
@@ -3668,6 +3822,29 @@ dependent on the game state.</p>
       state.current.hand.push(card)
 
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">790</span>
+}
+
+
+makeCard <span class="hljs-string">'Hunting Grounds'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">6</span>
+  <span class="hljs-attribute">cards</span>: <span class="hljs-number">4</span>
+  
+  <span class="hljs-attribute">trashEffect</span>: <span class="hljs-function"><span class="hljs-params">(state, player)</span> -&gt;</span>
+    choice = player.ai.choose(<span class="hljs-string">'huntingGroundsGain'</span>, state, [<span class="hljs-string">"Estates"</span>, <span class="hljs-string">"Duchy"</span>])
+    <span class="hljs-keyword">if</span> choice == <span class="hljs-string">"Estates"</span>
+      state.gainCard(player, c.Estate)
+      state.gainCard(player, c.Estate)
+      state.gainCard(player, c.Estate)
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> choice == <span class="hljs-string">"Duchy"</span>
+      state.gainCard(player, c.Duchy)
+    <span class="hljs-keyword">else</span>
+      state.log(<span class="hljs-string">"Invalid choice for HuntingGroundsGain: <span class="hljs-subst">#{choice}</span>!"</span>)
+      state.gainCard(player, c.Duchy)
+  
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> my.actions &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-number">666</span> <span class="hljs-keyword">else</span> <span class="hljs-number">201</span>
+  <span class="hljs-attribute">ai_multipliedValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> my.actions &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">1542</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>
 }
 
 makeCard <span class="hljs-string">'Ironworks'</span>, action, {
@@ -3692,11 +3869,11 @@ makeCard <span class="hljs-string">'Ironworks'</span>, action, {
         </li>
         
         
-        <li id="section-104">
+        <li id="section-105">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-104">&#182;</a>
+                <a class="pilcrow" href="#section-105">&#182;</a>
               </div>
               <p>FIXME: The current ai_playValue assumes that Ironworks is a terminal.
 If it wants to gain an action, it should have a higher value.</p>
@@ -3709,11 +3886,11 @@ If it wants to gain an action, it should have a higher value.</p>
         </li>
         
         
-        <li id="section-105">
+        <li id="section-106">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-105">&#182;</a>
+                <a class="pilcrow" href="#section-106">&#182;</a>
               </div>
               <p>Jack of All Trades is a complex card made up of steps that are simple
 to code:</p>
@@ -3727,11 +3904,11 @@ to code:</p>
         </li>
         
         
-        <li id="section-106">
+        <li id="section-107">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-106">&#182;</a>
+                <a class="pilcrow" href="#section-107">&#182;</a>
               </div>
               <p>Gain a silver.</p>
 
@@ -3742,11 +3919,11 @@ to code:</p>
         </li>
         
         
-        <li id="section-107">
+        <li id="section-108">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-107">&#182;</a>
+                <a class="pilcrow" href="#section-108">&#182;</a>
               </div>
               <p>Look at the top card of your deck…</p>
 
@@ -3757,11 +3934,11 @@ to code:</p>
         </li>
         
         
-        <li id="section-108">
+        <li id="section-109">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-108">&#182;</a>
+                <a class="pilcrow" href="#section-109">&#182;</a>
               </div>
               <p>discard it or put it back.</p>
 
@@ -3778,11 +3955,11 @@ to code:</p>
         </li>
         
         
-        <li id="section-109">
+        <li id="section-110">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-109">&#182;</a>
+                <a class="pilcrow" href="#section-110">&#182;</a>
               </div>
               <p>Draw until you have 5 cards in hand.</p>
 
@@ -3794,11 +3971,11 @@ to code:</p>
         </li>
         
         
-        <li id="section-110">
+        <li id="section-111">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-110">&#182;</a>
+                <a class="pilcrow" href="#section-111">&#182;</a>
               </div>
               <p>You may trash a card from your hand that is not a Treasure.</p>
 
@@ -3811,6 +3988,36 @@ to code:</p>
       state.doTrash(state.current, choice)
 
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">236</span>
+}
+
+makeCard <span class="hljs-string">'Journeyman'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>
+
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    unique = []
+    deck = state.current.getDeck()
+    <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> deck
+      <span class="hljs-keyword">if</span> card <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> unique
+        unique.push(card)
+    choices = unique
+    choice = state.current.ai.choose(<span class="hljs-string">'skip'</span>, state, choices)
+    my = state.current
+    drawn = state.current.dig(state,
+      <span class="hljs-function"><span class="hljs-params">(state, card)</span> -&gt;</span> <span class="hljs-keyword">return</span> card != choice,
+      <span class="hljs-number">3</span>
+    )
+
+    <span class="hljs-keyword">if</span> drawn.length &gt; <span class="hljs-number">0</span>
+      newcards = drawn
+      state.current.hand = state.current.hand.concat(newcards)
+      state.log(<span class="hljs-string">"...<span class="hljs-subst">#{state.current.ai}</span> draws <span class="hljs-subst">#{newcards}</span>."</span>)
+
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    wantsToJM = my.ai.wantsToJM(state, my)
+    <span class="hljs-keyword">if</span> wantsToJM &gt; <span class="hljs-number">0</span>
+      <span class="hljs-number">146</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-number">0</span>
 }
 
 makeCard <span class="hljs-string">"King's Court"</span>, action, {
@@ -3839,11 +4046,11 @@ makeCard <span class="hljs-string">"King's Court"</span>, action, {
         </li>
         
         
-        <li id="section-111">
+        <li id="section-112">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-111">&#182;</a>
+                <a class="pilcrow" href="#section-112">&#182;</a>
               </div>
               <p>Determine whether this multiplier is going to go to the duration area
 during the cleanup phase.</p>
@@ -3857,11 +4064,11 @@ during the cleanup phase.</p>
         </li>
         
         
-        <li id="section-112">
+        <li id="section-113">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-112">&#182;</a>
+                <a class="pilcrow" href="#section-113">&#182;</a>
               </div>
               <p>If we’ve already marked a multiplier to be put in the Duration area,
 don’t mark this one. It’s either already marked or it’s not needed.</p>
@@ -3878,11 +4085,11 @@ don’t mark this one. It’s either already marked or it’s not needed.</p>
         </li>
         
         
-        <li id="section-113">
+        <li id="section-114">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-113">&#182;</a>
+                <a class="pilcrow" href="#section-114">&#182;</a>
               </div>
               <p>Mark the multiplier as if it were a multiplied Duration, which is
 a flag to not clean it up (as if it were a Duration) later.</p>
@@ -3897,11 +4104,11 @@ a flag to not clean it up (as if it were a Duration) later.</p>
         </li>
         
         
-        <li id="section-114">
+        <li id="section-115">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-114">&#182;</a>
+                <a class="pilcrow" href="#section-115">&#182;</a>
               </div>
               <p>Store virtual copies of a multiplied duration card in <code>multipliedDurations</code>.</p>
 
@@ -3915,11 +4122,11 @@ a flag to not clean it up (as if it were a Duration) later.</p>
         </li>
         
         
-        <li id="section-115">
+        <li id="section-116">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-115">&#182;</a>
+                <a class="pilcrow" href="#section-116">&#182;</a>
               </div>
               <p>Mark it by putting it in multipliedDurations. This also signals that
 all multiplied duration cards previous to it are accounted for.</p>
@@ -3933,11 +4140,11 @@ all multiplied duration cards previous to it are accounted for.</p>
         </li>
         
         
-        <li id="section-116">
+        <li id="section-117">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-116">&#182;</a>
+                <a class="pilcrow" href="#section-117">&#182;</a>
               </div>
               <p>TR and KC don’t actually have a duration effect. The multiplication of
 of the Duration card has already happened, possibly more than once, and
@@ -3965,11 +4172,11 @@ makeCard <span class="hljs-string">"Library"</span>, action, {
         </li>
         
         
-        <li id="section-117">
+        <li id="section-118">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-117">&#182;</a>
+                <a class="pilcrow" href="#section-118">&#182;</a>
               </div>
               <p>If nothing was drawn, the deck and discard pile are empty.</p>
 
@@ -3985,11 +4192,11 @@ makeCard <span class="hljs-string">"Library"</span>, action, {
         </li>
         
         
-        <li id="section-118">
+        <li id="section-119">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-118">&#182;</a>
+                <a class="pilcrow" href="#section-119">&#182;</a>
               </div>
               <p>Assume the times the AI wants to set the card aside are the times it
 is on the discard priority list or has a positive discard value.</p>
@@ -4009,11 +4216,11 @@ is on the discard priority list or has a positive discard value.</p>
         </li>
         
         
-        <li id="section-119">
+        <li id="section-120">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-119">&#182;</a>
+                <a class="pilcrow" href="#section-120">&#182;</a>
               </div>
               <p>Discard the set-aside cards.</p>
 
@@ -4058,11 +4265,11 @@ makeCard <span class="hljs-string">"Lookout"</span>, action, {
         </li>
         
         
-        <li id="section-120">
+        <li id="section-121">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-120">&#182;</a>
+                <a class="pilcrow" href="#section-121">&#182;</a>
               </div>
               <p>Trash the card, with the side effect of removing it from the choice
 list.</p>
@@ -4081,11 +4288,11 @@ list.</p>
         </li>
         
         
-        <li id="section-121">
+        <li id="section-122">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-121">&#182;</a>
+                <a class="pilcrow" href="#section-122">&#182;</a>
               </div>
               <p>Put the remaining card back on the deck.</p>
 
@@ -4136,11 +4343,11 @@ makeCard <span class="hljs-string">"Masquerade"</span>, action, {
         </li>
         
         
-        <li id="section-122">
+        <li id="section-123">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-122">&#182;</a>
+                <a class="pilcrow" href="#section-123">&#182;</a>
               </div>
               <p>Get everyone’s choice of cards to pass.</p>
 
@@ -4154,11 +4361,11 @@ makeCard <span class="hljs-string">"Masquerade"</span>, action, {
         </li>
         
         
-        <li id="section-123">
+        <li id="section-124">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-123">&#182;</a>
+                <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
               <p>Pass the cards.</p>
 
@@ -4175,11 +4382,11 @@ makeCard <span class="hljs-string">"Masquerade"</span>, action, {
         </li>
         
         
-        <li id="section-124">
+        <li id="section-125">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-124">&#182;</a>
+                <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
               <p>Allow the Masquerade player to trash a card.</p>
 
@@ -4205,6 +4412,20 @@ makeCard <span class="hljs-string">"Menagerie"</span>, action, {
 
 }
 
+makeCard <span class="hljs-string">"Merchant Guild"</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>
+  <span class="hljs-attribute">buys</span>: <span class="hljs-number">1</span>
+  <span class="hljs-attribute">coins</span>: <span class="hljs-number">1</span>
+  
+  <span class="hljs-attribute">buyInPlayEffect</span>: <span class="hljs-function"><span class="hljs-params">(state, card)</span> -&gt;</span>
+    state.current.coinTokens += <span class="hljs-number">1</span>
+    state.log(<span class="hljs-string">"<span class="hljs-subst">#{state.current.ai}</span> gains 1 Coin Token"</span>)
+  
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-number">269</span>
+    
+}
+
 makeCard <span class="hljs-string">"Mining Village"</span>, c.Village, {
   <span class="hljs-attribute">cost</span>: <span class="hljs-number">4</span>
   <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
@@ -4225,11 +4446,11 @@ makeCard <span class="hljs-string">"Mint"</span>, action, {
         </li>
         
         
-        <li id="section-125">
+        <li id="section-126">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-125">&#182;</a>
+                <a class="pilcrow" href="#section-126">&#182;</a>
               </div>
               <p>Remove cost modifiers that were created by treasure (e.g. Quarry)</p>
 
@@ -4272,11 +4493,11 @@ makeCard <span class="hljs-string">"Moat"</span>, action, {
         </li>
         
         
-        <li id="section-126">
+        <li id="section-127">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-126">&#182;</a>
+                <a class="pilcrow" href="#section-127">&#182;</a>
               </div>
               <p>Don’t bother blocking the attack if it’s already blocked (avoid log spam)</p>
 
@@ -4406,16 +4627,34 @@ makeCard <span class="hljs-string">'Peddler'</span>, action, {
         cost = <span class="hljs-number">0</span>
     cost
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">770</span>
-}</pre></div></div>
+}
+
+makeCard <span class="hljs-string">'Plaza'</span>, c.Village, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">4</span>
+  
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    numStartingCards = state.current.hand.length
+    possibleDiscards = (card <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> state.current.hand <span class="hljs-keyword">when</span> card.isTreasure)
+    possibleDiscards.push(<span class="hljs-literal">null</span>)
+    choice = state.current.ai.choose(<span class="hljs-string">'plazaDiscard'</span>, state, possibleDiscards)
+    <span class="hljs-keyword">if</span> choice?
+      <span class="hljs-keyword">if</span> choice <span class="hljs-keyword">in</span> possibleDiscards
+        state.requireDiscard<span class="hljs-function"><span class="hljs-params">(state.current, <span class="hljs-number">1</span>, (card) -&gt; card == choice)</span>
+        <span class="hljs-title">state</span>.<span class="hljs-title">current</span>.<span class="hljs-title">coinTokens</span> += 1
+        <span class="hljs-title">state</span>.<span class="hljs-title">log</span><span class="hljs-params">(<span class="hljs-string">"<span class="hljs-subst">#{state.current.ai}</span> discards a <span class="hljs-subst">#{choice}</span>"</span>)</span>
+        <span class="hljs-title">state</span>.<span class="hljs-title">log</span><span class="hljs-params">(<span class="hljs-string">"... gaining a Coin Token"</span>)</span>
+}
+
+</span></pre></div></div>
             
         </li>
         
         
-        <li id="section-127">
+        <li id="section-128">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-127">&#182;</a>
+                <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
               <p>New in Dark Ages.</p>
 
@@ -4437,16 +4676,86 @@ makeCard <span class="hljs-string">'Peddler'</span>, action, {
       my.coins = <span class="hljs-number">0</span>
 
   <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> <span class="hljs-number">103</span>
+}
+
+makeCard <span class="hljs-string">'Rats'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">4</span>
+  <span class="hljs-attribute">actions</span>: +<span class="hljs-number">1</span>
+  <span class="hljs-attribute">cards</span>: +<span class="hljs-number">1</span>
+
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    my = state.current
+    trashables = []
+    <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> my.hand
+      <span class="hljs-keyword">if</span> card.name != <span class="hljs-string">'Rats'</span>
+        trashables.push(card)
+    toTrash = state.current.ai.choose(<span class="hljs-string">'trash'</span>, state, trashables)
+    <span class="hljs-keyword">if</span> toTrash?
+      state.doTrash(my, toTrash)
+
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> my.ai.wantsToPlayRats(state, my)
+      <span class="hljs-number">486</span>
+    <span class="hljs-keyword">else</span>
+      -<span class="hljs-number">1</span>
+}
+
+makeCard <span class="hljs-string">'Rebuild'</span>, action, {
+  <span class="hljs-attribute">cost</span>: <span class="hljs-number">5</span>
+  <span class="hljs-attribute">actions</span>: +<span class="hljs-number">1</span>
+
+  <span class="hljs-attribute">playEffect</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    my = state.current
+    choices = []
+    <span class="hljs-keyword">for</span> cardname <span class="hljs-keyword">in</span> [<span class="hljs-string">"Estate"</span>, <span class="hljs-string">"Duchy"</span>, <span class="hljs-string">"Duke"</span>, <span class="hljs-string">"Province"</span>, <span class="hljs-string">"Colony"</span>]
+      card = c[cardname]
+      choices.push(cardname)
+    <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> my.getDeck()
+      <span class="hljs-keyword">if</span> card <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> choices <span class="hljs-keyword">and</span> card.isVictory
+        choices.push(card)
+    choices.push(c.Copper)
+    namedcard = my.ai.choose(<span class="hljs-string">'nameVP'</span>, state, choices)
+    state.log(<span class="hljs-string">"...<span class="hljs-subst">#{my.ai}</span> names <span class="hljs-subst">#{namedcard}</span>."</span>)
+    drawn = my.dig(state,
+      <span class="hljs-function"><span class="hljs-params">(state, card)</span> -&gt;</span> 
+        <span class="hljs-keyword">return</span> card.isVictory <span class="hljs-keyword">and</span> card != namedcard
+    )
+    <span class="hljs-keyword">if</span> drawn <span class="hljs-keyword">isnt</span> <span class="hljs-literal">null</span> <span class="hljs-keyword">and</span> drawn.length &gt; <span class="hljs-number">0</span>
+      cardToTrash = drawn[<span class="hljs-number">0</span>]
+      state.log(<span class="hljs-string">"...<span class="hljs-subst">#{state.current.ai}</span> trashes <span class="hljs-subst">#{state.current.ai}</span>'s <span class="hljs-subst">#{cardToTrash}</span>."</span>)
+      state.trash.push(drawn[<span class="hljs-number">0</span>])
+
+      vpChoices = []
+      <span class="hljs-keyword">for</span> cardname <span class="hljs-keyword">in</span> [<span class="hljs-string">"Estate"</span>, <span class="hljs-string">"Duchy"</span>, <span class="hljs-string">"Duke"</span>, <span class="hljs-string">"Province"</span>, <span class="hljs-string">"Colony"</span>]
+        card = c[cardname]
+        <span class="hljs-keyword">if</span> state.supply[card] &gt; <span class="hljs-number">0</span>
+          [coins1, potions1] = cardToTrash.getCost(state)
+          [coins2, potions2] = card.getCost(state)
+          <span class="hljs-keyword">if</span> coins2 &lt;= coins1 + <span class="hljs-number">3</span>
+            vpChoices.push(card)
+    
+      newCard = my.ai.choose(<span class="hljs-string">'rebuild'</span>, state, vpChoices)
+      <span class="hljs-keyword">if</span> newCard <span class="hljs-keyword">isnt</span> <span class="hljs-literal">null</span>
+        state.gainCard(my, newCard, <span class="hljs-string">'discard'</span>, <span class="hljs-literal">true</span>)
+        state.log(<span class="hljs-string">"...<span class="hljs-subst">#{state.current.ai}</span> gains <span class="hljs-subst">#{newCard}</span>."</span>)
+      <span class="hljs-keyword">else</span>
+        state.log(<span class="hljs-string">"...<span class="hljs-subst">#{state.current.ai}</span> gains nothing."</span>)
+
+  <span class="hljs-attribute">ai_playValue</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> 
+    <span class="hljs-keyword">if</span> my.ai.wantsToRebuild(state, my)
+      <span class="hljs-keyword">return</span> <span class="hljs-number">1000</span>
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span> 
 }</pre></div></div>
             
         </li>
         
         
-        <li id="section-128">
+        <li id="section-129">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-128">&#182;</a>
+                <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
               <p>Also new in Dark Ages.</p>
 
@@ -4513,11 +4822,11 @@ makeCard <span class="hljs-string">'Scout'</span>, action, {
         </li>
         
         
-        <li id="section-129">
+        <li id="section-130">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-129">&#182;</a>
+                <a class="pilcrow" href="#section-130">&#182;</a>
               </div>
               <p>Implemented approximately the same way as Apothecary.</p>
 
@@ -4543,11 +4852,11 @@ makeCard <span class="hljs-string">'Scout'</span>, action, {
         </li>
         
         
-        <li id="section-130">
+        <li id="section-131">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-130">&#182;</a>
+                <a class="pilcrow" href="#section-131">&#182;</a>
               </div>
               <p>Secret Chamber — Initial code by Jorbles</p>
 <p>This is far from optimal, but I believe it does what the card
@@ -4694,11 +5003,11 @@ makeCard <span class="hljs-string">'Tournament'</span>, action, {
         </li>
         
         
-        <li id="section-131">
+        <li id="section-132">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-131">&#182;</a>
+                <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
               <p>Add Tournament prizes to the game state’s special supply</p>
 
@@ -4720,11 +5029,11 @@ makeCard <span class="hljs-string">'Tournament'</span>, action, {
         </li>
         
         
-        <li id="section-132">
+        <li id="section-133">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-132">&#182;</a>
+                <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
               <p>All Provinces are automatically revealed.</p>
 
@@ -4797,11 +5106,11 @@ makeCard <span class="hljs-string">"Trader"</span>, action, {
         </li>
         
         
-        <li id="section-133">
+        <li id="section-134">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-133">&#182;</a>
+                <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
               <p><code>reactReplacingGain</code> triggers before <code>reactToGain</code>, and lets you replace
 the card with a different one.</p>
@@ -4907,11 +5216,11 @@ makeCard <span class="hljs-string">'Treasury'</span>, c.Market, {
         </li>
         
         
-        <li id="section-134">
+        <li id="section-135">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-134">&#182;</a>
+                <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
               <p>FIXME: This is incorrect in one highly unlikely edge case - if you buy
        a victory card from the Black Market, then you play a Treasury,
@@ -4955,11 +5264,11 @@ makeCard <span class="hljs-string">'Tribute'</span>, action, {
         </li>
         
         
-        <li id="section-135">
+        <li id="section-136">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-135">&#182;</a>
+                <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
               <p>after Cursers but before other terminals; there is probably a better spot for it</p>
 
@@ -5011,11 +5320,11 @@ makeCard <span class="hljs-string">'Walled Village'</span>, c.Village, {
         </li>
         
         
-        <li id="section-136">
+        <li id="section-137">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-136">&#182;</a>
+                <a class="pilcrow" href="#section-137">&#182;</a>
               </div>
               <p>Clean up effect defined in <code>State.doCleanupPhase</code></p>
 
@@ -5049,11 +5358,11 @@ makeCard <span class="hljs-string">'Watchtower'</span>, action, {
         </li>
         
         
-        <li id="section-137">
+        <li id="section-138">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-137">&#182;</a>
+                <a class="pilcrow" href="#section-138">&#182;</a>
               </div>
               <p>Determine if the player wants to trash the card. If so, use the
 Watchtower to do so.</p>
@@ -5065,11 +5374,11 @@ Watchtower to do so.</p>
         </li>
         
         
-        <li id="section-138">
+        <li id="section-139">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-138">&#182;</a>
+                <a class="pilcrow" href="#section-139">&#182;</a>
               </div>
               <p>trash the card</p>
 
@@ -5081,11 +5390,11 @@ Watchtower to do so.</p>
         </li>
         
         
-        <li id="section-139">
+        <li id="section-140">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-139">&#182;</a>
+                <a class="pilcrow" href="#section-140">&#182;</a>
               </div>
               <p>Note that the gained card now has no valid location; it’s in the trash.</p>
 
@@ -5152,26 +5461,14 @@ makeCard <span class="hljs-string">'Workshop'</span>, action, {
         </li>
         
         
-        <li id="section-140">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-140">&#182;</a>
-              </div>
-              <h2 id="utility-functions">Utility functions</h2>
-
-            </div>
-            
-        </li>
-        
-        
         <li id="section-141">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-141">&#182;</a>
               </div>
-              
+              <h2 id="utility-functions">Utility functions</h2>
+
             </div>
             
         </li>
@@ -5182,6 +5479,18 @@ makeCard <span class="hljs-string">'Workshop'</span>, action, {
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-142">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-143">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-143">&#182;</a>
               </div>
               <p><code>transferCard</code> will move a card from one list to the end of another.</p>
 <p>If you are doing something to each card in a list which might result in
@@ -5199,11 +5508,11 @@ backwards. Otherwise you’ll run off the end of the list.</p>
         </li>
         
         
-        <li id="section-143">
+        <li id="section-144">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-143">&#182;</a>
+                <a class="pilcrow" href="#section-144">&#182;</a>
               </div>
               <p><code>transferCardToTop</code> will move a card from one list to the front of another.
 This is used to put a card on top of the deck, for example.</p>
@@ -5219,11 +5528,29 @@ This is used to put a card on top of the deck, for example.</p>
         </li>
         
         
-        <li id="section-144">
+        <li id="section-145">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-144">&#182;</a>
+                <a class="pilcrow" href="#section-145">&#182;</a>
+              </div>
+              <p><code>Array::unique</code> returns the unique keys from a given array</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-attribute">Array</span>::<span class="hljs-function"><span class="hljs-title">unique</span> = -&gt;</span>
+  output = {}
+  output[@[key]] = @[key] <span class="hljs-keyword">for</span> key <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..<span class="hljs-property">@length</span>]
+  value <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">of</span> output</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-146">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-146">&#182;</a>
               </div>
               <p>Some cards give you a constant benefit, such as +cards or +actions,
 every time you play them; these benefits are defined directly on the card
@@ -5267,11 +5594,11 @@ applies it to the game state.</p>
         </li>
         
         
-        <li id="section-145">
+        <li id="section-147">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-145">&#182;</a>
+                <a class="pilcrow" href="#section-147">&#182;</a>
               </div>
               <p><code>upgradeChoices</code> is a helper function to get a list of choices for
 Remodel and similar “upgrading” cards. In addition to the game state, it
@@ -5300,11 +5627,11 @@ improvement is allowed.</li>
         </li>
         
         
-        <li id="section-146">
+        <li id="section-148">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-146">&#182;</a>
+                <a class="pilcrow" href="#section-148">&#182;</a>
               </div>
               <p>Find options where you can upgrade a card into nothing, because you’re
 required to gain a card at a cost where there isn’t anything.</p>
@@ -5335,11 +5662,11 @@ required to gain a card at a cost where there isn’t anything.</p>
         </li>
         
         
-        <li id="section-147">
+        <li id="section-149">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-147">&#182;</a>
+                <a class="pilcrow" href="#section-149">&#182;</a>
               </div>
               <p>The <code>player</code> makes a single spying decision on <code>target</code>‘s deck, using
 the decision named <code>decision</code> to decide whether to keep the card. For
@@ -5366,11 +5693,11 @@ name is <code>discardFromOpponentDeck</code>.</p>
         </li>
         
         
-        <li id="section-148">
+        <li id="section-150">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-148">&#182;</a>
+                <a class="pilcrow" href="#section-150">&#182;</a>
               </div>
               <p>Export functions that are needed elsewhere.</p>
 

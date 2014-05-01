@@ -141,6 +141,8 @@ has, you can look up <code>state.current.actions</code>.</p>
     <span class="hljs-property">@buys</span> = <span class="hljs-number">1</span>
     <span class="hljs-property">@coins</span> = <span class="hljs-number">0</span>
     <span class="hljs-property">@potions</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@coinTokens</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@coinTokensSpendThisTurn</span> = <span class="hljs-number">0</span>
     <span class="hljs-property">@multipliedDurations</span> = []
     <span class="hljs-property">@chips</span> = <span class="hljs-number">0</span>
     <span class="hljs-property">@hand</span> = []
@@ -471,9 +473,7 @@ including both Treasure and +$x, +y Actions cards.</p>
     total = <span class="hljs-number">0</span>
     <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.getDeck()
       <span class="hljs-keyword">if</span> card.isTreasure <span class="hljs-keyword">or</span> card.actions &gt;= <span class="hljs-number">1</span>
-        total += card.coins
-    total
-  <span class="hljs-attribute">totalMoney</span>: <span class="hljs-keyword">this</span>.getTotalMoney</pre></div></div>
+        total += card.coins</pre></div></div>
             
         </li>
         
@@ -483,6 +483,22 @@ including both Treasure and +$x, +y Actions cards.</p>
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <pre><code>   total += card.coinTokens
+</code></pre>
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    total
+  <span class="hljs-attribute">totalMoney</span>: <span class="hljs-keyword">this</span>.getTotalMoney</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p><code>getAvailableMoney()</code> counts the money the player might have upon playing
 all treasure in hand. Banks, Ventures, and such are counted inaccurately
@@ -497,11 +513,11 @@ so far.</p>
         </li>
         
         
-        <li id="section-23">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p><code>getTreasureInHand()</code> adds up the value of the treasure in the player’s
 hand. Banks and Ventures and such will be inaccurate.</p>
@@ -530,11 +546,11 @@ be great, but I’m skipping it for now because it’s difficult to get right.</
         </li>
         
         
-        <li id="section-24">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p><code>countInHand(card)</code> counts the number of copies of a card in hand.</p>
 
@@ -546,11 +562,11 @@ be great, but I’m skipping it for now because it’s difficult to get right.</
         </li>
         
         
-        <li id="section-25">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p><code>countInDiscard(card)</code> counts the number of copies of a card in the discard
 pile.</p>
@@ -563,11 +579,11 @@ pile.</p>
         </li>
         
         
-        <li id="section-26">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p><code>countInPlay(card)</code>
 counts the number of copies of a card in play. Don’t use this
@@ -582,11 +598,11 @@ to take Throne Rooms and King’s Courts into account.</p>
         </li>
         
         
-        <li id="section-27">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p><code>numActionCardsInDeck()</code> is the number of action cards in the player’s
 entire deck.</p>
@@ -599,11 +615,11 @@ entire deck.</p>
         </li>
         
         
-        <li id="section-28">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <p><code>getActionDensity()</code> returns a fractional value, between 0.0 and 1.0,
 representing the proportion of actions in the deck.</p>
@@ -616,11 +632,11 @@ representing the proportion of actions in the deck.</p>
         </li>
         
         
-        <li id="section-29">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <p><code>menagerieDraws()</code> is the number of cards the player would draw upon
 playing a Menagerie: either 1 or 3.</p>
@@ -642,11 +658,11 @@ Menagerie.</p>
         </li>
         
         
-        <li id="section-30">
+        <li id="section-31">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-30">&#182;</a>
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
               <p><code>shantyTownDraws()</code> is the number of cards the player draws upon
 playing a Shanty town: either 0 or 2.</p>
@@ -670,11 +686,11 @@ playing a Shanty town: either 0 or 2.</p>
         </li>
         
         
-        <li id="section-31">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <p><code>actionBalance()</code> is a complex method meant to be used by AIs in
 deciding whether they want +actions or +cards, for example.</p>
@@ -696,11 +712,11 @@ action cards to spend them on.</p>
         </li>
         
         
-        <li id="section-32">
+        <li id="section-33">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-32">&#182;</a>
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               <p>Estimate the risk of drawing an action card dead.</p>
 <p><em>TODO</em>: do something better when there are variable card-drawers.</p>
@@ -714,11 +730,11 @@ action cards to spend them on.</p>
         </li>
         
         
-        <li id="section-33">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p><code>deckActionBalance()</code> is a measure of action balance across the entire
 deck.</p>
@@ -736,11 +752,11 @@ deck.</p>
         </li>
         
         
-        <li id="section-34">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-34">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p>What is the trashing power of this hand?</p>
 
@@ -753,11 +769,11 @@ deck.</p>
         </li>
         
         
-        <li id="section-35">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-35">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               <p>Count actions that simply trash a constant number of cards from hand.</p>
 
@@ -768,11 +784,11 @@ deck.</p>
         </li>
         
         
-        <li id="section-36">
+        <li id="section-37">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-36">&#182;</a>
+                <a class="pilcrow" href="#section-37">&#182;</a>
               </div>
               <p>Add other trashers, including the trash-on-gain power of Watchtower.</p>
 
@@ -799,11 +815,11 @@ deck.</p>
         </li>
         
         
-        <li id="section-37">
+        <li id="section-38">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-37">&#182;</a>
+                <a class="pilcrow" href="#section-38">&#182;</a>
               </div>
               <h3 id="methods-that-modify-the-playerstate">Methods that modify the PlayerState</h3>
 
@@ -819,11 +835,11 @@ deck.</p>
         </li>
         
         
-        <li id="section-38">
+        <li id="section-39">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-38">&#182;</a>
+                <a class="pilcrow" href="#section-39">&#182;</a>
               </div>
               <p><code>getCardsFromDeck</code> is a sub-method of many things that need to happen
 with the game. It takes <code>nCards</code> cards off the deck, and then
@@ -853,11 +869,11 @@ floor” after that, so to speak.</p>
         </li>
         
         
-        <li id="section-39">
+        <li id="section-40">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-39">&#182;</a>
+                <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
               <p><code>dig</code> is a function to draw and reveal cards from the deck until
 certain ones are found. The cards to be found are defined by digFunc,
@@ -920,11 +936,11 @@ something with setAside other than discarding.</p>
         </li>
         
         
-        <li id="section-40">
+        <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-40">&#182;</a>
+                <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
               <p>TODO: add an AI decision for Stashes</p>
 
@@ -933,11 +949,11 @@ something with setAside other than discarding.</p>
         </li>
         
         
-        <li id="section-41">
+        <li id="section-42">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-41">&#182;</a>
+                <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
               <p>Most PlayerStates are created by copying an existing one.</p>
 
@@ -949,16 +965,17 @@ something with setAside other than discarding.</p>
     other.buys = <span class="hljs-property">@buys</span>
     other.coins = <span class="hljs-property">@coins</span>
     other.potions = <span class="hljs-property">@potions</span>
+    other.coinTokens = <span class="hljs-property">@coinTokens</span>
     other.multipliedDurations = <span class="hljs-property">@multipliedDurations</span>.slice(<span class="hljs-number">0</span>)</pre></div></div>
             
         </li>
         
         
-        <li id="section-42">
+        <li id="section-43">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-42">&#182;</a>
+                <a class="pilcrow" href="#section-43">&#182;</a>
               </div>
               <p>Clone mat contents, deep-copying arrays of cards</p>
 
@@ -985,16 +1002,17 @@ something with setAside other than discarding.</p>
     other.ai = <span class="hljs-property">@ai</span>
     other.logFunc = <span class="hljs-property">@logFunc</span>
     other.turnsTaken = <span class="hljs-property">@turnsTaken</span>
+    other.coinTokensSpendThisTurn = <span class="hljs-property">@coinTokensSpendThisTurn</span>
     other</pre></div></div>
             
         </li>
         
         
-        <li id="section-43">
+        <li id="section-44">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-43">&#182;</a>
+                <a class="pilcrow" href="#section-44">&#182;</a>
               </div>
               <p>Games can provide output using the <code>log</code> function.</p>
 
@@ -1010,11 +1028,11 @@ something with setAside other than discarding.</p>
         </li>
         
         
-        <li id="section-44">
+        <li id="section-45">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-44">&#182;</a>
+                <a class="pilcrow" href="#section-45">&#182;</a>
               </div>
               <h2 id="the-state-class">The State class</h2>
 
@@ -1023,11 +1041,11 @@ something with setAside other than discarding.</p>
         </li>
         
         
-        <li id="section-45">
+        <li id="section-46">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-45">&#182;</a>
+                <a class="pilcrow" href="#section-46">&#182;</a>
               </div>
               <p>A State instance stores the complete state of the game at a point in time.</p>
 <p>Almost all operations work by changing the game state. This means that if
@@ -1044,11 +1062,11 @@ copy of the state (often one with hidden information in it).</p>
         </li>
         
         
-        <li id="section-46">
+        <li id="section-47">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-46">&#182;</a>
+                <a class="pilcrow" href="#section-47">&#182;</a>
               </div>
               <p>AIs can get at the <code>c</code> object that stores information about cards
 by looking up <code>state.cardInfo</code>.</p>
@@ -1060,11 +1078,11 @@ by looking up <code>state.cardInfo</code>.</p>
         </li>
         
         
-        <li id="section-47">
+        <li id="section-48">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-47">&#182;</a>
+                <a class="pilcrow" href="#section-48">&#182;</a>
               </div>
               <p>Set up the state at the start of the game. Takes these arguments:</p>
 <ul>
@@ -1086,11 +1104,11 @@ and Potion have to be listed explicitly.</li>
         </li>
         
         
-        <li id="section-48">
+        <li id="section-49">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-48">&#182;</a>
+                <a class="pilcrow" href="#section-49">&#182;</a>
               </div>
               <p>playerNum += 1
 if ai.name[2] == ‘:’
@@ -1104,18 +1122,16 @@ ai.name = “P#{playerNum}:#{ai.name}”</p>
 
     <span class="hljs-property">@nPlayers</span> = <span class="hljs-property">@players</span>.length
     <span class="hljs-property">@current</span> = <span class="hljs-property">@players</span>[<span class="hljs-number">0</span>]
-    <span class="hljs-property">@supply</span> = <span class="hljs-keyword">this</span>.makeSupply(tableau)
-    <span class="hljs-property">@totalSupplyCards</span> = []
-    <span class="hljs-keyword">this</span>.updateTotalSupplyCards()</pre></div></div>
+    <span class="hljs-property">@supply</span> = <span class="hljs-keyword">this</span>.makeSupply(tableau)</pre></div></div>
             
         </li>
         
         
-        <li id="section-49">
+        <li id="section-50">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-49">&#182;</a>
+                <a class="pilcrow" href="#section-50">&#182;</a>
               </div>
               <p>Cards like Tournament or Black Market may put cards in a special supply</p>
 
@@ -1127,11 +1143,11 @@ ai.name = “P#{playerNum}:#{ai.name}”</p>
         </li>
         
         
-        <li id="section-50">
+        <li id="section-51">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-50">&#182;</a>
+                <a class="pilcrow" href="#section-51">&#182;</a>
               </div>
               <p>A map of Card to state object that allows cards to define lasting state.</p>
 
@@ -1142,11 +1158,11 @@ ai.name = “P#{playerNum}:#{ai.name}”</p>
         </li>
         
         
-        <li id="section-51">
+        <li id="section-52">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-51">&#182;</a>
+                <a class="pilcrow" href="#section-52">&#182;</a>
               </div>
               <p>A list of objects which have a “modify” method that takes a card and returns
 a modification to its cost.  Objects must also have a “source” property that
@@ -1165,11 +1181,11 @@ specifies which card caused the cost modification.</p>
         </li>
         
         
-        <li id="section-52">
+        <li id="section-53">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-52">&#182;</a>
+                <a class="pilcrow" href="#section-53">&#182;</a>
               </div>
               <p>The <code>depth</code> indicates how deep into hypothetical situations we are. A depth of 0
 indicates the state of the actual game.</p>
@@ -1182,11 +1198,11 @@ indicates the state of the actual game.</p>
         </li>
         
         
-        <li id="section-53">
+        <li id="section-54">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-53">&#182;</a>
+                <a class="pilcrow" href="#section-54">&#182;</a>
               </div>
               <p>Let cards in the tableau know the game is starting so they can perform
 any necessary initialization</p>
@@ -1199,11 +1215,11 @@ any necessary initialization</p>
         </li>
         
         
-        <li id="section-54">
+        <li id="section-55">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-54">&#182;</a>
+                <a class="pilcrow" href="#section-55">&#182;</a>
               </div>
               <p><code>totalCards</code> tracks the total number of cards that are in the game. If it changes,
 we screwed up.</p>
@@ -1212,22 +1228,16 @@ we screwed up.</p>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-property">@totalCards</span> = <span class="hljs-keyword">this</span>.countTotalCards()
 
-    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>
-  
-  <span class="hljs-attribute">updateTotalSupplyCards</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
-    total = <span class="hljs-number">0</span>
-    <span class="hljs-keyword">for</span> card, count <span class="hljs-keyword">of</span> <span class="hljs-property">@supply</span>
-      total += count
-    <span class="hljs-property">@totalSupplyCards</span>.push(total)</pre></div></div>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span></pre></div></div>
             
         </li>
         
         
-        <li id="section-55">
+        <li id="section-56">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-55">&#182;</a>
+                <a class="pilcrow" href="#section-56">&#182;</a>
               </div>
               <p><code>setUpWithOptions</code> is the function I’d like to use as the primary way of setting up
 a new game, doing the work of choosing a set of kingdom and extra cards (what I call
@@ -1291,11 +1301,11 @@ left undefined.</li>
         </li>
         
         
-        <li id="section-56">
+        <li id="section-57">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-56">&#182;</a>
+                <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
               <p>Given the tableau (the set of non-basic cards in play), construct the
 appropriate supply for the number of players.</p>
@@ -1314,11 +1324,11 @@ appropriate supply for the number of players.</p>
         </li>
         
         
-        <li id="section-57">
+        <li id="section-58">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-57">&#182;</a>
+                <a class="pilcrow" href="#section-58">&#182;</a>
               </div>
               <h3 id="informational-methods">Informational methods</h3>
 <p>These methods are referred to by some card effects, but can also be useful
@@ -1337,11 +1347,11 @@ in crafting a strategy.</p>
         </li>
         
         
-        <li id="section-58">
+        <li id="section-59">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-58">&#182;</a>
+                <a class="pilcrow" href="#section-59">&#182;</a>
               </div>
               <p><code>numEmptyPiles()</code> simply returns the number of empty piles.</p>
 
@@ -1353,11 +1363,31 @@ in crafting a strategy.</p>
         </li>
         
         
-        <li id="section-59">
+        <li id="section-60">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-59">&#182;</a>
+                <a class="pilcrow" href="#section-60">&#182;</a>
+              </div>
+              <p><code>filledPiles()</code> determines which supply piles are not empty.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">filledPiles</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+    piles = []
+    <span class="hljs-keyword">for</span> key, value <span class="hljs-keyword">of</span> <span class="hljs-property">@supply</span>
+      <span class="hljs-keyword">if</span> value &gt; <span class="hljs-number">0</span>
+        piles.push(key)
+    piles</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-61">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-61">&#182;</a>
               </div>
               <p><code>gameIsOver()</code> returns whether the game is over.</p>
 
@@ -1368,11 +1398,11 @@ in crafting a strategy.</p>
         </li>
         
         
-        <li id="section-60">
+        <li id="section-62">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-60">&#182;</a>
+                <a class="pilcrow" href="#section-62">&#182;</a>
               </div>
               <p>The game can only end after a player has taken a full turn. Check that
 by making sure the phase is <code>&#39;start&#39;</code>.</p>
@@ -1384,11 +1414,11 @@ by making sure the phase is <code>&#39;start&#39;</code>.</p>
         </li>
         
         
-        <li id="section-61">
+        <li id="section-63">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-61">&#182;</a>
+                <a class="pilcrow" href="#section-63">&#182;</a>
               </div>
               <p>Check all the conditions in which empty piles can end the game.
 Add a fake game-ending condition, too, which is a stalemate the SillyAI
@@ -1397,13 +1427,11 @@ sometimes ends up in.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>    emptyPiles = <span class="hljs-keyword">this</span>.emptyPiles()
-    totalLen = <span class="hljs-property">@totalSupplyCards</span>.length
     <span class="hljs-keyword">if</span> emptyPiles.length &gt;= <span class="hljs-keyword">this</span>.totalPilesToEndGame() \
         <span class="hljs-keyword">or</span> (<span class="hljs-property">@nPlayers</span> &lt; <span class="hljs-number">5</span> <span class="hljs-keyword">and</span> emptyPiles.length &gt;= <span class="hljs-number">3</span>) \
         <span class="hljs-keyword">or</span> <span class="hljs-string">'Province'</span> <span class="hljs-keyword">in</span> emptyPiles \
         <span class="hljs-keyword">or</span> <span class="hljs-string">'Colony'</span> <span class="hljs-keyword">in</span> emptyPiles \
-        <span class="hljs-keyword">or</span> (totalLen &gt; <span class="hljs-number">100</span> * <span class="hljs-property">@nPlayers</span> <span class="hljs-keyword">and</span>
-            <span class="hljs-property">@totalSupplyCards</span>[totalLen - <span class="hljs-number">1</span>] &gt; <span class="hljs-property">@totalSupplyCards</span>[totalLen - <span class="hljs-number">100</span>] - <span class="hljs-number">5</span>)
+        <span class="hljs-keyword">or</span> (<span class="hljs-string">'Curse'</span> <span class="hljs-keyword">in</span> emptyPiles <span class="hljs-keyword">and</span> <span class="hljs-string">'Copper'</span> <span class="hljs-keyword">in</span> emptyPiles <span class="hljs-keyword">and</span> <span class="hljs-property">@current</span>.turnsTaken &gt;= <span class="hljs-number">100</span>)
       <span class="hljs-keyword">this</span>.log(<span class="hljs-string">"Empty piles: <span class="hljs-subst">#{emptyPiles}</span>"</span>)
       <span class="hljs-keyword">for</span> [playerName, vp, turns] <span class="hljs-keyword">in</span> <span class="hljs-keyword">this</span>.getFinalStatus()
         <span class="hljs-keyword">this</span>.log(<span class="hljs-string">"<span class="hljs-subst">#{playerName}</span> took <span class="hljs-subst">#{turns}</span> turns and scored <span class="hljs-subst">#{vp}</span> points."</span>)
@@ -1413,11 +1441,11 @@ sometimes ends up in.</p>
         </li>
         
         
-        <li id="section-62">
+        <li id="section-64">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-62">&#182;</a>
+                <a class="pilcrow" href="#section-64">&#182;</a>
               </div>
               <p><code>getFinalStatus()</code> is a useful thing to call when <code>gameIsOver()</code> is true.
 It returns a list of triples of [player name, score, turns taken].</p>
@@ -1430,11 +1458,11 @@ It returns a list of triples of [player name, score, turns taken].</p>
         </li>
         
         
-        <li id="section-63">
+        <li id="section-65">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-63">&#182;</a>
+                <a class="pilcrow" href="#section-65">&#182;</a>
               </div>
               <p><code>getWinners()</code> returns a list (usually of length 1) of the names of players
 that won the game, or would win if it were over now.</p>
@@ -1451,11 +1479,11 @@ that won the game, or would win if it were over now.</p>
         </li>
         
         
-        <li id="section-64">
+        <li id="section-66">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-64">&#182;</a>
+                <a class="pilcrow" href="#section-66">&#182;</a>
               </div>
               <p>Modify the score by subtracting a fraction of turnsTaken.</p>
 
@@ -1473,11 +1501,11 @@ that won the game, or would win if it were over now.</p>
         </li>
         
         
-        <li id="section-65">
+        <li id="section-67">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-65">&#182;</a>
+                <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
               <p><code>countInSupply()</code> returns the number of copies of a card that remain
 in the supply. It can take in either a card object or card name.</p>
@@ -1493,11 +1521,11 @@ a non-Colony game. This does not count as an empty pile, of course.</p>
         </li>
         
         
-        <li id="section-66">
+        <li id="section-68">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-66">&#182;</a>
+                <a class="pilcrow" href="#section-68">&#182;</a>
               </div>
               <p><code>totalPilesToEndGame()</code> returns the number of empty piles that triggers
 the end of the game, which is almost always 3.</p>
@@ -1512,11 +1540,11 @@ the end of the game, which is almost always 3.</p>
         </li>
         
         
-        <li id="section-67">
+        <li id="section-69">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-67">&#182;</a>
+                <a class="pilcrow" href="#section-69">&#182;</a>
               </div>
               <p>As a useful heuristic, <code>gainsToEndGame()</code> returns the minimum number of
 buys/gains that would have to be used by an opponent who is determined to
@@ -1533,11 +1561,11 @@ end the game. A low number means the game is probably ending soon.</p>
         </li>
         
         
-        <li id="section-68">
+        <li id="section-70">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-68">&#182;</a>
+                <a class="pilcrow" href="#section-70">&#182;</a>
               </div>
               <p>First, add up the smallest 3 (or 4) piles.</p>
 
@@ -1551,11 +1579,11 @@ end the game. A low number means the game is probably ending soon.</p>
         </li>
         
         
-        <li id="section-69">
+        <li id="section-71">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-69">&#182;</a>
+                <a class="pilcrow" href="#section-71">&#182;</a>
               </div>
               <p>Then compare this to the number of Provinces or possibly Colonies
 remaining, and see which one is smallest.</p>
@@ -1569,11 +1597,11 @@ remaining, and see which one is smallest.</p>
         </li>
         
         
-        <li id="section-70">
+        <li id="section-72">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-70">&#182;</a>
+                <a class="pilcrow" href="#section-72">&#182;</a>
               </div>
               <p>Cache the result; apparently it’s expensive to compute.</p>
 
@@ -1585,11 +1613,11 @@ remaining, and see which one is smallest.</p>
         </li>
         
         
-        <li id="section-71">
+        <li id="section-73">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-71">&#182;</a>
+                <a class="pilcrow" href="#section-73">&#182;</a>
               </div>
               <p><code>smugglerChoices</code> determines the set of cards that could be gained with a
 Smuggler.</p>
@@ -1608,11 +1636,11 @@ Smuggler.</p>
         </li>
         
         
-        <li id="section-72">
+        <li id="section-74">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-72">&#182;</a>
+                <a class="pilcrow" href="#section-74">&#182;</a>
               </div>
               <p><code>countTotalCards</code> counts the number of cards that exist anywhere.</p>
 
@@ -1636,11 +1664,11 @@ Smuggler.</p>
         </li>
         
         
-        <li id="section-73">
+        <li id="section-75">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-73">&#182;</a>
+                <a class="pilcrow" href="#section-75">&#182;</a>
               </div>
               <p>Check to see if the player would be in the lead after buying this card</p>
 
@@ -1660,11 +1688,11 @@ Smuggler.</p>
         </li>
         
         
-        <li id="section-74">
+        <li id="section-76">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-74">&#182;</a>
+                <a class="pilcrow" href="#section-76">&#182;</a>
               </div>
               <p>One level of recursion is enough for first</p>
 
@@ -1678,11 +1706,11 @@ Smuggler.</p>
         </li>
         
         
-        <li id="section-75">
+        <li id="section-77">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-75">&#182;</a>
+                <a class="pilcrow" href="#section-77">&#182;</a>
               </div>
               <p>try to buy this card
 C&amp;P from below</p>
@@ -1711,11 +1739,11 @@ C&amp;P from below</p>
         </li>
         
         
-        <li id="section-76">
+        <li id="section-78">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-76">&#182;</a>
+                <a class="pilcrow" href="#section-78">&#182;</a>
               </div>
               <p>C&amp;P until here</p>
 
@@ -1724,11 +1752,11 @@ C&amp;P from below</p>
         </li>
         
         
-        <li id="section-77">
+        <li id="section-79">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-77">&#182;</a>
+                <a class="pilcrow" href="#section-79">&#182;</a>
               </div>
               <p>finish buyPhase</p>
 
@@ -1739,11 +1767,11 @@ C&amp;P from below</p>
         </li>
         
         
-        <li id="section-78">
+        <li id="section-80">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-78">&#182;</a>
+                <a class="pilcrow" href="#section-80">&#182;</a>
               </div>
               <p>find out if game ended and who if we have won it</p>
 
@@ -1760,11 +1788,11 @@ C&amp;P from below</p>
         </li>
         
         
-        <li id="section-79">
+        <li id="section-81">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-79">&#182;</a>
+                <a class="pilcrow" href="#section-81">&#182;</a>
               </div>
               <h3 id="playing-a-turn">Playing a turn</h3>
 <p><code>doPlay</code> performs the next step of the game, which is a particular phase
@@ -1817,11 +1845,11 @@ call to <code>doPlay()</code>.</p>
         </li>
         
         
-        <li id="section-80">
+        <li id="section-82">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-80">&#182;</a>
+                <a class="pilcrow" href="#section-82">&#182;</a>
               </div>
               <p><code>@current.duration</code> contains all cards that are in play with duration
 effects. At the start of the turn, check all of these cards and run their
@@ -1834,11 +1862,11 @@ effects. At the start of the turn, check all of these cards and run their
         </li>
         
         
-        <li id="section-81">
+        <li id="section-83">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-81">&#182;</a>
+                <a class="pilcrow" href="#section-83">&#182;</a>
               </div>
               <p>Clear out the list of cards gained. (We clear it here because this
 information is actually used by Smugglers.)</p>
@@ -1850,11 +1878,11 @@ information is actually used by Smugglers.)</p>
         </li>
         
         
-        <li id="section-82">
+        <li id="section-84">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-82">&#182;</a>
+                <a class="pilcrow" href="#section-84">&#182;</a>
               </div>
               <p>iterate backwards because cards might move</p>
 
@@ -1868,11 +1896,11 @@ information is actually used by Smugglers.)</p>
         </li>
         
         
-        <li id="section-83">
+        <li id="section-85">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-83">&#182;</a>
+                <a class="pilcrow" href="#section-85">&#182;</a>
               </div>
               <p><code>@current.multipliedDurations</code> contains virtual copies of cards, which
 exist because a multiplier was played on a Duration card.</p>
@@ -1888,11 +1916,11 @@ exist because a multiplier was played on a Duration card.</p>
         </li>
         
         
-        <li id="section-84">
+        <li id="section-86">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-84">&#182;</a>
+                <a class="pilcrow" href="#section-86">&#182;</a>
               </div>
               <p>Perform the action phase. Ask the AI repeatedly which action to play,
 until there are no more action cards to play or there are no
@@ -1908,11 +1936,11 @@ that it doesn’t want to play an action.</p>
         </li>
         
         
-        <li id="section-85">
+        <li id="section-87">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-85">&#182;</a>
+                <a class="pilcrow" href="#section-87">&#182;</a>
               </div>
               <p>Determine the set of unique actions that may be played.</p>
 
@@ -1925,11 +1953,11 @@ that it doesn’t want to play an action.</p>
         </li>
         
         
-        <li id="section-86">
+        <li id="section-88">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-86">&#182;</a>
+                <a class="pilcrow" href="#section-88">&#182;</a>
               </div>
               <p>Ask the AI for its choice.</p>
 
@@ -1941,11 +1969,11 @@ that it doesn’t want to play an action.</p>
         </li>
         
         
-        <li id="section-87">
+        <li id="section-89">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-87">&#182;</a>
+                <a class="pilcrow" href="#section-89">&#182;</a>
               </div>
               <p>Remove the action from the hand and put it in the play area.</p>
 
@@ -1959,11 +1987,11 @@ that it doesn’t want to play an action.</p>
         </li>
         
         
-        <li id="section-88">
+        <li id="section-90">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-88">&#182;</a>
+                <a class="pilcrow" href="#section-90">&#182;</a>
               </div>
               <p>The current player plays an action from the hand, and performs the effect
 of the action.</p>
@@ -1976,11 +2004,11 @@ of the action.</p>
         </li>
         
         
-        <li id="section-89">
+        <li id="section-91">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-89">&#182;</a>
+                <a class="pilcrow" href="#section-91">&#182;</a>
               </div>
               <p>Subtract 1 from the action count and perform the action.</p>
 
@@ -1995,11 +2023,11 @@ of the action.</p>
         </li>
         
         
-        <li id="section-90">
+        <li id="section-92">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-90">&#182;</a>
+                <a class="pilcrow" href="#section-92">&#182;</a>
               </div>
               <p>Another event that causes actions to be played, such as Throne Room,
 should skip straight to <code>resolveAction</code>.</p>
@@ -2015,11 +2043,11 @@ should skip straight to <code>resolveAction</code>.</p>
         </li>
         
         
-        <li id="section-91">
+        <li id="section-93">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-91">&#182;</a>
+                <a class="pilcrow" href="#section-93">&#182;</a>
               </div>
               <p>The “treasure phase” is a concept introduced in Prosperity. After playing
 actions, you play any number of treasures in some order. This loop
@@ -2035,11 +2063,11 @@ left to play or because it does not want to play any more treasures.</p>
         </li>
         
         
-        <li id="section-92">
+        <li id="section-94">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-92">&#182;</a>
+                <a class="pilcrow" href="#section-94">&#182;</a>
               </div>
               <p>Determine the set of unique treasures that may be played.</p>
 
@@ -2052,28 +2080,28 @@ left to play or because it does not want to play any more treasures.</p>
         </li>
         
         
-        <li id="section-93">
+        <li id="section-95">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-93">&#182;</a>
+                <a class="pilcrow" href="#section-95">&#182;</a>
               </div>
               <p>Ask the AI for its choice.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>      treasure = <span class="hljs-property">@current</span>.ai.chooseTreasure(<span class="hljs-keyword">this</span>, validTreasures)
-      <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> treasure <span class="hljs-keyword">is</span> <span class="hljs-literal">null</span>
+      <span class="hljs-keyword">break</span> <span class="hljs-keyword">if</span> treasure <span class="hljs-keyword">is</span> <span class="hljs-literal">null</span>
       <span class="hljs-keyword">this</span>.log(<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@current</span>.ai}</span> plays <span class="hljs-subst">#{treasure}</span>."</span>)</pre></div></div>
             
         </li>
         
         
-        <li id="section-94">
+        <li id="section-96">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-94">&#182;</a>
+                <a class="pilcrow" href="#section-96">&#182;</a>
               </div>
               <p>Remove the treasure from the hand and put it in the play area.</p>
 
@@ -2081,8 +2109,24 @@ left to play or because it does not want to play any more treasures.</p>
             
             <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> treasure <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> <span class="hljs-property">@current</span>.hand
         <span class="hljs-keyword">this</span>.warn(<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@current</span>.ai}</span> chose an invalid treasure"</span>)
-        <span class="hljs-keyword">return</span>
+        <span class="hljs-keyword">break</span>
       <span class="hljs-keyword">this</span>.playTreasure(treasure)
+    
+    <span class="hljs-keyword">while</span> (ctd = <span class="hljs-keyword">this</span>.getCoinTokenDecision()) &gt; <span class="hljs-number">0</span>
+      <span class="hljs-property">@current</span>.coins += ctd
+      <span class="hljs-property">@current</span>.coinTokens -= ctd
+  
+  <span class="hljs-attribute">getCoinTokenDecision</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
+    ct = <span class="hljs-property">@current</span>.ai.spendCoinTokens(<span class="hljs-keyword">this</span>, <span class="hljs-property">@current</span>)
+    <span class="hljs-keyword">if</span> (ct &gt; <span class="hljs-property">@current</span>.coinTokens)
+      <span class="hljs-keyword">this</span>.log(<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@current</span>.ai}</span> wants to spend more Coin Tokens as it possesses (<span class="hljs-subst">#{ct}</span>/<span class="hljs-subst">#{<span class="hljs-property">@current</span>.coinTokens}</span>)"</span>)
+      ct = <span class="hljs-property">@current</span>.coinTokens
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">if</span> (ct &gt; <span class="hljs-number">0</span>)
+        <span class="hljs-keyword">this</span>.log(<span class="hljs-string">"<span class="hljs-subst">#{<span class="hljs-property">@current</span>.ai}</span> spends <span class="hljs-subst">#{ct}</span> Coin Token<span class="hljs-subst">#{<span class="hljs-keyword">if</span> ct &gt; <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-string">"s"</span> <span class="hljs-keyword">else</span> <span class="hljs-string">""</span>}</span>"</span>)
+    <span class="hljs-property">@current</span>.coinTokensSpendThisTurn = ct
+    <span class="hljs-keyword">return</span> ct
+    
   
   <span class="hljs-attribute">playTreasure</span>: <span class="hljs-function"><span class="hljs-params">(treasure)</span> -&gt;</span>
     <span class="hljs-property">@current</span>.hand.remove(treasure)
@@ -2093,11 +2137,11 @@ left to play or because it does not want to play any more treasures.</p>
         </li>
         
         
-        <li id="section-95">
+        <li id="section-97">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-95">&#182;</a>
+                <a class="pilcrow" href="#section-97">&#182;</a>
               </div>
               <p><code>getSingleBuyDecision</code> determines what single card (or none) the AI
 wants to buy in the current state.</p>
@@ -2112,11 +2156,11 @@ wants to buy in the current state.</p>
         </li>
         
         
-        <li id="section-96">
+        <li id="section-98">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-96">&#182;</a>
+                <a class="pilcrow" href="#section-98">&#182;</a>
               </div>
               <p>Because the supply must reference cards by their names, we use
 <code>c[cardname]</code> to get the actual object for the card.</p>
@@ -2128,11 +2172,11 @@ wants to buy in the current state.</p>
         </li>
         
         
-        <li id="section-97">
+        <li id="section-99">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-97">&#182;</a>
+                <a class="pilcrow" href="#section-99">&#182;</a>
               </div>
               <p>Determine whether each card can be bought in the current state.</p>
 
@@ -2146,11 +2190,11 @@ wants to buy in the current state.</p>
         </li>
         
         
-        <li id="section-98">
+        <li id="section-100">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-98">&#182;</a>
+                <a class="pilcrow" href="#section-100">&#182;</a>
               </div>
               <p>Don’t allow cards that will lose us the game</p>
 <p>Note that this just cares for the buyPhase, gains by other means (Workshop) are not covered</p>
@@ -2163,28 +2207,29 @@ wants to buy in the current state.</p>
         </li>
         
         
-        <li id="section-99">
+        <li id="section-101">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-99">&#182;</a>
+                <a class="pilcrow" href="#section-101">&#182;</a>
               </div>
               <p>Ask the AI for its choice.</p>
 
             </div>
             
             <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">this</span>.log(<span class="hljs-string">"Coins: <span class="hljs-subst">#{<span class="hljs-property">@current</span>.coins}</span>, Potions: <span class="hljs-subst">#{<span class="hljs-property">@current</span>.potions}</span>, Buys: <span class="hljs-subst">#{<span class="hljs-property">@current</span>.buys}</span>"</span>)
+    <span class="hljs-keyword">this</span>.log(<span class="hljs-string">"Coin Tokens left: <span class="hljs-subst">#{<span class="hljs-property">@current</span>.coinTokens}</span>"</span>)
     choice = <span class="hljs-property">@current</span>.ai.chooseGain(<span class="hljs-keyword">this</span>, buyable)
     <span class="hljs-keyword">return</span> choice</pre></div></div>
             
         </li>
         
         
-        <li id="section-100">
+        <li id="section-102">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-100">&#182;</a>
+                <a class="pilcrow" href="#section-102">&#182;</a>
               </div>
               <p><code>doBuyPhase</code> steps through the buy phase, asking the AI to choose
 a card to buy until it has no buys left or chooses to buy nothing.</p>
@@ -2202,11 +2247,11 @@ return the card list.</p>
         </li>
         
         
-        <li id="section-101">
+        <li id="section-103">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-101">&#182;</a>
+                <a class="pilcrow" href="#section-103">&#182;</a>
               </div>
               <p>Update money and buys.</p>
 
@@ -2220,11 +2265,11 @@ return the card list.</p>
         </li>
         
         
-        <li id="section-102">
+        <li id="section-104">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-102">&#182;</a>
+                <a class="pilcrow" href="#section-104">&#182;</a>
               </div>
               <p>Gain the card and deal with the effects.</p>
 
@@ -2236,11 +2281,11 @@ return the card list.</p>
         </li>
         
         
-        <li id="section-103">
+        <li id="section-105">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-103">&#182;</a>
+                <a class="pilcrow" href="#section-105">&#182;</a>
               </div>
               <p>Handle cards such as Talisman that respond to cards being bought.</p>
 
@@ -2252,11 +2297,11 @@ return the card list.</p>
         </li>
         
         
-        <li id="section-104">
+        <li id="section-106">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-104">&#182;</a>
+                <a class="pilcrow" href="#section-106">&#182;</a>
               </div>
               <p>If a Mandarin put cards back on the deck, this card may not be
 there anymore. This showed up in a fascinating interaction among
@@ -2270,11 +2315,11 @@ Talisman, Quarry, Border Village, and Mandarin.</p>
         </li>
         
         
-        <li id="section-105">
+        <li id="section-107">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-105">&#182;</a>
+                <a class="pilcrow" href="#section-107">&#182;</a>
               </div>
               <p>Handle all the things that happen at the end of the turn.</p>
 
@@ -2285,11 +2330,11 @@ Talisman, Quarry, Border Village, and Mandarin.</p>
         </li>
         
         
-        <li id="section-106">
+        <li id="section-108">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-106">&#182;</a>
+                <a class="pilcrow" href="#section-108">&#182;</a>
               </div>
               <p>Clean up Walled Villages first</p>
 
@@ -2310,11 +2355,11 @@ Talisman, Quarry, Border Village, and Mandarin.</p>
         </li>
         
         
-        <li id="section-107">
+        <li id="section-109">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-107">&#182;</a>
+                <a class="pilcrow" href="#section-109">&#182;</a>
               </div>
               <p>Discard old duration cards.</p>
 
@@ -2326,11 +2371,11 @@ Talisman, Quarry, Border Village, and Mandarin.</p>
         </li>
         
         
-        <li id="section-108">
+        <li id="section-110">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-108">&#182;</a>
+                <a class="pilcrow" href="#section-110">&#182;</a>
               </div>
               <p>If there are cards set aside at this point, it probably means something
 went wrong in performing an action. But clean them up anyway.</p>
@@ -2345,11 +2390,11 @@ went wrong in performing an action. But clean them up anyway.</p>
         </li>
         
         
-        <li id="section-109">
+        <li id="section-111">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-109">&#182;</a>
+                <a class="pilcrow" href="#section-111">&#182;</a>
               </div>
               <p>Check which multiplier cards ended up in <code>multipliedDurations</code>, which means
 they should be cleaned up as if they were duration cards. Remove them once
@@ -2368,11 +2413,11 @@ they’re dealt with. Disregard the other cards there for now.</p>
         </li>
         
         
-        <li id="section-110">
+        <li id="section-112">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-110">&#182;</a>
+                <a class="pilcrow" href="#section-112">&#182;</a>
               </div>
               <p>Handle effects of cleaning up the card, which may involve moving it
 somewhere else.  We do this before removing cards from play because
@@ -2388,11 +2433,11 @@ cards such as Scheme and Herbalist need to consider cards in play.</p>
         </li>
         
         
-        <li id="section-111">
+        <li id="section-113">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-111">&#182;</a>
+                <a class="pilcrow" href="#section-113">&#182;</a>
               </div>
               <p>Clean up cards in play.</p>
 
@@ -2405,11 +2450,11 @@ cards such as Scheme and Herbalist need to consider cards in play.</p>
         </li>
         
         
-        <li id="section-112">
+        <li id="section-114">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-112">&#182;</a>
+                <a class="pilcrow" href="#section-114">&#182;</a>
               </div>
               <p>Put duration cards by default in the duration area, and other cards
 in play in the discard pile.</p>
@@ -2424,11 +2469,11 @@ in play in the discard pile.</p>
         </li>
         
         
-        <li id="section-113">
+        <li id="section-115">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-113">&#182;</a>
+                <a class="pilcrow" href="#section-115">&#182;</a>
               </div>
               <p>Discard the remaining cards in hand.</p>
 
@@ -2440,11 +2485,11 @@ in play in the discard pile.</p>
         </li>
         
         
-        <li id="section-114">
+        <li id="section-116">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-114">&#182;</a>
+                <a class="pilcrow" href="#section-116">&#182;</a>
               </div>
               <p>Reset things for the next turn.</p>
 
@@ -2462,11 +2507,11 @@ in play in the discard pile.</p>
         </li>
         
         
-        <li id="section-115">
+        <li id="section-117">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-115">&#182;</a>
+                <a class="pilcrow" href="#section-117">&#182;</a>
               </div>
               <p>Announce extra turn</p>
 
@@ -2478,11 +2523,11 @@ in play in the discard pile.</p>
         </li>
         
         
-        <li id="section-116">
+        <li id="section-118">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-116">&#182;</a>
+                <a class="pilcrow" href="#section-118">&#182;</a>
               </div>
               <p>Finally, draw the next hand of three/five cards.</p>
 
@@ -2496,11 +2541,11 @@ in play in the discard pile.</p>
         </li>
         
         
-        <li id="section-117">
+        <li id="section-119">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-117">&#182;</a>
+                <a class="pilcrow" href="#section-119">&#182;</a>
               </div>
               <p>Make sure we didn’t drop cards on the floor.</p>
 
@@ -2512,11 +2557,11 @@ in play in the discard pile.</p>
         </li>
         
         
-        <li id="section-118">
+        <li id="section-120">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-118">&#182;</a>
+                <a class="pilcrow" href="#section-120">&#182;</a>
               </div>
               <p>The player list is implemented so that the current player is always first
 in the list; the list rotates after every turn.</p>
@@ -2528,17 +2573,16 @@ player.</p>
             <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">rotatePlayer</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span>
     <span class="hljs-property">@players</span> = <span class="hljs-property">@players</span>[<span class="hljs-number">1.</span>..<span class="hljs-property">@nPlayers</span>].concat [<span class="hljs-property">@players</span>[<span class="hljs-number">0</span>]]
     <span class="hljs-property">@current</span> = <span class="hljs-property">@players</span>[<span class="hljs-number">0</span>]
-    <span class="hljs-keyword">this</span>.updateTotalSupplyCards()
     <span class="hljs-property">@phase</span> = <span class="hljs-string">'start'</span></pre></div></div>
             
         </li>
         
         
-        <li id="section-119">
+        <li id="section-121">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-119">&#182;</a>
+                <a class="pilcrow" href="#section-121">&#182;</a>
               </div>
               <h3 id="small-scale-effects">Small-scale effects</h3>
 <p><code>gainCard</code> performs the effects of a player gaining a card.</p>
@@ -2562,11 +2606,11 @@ be one of the objects in the <code>@players</code> array.</p>
         </li>
         
         
-        <li id="section-120">
+        <li id="section-122">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-120">&#182;</a>
+                <a class="pilcrow" href="#section-122">&#182;</a>
               </div>
               <p>Keep track of the card gained, for Smugglers.</p>
 
@@ -2578,11 +2622,11 @@ be one of the objects in the <code>@players</code> array.</p>
         </li>
         
         
-        <li id="section-121">
+        <li id="section-123">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-121">&#182;</a>
+                <a class="pilcrow" href="#section-123">&#182;</a>
               </div>
               <p><code>suppressMessage</code> is true when this happens as the direct result of a
 buy. Nobody wants to read “X buys Y. X gains Y.” all the time.</p>
@@ -2595,11 +2639,11 @@ buy. Nobody wants to read “X buys Y. X gains Y.” all the time.</p>
         </li>
         
         
-        <li id="section-122">
+        <li id="section-124">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-122">&#182;</a>
+                <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
               <p>Determine what list the card is being gained in, and add it to the
 front of that list.</p>
@@ -2612,11 +2656,11 @@ front of that list.</p>
         </li>
         
         
-        <li id="section-123">
+        <li id="section-125">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-123">&#182;</a>
+                <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
               <p>Remove the card from the supply</p>
 
@@ -2632,11 +2676,11 @@ front of that list.</p>
         </li>
         
         
-        <li id="section-124">
+        <li id="section-126">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-124">&#182;</a>
+                <a class="pilcrow" href="#section-126">&#182;</a>
               </div>
               <p>Delegate to <code>handleGainCard</code> to deal with reactions.</p>
 
@@ -2649,11 +2693,11 @@ front of that list.</p>
         </li>
         
         
-        <li id="section-125">
+        <li id="section-127">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-125">&#182;</a>
+                <a class="pilcrow" href="#section-127">&#182;</a>
               </div>
               <p><code>handleGainCard</code> deals with the reactions that result from gaining a card.
 A card effect such as Thief needs to call this explicitly after gaining a
@@ -2666,11 +2710,11 @@ card from someplace that is not the supply or the prize list.</p>
         </li>
         
         
-        <li id="section-126">
+        <li id="section-128">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-126">&#182;</a>
+                <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
               <p>Remember where the card was gained, so that reactions can find it.</p>
 
@@ -2687,11 +2731,11 @@ card from someplace that is not the supply or the prize list.</p>
         </li>
         
         
-        <li id="section-127">
+        <li id="section-129">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-127">&#182;</a>
+                <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
               <p>Handle cards such as Royal Seal that respond to gains while they are
 in play.</p>
@@ -2705,11 +2749,11 @@ in play.</p>
         </li>
         
         
-        <li id="section-128">
+        <li id="section-130">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-128">&#182;</a>
+                <a class="pilcrow" href="#section-130">&#182;</a>
               </div>
               <p>Handle cards such as Watchtower that react to gains as a Reaction card.</p>
 
@@ -2729,11 +2773,11 @@ in play.</p>
         </li>
         
         
-        <li id="section-129">
+        <li id="section-131">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-129">&#182;</a>
+                <a class="pilcrow" href="#section-131">&#182;</a>
               </div>
               <p>Handle the card’s own effects of being gained.</p>
 
@@ -2744,11 +2788,11 @@ in play.</p>
         </li>
         
         
-        <li id="section-130">
+        <li id="section-132">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-130">&#182;</a>
+                <a class="pilcrow" href="#section-132">&#182;</a>
               </div>
               <p>Effects of an action could cause players to reveal their hand.
 So far, nothing happens as a result, but in the future, AIs might
@@ -2762,11 +2806,11 @@ be able to take advantage of the information.</p>
         </li>
         
         
-        <li id="section-131">
+        <li id="section-133">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-131">&#182;</a>
+                <a class="pilcrow" href="#section-133">&#182;</a>
               </div>
               <p><code>drawCards</code> causes the player to draw <code>num</code> cards.</p>
 <p>This currently passes through directly to the PlayerState, without
@@ -2784,11 +2828,11 @@ to decide where to put the Stash.</p>
         </li>
         
         
-        <li id="section-132">
+        <li id="section-134">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-132">&#182;</a>
+                <a class="pilcrow" href="#section-134">&#182;</a>
               </div>
               <p><code>discardFromDeck</code> puts <em>num</em> cards from the top of the deck directly
 in the discard pile. It returns the set of cards, for the benefit of
@@ -2806,11 +2850,11 @@ actions that do something based on which cards were discarded.</p>
         </li>
         
         
-        <li id="section-133">
+        <li id="section-135">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-133">&#182;</a>
+                <a class="pilcrow" href="#section-135">&#182;</a>
               </div>
               <p><code>doDiscard</code> causes the player to discard a particular card.</p>
 
@@ -2828,11 +2872,11 @@ actions that do something based on which cards were discarded.</p>
         </li>
         
         
-        <li id="section-134">
+        <li id="section-136">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-134">&#182;</a>
+                <a class="pilcrow" href="#section-136">&#182;</a>
               </div>
               <p><code>handleDiscards</code> looks through a list of cards and triggers their discard
 reactions.</p>
@@ -2847,11 +2891,11 @@ reactions.</p>
         </li>
         
         
-        <li id="section-135">
+        <li id="section-137">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-135">&#182;</a>
+                <a class="pilcrow" href="#section-137">&#182;</a>
               </div>
               <p><code>doTrash</code> causes the player to trash a particular card.</p>
 
@@ -2869,11 +2913,11 @@ reactions.</p>
         </li>
         
         
-        <li id="section-136">
+        <li id="section-138">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-136">&#182;</a>
+                <a class="pilcrow" href="#section-138">&#182;</a>
               </div>
               <p><code>doPutOnDeck</code> puts a particular card from the player’s hand on top of
 the player’s draw pile.</p>
@@ -2891,11 +2935,11 @@ the player’s draw pile.</p>
         </li>
         
         
-        <li id="section-137">
+        <li id="section-139">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-137">&#182;</a>
+                <a class="pilcrow" href="#section-139">&#182;</a>
               </div>
               <p><code>getCardsFromDeck</code> is superficially similar to <code>drawCards</code>, but it does
 not put the cards into the hand. Any code that calls it needs to determine
@@ -2912,35 +2956,36 @@ discard them”.</p>
         </li>
         
         
-        <li id="section-138">
+        <li id="section-140">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-138">&#182;</a>
+                <a class="pilcrow" href="#section-140">&#182;</a>
               </div>
-              <p><code>allowDiscard</code> allows a player to discard 0 through <code>num</code> cards.</p>
+              <p><code>allowDiscard</code> allows a player to discard 0 through <code>num</code> cards.
+added typeFunc to only allow discards of certain type of cards.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">allowDiscard</span>: <span class="hljs-function"><span class="hljs-params">(player, num)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">allowDiscard</span>: <span class="hljs-function"><span class="hljs-params">(player, num, typeFunc = (card) -&gt; <span class="hljs-literal">true</span>)</span> -&gt;</span>
     discarded = []
     <span class="hljs-keyword">while</span> discarded.length &lt; num</pre></div></div>
             
         </li>
         
         
-        <li id="section-139">
+        <li id="section-141">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-139">&#182;</a>
+                <a class="pilcrow" href="#section-141">&#182;</a>
               </div>
               <p>In <code>allowDiscard</code>, valid discards are the entire hand, plus <code>null</code>
 to stop discarding.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      validDiscards = player.hand.slice(<span class="hljs-number">0</span>)
+            <div class="content"><div class='highlight'><pre>      validDiscards = ( card <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> player.hand <span class="hljs-keyword">when</span> typeFunc(card?) ).slice(<span class="hljs-number">0</span>)
       validDiscards.push(<span class="hljs-literal">null</span>)
       choice = player.ai.chooseDiscard(<span class="hljs-keyword">this</span>, validDiscards)
       <span class="hljs-keyword">return</span> discarded <span class="hljs-keyword">if</span> choice <span class="hljs-keyword">is</span> <span class="hljs-literal">null</span>
@@ -2951,21 +2996,21 @@ to stop discarding.</p>
         </li>
         
         
-        <li id="section-140">
+        <li id="section-142">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-140">&#182;</a>
+                <a class="pilcrow" href="#section-142">&#182;</a>
               </div>
               <p><code>requireDiscard</code> requires the player to discard exactly <code>num</code> cards,
 except that it stops if the player has 0 cards in hand.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">requireDiscard</span>: <span class="hljs-function"><span class="hljs-params">(player, num)</span> -&gt;</span>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">requireDiscard</span>: <span class="hljs-function"><span class="hljs-params">(player, num, typeFunc = (card) -&gt; <span class="hljs-literal">true</span>)</span> -&gt;</span>
     discarded = []
     <span class="hljs-keyword">while</span> discarded.length &lt; num
-      validDiscards = player.hand.slice(<span class="hljs-number">0</span>)
+      validDiscards = ( card <span class="hljs-keyword">for</span> card <span class="hljs-keyword">in</span> player.hand <span class="hljs-keyword">when</span> typeFunc(card) ).slice(<span class="hljs-number">0</span>)
       <span class="hljs-keyword">return</span> discarded <span class="hljs-keyword">if</span> validDiscards.length == <span class="hljs-number">0</span>
       choice = player.ai.chooseDiscard(<span class="hljs-keyword">this</span>, validDiscards)
       discarded.push(choice)
@@ -2975,11 +3020,11 @@ except that it stops if the player has 0 cards in hand.</p>
         </li>
         
         
-        <li id="section-141">
+        <li id="section-143">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-141">&#182;</a>
+                <a class="pilcrow" href="#section-143">&#182;</a>
               </div>
               <p><code>allowTrash</code> and <code>requireTrash</code> are similar to <code>allowDiscard</code> and
 <code>requireDiscard</code>.</p>
@@ -3010,11 +3055,11 @@ except that it stops if the player has 0 cards in hand.</p>
         </li>
         
         
-        <li id="section-142">
+        <li id="section-144">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-142">&#182;</a>
+                <a class="pilcrow" href="#section-144">&#182;</a>
               </div>
               <p><code>gainOneOf</code> gives the player a choice of cards to gain. Include
 <code>null</code> if gaining nothing is an option.</p>
@@ -3030,11 +3075,11 @@ except that it stops if the player has 0 cards in hand.</p>
         </li>
         
         
-        <li id="section-143">
+        <li id="section-145">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-143">&#182;</a>
+                <a class="pilcrow" href="#section-145">&#182;</a>
               </div>
               <p><code>attackOpponents</code> takes in a function of one argument, and applies
 it to all players except the one whose turn it is.</p>
@@ -3053,11 +3098,11 @@ example.</p>
         </li>
         
         
-        <li id="section-144">
+        <li id="section-146">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-144">&#182;</a>
+                <a class="pilcrow" href="#section-146">&#182;</a>
               </div>
               <p><code>attackPlayer</code> does the work of attacking a particular player, including
 handling their reactions to attacks.</p>
@@ -3069,11 +3114,11 @@ handling their reactions to attacks.</p>
         </li>
         
         
-        <li id="section-145">
+        <li id="section-147">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-145">&#182;</a>
+                <a class="pilcrow" href="#section-147">&#182;</a>
               </div>
               <p>attackEvent gets passed to each reactToAttack method.  Any card
 may block the attack by setting attackEvent.blocked to true</p>
@@ -3085,11 +3130,11 @@ may block the attack by setting attackEvent.blocked to true</p>
         </li>
         
         
-        <li id="section-146">
+        <li id="section-148">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-146">&#182;</a>
+                <a class="pilcrow" href="#section-148">&#182;</a>
               </div>
               <p>Reaction cards in the hand can react to the attack</p>
 
@@ -3106,11 +3151,11 @@ may block the attack by setting attackEvent.blocked to true</p>
         </li>
         
         
-        <li id="section-147">
+        <li id="section-149">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-147">&#182;</a>
+                <a class="pilcrow" href="#section-149">&#182;</a>
               </div>
               <p>Apply the attack’s effect unless it’s been blocked by a card such as
 Moat or Lighthouse</p>
@@ -3122,11 +3167,11 @@ Moat or Lighthouse</p>
         </li>
         
         
-        <li id="section-148">
+        <li id="section-150">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-148">&#182;</a>
+                <a class="pilcrow" href="#section-150">&#182;</a>
               </div>
               <h3 id="bookkeeping">Bookkeeping</h3>
 <p><code>copy()</code> makes a copy of this state that can be safely mutated
@@ -3152,11 +3197,11 @@ breaking the game. But this isn’t implemented yet, so make this a TODO.</p>
         </li>
         
         
-        <li id="section-149">
+        <li id="section-151">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-149">&#182;</a>
+                <a class="pilcrow" href="#section-151">&#182;</a>
               </div>
               <p>If something overrode the log function, make sure that’s preserved.</p>
 
@@ -3173,11 +3218,11 @@ breaking the game. But this isn’t implemented yet, so make this a TODO.</p>
         </li>
         
         
-        <li id="section-150">
+        <li id="section-152">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-150">&#182;</a>
+                <a class="pilcrow" href="#section-152">&#182;</a>
               </div>
               <p>Copy card-specific state</p>
 
@@ -3189,11 +3234,11 @@ breaking the game. But this isn’t implemented yet, so make this a TODO.</p>
         </li>
         
         
-        <li id="section-151">
+        <li id="section-153">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-151">&#182;</a>
+                <a class="pilcrow" href="#section-153">&#182;</a>
               </div>
               <p>If the card state has a copy method, call it, otherwise just shallow
 copy the state</p>
@@ -3205,11 +3250,11 @@ copy the state</p>
         </li>
         
         
-        <li id="section-152">
+        <li id="section-154">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-152">&#182;</a>
+                <a class="pilcrow" href="#section-154">&#182;</a>
               </div>
               <p>Objects with a copy method</p>
 
@@ -3221,11 +3266,11 @@ copy the state</p>
         </li>
         
         
-        <li id="section-153">
+        <li id="section-155">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-153">&#182;</a>
+                <a class="pilcrow" href="#section-155">&#182;</a>
               </div>
               <p>Objects with no copy method</p>
 
@@ -3238,11 +3283,11 @@ copy the state</p>
         </li>
         
         
-        <li id="section-154">
+        <li id="section-156">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-154">&#182;</a>
+                <a class="pilcrow" href="#section-156">&#182;</a>
               </div>
               <p>Simple types</p>
 
@@ -3267,11 +3312,11 @@ copy the state</p>
         </li>
         
         
-        <li id="section-155">
+        <li id="section-157">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-155">&#182;</a>
+                <a class="pilcrow" href="#section-157">&#182;</a>
               </div>
               <p><code>hypothetical(ai)</code> returns a State and PlayerState that an AI can do
 whatever it wants to without affecting the real state:</p>
@@ -3291,11 +3336,11 @@ whatever it wants to without affecting the real state:</p>
         </li>
         
         
-        <li id="section-156">
+        <li id="section-158">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-156">&#182;</a>
+                <a class="pilcrow" href="#section-158">&#182;</a>
               </div>
               <p>Rotate through players until this AI is the current player.</p>
 
@@ -3317,11 +3362,11 @@ whatever it wants to without affecting the real state:</p>
         </li>
         
         
-        <li id="section-157">
+        <li id="section-159">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-157">&#182;</a>
+                <a class="pilcrow" href="#section-159">&#182;</a>
               </div>
               <p>We don’t know what’s in their hand or their deck, so shuffle them
 together randomly, preserving the number of cards.</p>
@@ -3342,11 +3387,11 @@ together randomly, preserving the number of cards.</p>
         </li>
         
         
-        <li id="section-158">
+        <li id="section-160">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-158">&#182;</a>
+                <a class="pilcrow" href="#section-160">&#182;</a>
               </div>
               <p>Functions for comparing, used for sorting</p>
 <p>Rob says: this is pretty AI-specific. It’s also an unnecessarily complex operation,
@@ -3365,11 +3410,11 @@ to be filtered, not sorted.</p>
         </li>
         
         
-        <li id="section-159">
+        <li id="section-161">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-159">&#182;</a>
+                <a class="pilcrow" href="#section-161">&#182;</a>
               </div>
               <p>Games can provide output using the <code>log</code> function.</p>
 
@@ -3380,11 +3425,11 @@ to be filtered, not sorted.</p>
         </li>
         
         
-        <li id="section-160">
+        <li id="section-162">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-160">&#182;</a>
+                <a class="pilcrow" href="#section-162">&#182;</a>
               </div>
               <p>Only log things that actually happen.</p>
 
@@ -3400,11 +3445,11 @@ to be filtered, not sorted.</p>
         </li>
         
         
-        <li id="section-161">
+        <li id="section-163">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-161">&#182;</a>
+                <a class="pilcrow" href="#section-163">&#182;</a>
               </div>
               <p>A warning has a similar effect to a log message, but indicates that
 something has gone wrong with the gameplay.</p>
@@ -3418,11 +3463,11 @@ something has gone wrong with the gameplay.</p>
         </li>
         
         
-        <li id="section-162">
+        <li id="section-164">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-162">&#182;</a>
+                <a class="pilcrow" href="#section-164">&#182;</a>
               </div>
               <p>Define some possible tableaux to play the game with. None of these are
 actually legal tableaux, but that gives strategies more room to play.</p>
@@ -3438,11 +3483,11 @@ actually legal tableaux, but that gives strategies more room to play.</p>
         </li>
         
         
-        <li id="section-163">
+        <li id="section-165">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-163">&#182;</a>
+                <a class="pilcrow" href="#section-165">&#182;</a>
               </div>
               <p>How to remove something from a JavaScript array. Modifies the list and
 returns the 0 or 1 removed elements.</p>
@@ -3459,11 +3504,11 @@ returns the 0 or 1 removed elements.</p>
         </li>
         
         
-        <li id="section-164">
+        <li id="section-166">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-164">&#182;</a>
+                <a class="pilcrow" href="#section-166">&#182;</a>
               </div>
               <p>Define the additional tableau of everything but Platinum/Colony.
 If there’s a better way to remove items from a JS array, I’d like to know
@@ -3479,11 +3524,11 @@ noColony.remove(<span class="hljs-string">'Colony'</span>)
         </li>
         
         
-        <li id="section-165">
+        <li id="section-167">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-165">&#182;</a>
+                <a class="pilcrow" href="#section-167">&#182;</a>
               </div>
               <h2 id="utility-functions">Utility functions</h2>
 
@@ -3492,11 +3537,11 @@ noColony.remove(<span class="hljs-string">'Colony'</span>)
         </li>
         
         
-        <li id="section-166">
+        <li id="section-168">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-166">&#182;</a>
+                <a class="pilcrow" href="#section-168">&#182;</a>
               </div>
               <p>This customized clone function will not make unnecessary copies of
 cards and AIs. However, it doesn’t seem to work.</p>
@@ -3517,11 +3562,11 @@ cards and AIs. However, it doesn’t seem to work.</p>
         </li>
         
         
-        <li id="section-167">
+        <li id="section-169">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-167">&#182;</a>
+                <a class="pilcrow" href="#section-169">&#182;</a>
               </div>
               <p>General function to randomly shuffle a list.</p>
 
@@ -3540,11 +3585,11 @@ cards and AIs. However, it doesn’t seem to work.</p>
         </li>
         
         
-        <li id="section-168">
+        <li id="section-170">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-168">&#182;</a>
+                <a class="pilcrow" href="#section-170">&#182;</a>
               </div>
               <p>Count the number of times a value appears in a list, coercing everything
 to its string value.</p>
@@ -3561,11 +3606,11 @@ to its string value.</p>
         </li>
         
         
-        <li id="section-169">
+        <li id="section-171">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-169">&#182;</a>
+                <a class="pilcrow" href="#section-171">&#182;</a>
               </div>
               <p>Sort by numeric value. You’d think this would be in the standard library.</p>
 
@@ -3579,11 +3624,11 @@ to its string value.</p>
         </li>
         
         
-        <li id="section-170">
+        <li id="section-172">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-170">&#182;</a>
+                <a class="pilcrow" href="#section-172">&#182;</a>
               </div>
               <p>When modifying built-in methods of core types, we need to play nice with
 other libraries.  For instance, our Array#toString method modifies the
@@ -3594,11 +3639,11 @@ behavior in a way that breaks the CoffeeScript compiler.</p>
         </li>
         
         
-        <li id="section-171">
+        <li id="section-173">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-171">&#182;</a>
+                <a class="pilcrow" href="#section-173">&#182;</a>
               </div>
               <p>Modifies built-in methods of core Javascript types in a way that’s reversible</p>
 
@@ -3609,11 +3654,11 @@ behavior in a way that breaks the CoffeeScript compiler.</p>
         </li>
         
         
-        <li id="section-172">
+        <li id="section-174">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-172">&#182;</a>
+                <a class="pilcrow" href="#section-174">&#182;</a>
               </div>
               <p>Make Array#toString output more readable</p>
 
@@ -3626,11 +3671,11 @@ behavior in a way that breaks the CoffeeScript compiler.</p>
         </li>
         
         
-        <li id="section-173">
+        <li id="section-175">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-173">&#182;</a>
+                <a class="pilcrow" href="#section-175">&#182;</a>
               </div>
               <p>Reverses modifications to core Javascript types</p>
 
@@ -3643,11 +3688,11 @@ behavior in a way that breaks the CoffeeScript compiler.</p>
         </li>
         
         
-        <li id="section-174">
+        <li id="section-176">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-174">&#182;</a>
+                <a class="pilcrow" href="#section-176">&#182;</a>
               </div>
               <p>useCoreTypeMods takes an object and the name of a method.  It then wraps
 that method so that it correctly uses and restores our core type
@@ -3670,11 +3715,11 @@ any child method calls, but they are cleaned up when leaving the method</p>
         </li>
         
         
-        <li id="section-175">
+        <li id="section-177">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-175">&#182;</a>
+                <a class="pilcrow" href="#section-177">&#182;</a>
               </div>
               <p>Use our core type modifications within the State object.  These three
 methods are the ones called by external functions to set up and play
@@ -3689,42 +3734,13 @@ useCoreTypeMods(<span class="hljs-attribute">State</span>::, <span class="hljs-s
         </li>
         
         
-        <li id="section-176">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-176">&#182;</a>
-              </div>
-              <h2 id="exports">Exports</h2>
-
-            </div>
-            
-        </li>
-        
-        
-        <li id="section-177">
-            <div class="annotation">
-              
-              <div class="pilwrap ">
-                <a class="pilcrow" href="#section-177">&#182;</a>
-              </div>
-              <p>Export the State and PlayerState classes for other modules to use.</p>
-
-            </div>
-            
-            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">this</span>.State = State
-<span class="hljs-keyword">this</span>.PlayerState = PlayerState</pre></div></div>
-            
-        </li>
-        
-        
         <li id="section-178">
             <div class="annotation">
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-178">&#182;</a>
               </div>
-              <h2 id="indecisive-imports">Indecisive imports</h2>
+              <h2 id="exports">Exports</h2>
 
             </div>
             
@@ -3736,6 +3752,35 @@ useCoreTypeMods(<span class="hljs-attribute">State</span>::, <span class="hljs-s
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-179">&#182;</a>
+              </div>
+              <p>Export the State and PlayerState classes for other modules to use.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">this</span>.State = State
+<span class="hljs-keyword">this</span>.PlayerState = PlayerState</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-180">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-180">&#182;</a>
+              </div>
+              <h2 id="indecisive-imports">Indecisive imports</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-181">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-181">&#182;</a>
               </div>
               <p>Recall that this code begins with:</p>
 <pre><code>{c} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./cards'</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">exports</span>?

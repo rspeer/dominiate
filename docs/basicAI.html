@@ -78,9 +78,10 @@
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-1">&#182;</a>
               </div>
-              <h2 id="the-basic-ai">The Basic AI</h2>
-
+              
             </div>
+            
+            <div class="content"><div class='highlight'><pre>{c} = <span class="hljs-built_in">require</span> <span class="hljs-string">'./cards'</span> <span class="hljs-keyword">if</span> <span class="hljs-built_in">exports</span>?</pre></div></div>
             
         </li>
         
@@ -90,6 +91,19 @@
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="the-basic-ai">The Basic AI</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
               </div>
               <p>This class defines a rule-based AI of the kind that is popular
 for evaluating Dominion strategies. It can be subclassed — or simply
@@ -121,11 +135,11 @@ some of these decision functions.</p>
         </li>
         
         
-        <li id="section-3">
+        <li id="section-4">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
+                <a class="pilcrow" href="#section-4">&#182;</a>
               </div>
               <p>Referring to <code>state.current</code> to find information about one’s own state is
 not always safe! Some of these decisions may be made during other players’
@@ -145,11 +159,11 @@ it’s convenient and it creates nice idioms such as <code>my.hand</code>.</p>
         </li>
         
         
-        <li id="section-4">
+        <li id="section-5">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-5">&#182;</a>
               </div>
               <h2 id="decision-making-machinery">Decision-making machinery</h2>
 
@@ -158,11 +172,11 @@ it’s convenient and it creates nice idioms such as <code>my.hand</code>.</p>
         </li>
         
         
-        <li id="section-5">
+        <li id="section-6">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-6">&#182;</a>
               </div>
               <p>Make the AI’s preferred choice, first by checking its explicit priority
 list. If no valid choices are on the list, ask the value function instead.</p>
@@ -184,11 +198,11 @@ priority function return an empty list.</p>
         </li>
         
         
-        <li id="section-6">
+        <li id="section-7">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-7">&#182;</a>
               </div>
               <p>Are there no choices? We follow the rule that makes the null choice
 available in that situation, and choose it.</p>
@@ -201,11 +215,11 @@ available in that situation, and choose it.</p>
         </li>
         
         
-        <li id="section-7">
+        <li id="section-8">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-8">&#182;</a>
               </div>
               <p>First, try the priority function. If the priority function reaches
 the end of its list, it is treated as “none of the above”.</p>
@@ -218,11 +232,11 @@ the end of its list, it is treated as “none of the above”.</p>
         </li>
         
         
-        <li id="section-8">
+        <li id="section-9">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-9">&#182;</a>
               </div>
               <p>Construct an object with the choices as keys, so we can look them
 up quickly.</p>
@@ -238,11 +252,11 @@ up quickly.</p>
         </li>
         
         
-        <li id="section-9">
+        <li id="section-10">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-10">&#182;</a>
               </div>
               <p>Get the priority list.</p>
 
@@ -253,11 +267,11 @@ up quickly.</p>
         </li>
         
         
-        <li id="section-10">
+        <li id="section-11">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p>Now look up all the preferences in that list. The moment we encounter
 a valid choice, we can return it.</p>
@@ -273,11 +287,11 @@ a valid choice, we can return it.</p>
         </li>
         
         
-        <li id="section-11">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-11">&#182;</a>
+                <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
               <p>The priority list doesn’t want any of these choices (perhaps because
 it doesn’t exist). Now try the value function.</p>
@@ -296,11 +310,11 @@ it doesn’t exist). Now try the value function.</p>
         </li>
         
         
-        <li id="section-12">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <p>If we got a valid choice, return it.</p>
 
@@ -312,11 +326,11 @@ it doesn’t exist). Now try the value function.</p>
         </li>
         
         
-        <li id="section-13">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <p>If we get here, the AI probably wants to choose none of the above.</p>
 
@@ -353,11 +367,11 @@ it doesn’t exist). Now try the value function.</p>
         </li>
         
         
-        <li id="section-14">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>Sometimes we need to compare choices in a strictly numeric way. This takes
 a particular choice for a particular choice type, and gets its numeric value.
@@ -385,11 +399,53 @@ the choiceToValue of discarding an extra terminal is 1.</p>
         </li>
         
         
-        <li id="section-15">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>Originally implemented in the <code>Rebuild.coffee</code> strategy, this method gets
+the difference in score if the game were to end now.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">getScoreDifference</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> 
+    <span class="hljs-keyword">for</span> status <span class="hljs-keyword">in</span> state.getFinalStatus()
+      [name, score, turns] = status
+      <span class="hljs-keyword">if</span> name == my.ai.toString()
+        myScore = score
+      <span class="hljs-keyword">else</span>
+        opponentScore = score
+    <span class="hljs-keyword">return</span> myScore - opponentScore</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>More utilities from the Rebuild strategy.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">countNotInHand</span>: <span class="hljs-function"><span class="hljs-params">(my, card)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> my.countInDeck(card) - my.countInHand(card)
+
+  <span class="hljs-attribute">countInDraw</span>: <span class="hljs-function"><span class="hljs-params">(my, card)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> my.countInDeck(card) - my.countInHand(card) - my.countInDiscard(card)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
               <h3 id="backwards-compatible-choices">Backwards-compatible choices</h3>
 <p>To avoid having to rewrite all the code at once, we support these functions
@@ -406,11 +462,11 @@ that pass <code>chooseAction</code> onto <code>choose(&#39;action&#39;)</code>, 
         </li>
         
         
-        <li id="section-16">
+        <li id="section-19">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <h2 id="default-strategies">Default strategies</h2>
 
@@ -419,11 +475,11 @@ that pass <code>chooseAction</code> onto <code>choose(&#39;action&#39;)</code>, 
         </li>
         
         
-        <li id="section-17">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p>The default buying strategy is a form of Big Money that has, by now,
 been beaten by the newer one in BigMoney.coffee.</p>
@@ -444,11 +500,11 @@ been beaten by the newer one in BigMoney.coffee.</p>
         </li>
         
         
-        <li id="section-18">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <p>gainValue covers cases where a strategy has to gain a card that isn’t in
 its priority list. The default is to favor more expensive cards,
@@ -464,11 +520,11 @@ strategies cards they don’t actually want.</p>
         </li>
         
         
-        <li id="section-19">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>This used to be the default action-playing priority. Now the value of playing
 a card is defined on the “ai_playValue” function of each card.</p>
@@ -493,11 +549,11 @@ a card is defined on the “ai_playValue” function of each card.</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <p>We’ve got a multiplier in hand. Figure out if we want to play it.</p>
 
@@ -511,11 +567,11 @@ a card is defined on the “ai_playValue” function of each card.</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p>Determine if it’s better than nothing.</p>
 
@@ -528,11 +584,11 @@ a card is defined on the “ai_playValue” function of each card.</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p>Now add the “wait” option and see if we want to multiply an action
 <em>right now</em>.</p>
@@ -548,11 +604,11 @@ a card is defined on the “ai_playValue” function of each card.</p>
         </li>
         
         
-        <li id="section-23">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p>Priority 1: cards that succeed if we play them now, and might
 not if we play them later. (950-999)</p>
@@ -568,11 +624,11 @@ not if we play them later. (950-999)</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>2: Multipliers that do something sufficiently cool. (900-949)</p>
 
@@ -584,11 +640,11 @@ not if we play them later. (950-999)</p>
         </li>
         
         
-        <li id="section-25">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <p>3: cards that stack the deck. (850-899)</p>
 
@@ -605,11 +661,11 @@ not if we play them later. (950-999)</p>
         </li>
         
         
-        <li id="section-26">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <p>4: cards that give +2 actions. (800-849)</p>
 
@@ -631,11 +687,11 @@ not if we play them later. (950-999)</p>
         </li>
         
         
-        <li id="section-27">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <p>5: cards that give +1 action and are almost always good. (700-800)</p>
 
@@ -668,11 +724,11 @@ not if we play them later. (950-999)</p>
         </li>
         
         
-        <li id="section-28">
+        <li id="section-31">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
               <p>6: terminal card-drawers, if we have actions to spare. (600-699)</p>
 
@@ -695,11 +751,11 @@ not if we play them later. (950-999)</p>
         </li>
         
         
-        <li id="section-29">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <p>7: Let’s insert here an overly simplistic idea of how to play Crossroads.
 Or if we don’t have a Crossroads, play a Great Hall that we might otherwise
@@ -713,11 +769,11 @@ have played in priority level 5. (500-599)</p>
         </li>
         
         
-        <li id="section-30">
+        <li id="section-33">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-30">&#182;</a>
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               <p>8: card-cycling that might improve the hand. (400-499)</p>
 
@@ -734,11 +790,11 @@ have played in priority level 5. (500-599)</p>
         </li>
         
         
-        <li id="section-31">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p>9: non-terminal cards that don’t succeed but at least give us something. (300-399)</p>
 
@@ -753,11 +809,11 @@ have played in priority level 5. (500-599)</p>
         </li>
         
         
-        <li id="section-32">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-32">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <p>10: terminals. Of course, Nobles might be a non-terminal
 if we decide we need the actions more than the cards. (100-299)</p>
@@ -781,11 +837,11 @@ if we decide we need the actions more than the cards. (100-299)</p>
         </li>
         
         
-        <li id="section-33">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               <p>Tactician needs a play condition, but I don’t know what it would be.</p>
 
@@ -871,11 +927,11 @@ if we decide we need the actions more than the cards. (100-299)</p>
         </li>
         
         
-        <li id="section-34">
+        <li id="section-37">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-34">&#182;</a>
+                <a class="pilcrow" href="#section-37">&#182;</a>
               </div>
               <p>11: cards that have become useless. Maybe they’ll decrease
 the cost of Peddler, trigger Conspirator, or something. (20-99)</p>
@@ -892,11 +948,11 @@ the cost of Peddler, trigger Conspirator, or something. (20-99)</p>
         </li>
         
         
-        <li id="section-35">
+        <li id="section-38">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-35">&#182;</a>
+                <a class="pilcrow" href="#section-38">&#182;</a>
               </div>
               <p>12: Conspirator when +actions remain. (10)</p>
 
@@ -907,11 +963,11 @@ the cost of Peddler, trigger Conspirator, or something. (20-99)</p>
         </li>
         
         
-        <li id="section-36">
+        <li id="section-39">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-36">&#182;</a>
+                <a class="pilcrow" href="#section-39">&#182;</a>
               </div>
               <p>   “Baron”</p>
 
@@ -920,11 +976,11 @@ the cost of Peddler, trigger Conspirator, or something. (20-99)</p>
         </li>
         
         
-        <li id="section-37">
+        <li id="section-40">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-37">&#182;</a>
+                <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
               <p>At this point, we take no action if that choice is available.</p>
 
@@ -935,11 +991,11 @@ the cost of Peddler, trigger Conspirator, or something. (20-99)</p>
         </li>
         
         
-        <li id="section-38">
+        <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-38">&#182;</a>
+                <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
               <p>Nope, something is forcing us to take an action.</p>
 <p>Last priority: cards that are actively harmful to play at this point,
@@ -965,11 +1021,11 @@ in order of increasing badness.</p>
         </li>
         
         
-        <li id="section-39">
+        <li id="section-42">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-39">&#182;</a>
+                <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
               <p><code>multipliedActionPriority</code> is similar to <code>actionPriority</code>, but is used when
 we have played a Throne Room or King’s Court.</p>
@@ -996,11 +1052,11 @@ usual actionPriority list.</p>
         </li>
         
         
-        <li id="section-40">
+        <li id="section-43">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-40">&#182;</a>
+                <a class="pilcrow" href="#section-43">&#182;</a>
               </div>
               <p>Scrying Pool was here once, but I think you’d rather use it to <em>draw</em>
 actions for your KC</p>
@@ -1043,11 +1099,11 @@ actions for your KC</p>
         </li>
         
         
-        <li id="section-41">
+        <li id="section-44">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-41">&#182;</a>
+                <a class="pilcrow" href="#section-44">&#182;</a>
               </div>
               <p>We could add here some more cards that would be nice to play with a
 multiplier. Nicer than Lookout, let’s say, which appears pretty high
@@ -1061,11 +1117,11 @@ on the regular action priority list.</p>
         </li>
         
         
-        <li id="section-42">
+        <li id="section-45">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-42">&#182;</a>
+                <a class="pilcrow" href="#section-45">&#182;</a>
               </div>
               <p><code>treasurePriority</code> determines what order to play treasures in.
 Most of the order has no effect on gameplay. The
@@ -1087,22 +1143,25 @@ important part is that Bank and Horn of Plenty are last.</p>
     <span class="hljs-string">"Quarry"</span>
     <span class="hljs-string">"Talisman"</span>
     <span class="hljs-string">"Copper"</span>
+    <span class="hljs-string">"Masterpiece"</span>
     <span class="hljs-string">"Potion"</span>  <span class="hljs-comment"># 100 from here up</span>
     <span class="hljs-string">"Loan"</span>    <span class="hljs-comment"># 90</span>
     <span class="hljs-string">"Venture"</span> <span class="hljs-comment"># 80</span>
     <span class="hljs-string">"Ill-Gotten Gains"</span>
     <span class="hljs-string">"Bank"</span>
     <span class="hljs-string">"Horn of Plenty"</span> <span class="hljs-keyword">if</span> my.numUniqueCardsInPlay() &gt;= <span class="hljs-number">2</span>
+    <span class="hljs-string">"Spoils"</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span>.wantsToPlaySpoils(state)
+    <span class="hljs-literal">null</span>
   ]</pre></div></div>
             
         </li>
         
         
-        <li id="section-43">
+        <li id="section-46">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-43">&#182;</a>
+                <a class="pilcrow" href="#section-46">&#182;</a>
               </div>
               <p>The default <code>discardPriority</code> is tuned for Big Money where the decisions
 are obvious. But many strategies would probably prefer a different
@@ -1130,11 +1189,11 @@ discarding cards to make Shanty Town or Menagerie work, for example.</p>
         </li>
         
         
-        <li id="section-44">
+        <li id="section-47">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-44">&#182;</a>
+                <a class="pilcrow" href="#section-47">&#182;</a>
               </div>
               <p>If we can discard excess actions, do so. Otherwise, discard the cheapest
 cards. Victory cards would already have been discarded by discardPriority,
@@ -1164,11 +1223,11 @@ actions.</p>
         </li>
         
         
-        <li id="section-45">
+        <li id="section-48">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-45">&#182;</a>
+                <a class="pilcrow" href="#section-48">&#182;</a>
               </div>
               <p>If we have to trash a card we don’t want to, assign a value to each card.
 By default, we want to trash the card with the lowest (cost + VP).</p>
@@ -1181,11 +1240,39 @@ By default, we want to trash the card with the lowest (cost + VP).</p>
         </li>
         
         
-        <li id="section-46">
+        <li id="section-49">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-46">&#182;</a>
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>developPriority: (state, my) =&gt; 
+  trashPriority(state, my)</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-50">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-50">&#182;</a>
+              </div>
+              <p>developValue: (state, card, my) =&gt;
+ this.trashValue(state, card, my)</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-51">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-51">&#182;</a>
               </div>
               <p>Some cards give you a choice to discard an opponent’s deck. These are
 evaluated with <code>discardFromOpponentDeckValue</code>.</p>
@@ -1203,11 +1290,11 @@ evaluated with <code>discardFromOpponentDeckValue</code>.</p>
         </li>
         
         
-        <li id="section-47">
+        <li id="section-52">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-47">&#182;</a>
+                <a class="pilcrow" href="#section-52">&#182;</a>
               </div>
               <p><code>discardHandValue</code> decides whether to discard an entire hand of cards.</p>
 
@@ -1224,11 +1311,11 @@ evaluated with <code>discardFromOpponentDeckValue</code>.</p>
         </li>
         
         
-        <li id="section-48">
+        <li id="section-53">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-48">&#182;</a>
+                <a class="pilcrow" href="#section-53">&#182;</a>
               </div>
               <p>If a random hand from this deck is better, discard this hand.</p>
 
@@ -1240,11 +1327,11 @@ evaluated with <code>discardFromOpponentDeckValue</code>.</p>
         </li>
         
         
-        <li id="section-49">
+        <li id="section-54">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-49">&#182;</a>
+                <a class="pilcrow" href="#section-54">&#182;</a>
               </div>
               <p>Prefer to gain action and treasure cards on the deck, assuming we want
 them at all. Give other cards a value of -1 so that <code>null</code> is a better
@@ -1261,11 +1348,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-50">
+        <li id="section-55">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-50">&#182;</a>
+                <a class="pilcrow" href="#section-55">&#182;</a>
               </div>
               <p>Changed Priorities for putting cards back on deck.  Only works well for putting back 1 card, and for 1 buy.</p>
 
@@ -1276,11 +1363,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-51">
+        <li id="section-56">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-51">&#182;</a>
+                <a class="pilcrow" href="#section-56">&#182;</a>
               </div>
               <p>Make a priority order of:</p>
 <ol>
@@ -1294,11 +1381,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-52">
+        <li id="section-57">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-52">&#182;</a>
+                <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
               <p>1) Actions</p>
 
@@ -1315,11 +1402,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-53">
+        <li id="section-58">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-53">&#182;</a>
+                <a class="pilcrow" href="#section-58">&#182;</a>
               </div>
               <p>2) Put back as much money as you can</p>
 
@@ -1330,11 +1417,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-54">
+        <li id="section-59">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-54">&#182;</a>
+                <a class="pilcrow" href="#section-59">&#182;</a>
               </div>
               <p>Get a list of all distinct treasures in hand, in order.</p>
 
@@ -1351,11 +1438,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-55">
+        <li id="section-60">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-55">&#182;</a>
+                <a class="pilcrow" href="#section-60">&#182;</a>
               </div>
               <p>Get the margin of how much money we’re willing to discard.</p>
 
@@ -1366,11 +1453,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-56">
+        <li id="section-61">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-56">&#182;</a>
+                <a class="pilcrow" href="#section-61">&#182;</a>
               </div>
               <p>Find the treasure cards worth less than that.</p>
 
@@ -1383,11 +1470,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-57">
+        <li id="section-62">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-57">&#182;</a>
+                <a class="pilcrow" href="#section-62">&#182;</a>
               </div>
               <p>Don’t put back last Potion if Alchemists are in play</p>
 
@@ -1400,11 +1487,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-58">
+        <li id="section-63">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-58">&#182;</a>
+                <a class="pilcrow" href="#section-63">&#182;</a>
               </div>
               <p>3) Put back the worst card (take priority for discard)</p>
 
@@ -1421,11 +1508,11 @@ choice.</p>
         </li>
         
         
-        <li id="section-59">
+        <li id="section-64">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-59">&#182;</a>
+                <a class="pilcrow" href="#section-64">&#182;</a>
               </div>
               <p>How much does the AI want to discard its deck right now (for Chancellor)?
 Here, we decide to reshuffle (returning a reshuffleValue over 0) when most
@@ -1450,11 +1537,11 @@ are no such cards in the deck.</p>
         </li>
         
         
-        <li id="section-60">
+        <li id="section-65">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-60">&#182;</a>
+                <a class="pilcrow" href="#section-65">&#182;</a>
               </div>
               <p>Choose opponent treasure to trash; go by the card’s base cost.
 Diadems are comparable to the cost-5 treasures.</p>
@@ -1469,11 +1556,11 @@ Diadems are comparable to the cost-5 treasures.</p>
         </li>
         
         
-        <li id="section-61">
+        <li id="section-66">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-61">&#182;</a>
+                <a class="pilcrow" href="#section-66">&#182;</a>
               </div>
               <h3 id="decisions-for-particular-cards">Decisions for particular cards</h3>
 
@@ -1482,11 +1569,11 @@ Diadems are comparable to the cost-5 treasures.</p>
         </li>
         
         
-        <li id="section-62">
+        <li id="section-67">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-62">&#182;</a>
+                <a class="pilcrow" href="#section-67">&#182;</a>
               </div>
               <p><code>ambassadorPriority</code> chooses a card to Ambassador and how many of it to
 return.</p>
@@ -1507,11 +1594,11 @@ JavaScript, lists are never “equal” to other lists anyway.</p>
         </li>
         
         
-        <li id="section-63">
+        <li id="section-68">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-63">&#182;</a>
+                <a class="pilcrow" href="#section-68">&#182;</a>
               </div>
               <p>Handle a silly case:</p>
 
@@ -1524,11 +1611,11 @@ JavaScript, lists are never “equal” to other lists anyway.</p>
         </li>
         
         
-        <li id="section-64">
+        <li id="section-69">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-64">&#182;</a>
+                <a class="pilcrow" href="#section-69">&#182;</a>
               </div>
               <p>Make sure we have at least $5 in the deck, including if we buy a Silver.</p>
 
@@ -1565,11 +1652,11 @@ JavaScript, lists are never “equal” to other lists anyway.</p>
         </li>
         
         
-        <li id="section-65">
+        <li id="section-70">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-65">&#182;</a>
+                <a class="pilcrow" href="#section-70">&#182;</a>
               </div>
               <p>The question here is: do you want to discard an Estate using a Baron?
 And the answer is yes.</p>
@@ -1581,11 +1668,11 @@ And the answer is yes.</p>
         </li>
         
         
-        <li id="section-66">
+        <li id="section-71">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-66">&#182;</a>
+                <a class="pilcrow" href="#section-71">&#182;</a>
               </div>
               <p><code>bishopTrashPriority</code> lists cards that are especially good to trash.</p>
 
@@ -1609,11 +1696,11 @@ And the answer is yes.</p>
         </li>
         
         
-        <li id="section-67">
+        <li id="section-72">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-67">&#182;</a>
+                <a class="pilcrow" href="#section-72">&#182;</a>
               </div>
               <p>if we’re going for victory points, that’s all we care about.</p>
 
@@ -1625,11 +1712,11 @@ And the answer is yes.</p>
         </li>
         
         
-        <li id="section-68">
+        <li id="section-73">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-68">&#182;</a>
+                <a class="pilcrow" href="#section-73">&#182;</a>
               </div>
               <p>otherwise, focus on what we want to trash</p>
 
@@ -1649,11 +1736,11 @@ And the answer is yes.</p>
         </li>
         
         
-        <li id="section-69">
+        <li id="section-74">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-69">&#182;</a>
+                <a class="pilcrow" href="#section-74">&#182;</a>
               </div>
               <p>Choose a card to discard from your opponent’s hand when it’s their turn.</p>
 
@@ -1674,11 +1761,11 @@ And the answer is yes.</p>
         </li>
         
         
-        <li id="section-70">
+        <li id="section-75">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-70">&#182;</a>
+                <a class="pilcrow" href="#section-75">&#182;</a>
               </div>
               <p><code>foolsGoldTrashPriority</code> will trash a Fool’s Gold for a real Gold if
 it’s nearing the endgame (5 gains or less), there is one FG in hand,
@@ -1695,27 +1782,30 @@ and losing it will not change its buy.</p>
         </li>
         
         
-        <li id="section-71">
+        <li id="section-76">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-71">&#182;</a>
+                <a class="pilcrow" href="#section-76">&#182;</a>
               </div>
-              <p>Do you want to gain a copper from Ill-Gotten Gains? It’s quite possible
-in endgame situations, but for now the answer is no.</p>
+              <p>Do you want to gain a copper from Ill-Gotten Gains? Yes, we want if that improves our buy</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">gainCopperPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> [<span class="hljs-literal">no</span>]</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">gainCopperPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> my.ai.coinGainMargin(state) &lt;= my.countInHand(<span class="hljs-string">"Ill-Gotten Gains"</span>)+<span class="hljs-number">1</span>
+      [<span class="hljs-literal">yes</span>]
+    <span class="hljs-keyword">else</span>
+      [<span class="hljs-literal">no</span>]</pre></div></div>
             
         </li>
         
         
-        <li id="section-72">
+        <li id="section-77">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-72">&#182;</a>
+                <a class="pilcrow" href="#section-77">&#182;</a>
               </div>
               <p>The <code>herbalist</code> decision puts a treasure card back on the deck. It sounds
 the same as <code>putOnDeck</code>, but it’s for a different
@@ -1725,16 +1815,22 @@ actually we use the <code>mintValue</code> by default.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">herbalistValue</span>: <span class="hljs-function"><span class="hljs-params">(state, card, my)</span> =&gt;</span>
-    <span class="hljs-keyword">this</span>.mintValue(state, card, my)</pre></div></div>
+    <span class="hljs-keyword">this</span>.mintValue(state, card, my)
+
+
+  <span class="hljs-attribute">huntingGroundsGainPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> [
+    <span class="hljs-string">"Duchy"</span>
+    <span class="hljs-string">"Estates"</span>
+  ]</pre></div></div>
             
         </li>
         
         
-        <li id="section-73">
+        <li id="section-78">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-73">&#182;</a>
+                <a class="pilcrow" href="#section-78">&#182;</a>
               </div>
               <p>islandPriority chooses which card to set aside with Island. At present this
 list is incomplete, but covers just about everything that we would want to set aside
@@ -1779,11 +1875,11 @@ with an Island.</p>
         </li>
         
         
-        <li id="section-74">
+        <li id="section-79">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-74">&#182;</a>
+                <a class="pilcrow" href="#section-79">&#182;</a>
               </div>
               <p>Find out how valuable it would be to discard these cards and draw 4.</p>
 
@@ -1795,11 +1891,11 @@ with an Island.</p>
         </li>
         
         
-        <li id="section-75">
+        <li id="section-80">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-75">&#182;</a>
+                <a class="pilcrow" href="#section-80">&#182;</a>
               </div>
               <p>If the attack would decrease an opponent’s hand size, it’s more valuable.</p>
 
@@ -1814,11 +1910,11 @@ with an Island.</p>
         </li>
         
         
-        <li id="section-76">
+        <li id="section-81">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-76">&#182;</a>
+                <a class="pilcrow" href="#section-81">&#182;</a>
               </div>
               <p>Mint anything but Copper and Diadem. Otherwise, go mostly by the card’s base cost.
 There is only 1 Diadem, never any available to gain, so never Mint it.</p>
@@ -1831,11 +1927,11 @@ There is only 1 Diadem, never any available to gain, so never Mint it.</p>
         </li>
         
         
-        <li id="section-77">
+        <li id="section-82">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-77">&#182;</a>
+                <a class="pilcrow" href="#section-82">&#182;</a>
               </div>
               <p>Choose whether we want these cards or two random cards.</p>
 
@@ -1851,11 +1947,11 @@ There is only 1 Diadem, never any available to gain, so never Mint it.</p>
         </li>
         
         
-        <li id="section-78">
+        <li id="section-83">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-78">&#182;</a>
+                <a class="pilcrow" href="#section-83">&#182;</a>
               </div>
               <p>Choose to attack or use available coins when playing Pirate Ship.
 Current strategy is basically Geronimoo’s attackUntil5Coins play strategy,
@@ -1866,7 +1962,33 @@ but only with Provinces—or technically, cards costing 8 or more.</p>
             <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">pirateShipPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> [
     <span class="hljs-string">'coins'</span> <span class="hljs-keyword">if</span> state.current.mats.pirateShip &gt;= <span class="hljs-number">5</span> <span class="hljs-keyword">and</span> state.current.getAvailableMoney()+state.current.mats.pirateShip &gt;= <span class="hljs-number">8</span>
     <span class="hljs-string">'attack'</span>
-  ]
+  ]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-84">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-84">&#182;</a>
+              </div>
+              <p>might want to think about something more clever, but for first, just discard Coppers</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">plazaDiscardPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> [
+    <span class="hljs-string">"Copper"</span>
+    <span class="hljs-literal">null</span>
+  ]       
+
+  <span class="hljs-attribute">rogueGainValue</span>: <span class="hljs-function"><span class="hljs-params">(state, card, my)</span> -&gt;</span>
+    [coins, potions] = card.getCost(state)
+    <span class="hljs-keyword">return</span> coins
+
+  <span class="hljs-attribute">rogueTrashValue</span>: <span class="hljs-function"><span class="hljs-params">(state, card, my)</span> -&gt;</span>
+    [coins, potions] = card.getCost(state)
+    <span class="hljs-keyword">return</span> coins
 
   <span class="hljs-attribute">salvagerTrashPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, card, my)</span> -&gt;</span> [
     <span class="hljs-string">"Border Village"</span>
@@ -1879,11 +2001,11 @@ but only with Provinces—or technically, cards costing 8 or more.</p>
         </li>
         
         
-        <li id="section-79">
+        <li id="section-85">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-79">&#182;</a>
+                <a class="pilcrow" href="#section-85">&#182;</a>
               </div>
               <p>To calculate the salvagerTrashValue, we simulate trashing each card, determine
 the best card we would buy as a result, and evaluate it as if we were
@@ -1905,11 +2027,11 @@ upgrading the trashed card into the bought one.</p>
         </li>
         
         
-        <li id="section-80">
+        <li id="section-86">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-80">&#182;</a>
+                <a class="pilcrow" href="#section-86">&#182;</a>
               </div>
               <p>Scheme uses the same priority function as multiplied actions.  Good actions
 to multiply this turn are typically good actions to have around next turn.</p>
@@ -1921,11 +2043,11 @@ to multiply this turn are typically good actions to have around next turn.</p>
         </li>
         
         
-        <li id="section-81">
+        <li id="section-87">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-81">&#182;</a>
+                <a class="pilcrow" href="#section-87">&#182;</a>
               </div>
               <p>Project a little of what the state will look like at the beginning of the
 next turn.  This keeps multipliedActionPriority from evaluating a card
@@ -1943,11 +2065,11 @@ as though it will be used in the current (finished) turn.</p>
         </li>
         
         
-        <li id="section-82">
+        <li id="section-88">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-82">&#182;</a>
+                <a class="pilcrow" href="#section-88">&#182;</a>
               </div>
               <p><code>scryingPoolDiscardValue</code> is like <code>discardValue</code>, except it strongly
 prefers to discard non-actions.</p>
@@ -1979,11 +2101,11 @@ prefers to discard non-actions.</p>
         </li>
         
         
-        <li id="section-83">
+        <li id="section-89">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-83">&#182;</a>
+                <a class="pilcrow" href="#section-89">&#182;</a>
               </div>
               <p>Which treasure, if any, should be discarded to feed Stables? Defaults
 to a list of generally crappy treasures. Doesn’t include $1 Fool’s Gold
@@ -2008,11 +2130,11 @@ because you presumably have another one you’re trying to draw.</p>
         </li>
         
         
-        <li id="section-84">
+        <li id="section-90">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-84">&#182;</a>
+                <a class="pilcrow" href="#section-90">&#182;</a>
               </div>
               <p>Do you want to discard a Province to win a Tournament? The answer is
 <em>very</em> yes.</p>
@@ -2032,11 +2154,11 @@ because you presumably have another one you’re trying to draw.</p>
         </li>
         
         
-        <li id="section-85">
+        <li id="section-91">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-85">&#182;</a>
+                <a class="pilcrow" href="#section-91">&#182;</a>
               </div>
               <p><code>wishValue</code> prefers to wish for the card its draw pile contains
 the most of.</p>
@@ -2055,11 +2177,11 @@ the count of each card, which would be the same in any hypothetical version.</p>
         </li>
         
         
-        <li id="section-86">
+        <li id="section-92">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-86">&#182;</a>
+                <a class="pilcrow" href="#section-92">&#182;</a>
               </div>
               <p>Choose to discard or to gain a curse when attacked by Torturer.</p>
 
@@ -2078,11 +2200,11 @@ the count of each card, which would be the same in any hypothetical version.</p>
         </li>
         
         
-        <li id="section-87">
+        <li id="section-93">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-87">&#182;</a>
+                <a class="pilcrow" href="#section-93">&#182;</a>
               </div>
               <h3 id="trash-for-benefit-decisions">Trash-for-benefit decisions</h3>
 
@@ -2091,11 +2213,11 @@ the count of each card, which would be the same in any hypothetical version.</p>
         </li>
         
         
-        <li id="section-88">
+        <li id="section-94">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-88">&#182;</a>
+                <a class="pilcrow" href="#section-94">&#182;</a>
               </div>
               <p>Taking into account gain priorities, gain values, trash priorities, and
 trash values, how much do we like having this card in our deck overall?</p>
@@ -2108,11 +2230,11 @@ trash values, how much do we like having this card in our deck overall?</p>
         </li>
         
         
-        <li id="section-89">
+        <li id="section-95">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-89">&#182;</a>
+                <a class="pilcrow" href="#section-95">&#182;</a>
               </div>
               <p>Are we in the late game? If so, we care much more about getting cards
 at the top of our priority order.</p>
@@ -2128,11 +2250,11 @@ at the top of our priority order.</p>
         </li>
         
         
-        <li id="section-90">
+        <li id="section-96">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-90">&#182;</a>
+                <a class="pilcrow" href="#section-96">&#182;</a>
               </div>
               <p>upgradeValue measures the benefit of choices on Remodel, Upgrade,
 and so on, where you exchange one card for a better one.</p>
@@ -2148,11 +2270,32 @@ and so on, where you exchange one card for a better one.</p>
         </li>
         
         
-        <li id="section-91">
+        <li id="section-97">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-91">&#182;</a>
+                <a class="pilcrow" href="#section-97">&#182;</a>
+              </div>
+              <p>developValue measures the benefit of choices Develop,
+where you exchange one card for two.</p>
+<p>So here’s a really basic thing that might work.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">developValue</span>: <span class="hljs-function"><span class="hljs-params">(state, choice, my)</span> -&gt;</span>
+    [oldCard, [newCard1, newCard2]] = choice
+    <span class="hljs-keyword">return</span> my.ai.cardInDeckValue(state, newCard1, my) + \
+           my.ai.cardInDeckValue(state, newCard2, my) - \
+           my.ai.cardInDeckValue(state, oldCard, my)</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-98">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-98">&#182;</a>
               </div>
               <p><code>chooseOrderOnDeck</code> handles situations where multiple cards are returned
 to the deck, such as Scout and Apothecary.</p>
@@ -2175,11 +2318,68 @@ top.</p>
         </li>
         
         
-        <li id="section-92">
+        <li id="section-99">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-92">&#182;</a>
+                <a class="pilcrow" href="#section-99">&#182;</a>
+              </div>
+              <p>How much do we want to overpay for Masterpiece?
+If we care to buy it probably as much as possible</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">chooseOverpayMasterpiece</span>: <span class="hljs-function"><span class="hljs-params">(state, maxAmount)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> maxAmount</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-100">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-100">&#182;</a>
+              </div>
+              <p>How many Coin Tokens do we want to spend?
+Try to buy the ‘best’ card you can afford, and spend as less as possible for this</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">spendCoinTokens</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    cardsBoughtOld = []
+    ct = my.coinTokens      
+    <span class="hljs-keyword">loop</span>
+      [hypState, hypMy] = state.hypothetical(<span class="hljs-keyword">this</span>)
+      
+      hypMy.coins += ct
+      hypMy.coinTokensSpendThisTurn = ct
+      cardsBought = []
+      <span class="hljs-keyword">while</span> hypMy.buys &gt; <span class="hljs-number">0</span>
+        cardBought = hypState.getSingleBuyDecision()
+        <span class="hljs-keyword">if</span> cardBought?
+          [coinCost, potionCost] = cardBought.getCost(hypState)
+          hypMy.coins -= coinCost
+          hypMy.potions -= potionCost
+          cardsBought.push cardBought
+        hypMy.buys -= <span class="hljs-number">1</span>
+      <span class="hljs-keyword">if</span> ((ct &lt; my.coinTokens) <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> (arrayEqual(cardsBought, cardsBoughtOld)))
+        ct += <span class="hljs-number">1</span>
+        <span class="hljs-keyword">break</span>
+      <span class="hljs-keyword">if</span> ct == <span class="hljs-number">0</span>
+        <span class="hljs-keyword">break</span>
+      ct -= <span class="hljs-number">1</span>
+      cardsBoughtOld = cardsBought
+    <span class="hljs-keyword">return</span> ct</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-101">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-101">&#182;</a>
               </div>
               <h3 id="informational-methods">Informational methods</h3>
 
@@ -2188,11 +2388,11 @@ top.</p>
         </li>
         
         
-        <li id="section-93">
+        <li id="section-102">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-93">&#182;</a>
+                <a class="pilcrow" href="#section-102">&#182;</a>
               </div>
               <p>When presented with a card with simple but variable benefits, such as
 Nobles, this is the default way for an AI to decide which benefit it wants.
@@ -2225,11 +2425,11 @@ This function should actually handle a number of common situations.</p>
         </li>
         
         
-        <li id="section-94">
+        <li id="section-103">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-94">&#182;</a>
+                <a class="pilcrow" href="#section-103">&#182;</a>
               </div>
               <p><code>wantsToTrash</code> returns the number of cards in hand that we would trash
 for no benefit.</p>
@@ -2247,11 +2447,28 @@ for no benefit.</p>
         </li>
         
         
-        <li id="section-95">
+        <li id="section-104">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-95">&#182;</a>
+                <a class="pilcrow" href="#section-104">&#182;</a>
+              </div>
+              <p><code>wantsToPlayRats</code> is like <code>wantsToTrash</code> except that the answer is no.</p>
+<p>Come on, it’s a first-order approximation of good strategy. If you’ve got
+a better idea, put it in a strategy file.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">wantsToPlayRats</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-literal">no</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-105">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-105">&#182;</a>
               </div>
               <p><code>wantsToDiscard</code> returns the number of cards in hand that we would
 freely discard.</p>
@@ -2296,11 +2513,11 @@ freely discard.</p>
         </li>
         
         
-        <li id="section-96">
+        <li id="section-106">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-96">&#182;</a>
+                <a class="pilcrow" href="#section-106">&#182;</a>
               </div>
               <p>prevent infinite loops</p>
 
@@ -2315,11 +2532,97 @@ freely discard.</p>
         </li>
         
         
-        <li id="section-97">
+        <li id="section-107">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-97">&#182;</a>
+                <a class="pilcrow" href="#section-107">&#182;</a>
+              </div>
+              <p>play Spoils if it changes your buys this turn.  Or if in hypothetical state to solve recursion</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">wantsToPlaySpoils</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> state.depth &gt; <span class="hljs-number">0</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+    <span class="hljs-keyword">else</span>
+      cardsGainedWithout = <span class="hljs-keyword">this</span>.pessimisticCardsGained(state)
+      [hypState, hypMy] = state.hypothetical(<span class="hljs-keyword">this</span>)
+      hypState.current.hand.remove(c[<span class="hljs-string">"Spoils"</span>])
+      cardsGainedWith = <span class="hljs-keyword">this</span>.pessimisticCardsGained(hypState)
+      <span class="hljs-keyword">if</span> arrayEqual(cardsGainedWithout, cardsGainedWith)
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+      <span class="hljs-keyword">else</span>
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-108">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-108">&#182;</a>
+              </div>
+              <p>wantsToRebuild and rebuildPriority: taken from the Rebuild strategy</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">wantsToRebuild</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> my.countInHand(<span class="hljs-string">"Rebuild"</span>) &gt;= state.countInSupply(<span class="hljs-string">"Province"</span>) \
+       <span class="hljs-keyword">and</span> my.ai.getScoreDifference(state, my) &gt; <span class="hljs-number">0</span>
+          answer = <span class="hljs-number">1</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> state.countInSupply(<span class="hljs-string">"Province"</span>) == <span class="hljs-number">1</span> \
+            <span class="hljs-keyword">and</span> my.ai.getScoreDifference(state, my) &lt; -<span class="hljs-number">4</span>
+              answer = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> state.countInSupply(<span class="hljs-string">"Duchy"</span>) == <span class="hljs-number">0</span> \
+            <span class="hljs-keyword">and</span> my.ai.countNotInHand(my, <span class="hljs-string">"Duchy"</span>) == <span class="hljs-number">0</span>\
+            <span class="hljs-keyword">and</span> my.ai.getScoreDifference(state, my) &lt; <span class="hljs-number">0</span>
+              answer = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> my.getTreasureInHand() &gt; <span class="hljs-number">7</span> <span class="hljs-keyword">and</span> state.countInSupply(<span class="hljs-string">"Province"</span>) == <span class="hljs-number">1</span>
+              answer = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">else</span>
+          answer = state.countInSupply(<span class="hljs-string">"Province"</span>) &gt; <span class="hljs-number">0</span>
+    <span class="hljs-keyword">return</span> answer
+
+  <span class="hljs-attribute">rebuildPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> [
+    <span class="hljs-string">"Province"</span>
+    <span class="hljs-string">"Duchy"</span>
+    <span class="hljs-string">"Estate"</span>
+  ]
+
+  <span class="hljs-attribute">nameVPPriority</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span> [
+    <span class="hljs-string">"Colony"</span> <span class="hljs-keyword">if</span> my.countInDeck(<span class="hljs-string">"Colony"</span>) &gt; <span class="hljs-number">0</span>
+    <span class="hljs-string">"Province"</span>
+  ]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-109">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-109">&#182;</a>
+              </div>
+              <p>Assume we always want to play Journeyman</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-attribute">wantsToJM</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-literal">true</span>
+  
+  <span class="hljs-attribute">wantsToDiscardBeggar</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-110">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-110">&#182;</a>
               </div>
               <p><code>goingGreen</code>: determine when we’re playing for victory points. By default,
 it’s if there are any Colonies, Provinces, or Duchies in the deck.</p>
@@ -2336,11 +2639,11 @@ value is a good indication in itself that we want victory cards.</p>
         </li>
         
         
-        <li id="section-98">
+        <li id="section-111">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-98">&#182;</a>
+                <a class="pilcrow" href="#section-111">&#182;</a>
               </div>
               <p><code>pessimisticMoneyInHand</code> establishes a minimum on how much money the
 player will be able to spend in this game state. It assumes the player
@@ -2353,11 +2656,11 @@ will draw no money from the deck.</p>
         </li>
         
         
-        <li id="section-99">
+        <li id="section-112">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-99">&#182;</a>
+                <a class="pilcrow" href="#section-112">&#182;</a>
               </div>
               <p>Don’t recurse more than once. If we’re already in a hypothetical
 situation, use the stupid version instead.</p>
@@ -2373,11 +2676,11 @@ situation, use the stupid version instead.</p>
         </li>
         
         
-        <li id="section-100">
+        <li id="section-113">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-100">&#182;</a>
+                <a class="pilcrow" href="#section-113">&#182;</a>
               </div>
               <p>Look ahead to the buy phase, assuming we draw no money from the deck.</p>
 <p>TODO: when we can handle known cards on top of the deck, take them
@@ -2391,11 +2694,11 @@ into account.</p>
         </li>
         
         
-        <li id="section-101">
+        <li id="section-114">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-101">&#182;</a>
+                <a class="pilcrow" href="#section-114">&#182;</a>
               </div>
               <p>A last-ditch effort to avoid recursion, by simply fast-forwarding
 to the next phase.</p>
@@ -2407,27 +2710,28 @@ to the next phase.</p>
       <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> state.phase == <span class="hljs-string">'treasure'</span>
         state.phase = <span class="hljs-string">'buy'</span>
     
-    [hypothesis, hypothetically_my] = state.hypothetical(<span class="hljs-keyword">this</span>)</pre></div></div>
+    [hypothesis, hypothetically_my] = state.hypothetical(<span class="hljs-keyword">this</span>)
+    
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.fastForwardToBuy(hypothesis, hypothetically_my)
+
+  <span class="hljs-attribute">fastForwardToBuy</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> state.depth == <span class="hljs-number">0</span>
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">"Can only fast-forward in a hypothetical state"</span>)</pre></div></div>
             
         </li>
         
         
-        <li id="section-102">
+        <li id="section-115">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-102">&#182;</a>
+                <a class="pilcrow" href="#section-115">&#182;</a>
               </div>
-              <p> We need to save draw and discard before emptying and restore them before buyPhase, to be able to choose the right buys in actionPriority(state)</p>
+              <p>We need to save draw and discard before emptying and restore them before buyPhase, to be able to choose the right buys in actionPriority(state)</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.fastForwardToBuy(hypothesis, hypothetically_my)
-
-  <span class="hljs-attribute">fastForwardToBuy</span>: <span class="hljs-function"><span class="hljs-params">(state, my)</span> -&gt;</span>
-    <span class="hljs-keyword">if</span> state.depth == <span class="hljs-number">0</span>
-      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">"Can only fast-forward in a hypothetical state"</span>)
-    oldDraws   = my.draw.slice(<span class="hljs-number">0</span>)
+            <div class="content"><div class='highlight'><pre>    oldDraws   = my.draw.slice(<span class="hljs-number">0</span>)
     oldDiscard = my.discard.slice(<span class="hljs-number">0</span>)
     my.draw = []
     my.discard = []
@@ -2448,11 +2752,11 @@ to the next phase.</p>
         </li>
         
         
-        <li id="section-103">
+        <li id="section-116">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-103">&#182;</a>
+                <a class="pilcrow" href="#section-116">&#182;</a>
               </div>
               <p>coinLossMargin determines how much treasure the player can lose
 “for free” (because it won’t change their buy decision). Intended to be
@@ -2473,11 +2777,11 @@ of different states.</p>
         </li>
         
         
-        <li id="section-104">
+        <li id="section-117">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-104">&#182;</a>
+                <a class="pilcrow" href="#section-117">&#182;</a>
               </div>
               <p>coinGainMargin determines how much treasure the player wants to gain,
 in order to get a better card. Tries up to +$8, then returns Infinity
@@ -2499,11 +2803,11 @@ if nothing changes.</p>
         </li>
         
         
-        <li id="section-105">
+        <li id="section-118">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-105">&#182;</a>
+                <a class="pilcrow" href="#section-118">&#182;</a>
               </div>
               <p>Estimate the number of coins we’d lose by discarding/trashing/putting back
 a card.</p>
@@ -2524,11 +2828,11 @@ a card.</p>
         </li>
         
         
-        <li id="section-106">
+        <li id="section-119">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-106">&#182;</a>
+                <a class="pilcrow" href="#section-119">&#182;</a>
               </div>
               <p>Figure out whether hand1 or hand2 is better by discarding their cards
 in priority order, until one of them gets to 2 or fewer cards.</p>
@@ -2542,11 +2846,11 @@ positive if the first hand is better.</p>
         </li>
         
         
-        <li id="section-107">
+        <li id="section-120">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-107">&#182;</a>
+                <a class="pilcrow" href="#section-120">&#182;</a>
               </div>
               <p>Guard against accidental mutation; we’re going to be messing with
 these lists.</p>
@@ -2559,11 +2863,11 @@ these lists.</p>
         </li>
         
         
-        <li id="section-108">
+        <li id="section-121">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-108">&#182;</a>
+                <a class="pilcrow" href="#section-121">&#182;</a>
               </div>
               <p>Preserve our number of actions.</p>
 
@@ -2575,11 +2879,11 @@ these lists.</p>
         </li>
         
         
-        <li id="section-109">
+        <li id="section-122">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-109">&#182;</a>
+                <a class="pilcrow" href="#section-122">&#182;</a>
               </div>
               <p>state.log(“hand1 = #{hand1}”)
 state.log(“hand2 = #{hand2}”)</p>
@@ -2595,11 +2899,11 @@ state.log(“hand2 = #{hand2}”)</p>
         </li>
         
         
-        <li id="section-110">
+        <li id="section-123">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-110">&#182;</a>
+                <a class="pilcrow" href="#section-123">&#182;</a>
               </div>
               <p>Figure out whether we’d rather discard from hand1 or hand2.</p>
 
@@ -2629,11 +2933,11 @@ state.log(“hand2 = #{hand2}”)</p>
         </li>
         
         
-        <li id="section-111">
+        <li id="section-124">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-111">&#182;</a>
+                <a class="pilcrow" href="#section-124">&#182;</a>
               </div>
               <h3 id="utility-methods">Utility methods</h3>
 <p><code>copy</code> makes a copy of the AI. It will have the same behavior but a
@@ -2651,11 +2955,11 @@ different name, and will not be equal to this AI.</p>
         </li>
         
         
-        <li id="section-112">
+        <li id="section-125">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-112">&#182;</a>
+                <a class="pilcrow" href="#section-125">&#182;</a>
               </div>
               <p>Some functions need to check the actionPriority a lot. This pair of
 methods will save a cached value so you don’t need to run such an expensive
@@ -2670,16 +2974,17 @@ function over and over.</p>
     <span class="hljs-property">@cachedAP</span> = my.ai.actionPriority(state, my)
 
   <span class="hljs-attribute">toString</span>: <span class="hljs-function"><span class="hljs-params">()</span> -&gt;</span> <span class="hljs-keyword">this</span>.name
+  
 <span class="hljs-keyword">this</span>.BasicAI = BasicAI</pre></div></div>
             
         </li>
         
         
-        <li id="section-113">
+        <li id="section-126">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-113">&#182;</a>
+                <a class="pilcrow" href="#section-126">&#182;</a>
               </div>
               <h2 id="utility-functions">Utility functions</h2>
 
@@ -2688,11 +2993,11 @@ function over and over.</p>
         </li>
         
         
-        <li id="section-114">
+        <li id="section-127">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-114">&#182;</a>
+                <a class="pilcrow" href="#section-127">&#182;</a>
               </div>
               <p><code>count</code> counts the number of times <code>elt</code> appears in <code>list</code>.</p>
 
@@ -2708,11 +3013,11 @@ function over and over.</p>
         </li>
         
         
-        <li id="section-115">
+        <li id="section-128">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-115">&#182;</a>
+                <a class="pilcrow" href="#section-128">&#182;</a>
               </div>
               <p><code>stringify</code> turns an object into a string, while handling <code>null</code> safely.</p>
 
@@ -2727,11 +3032,11 @@ function over and over.</p>
         </li>
         
         
-        <li id="section-116">
+        <li id="section-129">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-116">&#182;</a>
+                <a class="pilcrow" href="#section-129">&#182;</a>
               </div>
               <p>General function to randomly shuffle a list.</p>
 
@@ -2746,6 +3051,22 @@ function over and over.</p>
     v[i] = v[j]
     v[j] = temp
   v</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-130">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-130">&#182;</a>
+              </div>
+              <p>compare Arrays</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-title">arrayEqual</span> = <span class="hljs-params">(a, b)</span> -&gt;</span>
+  a.length <span class="hljs-keyword">is</span> b.length <span class="hljs-keyword">and</span> a.every <span class="hljs-function"><span class="hljs-params">(elem, i)</span> -&gt;</span> elem <span class="hljs-keyword">is</span> b[i]</pre></div></div>
             
         </li>
         
