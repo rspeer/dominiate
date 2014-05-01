@@ -5046,8 +5046,8 @@
       }
     },
     ai_playValue: function(state, my) {
-      if (my.ai.wantPlayRats(state, my)) {
-        return 1000;
+      if (my.ai.wantsToPlayRats(state, my)) {
+        return 486;
       } else {
         return -1;
       }
