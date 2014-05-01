@@ -916,6 +916,49 @@ makeCard 'Remodel', action, {
   ai_playValue: (state, my) -> 223
 }
 
+makeCard 'Develop', action, {
+  cost: 3
+  
+#  exactCostUpgrade: true
+    
+  developTarget: (state, oldCard, newCard) ->
+    return Math.abs(oldCard.getCost(state)[0] - newCard.getCost(state)[0])==1 and (oldCard.getCost(state)[1] == newCard.getCost(state)[1])
+    
+  playEffect: (state) ->
+    oldChoices = state.current.hand.unique()
+    choices = []
+    for oldCard in oldChoices
+      newCards = []
+      for card in state.filledPiles() 
+        if (this.developTarget(state, oldCard, c[card]))
+          newCards.push(c[card])
+      if newCards.length==0
+        choices.push([oldCard, [null, null]])
+      else 
+        for newCard in newCards
+          partnerCards = []
+          for card in state.filledPiles() 
+            if (this.developTarget(state, oldCard, c[card]) and c[card].getCost(state)[0] != c[newCard].getCost(state)[0])
+              partnerCards.push(c[card])
+          if partnerCards.length==0
+            choices.push([oldCard, [newCard, null]])
+          else
+            for partnerCard in partnerCards
+              choices.push([oldCard, [newCard,partnerCard]] )
+    
+    choice = state.current.ai.choose('develop', state, choices)
+    if choice isnt null
+      [oldCard, [newCard1, newCard2]] = choice
+      state.doTrash(state.current, oldCard)
+      if newCard1 isnt null
+        state.gainCard(state.current, newCard1, 'draw')
+      if newCard2 isnt null
+        state.gainCard(state.current, newCard2, 'draw')
+
+  # A rough approximation to when you want to Develop: when all you've
+  # got to play is terminals.
+  ai_playValue: (state, my) -> 271
+}
 
 makeCard 'Expand', c.Remodel, {
   cost: 7
