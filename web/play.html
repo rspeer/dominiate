@@ -19,9 +19,6 @@
 </div>
 
 <div id="news">
-  <b>News</b>: Starting to implement Dark Ages cards. Sage, Graverobber, and
-  Poor House are in. Unimplemented cards from all expansions are in the
-  <a href="https://github.com/rspeer/dominiate/issues">bug tracker</a>.
 </div>
 
 <div id="p1">
@@ -70,6 +67,10 @@
           <span>Play 1000 games</span>
         </label></li>
         <li><label>
+          <input type="radio" name="playUntil" value="play10000" id="play10000" />
+          <span>Play 10000 games</span>
+        </label></li>
+        <li><label>
           <input type="radio" name="playUntil" value="playUntilDecisive" id="playUntilDecisive" checked="checked" />
           <span>Play until winner is clear</span>
         </label></li>
@@ -93,9 +94,9 @@
           </label>
         </li>
       </ul>
-      <a id="playButton" href="#" class="btn success">
+      <button id="playButton" class="btn success">
         Start playing
-      </a>
+      </button>
       <a id="reset" href="#" class="btn">
         Reset
       </a>
@@ -280,6 +281,7 @@ $ ->
     else if $('#playOne').is(':checked') then playOneGame()
     else if $('#play100').is(':checked') then playUntil((-> false), 100)
     else if $('#play1000').is(':checked') then playUntil((-> false), 1000)
+    else if $('#play10000').is(':checked') then playUntil((-> false), 10000)
     else if $('#playUntilDecisive').is(':checked')
       playUntil(tracker.decisiveWinner, Infinity)
     return false
