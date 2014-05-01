@@ -46,6 +46,8 @@ class ScoreTracker
   updateScores: =>
     @proportions = (score / @games for score in @scores)
   
+  # This should be using a binomial distribution, 
+  # but N>=40 is probably Gaussian enough
   decisiveWinner: =>
     for i in [0...@players.length]
       if @proportions[i] - this.errorMargin() > 1 / @scores.length
