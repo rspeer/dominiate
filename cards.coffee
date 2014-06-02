@@ -1682,6 +1682,21 @@ makeCard 'Spy', attack, {
 
 }
 
+makeCard 'Soothsayer', attack, {
+  cost: 5
+
+  playEffect: (state) ->
+    state.gainCard(state.current, c.Gold)
+
+    state.attackOpponents (opp) ->
+      cursesRemaining = state.countInSupply('Curse')
+      state.gainCard(opp, c.Curse)
+      if state.countInSupply('Curse') < cursesRemaining # they gained a curse
+        state.drawCards(opp, 1)
+
+  ai_playValue: (state, my) -> 199
+}
+
 makeCard 'Thief', attack, {
   cost: 4
   playEffect: (state) ->
