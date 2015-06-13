@@ -459,7 +459,6 @@ class State
   #   and Potion have to be listed explicitly.
   initialize: (ais, tableau, logFunc) ->
     this.logFunc = logFunc
-    @players = (new PlayerState().initialize(ai, this.logFunc) for ai in ais)
     @players = []
     playerNum = 0
     for ai in ais
@@ -520,6 +519,8 @@ class State
   #   left undefined.
   # - `log
   setUpWithOptions: (ais, options) ->
+    if ais.length == 0
+        throw new Error("There has to be at least one player.")
     tableau = []
     if options.require?
       for card in options.require
@@ -781,7 +782,7 @@ class State
   # this in a single loop would be a bad idea because it would make Web
   # browsers freeze up. Browser-facing code should return control after each
   # call to `doPlay()`.
-  doPlay: () ->  
+  doPlay: () ->
     switch @phase
       when 'start'
         if not @extraturn
