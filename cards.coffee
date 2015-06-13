@@ -2769,7 +2769,7 @@ makeCard "Lookout", action, {
     state.current.setAside = []
 
   ai_playValue: (state, my) ->
-    if state.gainsToEndGame >= 5 or state.cardInfo.Curse in my.draw
+    if state.gainsToEndGame() >= 5 or state.cardInfo.Curse in my.draw
       895
     else
       -5
