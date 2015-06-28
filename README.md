@@ -32,7 +32,7 @@ environment with a command line.
 First, acquire node.js (v0.4 or later) and npm (the Node Package Manager).  The
 best way to do this differs by operating system and changes a lot.
 
-Enable CoffeeScript by running `sudo npm-g install coffee-script` (or whatever
+Enable CoffeeScript by running `sudo npm -g install coffee-script` (or whatever
 the equivalent is on Windows). Now node.js will understand CoffeeScript source
 files.
 
@@ -47,7 +47,7 @@ The Web version of Dominiate is built using CoffeeScript and Less CSS.
 
 **On a reasonable UNIX computer** (including Linux and Mac OS):
 Follow the instructions above to set up CoffeeScript. You should also install
-Less CSS with `sudo npm-g install less`.
+Less CSS with `sudo npm -g install less`.
 
 Then, type `make` to build the JavaScript and CSS files that will be used
 on the Web.
