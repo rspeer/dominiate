@@ -2808,7 +2808,11 @@
       if (player.ai.choose('minionDiscard', state, [true, false])) {
         c['Minion'].discardAndDraw4(state, player);
         return state.attackOpponents(function(opp) {
-          return c['Minion'].discardAndDraw4(state, opp);
+          if (opp.hand.length >= 5) {
+            return c['Minion'].discardAndDraw4(state, opp);
+          } else {
+            return state.log("..." + opp.ai + " has fewer than 5 cards.");
+          }
         });
       } else {
         state.attackOpponents(function(opp) {
