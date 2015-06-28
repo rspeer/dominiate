@@ -1383,8 +1383,10 @@ makeCard "Minion", attack, {
     if player.ai.choose('minionDiscard', state, [yes, no])
       c['Minion'].discardAndDraw4(state, player)
       state.attackOpponents (opp) ->
-        if opp.hand.length > 4
+        if opp.hand.length >= 5
           c['Minion'].discardAndDraw4(state, opp)
+        else
+          state.log("...#{opp.ai} has fewer than 5 cards.")
     else
       state.attackOpponents (opp) -> null
       player.coins += 2
