@@ -1383,7 +1383,8 @@ makeCard "Minion", attack, {
     if player.ai.choose('minionDiscard', state, [yes, no])
       c['Minion'].discardAndDraw4(state, player)
       state.attackOpponents (opp) ->
-        c['Minion'].discardAndDraw4(state, opp)
+        if opp.hand.length > 4
+          c['Minion'].discardAndDraw4(state, opp)
     else
       state.attackOpponents (opp) -> null
       player.coins += 2
