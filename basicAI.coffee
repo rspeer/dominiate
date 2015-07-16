@@ -1,5 +1,7 @@
 {c} = require './cards' if exports?
 
+Array::remove = (e) -> @[t..t] = [] if (t = @indexOf(e)) > -1
+
 # The Basic AI
 # ------------
 # This class defines a rule-based AI of the kind that is popular
@@ -100,7 +102,7 @@ class BasicAI
       if value > bestValue
         bestValue = value
         bestChoice = choice
-      
+
     # If we got a valid choice, return it.
     if bestChoice in choices
       return bestChoice
@@ -1149,10 +1151,20 @@ class BasicAI
 
   # `wantsToTrash` returns the number of cards in hand that we would trash
   # for no benefit.
-  wantsToTrash: (state) ->
+  # `skipCardName let you specify a card to ignore. In general
+  # this will be the card causing the trashing in the first place, and is
+  # needed in ai_playValue (since the card has not been played yet) but
+  # not in playEffect (where the card will no longer be in the bot's hand)
+  wantsToTrash: (state, skipCardName=null) ->
     my = this.myPlayer(state)
     trashableCards = 0
-    for card in my.hand
+    if skipCardName?
+      adjusted_hand = my.hand.slice 0
+      adjusted_hand.remove(c[skipCardName])
+    else
+      adjust_hand = my.hand # No need to copy
+
+    for card in adjusted_hand
       if this.chooseTrash(state, [card, null]) is card
         trashableCards += 1
     return trashableCards

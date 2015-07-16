@@ -1021,7 +1021,7 @@ makeCard 'Upgrade', c.Remodel, {
 
   ai_playValue: (state, my) ->
     multiplier = my.getMultiplier()
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, 'Upgrade')
     if wantsToTrash >= multiplier
       490
     else
@@ -1045,7 +1045,7 @@ makeCard 'Remake', c.Remodel, {
 
   ai_playValue: (state, my) ->
     multiplier = my.getMultiplier()
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, "Remake")
     if wantsToTrash >= multiplier*2
       178
     else
@@ -1191,13 +1191,13 @@ makeCard 'Ambassador', attack, {
         state.log("...but #{cardName} is not in the Supply.")
 
   ai_playValue: (state, my) ->
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, "Ambassador")
     if wantsToTrash > 0
       150
     else
       -20
   ai_multipliedValue: (state, my) ->
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, "Ambassador")
     if my.actions > 0 and wantsToTrash > 0
       1100
     else
@@ -2082,7 +2082,7 @@ makeCard 'Chapel', action, {
       state.allowTrash(state.current, 4)
 
   ai_playValue: (state, my) ->
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, "Chapel")
     if wantsToTrash > 0
       146
     else
@@ -2895,7 +2895,7 @@ makeCard "Mint", action, {
 
   ai_playValue: (state, my) ->
     multiplier = my.getMultiplier()
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state) # Does this statement have any effect?
     if my.ai.choose('mint', state, my.hand)
       140
     else
@@ -3417,7 +3417,7 @@ makeCard "Trade Route", action, {
 
   ai_playValue: (state, my) ->
     multiplier = my.getMultiplier()
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, "Trade Route")
     if wantsToTrash >= multiplier
       160
     else
@@ -3442,7 +3442,7 @@ makeCard "Trader", action, {
 
   ai_playValue: (state, my) ->
     multiplier = my.getMultiplier()
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, "Trader")
     if wantsToTrash >= multiplier
       142
     else
@@ -3458,7 +3458,7 @@ makeCard "Trading Post", action, {
 
   ai_playValue: (state, my) ->
     multiplier = my.getMultiplier()
-    wantsToTrash = my.ai.wantsToTrash(state)
+    wantsToTrash = my.ai.wantsToTrash(state, "Trading Post")
     if wantsToTrash >= multiplier*2
       148
     else
@@ -3483,8 +3483,8 @@ makeCard "Transmute", action, {
 
   ai_playValue: (state, my) ->
     multiplier = my.getMultiplier()
-    wantsToTrash = my.ai.wantsToTrash(state)
-    if my.ai.choose('mint', state, my.hand)
+    wantsToTrash = my.ai.wantsToTrash(state) # Does this statement have any effect?
+    if my.ai.choose('mint', state, my.hand) # What is 'mint' doing here?
       106
     else
       -27
@@ -3699,6 +3699,25 @@ makeCard 'Workshop', action, {
     state.gainOneOf(state.current, choices)
 
   ai_playValue: (state, my) -> 112
+}
+
+makeCard 'Forager', action, {
+  cost: 3
+  buys: 1
+  actions: 1
+
+  playEffect: (state) ->
+    state.requireTrash(state.current, 1)
+    state.current.coins += Set(card for card in state.trash\
+        when card.isTreasure).size
+
+  ai_playValue: (state, my) ->
+    multiplier = my.getMultiplier()
+    wantsToTrash = my.ai.wantsToTrash(state, 'Forager')
+    if wantsToTrash >= multiplier
+      489 # One less than Upgrade
+    else
+      -25
 }
 
 # Utility functions
