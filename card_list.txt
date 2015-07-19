@@ -1,4 +1,4 @@
-Cards that are done (158)
+Cards that are done (159)
 =========================
 Adventurer
 Alchemist
@@ -9,6 +9,7 @@ Bag of Gold
 Bank
 Baron
 Bazaar
+Beggar
 Bishop
 Border Village
 Bridge

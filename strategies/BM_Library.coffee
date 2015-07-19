@@ -1,6 +1,7 @@
 {
   name: 'BM Library'
   requires: ['Library']
+  counters: ['DoubleMilitia']
   gainPriority: (state, my) -> [
     "Colony" if my.countInDeck("Platinum") > 0
     "Province" if state.countInSupply("Colony") <= 6
