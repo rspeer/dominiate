@@ -18,6 +18,16 @@ Dominiate is written in CoffeeScript, which compiles to JavaScript. This means
 it can either run at the command line using node.js, or it can run natively
 in a Web browser!
 
+This is old code
+----------------
+
+I did most of my work on this in 2014. CoffeeScript was a beneficial thing at
+the time, because JavaScript before ES2015 was a bad language.
+
+Now there are better ways to write nice JavaScript, and also there are several
+more Dominion packs that I never accounted for. I'm permissively licensing the
+code so that anyone who is interested can pick up the pieces.
+
 Documentation
 -------------
 The `docs` directory contains documentation in the "literate programming" style
